@@ -1,10 +1,10 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
 import '../../globals.css';
 
-export default function ClientAuthPage() {
+function AuthContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isLogin, setIsLogin] = useState(false); // Default to Register for new clients
@@ -287,5 +287,13 @@ export default function ClientAuthPage() {
                 .link-btn:hover { color: #f59e0b; }
             `}</style>
         </div>
+    );
+}
+
+export default function ClientAuthPage() {
+    return (
+        <Suspense fallback={<div style={{ color: 'white', textAlign: 'center', marginTop: '20vh' }}>Cargando acceso seguro...</div>}>
+            <AuthContent />
+        </Suspense>
     );
 }

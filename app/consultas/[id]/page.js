@@ -1,12 +1,11 @@
 "use client";
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, use, Suspense } from 'react';
 import { supabase } from '../../lib/supabase';
 import ChatWidget from '../../components/ChatWidget';
 import styles from '../../page.module.css'; // Reusing landing page styles for consistency
 import { useSearchParams, useRouter } from 'next/navigation'; // [NEW] Get query params
 
-export default function SmartIntakePage({ params }) {
-    const { id } = use(params); // Next.js 15+ Requirement
+function IntakeContent({ id }) {
     const searchParams = useSearchParams(); // [NEW] Get query params
     const router = useRouter(); // [NEW] Navigation
 
@@ -239,5 +238,14 @@ export default function SmartIntakePage({ params }) {
             .logout-btn-mini:hover { opacity: 1; color: #ef4444; }
       `}</style>
         </main >
+    );
+}
+
+export default function SmartIntakePage({ params }) {
+    const { id } = use(params);
+    return (
+        <Suspense fallback={<div className="loading-screen">Iniciando asistente...</div>}>
+            <IntakeContent id={id} />
+        </Suspense>
     );
 }
