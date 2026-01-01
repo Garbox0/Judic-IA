@@ -143,7 +143,10 @@ export default function AuthFormContent() {
             }
 
         } catch (err) {
-            setError(err.message);
+            let msg = err.message;
+            if (msg === "Email not confirmed") msg = "El correo electrónico no ha sido confirmado aún. Revisa tu bandeja de entrada.";
+            if (msg === "Invalid login credentials") msg = "Credenciales inválidas. Revisa tu email y contraseña.";
+            setError(msg);
         } finally {
             setLoading(false);
         }
