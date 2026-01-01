@@ -4,6 +4,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
 import '../../globals.css';
 
+export const dynamic = "force-dynamic";
+
 function AuthContent() {
     const router = useRouter();
     const searchParams = useSearchParams();

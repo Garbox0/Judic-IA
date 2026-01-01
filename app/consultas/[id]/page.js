@@ -5,6 +5,8 @@ import ChatWidget from '../../components/ChatWidget';
 import styles from '../../page.module.css'; // Reusing landing page styles for consistency
 import { useSearchParams, useRouter } from 'next/navigation'; // [NEW] Get query params
 
+export const dynamic = "force-dynamic";
+
 function IntakeContent({ id }) {
     const searchParams = useSearchParams(); // [NEW] Get query params
     const router = useRouter(); // [NEW] Navigation
