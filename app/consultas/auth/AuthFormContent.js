@@ -146,6 +146,12 @@ export default function AuthFormContent() {
             let msg = err.message;
             if (msg === "Email not confirmed") msg = "El correo electrónico no ha sido confirmado aún. Revisa tu bandeja de entrada.";
             if (msg === "Invalid login credentials") msg = "Credenciales inválidas. Revisa tu email y contraseña.";
+            if (msg.includes("only request this after")) {
+                const seconds = msg.match(/\d+/);
+                msg = `Por razones de seguridad, debes esperar ${seconds} segundos antes de reintentar.`;
+            }
+            if (msg.includes("Signup is disabled")) msg = "El registro está deshabilitado temporalmente.";
+
             setError(msg);
         } finally {
             setLoading(false);
