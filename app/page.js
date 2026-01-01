@@ -268,7 +268,7 @@ export default function Home() {
       `}</style>
 
       {/* Sales Bot - Selling the SaaS */}
-      <ChatWidget
+      <SafeChatWidget
         mode="sales"
         initialMessage="¡Hola! 👋 Soy el asistente de ventas de Judic-IA. ¿Tienes preguntas sobre cómo automatizar tu estudio?"
       />
