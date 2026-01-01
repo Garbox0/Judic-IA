@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import Link from 'next/link';
-import ChatWidget from '../../components/ChatWidget';
+import SafeChatWidget from '../../components/SafeChatWidget';
 
 export default function ResearchPage() {
     const [query, setQuery] = useState('');

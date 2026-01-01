@@ -1,6 +1,10 @@
-import ChatWidget from "../components/ChatWidget";
+import SafeChatWidget from "../components/SafeChatWidget";
 import Link from "next/link";
 import styles from "../page.module.css";
+
+// FORCE DYNAMIC RENDERING
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export default function DemoPage() {
     return (
@@ -26,9 +30,8 @@ export default function DemoPage() {
                 </p>
             </div>
 
-            {/* Client Bot Widget - Mode: CLIENT */}
-            {/* Client Bot Widget - Mode: CLIENT (Centered/Embedded) */}
-            <ChatWidget
+            {/* Client Bot Widget - Mode: CLIENT - Dynamically loaded */}
+            <SafeChatWidget
                 mode="client"
                 initialMessage="Hola, soy el asistente virtual del Dr. Martínez. ¿En qué puedo ayudarte hoy?"
                 embedded={true}

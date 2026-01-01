@@ -1,7 +1,7 @@
 "use client";
 import styles from "./page.module.css";
 import Link from "next/link";
-import ChatWidget from "./components/ChatWidget";
+import SafeChatWidget from "./components/SafeChatWidget";
 import { useState } from 'react';
 
 export default function Home() {

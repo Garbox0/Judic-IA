@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import ChatWidget from '../../components/ChatWidget';
+import SafeChatWidget from '../../components/SafeChatWidget';
 import styles from '../../page.module.css';
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -103,7 +103,7 @@ export default function IntakeFormContent({ id }) {
 
                     {/* Right: The Chat */}
                     <div className="chat-side">
-                        <ChatWidget
+                        <SafeChatWidget
                             mode="intake"
                             lawyerId={id}
                             embedded={true}

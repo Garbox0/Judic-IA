@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
-import ChatWidget from '../components/ChatWidget';
+import SafeChatWidget from '../components/SafeChatWidget';
+import '../globals.css';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -471,9 +472,10 @@ export default function LoginPage() {
           text-align: center;
         }
       `}</style>
-      <ChatWidget
+      {/* Client Bot - Floating */}
+      <SafeChatWidget
         mode="sales"
-        initialMessage="Hola, soy el asistente comercial de Judic-IA. ¿En qué puedo ayudarte hoy sobre nuestros servicios para abogados?"
+        initialMessage="¡Hola! Veo que estás interesado en Judic-IA. ¿Necesitas ayuda con los planes o el registro?"
       />
     </div>
   );
