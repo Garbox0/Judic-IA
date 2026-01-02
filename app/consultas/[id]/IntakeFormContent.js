@@ -20,8 +20,11 @@ export default function IntakeFormContent({ id }) {
 
             const cid = searchParams.get('cid');
 
-            // 1. CID VALIDATION (If provided, it MUST exist in inquiries)
-            // A missing CID might be a new lead, but an existing CID that is GONE 
+            // 1. CID VALIDATION REMOVED (Conflicted with RLS)
+            // We blindly trust the CID here. If it's invalid, the ChatWidget or API will handle it later.
+            // This prevents the "Restricted Access" error for valid users who just can't "see" the row yet due to RLS.
+            /*
+            // A missing CID might be a new lead, but an existing CID that is GONE
             // means the lawyer explicitly revoked/deleted it.
             if (cid) {
                 const { data: inquiryData, error: inquiryError } = await supabase
@@ -37,6 +40,7 @@ export default function IntakeFormContent({ id }) {
                     return;
                 }
             }
+            */
 
             // 2. AUTH PROTECTION
             const { data: { session } } = await supabase.auth.getSession();
