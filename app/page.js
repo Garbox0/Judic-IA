@@ -154,7 +154,7 @@ export default function Home() {
         <div className="footer-content">
           <div className="footer-brand">Judic-IA</div>
           <div className="footer-links">
-            <span>© 2024 Judic-IA LegalTech</span>
+            <span>© 2026 Judic-IA LegalTech</span>
             <Link href="#">Términos</Link>
             <Link href="#">Privacidad</Link>
             <Link href="/dashboard">Acceso Clientes</Link>
@@ -166,18 +166,47 @@ export default function Home() {
       <style jsx>{`
         /* GLOBAL LAYOUT */
         .glass-navbar {
-            position: fixed; top: 1.5rem; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 1100px; display: flex; justifyContent: space-between;
-            align-items: center; padding: 0.8rem 2rem; z-index: 100; borderRadius: 99px;
-            background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1);
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            display: flex; 
+            justify-content: center;
+            align-items: center; 
+            padding: 1.5rem 0; 
+            z-index: 100;
+            background: transparent;
         }
-        .nav-brand { display: flex; align-items: center; gap: 0.8rem; }
-        .nav-logo { width: 35px; }
-        .nav-title { font-weight: 800; font-size: 1.4rem; color: #fbbf24; letter-spacing: -0.02em; }
-        .nav-links { display: flex; gap: 2rem; align-items: center; font-size: 0.95rem; }
-        .link-item { color: #cbd5e1; text-decoration: none; transition: 0.2s; }
-        .link-item:hover { color: white; }
-        .btn-login { color: #fbbf24; font-weight: 600; text-decoration: none; }
+        
+        /* Inner container for max-width content */
+        .glass-navbar::after {
+            /* Optional: subtle gradient at top if needed, but clean is better */
+            content: '';
+        }
+
+        .nav-brand { display: flex; align-items: center; gap: 0.8rem; margin-right: auto; padding-left: 2rem; }
+        .nav-logo { width: 40px; }
+        .nav-title { font-weight: 800; font-size: 1.5rem; color: #fbbf24; letter-spacing: -0.02em; text-shadow: 0 2px 10px rgba(251, 191, 36, 0.2); }
+        
+        .nav-links { display: flex; gap: 2.5rem; align-items: center; font-size: 0.95rem; padding-right: 2rem; }
+        .link-item { color: #cbd5e1; text-decoration: none; transition: 0.2s; font-weight: 500; }
+        .link-item:hover { color: #fbbf24; text-shadow: 0 0 8px rgba(251, 191, 36, 0.4); }
+        
+        .btn-login { 
+            color: #0f172a; 
+            background: #fbbf24;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 700; 
+            text-decoration: none;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2);
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.3);
+            background: #f59e0b;
+        }
 
         /* HERO */
         .hero-section {
