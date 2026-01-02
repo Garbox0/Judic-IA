@@ -22,12 +22,18 @@ export default function LoginPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null); // Success message state
   const [showPassword, setShowPassword] = useState(false);
+  const [customJurisdiccion, setCustomJurisdiccion] = useState('');
 
   const [paymentStep, setPaymentStep] = useState(false);
 
   // Options
-  const SPECIALTIES_OPTIONS = ['Laboral', 'Familia', 'Penal', 'Sucesiones', 'Comercial', 'Previsional'];
+  const SPECIALTIES_OPTIONS = [
+    'Laboral', 'Familia', 'Penal', 'Sucesiones', 'Comercial', 'Previsional',
+    'Civil', 'Administrativo', 'Tributario', 'Seguros', 'Defensa del Consumidor',
+    'Daños y Perjuicios', 'Propiedad Intelectual', 'Ambiental', 'Aduanero', 'Seguridad Social'
+  ];
   const JURISDICCION_OPTIONS = ['CPACF (Capital Federal)', 'CASI (San Isidro)', 'CALP (La Plata)', 'Colegio de Córdoba', 'Colegio de Santa Fe', 'Otro'];
 
   const toggleSpecialty = (spec) => {
@@ -49,7 +55,10 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setError(error.message);
+      let msg = error.message;
+      if (msg === "Email not confirmed") msg = "Debes confirmar tu email antes de ingresar. Revisa tu bandeja de entrada.";
+      if (msg === "Invalid login credentials") msg = "Credenciales inválidas. Revisa tu email y contraseña.";
+      setError(msg);
       setLoading(false);
     } else {
       router.push('/dashboard');
@@ -66,9 +75,16 @@ export default function LoginPage() {
       setError("Selecciona al menos una especialidad.");
       return;
     }
+    if (jurisdiccion === 'Otro' && !customJurisdiccion) {
+      setError("Por favor especifica tu colegio o jurisdicción.");
+      return;
+    }
 
     setLoading(true);
     setError(null);
+    setMessage(null);
+
+    const finalJurisdiccion = jurisdiccion === 'Otro' ? customJurisdiccion : jurisdiccion;
 
     // Send metadata to Supabase
     const { data, error } = await supabase.auth.signUp({
@@ -80,17 +96,28 @@ export default function LoginPage() {
           last_name: lastName,
           cuit: cuit,
           matricula: matricula,
-          jurisdiccion: jurisdiccion,
+          jurisdiccion: finalJurisdiccion,
           especialidades: specialties
         }
       }
     });
 
+    // STEALTH MODE: Even if there's an error like "User already registered", 
+    // we show a success message to avoid leaking user existence.
+    // Supabase returns an error for duplicates if "Enable email provider" is on.
     if (error) {
-      setError(error.message);
+      // In a real production environment with high security, we'd log this error silently
+      // and show the "Check your email" message anyway. 
+      // But for better UX during dev, if it's a REAL structural error, we show it.
+      if (error.message.includes("rate limit") || error.message.includes("valid")) {
+        setError(error.message);
+      } else {
+        // Assume duplicate or successful send logic
+        setMessage("¡Casi listo! Si el email es válido, recibirás un enlace de confirmación en instantes.");
+      }
     } else {
-      // SUCCESS: Enable Payment Step instead of alerting
-      setPaymentStep(true);
+      setMessage("¡Registro iniciado! Revisa tu email para confirmar tu cuenta profesional.");
+      // We don't jump to payment until they confirm email for security/validity
     }
     setLoading(false);
   };
@@ -202,6 +229,19 @@ export default function LoginPage() {
                   </select>
                 </div>
 
+                {jurisdiccion === 'Otro' && (
+                  <div className="input-group full-width fade-in">
+                    <label>Especificar Colegio / Jurisdicción</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Colegio de Abogados de Tucumán"
+                      value={customJurisdiccion}
+                      onChange={e => setCustomJurisdiccion(e.target.value)}
+                      required
+                    />
+                  </div>
+                )}
+
                 <div className="input-group full-width">
                   <label>Especialidades (Lo que atenderá tu IA)</label>
                   <div className="tags-container">
@@ -268,6 +308,7 @@ export default function LoginPage() {
             )}
 
             {error && <div className="error-msg">{error}</div>}
+            {message && <div className="success-msg">📩 {message}</div>}
 
             <button type="submit" disabled={loading} className="btn-primary">
               {loading ? 'Procesando...' : (isSignUp ? 'Confirmar Registro' : 'Iniciar Sesión')}
@@ -465,6 +506,15 @@ export default function LoginPage() {
         .error-msg {
           background: rgba(239, 68, 68, 0.2);
           color: #fca5a5;
+          padding: 0.75rem;
+          border-radius: 8px;
+          margin-bottom: 1rem;
+          font-size: 0.9rem;
+          text-align: center;
+        }
+        .success-msg {
+          background: rgba(34, 197, 94, 0.2);
+          color: #86efac;
           padding: 0.75rem;
           border-radius: 8px;
           margin-bottom: 1rem;
