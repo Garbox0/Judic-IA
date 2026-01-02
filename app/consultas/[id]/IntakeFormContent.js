@@ -155,8 +155,10 @@ export default function IntakeFormContent({ id }) {
 
             <style jsx>{`
             .loading-screen, .error-screen {
+                position: fixed; top: 0; left: 0; width: 100vw;
                 height: 100vh; display: flex; align-items: center; justify-content: center;
                 background: #020617; color: white; font-family: sans-serif;
+                z-index: 9999;
             }
             .main {
                 background-color: #020617;
