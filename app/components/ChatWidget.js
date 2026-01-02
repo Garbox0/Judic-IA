@@ -42,7 +42,7 @@ export default function ChatWidget({ mode = "client", initialMessage = "Hola..."
                 }
             }
 
-            if (activeSessionId) {
+            if (activeSessionId && activeSessionId !== sessionId) {
                 setSessionId(activeSessionId);
 
                 // FETCH HISTORY FROM API (Persistence)
@@ -52,16 +52,10 @@ export default function ChatWidget({ mode = "client", initialMessage = "Hola..."
                         const res = await fetch(`/api/chat?sessionId=${activeSessionId}`);
                         const data = await res.json();
                         if (data.history && data.history.length > 0) {
-                            // Filter valid messages (user/assistant) and format
                             setMessages(data.history.map(msg => ({
                                 role: msg.role,
                                 content: msg.content
                             })));
-
-                            // If history exists, we probably don't need the "Initial Message" again,
-                            // or we just append history. 
-                            // Current logic: Replace state with history. 
-                            // If history is empty, the initial state "Hola..." remains (we don't setMessages).
                         }
                     } catch (err) {
                         console.error("Error restoring chat history:", err);
@@ -70,7 +64,7 @@ export default function ChatWidget({ mode = "client", initialMessage = "Hola..."
             }
         };
         initSession();
-    }, [mode, searchParams]);
+    }, [mode, searchParams, sessionId]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

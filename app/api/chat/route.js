@@ -164,7 +164,7 @@ Every time the user provides their Name, Phone, or describes their Case, you MUS
 FORMAT:
 <extraction>
 {
-    "contact_name": "Extract Name if present, else null",
+    "contact_name": "Extract Name if present. If unknown, use null. NEVER use 'Usuario' or generic placeholders.",
     "contact_phone": "Extract Phone if present, else null",
     "case_type": "Classify: 'Divorcio', 'Sucesión', 'Despido', 'ART', 'Penal', or 'Civil'",
     "ai_summary": "Brief 1-sentence summary of the case facts known so far",
@@ -240,6 +240,7 @@ export async function POST(request) {
             const upsertData = {
                 id: sessionId,
                 case_type: caseType,
+                contact_name: 'Nuevo Cliente', // Fixed: Avoid "usuario" placeholder
                 status: 'Nuevo'
             };
 

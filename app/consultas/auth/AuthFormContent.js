@@ -14,6 +14,8 @@ export default function AuthFormContent() {
     const [error, setError] = useState(null);
     const [message, setMessage] = useState(null);
     const [restricted, setRestricted] = useState(false); // Restricted access state
+    const [isConfirmed, setIsConfirmed] = useState(false);
+    const [confirmedSession, setConfirmedSession] = useState(null);
 
     // Get context from URL
     const lawyerId = searchParams.get('lawyerId') || searchParams.get('lawyer');
@@ -28,28 +30,10 @@ export default function AuthFormContent() {
             setRestricted(true);
         }
 
-        // 2. CID Validation (Surgical Precision)
-        // Verify if the inquiry still exists before allowing registration/login
-        const checkLinkValidity = async () => {
-            if (cid) {
-                const { data: isValid, error: rpcError } = await supabase
-                    .rpc('check_inquiry_exists', { inquiry_id: cid });
-
-                if (rpcError || !isValid) {
-                    console.log("🔒 CID no válido o eliminado. Bloqueando acceso.");
-                    setRestricted(true);
-                }
-            } else if (lawyerId) {
-                // Also verify if the lawyerId is valid at least.
-                const { data: lawyerData } = await supabase
-                    .from('profiles')
-                    .select('id')
-                    .eq('id', lawyerId)
-                    .single();
-                if (!lawyerData) setRestricted(true);
-            }
-        };
-        checkLinkValidity();
+        // 2. CID Validation REMOVED
+        // We allow entry to the auth form for any link.
+        // If the lawyer id is genuinely missing, we handle it during/after login.
+        // This prevents RLS blocks for anonymous clients.
     }, [searchParams, cid, lawyerId]);
 
     // Redirect out if restricted
@@ -62,39 +46,60 @@ export default function AuthFormContent() {
         }
     }, [restricted, router]);
 
-    // Handle Email Confirmation Return & Auto-Redirect
+    // Handle Email Confirmation Return & Auto-Redirect (Now Manual as requested)
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session) {
                 console.log("⚡ Auth Event: SIGNED_IN", session.user.email);
 
-                // If we have context, try to create inquiry and redirect
-                if (lawyerId) {
-                    const currentCid = searchParams.get('cid') || crypto.randomUUID();
-
-                    await fetch("/api/chat", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            message: `[SISTEMA: Cliente verificado: ${session.user.email}]`,
-                            history: [],
-                            mode: 'intake',
-                            sessionId: currentCid,
-                            lawyerId: lawyerId,
-                            clientUserId: session.user.id,
-                            clientEmail: session.user.email
-                        }),
-                    });
-
-                    router.push(`/consultas/${lawyerId}?cid=${currentCid}`);
-                } else {
-                    router.push('/');
+                // STRICT: Enforce Email Confirmation
+                if (!session.user.email_confirmed_at) {
+                    console.warn("🔒 Acceso bloqueado: Email no confirmado.");
+                    await supabase.auth.signOut();
+                    setMessage("⚠️ Debes confirmar tu email desde la bandeja de entrada para acceder.");
+                    setIsLogin(true);
+                    return;
                 }
+
+                // If confirmed, show the "Success" UI instead of auto-pushing
+                setIsConfirmed(true);
+                setConfirmedSession(session);
+                setMessage(null);
+                setError(null);
             }
         });
 
         return () => subscription.unsubscribe();
     }, [lawyerId, searchParams, router]);
+
+    const enterIntake = async () => {
+        if (!confirmedSession || !lawyerId) return;
+        setLoading(true);
+
+        try {
+            const currentCid = searchParams.get('cid') || crypto.randomUUID();
+
+            await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: `[SISTEMA: Cliente verificado: ${confirmedSession.user.email}]`,
+                    history: [],
+                    mode: 'intake',
+                    sessionId: currentCid,
+                    lawyerId: lawyerId,
+                    clientUserId: confirmedSession.user.id,
+                    clientEmail: confirmedSession.user.email
+                }),
+            });
+
+            router.push(`/consultas/${lawyerId}?cid=${currentCid}`);
+        } catch (err) {
+            setError("Error al entrar al chat. Intenta de nuevo.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleAuth = async (e) => {
         e.preventDefault();
@@ -114,6 +119,13 @@ export default function AuthFormContent() {
                 if (signInError) throw signInError;
 
                 const finalUser = signInData.user;
+
+                // STRICT CHECK
+                if (!finalUser.email_confirmed_at) {
+                    await supabase.auth.signOut();
+                    throw new Error("Email not confirmed");
+                }
+
                 const finalCid = cid || crypto.randomUUID();
 
                 if (lawyerId && finalUser) {
@@ -159,6 +171,14 @@ export default function AuthFormContent() {
                 if (signUpError) throw signUpError;
 
                 if (data.session) {
+                    // Even if session exists, enforce confirmation
+                    if (!data.user.email_confirmed_at) {
+                        await supabase.auth.signOut();
+                        setMessage("¡Cuenta creada! Revisa tu email para confirmar tu cuenta y acceder al chat.");
+                        setIsLogin(true);
+                        return; // STOP HERE
+                    }
+
                     const finalCid = cid || crypto.randomUUID();
                     const finalUser = data.user;
 
@@ -228,68 +248,83 @@ export default function AuthFormContent() {
     return (
         <div className="auth-container">
             <div className="auth-card glass-panel">
-                <div className="auth-header">
-                    <div className="logo-icon">⚖️</div>
-                    <h1>{isLogin ? 'Ingresar a Consulta' : 'Proteger Consulta'}</h1>
-                    <p>
-                        {isLogin
-                            ? 'Ingresa tu clave para ver el estado de tu caso.'
-                            : 'Establece una clave temporal para proteger tu privacidad y documentos.'}
-                    </p>
-                </div>
-
-                <form onSubmit={handleAuth} className="auth-form">
-                    <div className="input-group">
-                        <label>Tu Email (para notificaciones)</label>
-                        <input
-                            type="email"
-                            placeholder="tu@email.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="input-group">
-                        <label>Crear Clave de Acceso</label>
-                        <input
-                            type="password"
-                            placeholder="••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    {!isLogin && (
-                        <div className="input-group">
-                            <label>Repetir Clave</label>
-                            <input
-                                type="password"
-                                placeholder="••••••"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                required
-                            />
-                        </div>
-                    )}
-
-                    {error && <div className="error-msg">⚠️ {error}</div>}
-                    {message && <div className="success-msg">✅ {message}</div>}
-
-                    <button type="submit" className="btn-primary" disabled={loading}>
-                        {loading ? 'Procesando...' : (isLogin ? 'Ingresar al Chat' : 'Comenzar Consulta Segura')}
-                    </button>
-                </form>
-
-                <div className="auth-footer">
-                    <p>
-                        {isLogin ? '¿No tienes clave aún?' : '¿Ya tienes una clave?'}
-                        <button type="button" onClick={() => setIsLogin(!isLogin)} className="link-btn">
-                            {isLogin ? 'Crear clave nueva' : 'Ingresar'}
+                {isConfirmed ? (
+                    <div className="confirmed-ui" style={{ textAlign: 'center', py: '2rem' }}>
+                        <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>✅</div>
+                        <h1 style={{ color: '#86efac', marginBottom: '1rem' }}>¡Email Confirmado!</h1>
+                        <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6' }}>
+                            Tu cuenta ha sido verificada correctamente. Ya puedes acceder a la consulta con el asistente IA del estudio.
+                        </p>
+                        <button onClick={enterIntake} className="btn-primary" disabled={loading}>
+                            {loading ? 'Preparando Chat...' : 'Ingresar al Chat Ahora'}
                         </button>
-                    </p>
-                </div>
+                    </div>
+                ) : (
+                    <>
+                        <div className="auth-header">
+                            <div className="logo-icon">⚖️</div>
+                            <h1>{isLogin ? 'Ingresar a Consulta' : 'Proteger Consulta'}</h1>
+                            <p>
+                                {isLogin
+                                    ? 'Ingresa tu clave para ver el estado de tu caso.'
+                                    : 'Establece una clave temporal para proteger tu privacidad y documentos.'}
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleAuth} className="auth-form">
+                            <div className="input-group">
+                                <label>Tu Email (para notificaciones)</label>
+                                <input
+                                    type="email"
+                                    placeholder="tu@email.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+
+                            <div className="input-group">
+                                <label>Crear Clave de Acceso</label>
+                                <input
+                                    type="password"
+                                    placeholder="••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                />
+                            </div>
+
+                            {!isLogin && (
+                                <div className="input-group">
+                                    <label>Repetir Clave</label>
+                                    <input
+                                        type="password"
+                                        placeholder="••••••"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            )}
+
+                            {error && <div className="error-msg">⚠️ {error}</div>}
+                            {message && <div className="success-msg">✅ {message}</div>}
+
+                            <button type="submit" className="btn-primary" disabled={loading}>
+                                {loading ? 'Procesando...' : (isLogin ? 'Ingresar al Chat' : 'Comenzar Consulta Segura')}
+                            </button>
+                        </form>
+
+                        <div className="auth-footer">
+                            <p>
+                                {isLogin ? '¿No tienes clave aún?' : '¿Ya tienes una clave?'}
+                                <button type="button" onClick={() => setIsLogin(!isLogin)} className="link-btn">
+                                    {isLogin ? 'Crear clave nueva' : 'Ingresar'}
+                                </button>
+                            </p>
+                        </div>
+                    </>
+                )}
             </div>
 
             <style jsx>{`

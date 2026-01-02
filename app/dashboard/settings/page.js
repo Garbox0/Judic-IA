@@ -61,6 +61,8 @@ export default function SettingsPage() {
             const updates = {
                 full_name: formData.full_name,
                 biography: formData.biography,
+                matricula: formData.matricula,
+                jurisdiccion: formData.jurisdiccion,
                 // Simple comma separation for tags
                 especialidades: formData.especialidades.split(',').map(s => s.trim()).filter(Boolean),
                 updated_at: new Date(),
@@ -143,19 +145,26 @@ export default function SettingsPage() {
                         />
                     </div>
                     <div className="form-group">
-                        <label className="label-with-icon">
-                            Matrícula Profesional <span className="lock-icon">🔒</span>
-                        </label>
-                        <div className="input-wrapper disabled">
-                            <input
-                                type="text"
-                                className="input-premium"
-                                value={formData.matricula ? `${formData.matricula} - ${formData.jurisdiccion}` : 'No verificado'}
-                                readOnly
-                                disabled
-                            />
-                            <span className="tooltip">Dato verificado: solicitar cambios a soporte.</span>
-                        </div>
+                        <label>Matrícula Profesional</label>
+                        <input
+                            name="matricula"
+                            type="text"
+                            className="input-premium"
+                            value={formData.matricula}
+                            onChange={handleChange}
+                            placeholder="T° F°"
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Jurisdicción / Colegio</label>
+                        <input
+                            name="jurisdiccion"
+                            type="text"
+                            className="input-premium"
+                            value={formData.jurisdiccion}
+                            onChange={handleChange}
+                            placeholder="Ej: CPACF"
+                        />
                     </div>
                 </div>
             </div>

@@ -146,25 +146,9 @@ export default function ClientsPage() {
         setAttachments([]);
     };
 
-    const copySmartLink = async () => {
+    const copySmartLink = () => {
         const uniqueClientId = self.crypto.randomUUID();
         const link = `${window.location.origin}/consultas/${lawyerId}?cid=${uniqueClientId}`;
-
-        // Create a placeholder inquiry so the CID is valid
-        const { error } = await supabase
-            .from('inquiries')
-            .insert([{
-                id: uniqueClientId,
-                assigned_lawyer_id: lawyerId,
-                case_type: 'Pendiente',
-                status: 'link_generated'
-            }]);
-
-        if (error) {
-            console.error("Error creating placeholder link:", error);
-            alert("Error al generar el enlace. Intenta de nuevo.");
-            return;
-        }
 
         navigator.clipboard.writeText(link);
         setCopied(true);
@@ -324,11 +308,13 @@ export default function ClientsPage() {
                                 <div className="chat-viewer">
                                     {loadingChat ? <p>Cargando chat...</p> : (
                                         chatHistory.length === 0 ? <p className="no-msgs">No hay mensajes aún.</p> :
-                                            chatHistory.map(msg => (
-                                                <div key={msg.id} className={`chat-msg ${msg.role}`}>
-                                                    <strong>{msg.role === 'user' ? 'Cliente' : 'Asistente'}:</strong> {msg.content}
-                                                </div>
-                                            ))
+                                            chatHistory
+                                                .filter(msg => !msg.content.startsWith('[SISTEMA:') && !msg.content.startsWith('[SYSTEM:'))
+                                                .map(msg => (
+                                                    <div key={msg.id} className={`chat-msg ${msg.role}`}>
+                                                        <strong>{msg.role === 'user' ? 'Cliente' : 'Asistente'}:</strong> {msg.content}
+                                                    </div>
+                                                ))
                                     )}
                                 </div>
                             </div>

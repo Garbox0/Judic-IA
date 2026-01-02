@@ -38,7 +38,7 @@ export default function Home() {
         <div className="nav-links">
           <Link href="#features" className="link-item">Servicios</Link>
           <Link href="#pricing" className="link-item">Precios</Link>
-          <Link href="/dashboard" className="btn-login">Login Abogado</Link>
+          <Link href="/login" className="btn-login">Login Abogado</Link>
         </div>
       </nav>
 
@@ -132,7 +132,7 @@ export default function Home() {
               <li>✓ Hasta 5 consultas/día</li>
               <li>✓ Acceso a Investigación</li>
             </ul>
-            <Link href="/login" className="btn-outline">Comenzar Prueba</Link>
+            <Link href="/register" className="btn-outline">Comenzar Prueba</Link>
           </div>
           <div className="pricing-card glass-card featured">
             <div className="featured-badge">RECOMENDADO</div>
@@ -144,7 +144,7 @@ export default function Home() {
               <li>✓ Agenda y Vencimientos</li>
               <li>✓ Soporte Prioritario</li>
             </ul>
-            <Link href="/login" className="btn-primary">Suscribirse Ahora</Link>
+            <Link href="/register" className="btn-primary">Suscribirse Ahora</Link>
           </div>
         </div>
       </section>
@@ -157,7 +157,7 @@ export default function Home() {
             <span>© 2026 Judic-IA LegalTech</span>
             <Link href="#">Términos</Link>
             <Link href="#">Privacidad</Link>
-            <Link href="/dashboard">Acceso Clientes</Link>
+            <Link href="/consultas/auth">Acceso Clientes</Link>
           </div>
         </div>
       </footer>

@@ -10,6 +10,7 @@ export default function IntakeFormContent({ id }) {
     const router = useRouter();
 
     const [lawyer, setLawyer] = useState(null);
+    const [clientEmail, setClientEmail] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [restricted, setRestricted] = useState(false);
@@ -20,33 +21,26 @@ export default function IntakeFormContent({ id }) {
 
             const cid = searchParams.get('cid');
 
-            // 1. CID VALIDATION (Surgical Precision)
-            // Checks if the inquiry exists using a secure RPC to bypass RLS for this specific check.
-            if (cid) {
-                const { data: isValid, error: rpcError } = await supabase
-                    .rpc('check_inquiry_exists', { inquiry_id: cid });
-
-                if (rpcError || !isValid) {
-                    console.log("🔒 CID no válido o eliminado. Bloqueando acceso.");
-                    setRestricted(true);
-                    setLoading(false);
-                    return;
-                }
-            }
+            // 1. CID VALIDATION REMOVED
+            // We allow entry to the gatekeeper (Auth) for any link. 
+            // If the link is truly invalid, it will fail to load profile/chat later.
+            // This prevents "Restricted Access" for valid new links.
 
             // 2. AUTH PROTECTION
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-            if (!session) {
-                console.log("🔒 Usuario no autenticado. Redirigiendo a Login...");
+            if (authError || !user) {
+                console.log("🔒 Usuario no autenticado o sesión inválida. Redirigiendo a Login...");
                 const redirectUrl = `/consultas/auth?lawyerId=${id}${cid ? `&cid=${cid}` : ''}`;
                 router.push(redirectUrl);
                 return;
             }
 
-            console.log("🔓 Usuario autenticado:", session.user.email);
+            setClientEmail(user.email);
+            console.log("🔓 Usuario autenticado:", user.email);
 
             // 3. FETCH LAWYER PROFILE
+            if (!id) return;
             const { data, error } = await supabase
                 .from('profiles')
                 .select('full_name, especialidades, matricula')
@@ -54,10 +48,11 @@ export default function IntakeFormContent({ id }) {
                 .single();
 
             if (error) {
+                console.warn("⚠️ No se pudo cargar el perfil del abogado:", error.message);
                 if (error.code === 'PGRST116') {
-                    setError(`Perfil del abogado no encontrado.`);
+                    setError(`Perfil del abogado no encontrado (ID: ${id}).`);
                 } else {
-                    setError(`Error: ${error.message}`);
+                    setError(`Error de Acceso (RLS): No se pudo cargar el perfil. Por favor, ejecuta el script SQL de corrección de RLS.`);
                 }
             } else {
                 setLawyer(data);
@@ -111,8 +106,12 @@ export default function IntakeFormContent({ id }) {
                     {/* Left: Lawyer Identity */}
                     <div className="lawyer-side">
                         <div className="avatar-lg">{lawyer.full_name?.charAt(0) || 'D'}</div>
-                        <h1 className="lawyer-name">{lawyer.full_name || 'Estudio Jurídico'}</h1>
-                        <span className="lawyer-badge">{lawyer.especialidades?.join(' • ') || 'Derecho General'}</span>
+                        <h1 className="lawyer-name">{lawyer.full_name || 'Tu Abogado'}</h1>
+                        {lawyer.matricula && (
+                            <span className="lawyer-matricula" style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '1.5rem', display: 'block' }}>
+                                Matrícula: {lawyer.matricula}
+                            </span>
+                        )}
 
                         <div className="welcome-text">
                             <p>👋 <strong>Hola.</strong></p>
@@ -122,19 +121,7 @@ export default function IntakeFormContent({ id }) {
                             </p>
                         </div>
 
-                        {/* User Session Info */}
-                        <div className="user-session">
-                            <div className="session-info">
-                                <span className="status-dot"></span>
-                                <span className="user-email">{lawyer.currentUserEmail || 'Cliente Verificado'}</span>
-                            </div>
-                            <button onClick={async () => {
-                                await supabase.auth.signOut();
-                                router.push(`/consultas/auth?lawyerId=${id}`);
-                            }} className="logout-btn-mini">
-                                Cerrar Sesión
-                            </button>
-                        </div>
+
                     </div>
 
                     {/* Right: The Chat */}
