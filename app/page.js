@@ -9,23 +9,11 @@ import SafeChatWidget from "./components/SafeChatWidget";
 export default function Home() {
   const router = useRouter();
 
+  // Landing page is public. No auto-redirect here to allow viewing services/pricing.
+  // Login button handles redirection if already authenticated.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        const user = session.user;
-        const role = user.user_metadata?.role;
-        const cid = user.user_metadata?.cid;
-        const lawyerId = user.user_metadata?.lawyerId;
-
-        if (role === 'client' && cid && lawyerId) {
-          router.push(`/consultas/${lawyerId}?cid=${cid}`);
-        } else {
-          // Default to dashboard for lawyers
-          router.push('/dashboard');
-        }
-      }
-    });
-  }, [router]);
+    // Optional: add some logic here if needed, but not for redirection
+  }, []);
 
   return (
     <main className={styles.main}>

@@ -61,6 +61,7 @@ export default function LoginPage() {
   return (
     <div className="login-container">
       <div className="login-card glass-panel">
+        <Link href="/" className="btn-back">← Volver al Inicio</Link>
         <Link href="/">
           <img src="/logo.png" alt="Judic-IA Logo" className="logo-img" style={{ display: 'block', margin: '0 auto' }} />
         </Link>
@@ -125,6 +126,8 @@ export default function LoginPage() {
         .btn-primary { width: 100%; padding: 0.9rem; background: #fbbf24; color: #0f172a; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .divider { text-align: center; color: #64748b; font-size: 0.8rem; }
         .error-msg { background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 0.75rem; border-radius: 8px; font-size: 0.9rem; text-align: center; }
+        .btn-back { align-self: flex-start; color: #94a3b8; text-decoration: none; font-size: 0.85rem; margin-bottom: 1.5rem; transition: 0.2s; font-weight: 500; }
+        .btn-back:hover { color: #fbbf24; }
       `}</style>
       <SafeChatWidget mode="sales" initialMessage="¡Hola! Si ya tienes una cuenta, ingresa tus credenciales aquí." />
     </div>

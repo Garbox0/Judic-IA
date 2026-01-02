@@ -104,6 +104,7 @@ export default function RegisterPage() {
     return (
         <div className="login-container">
             <div className="login-card glass-panel expanded">
+                <Link href="/" className="btn-back">← Volver al Inicio</Link>
                 <Link href="/">
                     <img src="/logo.png" alt="Judic-IA Logo" className="logo-img" style={{ display: 'block', margin: '0 auto' }} />
                 </Link>
@@ -216,6 +217,8 @@ export default function RegisterPage() {
         .divider { text-align: center; color: #64748b; margin: 1.5rem 0; font-size: 0.8rem; }
         .error-msg { background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; text-align: center; }
         .success-msg { background: rgba(34, 197, 94, 0.2); color: #86efac; padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; text-align: center; }
+        .btn-back { align-self: flex-start; color: #94a3b8; text-decoration: none; font-size: 0.85rem; margin-bottom: 1.5rem; transition: 0.2s; font-weight: 500; }
+        .btn-back:hover { color: #fbbf24; }
       `}</style>
             <SafeChatWidget mode="sales" initialMessage="¡Hola! ¿Necesitas ayuda con el registro profesional?" />
         </div>

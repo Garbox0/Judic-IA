@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '../../../lib/supabase';
 import '../../../globals.css';
 
@@ -117,6 +118,7 @@ function RegisterContent() {
 
     return (
         <div className="auth-card glass-panel">
+            <Link href="/" className="btn-back">← Volver al Inicio</Link>
             {isConfirmed ? (
                 <div className="confirmed-ui" style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>✅</div>
@@ -180,6 +182,8 @@ export default function ClientRegisterPage() {
                 .input-group label { display: block; font-size: 0.9rem; color: #cbd5e1; margin-bottom: 0.5rem; }
                 .input-group input { width: 100%; padding: 0.8rem 1rem; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; color: white; }
                 .btn-primary { width: 100%; padding: 0.9rem; background: linear-gradient(135deg, #fbbf24, #d97706); color: #0f172a; border: none; font-weight: 700; border-radius: 10px; cursor: pointer; }
+                .btn-back { align-self: flex-start; color: #94a3b8; text-decoration: none; font-size: 0.85rem; margin-bottom: 1.5rem; transition: 0.2s; font-weight: 500; background: none; border: none; cursor: pointer; padding: 0; display: block; }
+                .btn-back:hover { color: #fbbf24; }
             `}</style>
         </div>
     );
