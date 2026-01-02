@@ -20,27 +20,19 @@ export default function IntakeFormContent({ id }) {
 
             const cid = searchParams.get('cid');
 
-            // 1. CID VALIDATION REMOVED (Conflicted with RLS)
-            // We blindly trust the CID here. If it's invalid, the ChatWidget or API will handle it later.
-            // This prevents the "Restricted Access" error for valid users who just can't "see" the row yet due to RLS.
-            /*
-            // A missing CID might be a new lead, but an existing CID that is GONE
-            // means the lawyer explicitly revoked/deleted it.
+            // 1. CID VALIDATION (Surgical Precision)
+            // Checks if the inquiry exists using a secure RPC to bypass RLS for this specific check.
             if (cid) {
-                const { data: inquiryData, error: inquiryError } = await supabase
-                    .from('inquiries')
-                    .select('id')
-                    .eq('id', cid)
-                    .single();
+                const { data: isValid, error: rpcError } = await supabase
+                    .rpc('check_inquiry_exists', { inquiry_id: cid });
 
-                if (inquiryError || !inquiryData) {
+                if (rpcError || !isValid) {
                     console.log("🔒 CID no válido o eliminado. Bloqueando acceso.");
                     setRestricted(true);
                     setLoading(false);
                     return;
                 }
             }
-            */
 
             // 2. AUTH PROTECTION
             const { data: { session } } = await supabase.auth.getSession();

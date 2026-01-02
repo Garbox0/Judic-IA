@@ -28,17 +28,28 @@ export default function AuthFormContent() {
             setRestricted(true);
         }
 
-        // 2. If we have a CID, verify if the inquiry still exists
-        // This prevents re-registering for a deleted case
-        // 2. CID Validation disabled to prevent RLS errors for new users
-        /*
+        // 2. CID Validation (Surgical Precision)
+        // Verify if the inquiry still exists before allowing registration/login
         const checkLinkValidity = async () => {
-             if (cid) {
-                 // ... strict check removed ...
-             }
+            if (cid) {
+                const { data: isValid, error: rpcError } = await supabase
+                    .rpc('check_inquiry_exists', { inquiry_id: cid });
+
+                if (rpcError || !isValid) {
+                    console.log("🔒 CID no válido o eliminado. Bloqueando acceso.");
+                    setRestricted(true);
+                }
+            } else if (lawyerId) {
+                // Also verify if the lawyerId is valid at least.
+                const { data: lawyerData } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('id', lawyerId)
+                    .single();
+                if (!lawyerData) setRestricted(true);
+            }
         };
         checkLinkValidity();
-        */
     }, [searchParams, cid, lawyerId]);
 
     // Redirect out if restricted
