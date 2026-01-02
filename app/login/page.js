@@ -125,10 +125,10 @@ export default function LoginPage() {
       if (error.message.includes("rate limit") || error.message.includes("valid")) {
         setError(error.message);
       } else {
-        setMessage("¡Casi listo! Si el correo es válido, recibirás un enlace de confirmación. Revisa tu carpeta de SPAM por si acaso.");
+        setMessage("¡Casi listo! Si el correo es válido, recibirás un enlace de confirmación. ⚠️ REVISA TU CARPETA DE SPAM (Correo no deseado), a veces llega allí.");
       }
     } else {
-      setMessage("¡Registro iniciado! Revisa tu email para confirmar tu cuenta profesional. (No olvides revisar SPAM)");
+      setMessage("¡Registro iniciado! Revisa tu email para confirmar tu cuenta. ⚠️ IMPORTANTE: Busca en la carpeta de SPAM si no lo ves en Recibidos.");
     }
     setLoading(false);
   };

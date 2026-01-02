@@ -134,9 +134,25 @@ export default function ClientsPage() {
         setAttachments([]);
     };
 
-    const copySmartLink = () => {
+    const copySmartLink = async () => {
         const uniqueClientId = self.crypto.randomUUID();
         const link = `${window.location.origin}/consultas/${lawyerId}?cid=${uniqueClientId}`;
+
+        // Create a placeholder inquiry so the CID is valid
+        const { error } = await supabase
+            .from('inquiries')
+            .insert([{
+                id: uniqueClientId,
+                assigned_lawyer_id: lawyerId,
+                case_type: 'Pendiente',
+                status: 'Nuevo'
+            }]);
+
+        if (error) {
+            console.error("Error creating placeholder link:", error);
+            alert("Error al generar el enlace. Intenta de nuevo.");
+            return;
+        }
 
         navigator.clipboard.writeText(link);
         setCopied(true);

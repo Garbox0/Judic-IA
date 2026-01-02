@@ -2,6 +2,9 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
 import { useRouter } from 'next/navigation';
+import styles from "./page.module.css";
+import Link from "next/link";
+import SafeChatWidget from "./components/SafeChatWidget";
 
 export default function Home() {
   const router = useRouter();
@@ -9,7 +12,17 @@ export default function Home() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.push('/dashboard');
+        const user = session.user;
+        const role = user.user_metadata?.role;
+        const cid = user.user_metadata?.cid;
+        const lawyerId = user.user_metadata?.lawyerId;
+
+        if (role === 'client' && cid && lawyerId) {
+          router.push(`/consultas/${lawyerId}?cid=${cid}`);
+        } else {
+          // Default to dashboard for lawyers
+          router.push('/dashboard');
+        }
       }
     });
   }, [router]);
