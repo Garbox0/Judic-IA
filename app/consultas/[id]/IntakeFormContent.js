@@ -12,30 +12,45 @@ export default function IntakeFormContent({ id }) {
     const [lawyer, setLawyer] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [restricted, setRestricted] = useState(false);
 
     useEffect(() => {
         async function checkAuthAndFetchLawyer() {
             if (!id) return;
 
-            // 1. AUTH PROTECTION
             const cid = searchParams.get('cid');
 
-            // Implementation: Check Session
+            // 1. CID VALIDATION (If provided, it MUST exist in inquiries)
+            // A missing CID might be a new lead, but an existing CID that is GONE 
+            // means the lawyer explicitly revoked/deleted it.
+            if (cid) {
+                const { data: inquiryData, error: inquiryError } = await supabase
+                    .from('inquiries')
+                    .select('id')
+                    .eq('id', cid)
+                    .single();
+
+                if (inquiryError || !inquiryData) {
+                    console.log("🔒 CID no válido o eliminado. Bloqueando acceso.");
+                    setRestricted(true);
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            // 2. AUTH PROTECTION
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
-                // If not logged in, REDIRECT to Auth
                 console.log("🔒 Usuario no autenticado. Redirigiendo a Login...");
                 const redirectUrl = `/consultas/auth?lawyerId=${id}${cid ? `&cid=${cid}` : ''}`;
                 router.push(redirectUrl);
-                return; // Stop execution
+                return;
             }
 
             console.log("🔓 Usuario autenticado:", session.user.email);
 
-            // 2. FETCH LAWYER PROFILE
-            console.log("🔍 Buscando abogado con ID:", id); // DEBUG
-
+            // 3. FETCH LAWYER PROFILE
             const { data, error } = await supabase
                 .from('profiles')
                 .select('full_name, especialidades, matricula')
@@ -43,11 +58,10 @@ export default function IntakeFormContent({ id }) {
                 .single();
 
             if (error) {
-                console.error("❌ Error fetching lawyer full object:", JSON.stringify(error, null, 2)); // DEBUG
                 if (error.code === 'PGRST116') {
-                    setError(`Perfil no encontrado o privado (ID: ${id}). Verifica RLS.`);
+                    setError(`Perfil del abogado no encontrado.`);
                 } else {
-                    setError(`Error técnico: ${error.message || JSON.stringify(error)}`);
+                    setError(`Error: ${error.message}`);
                 }
             } else {
                 setLawyer(data);
@@ -57,7 +71,33 @@ export default function IntakeFormContent({ id }) {
         checkAuthAndFetchLawyer();
     }, [id, searchParams, router]);
 
+    // Redirect out if restricted
+    useEffect(() => {
+        if (restricted) {
+            const timer = setTimeout(() => {
+                router.push('/');
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [restricted, router]);
+
     if (loading) return <div className="loading-screen">Cargando asistente...</div>;
+
+    if (restricted) {
+        return (
+            <div className="error-screen">
+                <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', maxWidth: '400px', borderRadius: '20px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                    <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🔒</div>
+                    <h2 style={{ color: '#fca5a5', marginBottom: '1rem' }}>Acceso Restringido</h2>
+                    <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                        Este acceso ha expirado o el abogado ha revocado el permiso para este caso específico.
+                    </p>
+                    <p style={{ marginTop: '2rem', fontSize: '0.75rem', opacity: 0.5 }}>Redirigiendo fuera...</p>
+                </div>
+            </div>
+        )
+    }
+
     if (error) return <div className="error-screen">⚠️ {error}</div>;
 
     return (
