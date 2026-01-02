@@ -1,10 +1,17 @@
-"use client";
-import styles from "./page.module.css";
-import Link from "next/link";
-import SafeChatWidget from "./components/SafeChatWidget";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from './lib/supabase';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.push('/dashboard');
+      }
+    });
+  }, [router]);
 
   return (
     <main className={styles.main}>

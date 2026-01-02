@@ -28,6 +28,23 @@ export default function LoginPage() {
 
   const [paymentStep, setPaymentStep] = useState(false);
 
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.push('/dashboard');
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        router.push('/dashboard');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [router]);
+
   // Options
   const SPECIALTIES_OPTIONS = [
     'Laboral', 'Familia', 'Penal', 'Sucesiones', 'Comercial', 'Previsional',
@@ -91,6 +108,7 @@ export default function LoginPage() {
       email,
       password,
       options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
         data: {
           first_name: firstName,
           last_name: lastName,
@@ -102,22 +120,15 @@ export default function LoginPage() {
       }
     });
 
-    // STEALTH MODE: Even if there's an error like "User already registered", 
-    // we show a success message to avoid leaking user existence.
-    // Supabase returns an error for duplicates if "Enable email provider" is on.
+    // STEALTH MODE
     if (error) {
-      // In a real production environment with high security, we'd log this error silently
-      // and show the "Check your email" message anyway. 
-      // But for better UX during dev, if it's a REAL structural error, we show it.
       if (error.message.includes("rate limit") || error.message.includes("valid")) {
         setError(error.message);
       } else {
-        // Assume duplicate or successful send logic
-        setMessage("¡Casi listo! Si el email es válido, recibirás un enlace de confirmación en instantes.");
+        setMessage("¡Casi listo! Si el correo es válido, recibirás un enlace de confirmación. Revisa tu carpeta de SPAM por si acaso.");
       }
     } else {
-      setMessage("¡Registro iniciado! Revisa tu email para confirmar tu cuenta profesional.");
-      // We don't jump to payment until they confirm email for security/validity
+      setMessage("¡Registro iniciado! Revisa tu email para confirmar tu cuenta profesional. (No olvides revisar SPAM)");
     }
     setLoading(false);
   };
