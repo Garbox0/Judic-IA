@@ -184,14 +184,3 @@ export default function ClientRegisterPage() {
         </div>
     );
 }
-<style jsx>{`
-                .auth-container { min-height: 100vh; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle at 50% 10%, #1e293b, #0f172a); color: white; padding: 1rem; }
-                .auth-card { width: 100%; max-width: 420px; padding: 2.5rem; border-radius: 20px; background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-                .input-group { margin-bottom: 1.5rem; }
-                .input-group label { display: block; font-size: 0.9rem; color: #cbd5e1; margin-bottom: 0.5rem; }
-                .input-group input { width: 100%; padding: 0.8rem 1rem; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; color: white; }
-                .btn-primary { width: 100%; padding: 0.9rem; background: linear-gradient(135deg, #fbbf24, #d97706); color: #0f172a; border: none; font-weight: 700; border-radius: 10px; cursor: pointer; }
-            `}</style>
-        </div >
-    );
-}
