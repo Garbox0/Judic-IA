@@ -24,6 +24,7 @@ export default function ClientsPage() {
                 const { data, error } = await supabase
                     .from('inquiries')
                     .select('*')
+                    .neq('status', 'link_generated')
                     .order('created_at', { ascending: false });
 
                 if (!error) setClients(data);
@@ -45,10 +46,21 @@ export default function ClientsPage() {
                 (payload) => {
                     console.log("⚡ Realtime Inquiry Update:", payload);
                     if (payload.eventType === 'INSERT') {
-                        setClients(prev => [payload.new, ...prev]);
+                        if (payload.new.status !== 'link_generated') {
+                            setClients(prev => [payload.new, ...prev]);
+                        }
                     } else if (payload.eventType === 'UPDATE') {
-                        setClients(prev => prev.map(c => c.id === payload.new.id ? payload.new : c));
-                        // Also update selectedClient if it's the one currently open
+                        if (payload.new.status === 'link_generated') {
+                            // If it was visible but now is hidden (unlikely but safe)
+                            setClients(prev => prev.filter(c => c.id !== payload.new.id));
+                        } else {
+                            // Normal update or "first appearance" after confirmation
+                            setClients(prev => {
+                                const exists = prev.find(c => c.id === payload.new.id);
+                                if (exists) return prev.map(c => c.id === payload.new.id ? payload.new : c);
+                                return [payload.new, ...prev]; // First time appearing in list
+                            });
+                        }
                         setSelectedClient(prev => (prev && prev.id === payload.new.id) ? payload.new : prev);
                     } else if (payload.eventType === 'DELETE') {
                         setClients(prev => prev.filter(c => c.id !== payload.old.id));
@@ -145,7 +157,7 @@ export default function ClientsPage() {
                 id: uniqueClientId,
                 assigned_lawyer_id: lawyerId,
                 case_type: 'Pendiente',
-                status: 'Nuevo'
+                status: 'link_generated'
             }]);
 
         if (error) {

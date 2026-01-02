@@ -240,7 +240,7 @@ export async function POST(request) {
             const upsertData = {
                 id: sessionId,
                 case_type: caseType,
-                status: 'new'
+                status: 'Nuevo'
             };
 
             // CRITICAL: Assign Lawyer and Link Client Auth
