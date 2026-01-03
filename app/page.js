@@ -126,28 +126,72 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="footer-premium">
-        <div className="footer-content">
-          <div className="footer-brand-area">
-            <div className="footer-logo">Judic-IA <span className="justice-emoji">⚖️</span></div>
-            <p className="footer-tagline">Tecnología de élite para el derecho argentino.</p>
-          </div>
-          <div className="footer-nav-links">
-            <div className="nav-col">
-              <h4>Plataforma</h4>
-              <Link href="/login">Abogados</Link>
-              <Link href="/consultas/auth">Clientes</Link>
+      {/* Final CTA */}
+      <section className="final-cta-section slide-up">
+        <div className="cta-glass-card">
+          <div className="cta-content">
+            <h2 className="cta-title">¿Listo para transformar tu práctica legal?</h2>
+            <p className="cta-text">Únete a los cientos de abogados que ya están liderando con tecnología de élite.</p>
+            <div className="cta-buttons">
+              <Link href="/register" className="btn-gold-fill large">Empezar Ahora</Link>
+              <Link href="#features" className="link-item white-text">Ver todos los servicios ↗</Link>
             </div>
-            <div className="nav-col">
+          </div>
+          <div className="cta-glow"></div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="footer-premium-v2">
+        <div className="footer-v2-grid">
+          <div className="footer-v2-main">
+            <div className="footer-v2-brand">
+              <img src="/logo.png" alt="Logo" className="footer-v2-logo-img" />
+              <span className="footer-v2-logo-text">Judic-IA <span className="justice-emoji">⚖️</span></span>
+            </div>
+            <p className="footer-v2-desc">
+              La plataforma de inteligencia jurídica líder en Argentina.
+              Elevamos el estándar de la práctica legal con tecnología de vanguardia.
+            </p>
+            <div className="footer-v2-socials">
+              <span className="social-icon">𝕏</span>
+              <span className="social-icon">LinkedIn</span>
+              <span className="social-icon">IG</span>
+            </div>
+          </div>
+
+          <div className="footer-v2-links">
+            <div className="v2-nav-col">
+              <h4>Plataforma</h4>
+              <Link href="/login">Acceso Abogados</Link>
+              <Link href="/consultas/auth">Área de Clientes</Link>
+              <Link href="#pricing">Planes y Precios</Link>
+              <Link href="/demo">Demo Interactiva</Link>
+            </div>
+            <div className="v2-nav-col">
+              <h4>Compañía</h4>
+              <Link href="#">Sobre Judic-IA</Link>
+              <Link href="#">Centro de Ayuda</Link>
+              <Link href="#">Blog LegalTech</Link>
+              <Link href="#">Contacto</Link>
+            </div>
+            <div className="v2-nav-col">
               <h4>Legales</h4>
-              <Link href="#">Privacidad</Link>
-              <Link href="#">Términos</Link>
+              <Link href="#">Políticas de Privacidad</Link>
+              <Link href="#">Términos de Servicio</Link>
+              <Link href="#">Seguridad de Datos</Link>
+              <Link href="#">Cookies</Link>
             </div>
           </div>
         </div>
-        <div className="footer-bottom">
-          © 2026 Judic-IA LegalTech. All rights reserved.
+
+        <div className="footer-v2-bottom">
+          <div className="footer-v2-bottom-content">
+            <p>© 2026 Judic-IA LegalTech Argentina. Todos los derechos reservados.</p>
+            <div className="footer-status-indicator">
+              <span className="status-dot"></span> Sistemas Operativos (Vercel Core)
+            </div>
+          </div>
         </div>
       </footer>
 
@@ -295,26 +339,47 @@ export default function Home() {
         }
         .btn-gold-fill:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(251, 191, 36, 0.4); filter: brightness(1.1); }
 
-        /* FOOTER */
-        .footer-premium {
-            background: #020617; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 6rem 2rem 4rem;
-        }
-        .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 4rem; }
-        .footer-logo { font-size: 2rem; font-weight: 900; color: #fbbf24; margin-bottom: 1rem; font-family: 'Playfair Display', serif; }
-        .footer-tagline { color: #64748b; font-size: 1rem; line-height: 1.5; font-weight: 400; }
-        
-        .footer-nav-links { display: flex; gap: 4rem; }
-        .nav-col h4 { color: #f8fafc; font-size: 1rem; margin-bottom: 1.5rem; font-weight: 700; }
-        .nav-col { display: flex; flex-direction: column; gap: 0.75rem; }
-        .nav-col a { color: #64748b; text-decoration: none; transition: 0.3s; font-size: 0.95rem; }
-        .nav-col a:hover { color: #fbbf24; }
-        
-        .footer-bottom { 
-            max-width: 1200px; margin: 5rem auto 0; text-align: center; color: #334155; 
-            padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.03); font-size: 0.85rem;
-        }
 
-        /* ANIMATIONS */
+        /* FINAL CTA */
+        .final-cta-section { padding: 10rem 2rem; position: relative; z-index: 10; }
+        .cta-glass-card {
+            max-width: 1000px; margin: 0 auto;
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.6));
+            border: 1px solid rgba(251, 191, 36, 0.2); border-radius: 40px;
+            padding: 5rem; text-align: center; position: relative; overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+        .cta-content { position: relative; z-index: 2; }
+        .cta-title { font-family: 'Playfair Display', serif; font-size: 3rem; color: #f8fafc; margin-bottom: 1rem; }
+        .cta-text { font-size: 1.2rem; color: #94a3b8; margin-bottom: 2.5rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .cta-buttons { display: flex; gap: 2rem; justify-content: center; align-items: center; }
+        .cta-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; background: #fbbf24; filter: blur(100px); opacity: 0.1; pointer-events: none; }
+        .white-text { color: white !important; }
+
+        /* FOOTER V2 */
+        .footer-premium-v2 {
+            background: #020617; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 8rem 2rem 4rem;
+        }
+        .footer-v2-grid { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; gap: 6rem; flex-wrap: wrap; }
+        .footer-v2-main { flex: 1; min-width: 300px; }
+        .footer-v2-brand { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+        .footer-v2-logo-img { width: 40px; }
+        .footer-v2-logo-text { font-family: 'Playfair Display', serif; color: #fbbf24; font-size: 1.8rem; font-weight: 900; }
+        .footer-v2-desc { color: #64748b; line-height: 1.7; font-size: 1rem; max-width: 400px; margin-bottom: 2rem; }
+        .footer-v2-socials { display: flex; gap: 1.5rem; }
+        .social-icon { color: #475569; font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: 0.3s; }
+        .social-icon:hover { color: #fbbf24; }
+
+        .footer-v2-links { display: flex; gap: 5rem; flex-wrap: wrap; }
+        .v2-nav-col h4 { color: #f8fafc; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2rem; font-weight: 900; }
+        .v2-nav-col { display: flex; flex-direction: column; gap: 1rem; }
+        .v2-nav-col a { color: #64748b; text-decoration: none; transition: 0.3s; font-size: 0.95rem; }
+        .v2-nav-col a:hover { color: #fbbf24; padding-left: 5px; }
+
+        .footer-v2-bottom { border-top: 1px solid rgba(255, 255, 255, 0.03); margin-top: 6rem; padding-top: 3rem; }
+        .footer-v2-bottom-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; color: #334155; font-size: 0.85rem; }
+        .footer-status-indicator { display: flex; align-items: center; gap: 0.5rem; color: #475569; }
+        .status-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; }
         .slide-up { animation: slideUp 0.8s ease forwards; opacity: 0; }
         .slide-up-delayed { animation: slideUp 0.8s ease 0.2s forwards; opacity: 0; }
         .slide-up-extra-delayed { animation: slideUp 0.8s ease 0.4s forwards; opacity: 0; }
