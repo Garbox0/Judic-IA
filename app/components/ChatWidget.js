@@ -12,8 +12,26 @@ export default function ChatWidget({ mode = "client", initialMessage = "Hola..."
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
     const [sessionId, setSessionId] = useState(null);
+    const [lawyerAvatar, setLawyerAvatar] = useState(null);
     const messagesEndRef = useRef(null);
     const searchParams = useSearchParams();
+
+    // Fetch Lawyer Avatar if applicable
+    useEffect(() => {
+        if (lawyerId && mode === 'intake') {
+            const fetchLawyerAvatar = async () => {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('avatar_url')
+                    .eq('id', lawyerId)
+                    .single();
+                if (data?.avatar_url) {
+                    setLawyerAvatar(data.avatar_url);
+                }
+            };
+            fetchLawyerAvatar();
+        }
+    }, [lawyerId, mode]);
 
     // Generate Session ID on Client & Fetch History (Persistence)
     useEffect(() => {
@@ -165,7 +183,7 @@ export default function ChatWidget({ mode = "client", initialMessage = "Hola..."
                             position: 'relative'
                         }}
                     >
-                        <img src="/bot-icon.png" alt="Bot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={lawyerAvatar || "/bot-icon.png"} alt="Bot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </button>
                 </div>
             )}
@@ -191,7 +209,7 @@ export default function ChatWidget({ mode = "client", initialMessage = "Hola..."
                                     width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden',
                                     border: `1px solid ${botConfig.color}`
                                 }}>
-                                    <img src="/bot-icon.png" alt="Bot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img src={lawyerAvatar || "/bot-icon.png"} alt="Bot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 </div>
                                 <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{botConfig.name}</span>
                             </div>

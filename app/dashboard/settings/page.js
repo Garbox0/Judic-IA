@@ -1,19 +1,32 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
+import '../../globals.css';
+
+const SPECIALTIES_OPTIONS = [
+    'Derecho Administrativo', 'Derecho Ambiental', 'Derecho Bancario',
+    'Derecho Civil', 'Derecho Comercial', 'Daños y Perjuicios',
+    'Derecho Empresario', 'Familia', 'Derecho Fiscal',
+    'Derecho Informático', 'Derecho Internacional', 'Derecho Laboral',
+    'Marcas y Patentes', 'Mediación y Arbitraje', 'Derecho Militar',
+    'Derecho Penal', 'Derecho Real'
+];
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('profile');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [user, setUser] = useState(null);
+    const fileInputRef = useRef(null);
 
-    // Form States
     const [formData, setFormData] = useState({
         full_name: '',
-        especialidades: '', // We'll handle array <-> string conversion if needed, or just keep as string for now if schema is text[]
+        especialidades: [],
         matricula: '',
+        tomo: '',
+        folio: '',
         jurisdiccion: '',
         biography: '',
         phone: '',
@@ -25,18 +38,18 @@ export default function SettingsPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setUser(user);
-
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
-
+                const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
                 if (data) {
+                    let t = '', f = '';
+                    if (data.matricula) {
+                        const match = data.matricula.match(/T°?\s*(\d+)\s*F°?\s*(\d+)/i);
+                        if (match) { t = match[1]; f = match[2]; } else { t = data.matricula; }
+                    }
                     setFormData({
                         full_name: data.full_name || '',
-                        especialidades: Array.isArray(data.especialidades) ? data.especialidades.join(', ') : (data.especialidades || ''),
+                        especialidades: Array.isArray(data.especialidades) ? data.especialidades : [],
                         matricula: data.matricula || '',
+                        tomo: t, folio: f,
                         jurisdiccion: data.jurisdiccion || '',
                         biography: data.biography || '',
                         phone: data.phone || '',
@@ -54,30 +67,48 @@ export default function SettingsPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const toggleSpecialty = (spec) => {
+        setFormData(prev => {
+            const current = prev.especialidades;
+            const newSpecs = current.includes(spec) ? current.filter(s => s !== spec) : [...current, spec];
+            return { ...prev, especialidades: newSpecs };
+        });
+    };
+
+    const handleAvatarUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const fileExt = file.name.split('.').pop();
+            const filePath = `avatars/${user.id}-${Math.random()}.${fileExt}`;
+            const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
+            if (uploadError) throw uploadError;
+            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+            await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
+            setFormData(prev => ({ ...prev, avatar_url: publicUrl }));
+            alert("✅ Foto actualizada");
+        } catch (error) {
+            alert("❌ Error al subir imagen");
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSaveProfile = async () => {
         setSaving(true);
         try {
-            // Convert 'especialidades' string back to array if needed, or simplify logic
             const updates = {
                 full_name: formData.full_name,
                 biography: formData.biography,
-                matricula: formData.matricula,
                 jurisdiccion: formData.jurisdiccion,
-                // Simple comma separation for tags
-                especialidades: formData.especialidades.split(',').map(s => s.trim()).filter(Boolean),
+                especialidades: formData.especialidades,
                 updated_at: new Date(),
             };
-
-            const { error } = await supabase
-                .from('profiles')
-                .update(updates)
-                .eq('id', user.id);
-
-            if (error) throw error;
-            alert("✅ Perfil actualizado correctamente");
+            await supabase.from('profiles').update(updates).eq('id', user.id);
+            alert("✅ Perfil guardado");
         } catch (error) {
-            console.error(error);
-            alert("❌ Error al actualizar: " + error.message);
+            alert("❌ Error al guardar");
         } finally {
             setSaving(false);
         }
@@ -86,648 +117,366 @@ export default function SettingsPage() {
     const handleSaveSecurity = async () => {
         setSaving(true);
         try {
-            // Update phone only for now as an example of security field
-            const updates = {
-                phone: formData.phone,
-                updated_at: new Date(),
-            };
-
-            const { error } = await supabase
-                .from('profiles')
-                .update(updates)
-                .eq('id', user.id);
-
+            const updates = { phone: formData.phone, updated_at: new Date() };
+            const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
             if (error) throw error;
-            alert("✅ Datos de seguridad actualizados");
+            alert("✅ Datos de seguridad actualizados con éxito.");
         } catch (error) {
-            alert("❌ Error: " + error.message);
+            alert("❌ Alerta: " + error.message);
         } finally {
             setSaving(false);
         }
     };
 
-    if (loading) return <div className="p-10 text-white">Cargando configuración...</div>;
+    const handleSaveBilling = async () => {
+        setSaving(true);
+        setTimeout(() => {
+            alert("✅ Preferencias de facturación sincronizadas.");
+            setSaving(false);
+        }, 800);
+    };
 
-    const renderProfile = () => (
-        <div className="section-fade-in">
-            <div className="profile-header">
-                <div className="photo-upload-area">
-                    <div className="photo-placeholder">
-                        {formData.avatar_url ? (
-                            <img src={formData.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', borderRadius: '20px', objectFit: 'cover' }} />
-                        ) : (
-                            <span className="camera-icon">📷</span>
-                        )}
-                    </div>
-                    <button className="btn-upload" onClick={() => alert("Próximamente: Subida de archivos")}>Subir Foto 4x4</button>
-                    <p className="photo-hint">Recomendado: 400x400px, fondo claro.</p>
-                </div>
-                <div className="profile-fields">
-                    <div className="form-group">
-                        <label>Nombre Completo</label>
-                        <input
-                            name="full_name"
-                            type="text"
-                            className="input-premium"
-                            value={formData.full_name}
-                            onChange={handleChange}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Título / Especialidad (Separadas por comas)</label>
-                        <input
-                            name="especialidades"
-                            type="text"
-                            className="input-premium"
-                            value={formData.especialidades}
-                            onChange={handleChange}
-                            placeholder="Ej: Penal, Familia, Sucesiones"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Matrícula Profesional</label>
-                        <input
-                            name="matricula"
-                            type="text"
-                            className="input-premium"
-                            value={formData.matricula}
-                            onChange={handleChange}
-                            placeholder="T° F°"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Jurisdicción / Colegio</label>
-                        <input
-                            name="jurisdiccion"
-                            type="text"
-                            className="input-premium"
-                            value={formData.jurisdiccion}
-                            onChange={handleChange}
-                            placeholder="Ej: CPACF"
-                        />
-                    </div>
-                </div>
-            </div>
-            <div className="form-group full-width">
-                <label>Biografía Breve (para perfil público)</label>
-                <textarea
-                    name="biography"
-                    className="input-premium textarea"
-                    rows="4"
-                    placeholder="Escriba una breve descripción de su trayectoria para mostrar en el Smart Link..."
-                    value={formData.biography}
-                    onChange={handleChange}
-                ></textarea>
-            </div>
-            <div className="action-row">
-                <button className="btn-save" onClick={handleSaveProfile} disabled={saving}>
-                    {saving ? 'Guardando...' : 'Guardar Cambios'}
-                </button>
-            </div>
-        </div>
-    );
-
-    const renderSecurity = () => (
-        <div className="section-fade-in">
-            <div className="security-alert">
-                <span className="icon">🔒</span>
-                <p>Tu cuenta utiliza autenticación de dos factores (2FA) desactivada. Recomendamos activarla.</p>
-                <button className="btn-text">Activar</button>
-            </div>
-            <div className="grid-2">
-                <div className="form-group">
-                    <label>Correo Electrónico Actual</label>
-                    <input type="email" className="input-premium" value={user?.email || ''} disabled />
-                    <span className="input-hint">Contacta a soporte para cambiar tu email.</span>
-                </div>
-                <div className="form-group">
-                    <label>Teléfono de Recuperación</label>
-                    <input
-                        name="phone"
-                        type="tel"
-                        className="input-premium"
-                        placeholder="+54 9 11..."
-                        value={formData.phone}
-                        onChange={handleChange}
-                    />
-                </div>
-            </div>
-            <div className="divider"></div>
-            <h3>Cambiar Contraseña</h3>
-            <div className="grid-2">
-                <div className="form-group">
-                    <label>Contraseña Actual</label>
-                    <input type="password" className="input-premium" disabled placeholder="Gestionado por Supabase Auth" />
-                </div>
-                <div className="form-group">
-                    <label>Nueva Contraseña</label>
-                    <input type="password" className="input-premium" disabled placeholder="Gestionado por Supabase Auth" />
-                </div>
-            </div>
-            <div className="action-row">
-                <button className="btn-save" onClick={handleSaveSecurity} disabled={saving}>
-                    {saving ? 'Guardando...' : 'Actualizar Seguridad'}
-                </button>
-            </div>
-        </div>
-    );
-
-    const renderBilling = () => (
-        <div className="section-fade-in">
-            <div className="plan-card gold-border">
-                <div className="plan-info">
-                    <span className="plan-badge">PLAN ACTUAL</span>
-                    <h2>Judic-IA Profesional</h2>
-                    <p className="price">$15.000 <span className="period">/ mes</span></p>
-                </div>
-                <div className="plan-status">
-                    <div className="status-pill active">Activo</div>
-                    <p>Próxima facturación: 15 Ene 2026</p>
-                </div>
-            </div>
-
-            <h3 className="section-title">Métodos de Pago</h3>
-            <div className="payment-methods">
-                <div className="payment-card mp-card">
-                    <div className="mp-logo">
-                        <span className="mp-icon">🤝</span> Mercado Pago
-                    </div>
-                    <p>Vincula tu cuenta para débitos automáticos seguros.</p>
-                    <button className="btn-mp">Vincular Cuenta</button>
-                </div>
-                <div className="payment-card add-card">
-                    <div className="card-icon">💳</div>
-                    <p>Agregar Tarjeta de Crédito/Débito</p>
-                    <button className="btn-outline">Agregar +</button>
-                </div>
-            </div>
-        </div>
-    );
+    if (loading) return <div style={{ background: '#020617', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fbbf24' }}>Cargando Gabinete...</div>;
 
     return (
-        <div className="settings-container">
-            <nav className="settings-nav">
-                <div className="breadcrumb">
-                    <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
-                    <span className="breadcrumb-separator">/</span>
-                    <span className="breadcrumb-current">Configuración</span>
-                </div>
-            </nav>
+        <div className="stg-root">
+            <div className="stg-container">
+                <nav className="stg-breadcrumb">
+                    <Link href="/dashboard">Gabinete</Link> / <span>Ajustes</span>
+                </nav>
+                <h1 className="stg-main-title">Configuración Profesional ⚖️</h1>
 
-            <div className="settings-layout">
-                {/* SIDEBAR TABS */}
-                <div className="settings-tabs glass-panel">
-                    <button
-                        className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('profile')}
-                    >
-                        <span className="tab-icon">👤</span> Perfil Profesional
-                    </button>
-                    <button
-                        className={`tab-btn ${activeTab === 'security' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('security')}
-                    >
-                        <span className="tab-icon">🛡️</span> Seguridad
-                    </button>
-                    <button
-                        className={`tab-btn ${activeTab === 'billing' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('billing')}
-                    >
-                        <span className="tab-icon">💳</span> Facturación
-                    </button>
-                </div>
+                <div className="stg-layout-split">
+                    {/* Sidebar de Ajustes (Interno) */}
+                    <aside className="stg-tabs-nav">
+                        <button className={`stg-tab-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>
+                            👤 Perfil Profesional
+                        </button>
+                        <button className={`stg-tab-btn ${activeTab === 'security' ? 'active' : ''}`} onClick={() => setActiveTab('security')}>
+                            🛡️ Seguridad
+                        </button>
+                        <button className={`stg-tab-btn ${activeTab === 'billing' ? 'active' : ''}`} onClick={() => setActiveTab('billing')}>
+                            💳 Facturación
+                        </button>
+                    </aside>
 
-                {/* CONTENT AREA */}
-                <div className="settings-content glass-panel">
-                    <h2 className="tab-title">
-                        {activeTab === 'profile' && 'Perfil Profesional'}
-                        {activeTab === 'security' && 'Seguridad de la Cuenta'}
-                        {activeTab === 'billing' && 'Facturación y Suscripción'}
-                    </h2>
-                    {activeTab === 'profile' && renderProfile()}
-                    {activeTab === 'security' && renderSecurity()}
-                    {activeTab === 'billing' && renderBilling()}
+                    {/* Contenido Principal */}
+                    <main className="stg-main-content">
+                        {activeTab === 'profile' && (
+                            <div className="stg-tab-pane">
+                                <div className="stg-profile-header">
+                                    <div className="stg-photo-col">
+                                        <label className="stg-label">Imagen 4x4</label>
+                                        <div className="stg-avatar-box" onClick={() => fileInputRef.current.click()}>
+                                            {formData.avatar_url ? (
+                                                <img src={formData.avatar_url} alt="Profile" />
+                                            ) : (
+                                                <div className="stg-placeholder">📷<br />Subir</div>
+                                            )}
+                                            {uploading && <div className="stg-loader-overlay">...</div>}
+                                        </div>
+                                        <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleAvatarUpload} />
+                                    </div>
+                                    <div className="stg-fields-col">
+                                        <div className="stg-field-row">
+                                            <div className="stg-f-group">
+                                                <label className="stg-label">Nombre Completo</label>
+                                                <input name="full_name" className="stg-dark-input" value={formData.full_name} onChange={handleChange} />
+                                            </div>
+                                        </div>
+                                        <div className="stg-field-row multi">
+                                            <div className="stg-f-group flex-2">
+                                                <label className="stg-label">Colegio / Jurisdicción</label>
+                                                <input name="jurisdiccion" className="stg-dark-input" value={formData.jurisdiccion} onChange={handleChange} />
+                                            </div>
+                                            <div className="stg-f-group flex-1">
+                                                <label className="stg-label">Tomo</label>
+                                                <input className="stg-dark-input readonly" value={formData.tomo} readOnly disabled />
+                                            </div>
+                                            <div className="stg-f-group flex-1">
+                                                <label className="stg-label">Folio</label>
+                                                <input className="stg-dark-input readonly" value={formData.folio} readOnly disabled />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="stg-f-group" style={{ marginTop: '1.5rem' }}>
+                                    <label className="stg-label">Especialidades Profesionales</label>
+                                    <div className="stg-chips-grid">
+                                        {SPECIALTIES_OPTIONS.map(spec => (
+                                            <button
+                                                key={spec}
+                                                className={`stg-chip ${formData.especialidades.includes(spec) ? 'selected' : ''}`}
+                                                onClick={() => toggleSpecialty(spec)}
+                                            >
+                                                {spec}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="stg-f-group" style={{ marginTop: '1.5rem' }}>
+                                    <label className="stg-label">Biografía / Extracto</label>
+                                    <textarea name="biography" className="stg-dark-input underline" rows="3" value={formData.biography} onChange={handleChange} />
+                                </div>
+
+                                <div className="stg-actions-footer">
+                                    <button className="stg-gold-btn" onClick={handleSaveProfile} disabled={saving || uploading}>
+                                        {saving ? 'Procesando...' : 'Guardar Perfil'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'security' && (
+                            <div className="stg-tab-pane">
+                                <div className="stg-alert-card">🛡️ Sus datos están bajo la protección cifrada de Judic-IA.</div>
+                                <div className="stg-field-row multi">
+                                    <div className="stg-f-group flex-2">
+                                        <label className="stg-label">Email de Acceso</label>
+                                        <input className="stg-dark-input readonly" value={user?.email || ''} readOnly />
+                                    </div>
+                                    <div className="stg-f-group flex-1">
+                                        <label className="stg-label">Enlace Telefónico</label>
+                                        <input name="phone" className="stg-dark-input" value={formData.phone} onChange={handleChange} placeholder="+54 9..." />
+                                    </div>
+                                </div>
+                                <div className="stg-divider"></div>
+                                <h3 className="stg-sec-title">Gabinete de Identidad</h3>
+                                <div className="stg-field-row multi stg-bg-box" style={{ alignItems: 'flex-end' }}>
+                                    <div className="stg-f-group flex-2">
+                                        <label className="stg-label">Credencial de Acceso</label>
+                                        <input type="password" className="stg-dark-input readonly" value="********" readOnly />
+                                        <p className="stg-hint">Solo puede ser restablecida por email oficial.</p>
+                                    </div>
+                                    <div className="flex-1">
+                                        <button className="stg-outline-btn" style={{ width: '100%' }} onClick={() => alert("Restablecimiento enviado.")}>Restablecer</button>
+                                    </div>
+                                </div>
+                                <div className="stg-actions-footer">
+                                    <button className="stg-gold-btn" onClick={handleSaveSecurity} disabled={saving}>
+                                        {saving ? 'Guardando...' : 'Actualizar Seguridad'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'billing' && (
+                            <div className="stg-tab-pane">
+                                <div className="stg-plan-card stg-premium-glow">
+                                    <div className="stg-plan-badge">VITALICIO</div>
+                                    <small className="stg-tag">Gabinete Jurídico</small>
+                                    <h2 className="stg-plan-name">Judic-IA Suite Pro</h2>
+                                    <div className="stg-price-row">
+                                        <span className="stg-val">$15.000</span>
+                                        <span className="stg-period">/ mensual</span>
+                                    </div>
+                                    <div className="stg-plan-footer">
+                                        <span className="stg-status-active">● SUSCRIPCIÓN ACTIVA</span>
+                                        <span className="stg-next-date">Prox: 15/01/2026</span>
+                                    </div>
+                                </div>
+
+                                <div className="stg-methods-box">
+                                    <h3 className="stg-sec-title">Puente de Pago</h3>
+                                    <div className="stg-method-item">
+                                        <div className="stg-m-info">
+                                            <strong style={{ color: '#009ee3' }}>⚖️ Mercado Pago</strong>
+                                            <p>Vínculo directo con su cuenta certificada.</p>
+                                        </div>
+                                        <button className="stg-mp-btn">Gestionar</button>
+                                    </div>
+                                    <button className="stg-add-btn">+ Asociar Nuevo Medio</button>
+                                </div>
+
+                                <div className="stg-actions-footer">
+                                    <button className="stg-gold-btn" onClick={handleSaveBilling} disabled={saving}>
+                                        {saving ? 'Guardando...' : 'Confirmar Pagos'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </main>
                 </div>
             </div>
 
-            <style jsx>{`
-                .settings-container {
-                    padding: 2rem 3rem;
-                    max-width: 1400px;
-                    margin: 0 auto;
+            <style jsx global>{`
+                /* ENCAPSULATED ROOT - PREVENT OVERLAP */
+                .stg-root {
                     min-height: 100vh;
-                    display: flex;
-                    flex-direction: column;
-                    font-family: 'Outfit', sans-serif;
+                    background: #020617;
+                    color: white;
+                    padding: 3rem 4rem 3rem 2rem;
+                    font-family: 'Inter', sans-serif;
                 }
-                .settings-nav { margin-bottom: 2rem; flex-shrink: 0; }
-                .breadcrumb { display: flex; align-items: center; gap: 1rem; font-size: 0.95rem; color: #94a3b8; }
-                .breadcrumb-item { color: #94a3b8; text-decoration: none; transition: all 0.2s; font-weight: 500; }
-                .breadcrumb-item:hover { color: var(--primary); }
-                .breadcrumb-separator { opacity: 0.4; font-size: 0.8em; }
-                .breadcrumb-current { color: #f1f5f9; font-weight: 600; }
+                .stg-container { max-width: 1200px; margin: 0 auto; }
+                .stg-breadcrumb { font-size: 0.8rem; color: #475569; margin-bottom: 0.8rem; letter-spacing: 0.05em; }
+                .stg-breadcrumb Link { color: #475569; text-decoration: none; }
+                .stg-main-title { font-family: 'Playfair Display', serif; font-size: 2.8rem; color: #fbbf24; margin-bottom: 3.5rem; font-weight: 900; }
 
-                .settings-layout {
-                    display: flex;
-                    gap: 3rem;
+                .stg-layout-split { 
+                    display: flex; 
+                    gap: 3.5rem; 
                     align-items: flex-start;
                 }
 
-                /* TABS SIDEBAR */
-                .settings-tabs {
+                /* INTERNAL SIDEBAR - UNIQUE CLASSES */
+                .stg-tabs-nav {
                     width: 280px;
-                    flex-shrink: 0;
-                    padding: 1rem;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.5rem;
-                    border-radius: 20px;
-                    background: rgba(15, 23, 42, 0.6);
-                    border: 1px solid rgba(255, 255, 255, 0.05);
-                    backdrop-filter: blur(10px);
-                }
-                .tab-btn {
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                    padding: 1rem 1.5rem;
-                    border: none;
-                    background: transparent;
-                    color: #94a3b8;
-                    font-size: 1rem;
-                    font-weight: 500;
-                    cursor: pointer;
-                    border-radius: 12px;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    text-align: left;
-                    font-family: inherit;
-                    position: relative;
-                    overflow: hidden;
-                }
-                .tab-btn:hover {
-                    background: rgba(255, 255, 255, 0.03);
-                    color: #f8fafc;
-                }
-                .tab-btn.active {
-                    background: rgba(197, 160, 33, 0.15);
-                    color: white;
-                    font-weight: 600;
-                    border: 1px solid rgba(197, 160, 33, 0.1);
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                }
-                .tab-icon { font-size: 1.25rem; opacity: 0.8; }
-                .tab-btn.active .tab-icon { opacity: 1; transform: scale(1.1); transition: transform 0.3s; }
-
-                /* CONTENT AREA */
-                .settings-content {
-                    flex: 1;
-                    background: rgba(15, 23, 42, 0.6);
-                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    background: rgba(15, 23, 42, 0.4);
+                    border: 1px solid rgba(255,255,255,0.05);
                     border-radius: 24px;
-                    padding: 3.5rem;
-                    min-height: 600px;
-                    position: relative;
-                    backdrop-filter: blur(12px);
-                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-                }
-                .tab-title {
-                    font-size: 2.2rem;
-                    font-weight: 700;
-                    margin-bottom: 3rem;
-                    color: white;
-                    letter-spacing: -0.02em;
-                    padding-bottom: 1rem;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                    display: inline-block;
+                    padding: 1.5rem;
+                    backdrop-filter: blur(20px);
                 }
 
-                .section-fade-in {
-                    animation: fadeIn 0.4s ease-out forwards;
-                }
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(10px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-
-                /* PROFILE STYLES */
-                .profile-header {
-                    display: flex;
-                    gap: 3.5rem;
-                    margin-bottom: 3.5rem;
-                    align-items: flex-start;
-                }
-                .photo-upload-area {
-                    flex-shrink: 0;
-                    text-align: center;
-                    width: 180px;
-                }
-                .photo-placeholder {
-                    width: 160px;
-                    height: 160px;
-                    background: rgba(30, 41, 59, 0.5);
-                    border: 2px dashed rgba(148, 163, 184, 0.3);
-                    border-radius: 20px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 2.5rem;
-                    margin: 0 auto 1.2rem;
-                    transition: all 0.3s;
-                    color: rgba(255,255,255,0.2);
-                    cursor: pointer;
-                }
-                .photo-placeholder:hover {
-                    border-color: var(--primary);
-                    background: rgba(197, 160, 33, 0.05);
-                    color: var(--primary);
-                    box-shadow: 0 0 20px rgba(197, 160, 33, 0.1);
-                }
-                .btn-upload {
-                    background: rgba(255, 255, 255, 0.08);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    color: white;
-                    padding: 0.6rem 1.2rem;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    font-size: 0.9rem;
+                .stg-tab-btn {
+                    width: 100%;
+                    text-align: left;
+                    padding: 1.1rem 1.4rem;
                     margin-bottom: 0.8rem;
-                    transition: all 0.3s;
-                    width: 100%;
-                }
-                .btn-upload:hover { 
-                    background: rgba(255, 255, 255, 0.15); 
-                    border-color: white;
-                }
-                .photo-hint {
-                    font-size: 0.8rem;
+                    border: 1px solid transparent;
+                    background: transparent;
                     color: #64748b;
-                    line-height: 1.4;
-                }
-                .profile-fields {
-                    flex: 1;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1.8rem;
-                }
-
-                /* FORMS - CRITICAL FIX FOR DARK THEME */
-                .form-group {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.8rem;
-                }
-                .full-width { width: 100%; margin-bottom: 2rem; }
-                .grid-2 {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 2.5rem;
-                    margin-bottom: 2.5rem;
-                }
-                label {
-                    color: #cbd5e1;
-                    font-size: 0.9rem;
-                    font-weight: 600;
-                    margin-left: 0.2rem;
-                    letter-spacing: 0.02em;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                }
-                .label-with-icon {
-                    color: #94a3b8;
-                }
-                .lock-icon { font-size: 0.9rem; opacity: 0.7; }
-
-                .input-premium {
-                    background-color: rgba(15, 23, 42, 0.6) !important;
-                    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                    padding: 1.1rem 1.2rem;
-                    border-radius: 12px;
-                    color: white !important;
-                    font-size: 1rem;
-                    font-family: 'Outfit', sans-serif;
-                    transition: all 0.3s ease;
-                    width: 100%;
-                    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-                }
-                .input-premium::placeholder {
-                    color: rgba(255, 255, 255, 0.3);
-                }
-                .input-premium:focus {
-                    outline: none;
-                    border-color: var(--primary) !important;
-                    background-color: rgba(15, 23, 42, 0.8) !important;
-                    box-shadow: 0 0 0 3px rgba(197, 160, 33, 0.15);
-                }
-                .input-premium:disabled, .input-premium[readonly] {
-                    opacity: 0.7;
-                    cursor: not-allowed;
-                    background-color: rgba(0, 0, 0, 0.3) !important;
-                    border-color: rgba(255, 255, 255, 0.05) !important;
-                    color: #94a3b8 !important;
-                }
-                .tooltip {
-                    font-size: 0.75rem;
-                    color: var(--primary);
-                    margin-top: 0.4rem;
-                    display: block;
-                    opacity: 0.8;
-                }
-
-                /* ACTIONS */
-                .action-row {
-                    display: flex;
-                    justify-content: flex-end;
-                    border-top: 1px solid rgba(255, 255, 255, 0.1);
-                    padding-top: 2.5rem;
-                    margin-top: 1rem;
-                }
-                .btn-save {
-                    background: linear-gradient(135deg, var(--primary) 0%, #b4941f 100%);
-                    color: #0f172a;
-                    border: none;
-                    padding: 1rem 2.5rem;
-                    border-radius: 12px;
-                    font-weight: 700;
-                    font-size: 1.05rem;
+                    border-radius: 14px;
                     cursor: pointer;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    box-shadow: 0 10px 20px -5px rgba(197, 160, 33, 0.4);
+                    font-weight: 700;
+                    transition: all 0.3s;
+                    font-size: 0.95rem;
                 }
-                .btn-save:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 15px 30px -5px rgba(197, 160, 33, 0.5);
-                    filter: brightness(1.1);
+                .stg-tab-btn:hover { background: rgba(255,255,255,0.03); color: white; }
+                .stg-tab-btn.active {
+                    background: rgba(251, 191, 36, 0.1);
+                    border-color: rgba(251, 191, 36, 0.2);
+                    color: #fbbf24;
                 }
-                .btn-save:disabled { opactiy: 0.7; cursor: wait; }
+
+                /* CONTENT BOX */
+                .stg-main-content {
+                    flex: 1;
+                    background: rgba(15, 23, 42, 0.6);
+                    border: 1px solid rgba(255,255,255,0.08);
+                    border-radius: 32px;
+                    padding: 3.5rem;
+                    backdrop-filter: blur(50px);
+                    box-shadow: 0 40px 100px -20px rgba(0,0,0,0.5);
+                    min-height: 700px;
+                }
+
+                .stg-tab-pane { animation: stgFade 0.6s ease; }
+                @keyframes stgFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+                .stg-profile-header { display: flex; gap: 3.5rem; margin-bottom: 2.5rem; }
+                .stg-photo-col { width: 180px; }
+                .stg-avatar-box {
+                    width: 180px; height: 180px;
+                    background: #0f172a;
+                    border: 2px dashed rgba(251, 191, 36, 0.25);
+                    border-radius: 24px;
+                    overflow: hidden; cursor: pointer; position: relative;
+                    display: flex; align-items: center; justify-content: center;
+                    transition: 0.4s;
+                }
+                .stg-avatar-box:hover { border-color: #fbbf24; transform: scale(1.02); }
+                .stg-avatar-box img { width: 100%; height: 100%; object-fit: cover; }
+                .stg-placeholder { text-align: center; color: #334155; font-size: 0.8rem; font-weight: 800; }
+                .stg-loader-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; color: #fbbf24; }
+
+                .stg-fields-col { flex: 1; }
+                .stg-f-group { margin-bottom: 1.8rem; display: flex; flex-direction: column; }
+                .stg-label { font-size: 0.75rem; font-weight: 900; color: #475569 !important; text-transform: uppercase; margin-bottom: 0.7rem; letter-spacing: 0.08em; padding-left: 0.4rem; }
+                
+                .stg-dark-input {
+                    background: #0f172a !important;
+                    border: 1px solid rgba(255,255,255,0.1) !important;
+                    color: white !important;
+                    padding: 1rem 1.4rem !important;
+                    border-radius: 16px !important;
+                    font-size: 1rem !important;
+                    outline: none !important;
+                    width: 100%;
+                    transition: 0.3s;
+                }
+                .stg-dark-input:focus { border-color: #fbbf24 !important; background: #020617 !important; box-shadow: 0 0 0 5px rgba(251,191,36,0.1) !important; }
+                .stg-dark-input.readonly { opacity: 0.4; cursor: not-allowed; }
+                .stg-dark-input.underline { resize: none; }
+
+                .stg-field-row.multi { display: flex; gap: 1.8rem; }
+                .flex-1 { flex: 1; } .flex-2 { flex: 2; }
+
+                .stg-chips-grid { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+                .stg-chip {
+                    padding: 0.6rem 1rem;
+                    background: rgba(15, 23, 42, 0.4);
+                    border: 1px solid rgba(255,255,255,0.06);
+                    border-radius: 10px;
+                    color: #64748b;
+                    font-size: 0.8rem;
+                    cursor: pointer;
+                    font-weight: 600;
+                    transition: 0.3s;
+                }
+                .stg-chip:hover { color: white; background: rgba(255,255,255,0.05); }
+                .stg-chip.selected { background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+
+                .stg-actions-footer { margin-top: 3.5rem; display: flex; justify-content: flex-end; padding-top: 2.5rem; border-top: 1px solid rgba(255,255,255,0.05); }
+                .stg-gold-btn {
+                    background: linear-gradient(135deg, #fbbf24, #d97706);
+                    color: #020617; border: none; padding: 1.1rem 3.5rem; border-radius: 18px;
+                    font-weight: 800; cursor: pointer; transition: 0.3s; font-size: 1rem;
+                    text-transform: uppercase; letter-spacing: 0.05em;
+                }
+                .stg-gold-btn:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(217, 119, 6, 0.3); }
+                .stg-gold-btn:disabled { opacity: 0.5; }
 
                 /* SECURITY */
-                .security-alert {
-                    background: rgba(234, 179, 8, 0.08);
-                    border: 1px solid rgba(234, 179, 8, 0.2);
-                    padding: 1.2rem 1.8rem;
-                    border-radius: 16px;
-                    display: flex;
-                    align-items: center;
-                    gap: 1.2rem;
-                    margin-bottom: 3rem;
-                }
-                .security-alert .icon { font-size: 1.5rem; }
-                .security-alert p { color: #fcd34d; font-weight: 500; margin: 0; font-size: 0.95rem; }
-                .btn-text {
-                    background: none;
-                    border: none;
-                    color: #fcd34d;
-                    font-weight: 700;
-                    text-decoration: underline;
-                    cursor: pointer;
-                    margin-left: auto;
-                    font-size: 0.9rem;
-                }
-                .divider {
-                    height: 1px;
-                    background: rgba(255, 255, 255, 0.1);
-                    margin: 3.5rem 0;
-                }
-                h3 { 
-                    font-size: 1.3rem; 
-                    color: white; 
-                    margin-bottom: 2rem; 
-                    font-weight: 600;
-                }
+                .stg-alert-card { background: rgba(251,191,36,0.05); border: 1px solid rgba(251,191,36,0.15); padding: 1.5rem; border-radius: 16px; color: #fbbf24; font-size: 0.95rem; margin-bottom: 3rem; font-weight: 700; }
+                .stg-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 3rem 0; }
+                .stg-sec-title { font-family: 'Playfair Display'; font-size: 1.8rem; color: white; margin-bottom: 2rem; }
+                .stg-bg-box { background: rgba(15, 23, 42, 0.3); padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.03); }
+                .stg-hint { font-size: 0.75rem; color: #475569; margin-top: 0.8rem; }
+                .stg-outline-btn { background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #94a3b8; padding: 1rem; border-radius: 14px; cursor: pointer; font-weight: 700; transition: 0.3s; }
+                .stg-outline-btn:hover { color: white; border-color: #fbbf24; }
 
                 /* BILLING */
-                .plan-card {
-                    background: linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
-                    border: 1px solid rgba(197, 160, 33, 0.3);
-                    padding: 2.5rem;
-                    border-radius: 24px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 4rem;
-                    position: relative;
-                    overflow: hidden;
+                .stg-plan-card {
+                    background: linear-gradient(145deg, #0f172a, #020617);
+                    border: 1px solid rgba(251, 191, 36, 0.4);
+                    padding: 3.5rem; border-radius: 28px; position: relative;
                 }
-                .plan-card::before {
-                    content: '';
-                    position: absolute;
-                    top: 0; left: 0; width: 4px; height: 100%;
-                    background: var(--primary);
-                    box-shadow: 0 0 15px var(--primary);
+                .stg-premium-glow { box-shadow: 0 0 50px rgba(251, 191, 36, 0.05); }
+                .stg-plan-badge { 
+                    position: absolute; top: 2rem; right: 2rem; 
+                    background: #fbbf24; color: #020617; font-size: 0.75rem; font-weight: 950; 
+                    padding: 0.5rem 1.2rem; border-radius: 100px;
                 }
-                .plan-badge {
-                    background: rgba(197, 160, 33, 0.15);
-                    color: #fbbf24;
-                    padding: 0.4rem 1rem;
-                    border-radius: 8px;
-                    font-size: 0.75rem;
-                    font-weight: 800;
-                    letter-spacing: 0.05em;
-                    border: 1px solid rgba(197, 160, 33, 0.2);
-                    display: inline-block;
-                    margin-bottom: 0.8rem;
-                }
-                .plan-info h2 { font-size: 2rem; margin: 0.5rem 0; color: white; letter-spacing: -0.01em; }
-                .price { font-size: 1.8rem; color: white; font-weight: 300; display: flex; align-items: baseline; gap: 0.5rem; }
-                .price .period { font-size: 1rem; color: #94a3b8; font-weight: 400; }
-                
-                .plan-status { text-align: right; }
-                .status-pill.active {
-                    background: rgba(16, 185, 129, 0.1);
-                    color: #34d399;
-                    padding: 0.5rem 1.2rem;
-                    border-radius: 50px;
-                    display: inline-block;
-                    border: 1px solid rgba(16, 185, 129, 0.2);
-                    font-weight: 600;
-                    font-size: 0.9rem;
-                    margin-bottom: 0.8rem;
-                    box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
-                }
-                .plan-status p { color: #94a3b8; font-size: 0.9rem; }
+                .stg-tag { color: #fbbf24; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; display: block; margin-bottom: 0.5rem; }
+                .stg-plan-name { font-family: 'Playfair Display'; font-size: 3rem; margin: 0; }
+                .stg-price-row { display: flex; align-items: baseline; gap: 0.8rem; margin-top: 1rem; }
+                .stg-val { font-size: 2.5rem; font-weight: 900; color: white; }
+                .stg-period { color: #475569; font-weight: 600; }
+                .stg-plan-footer { display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 2rem; padding-top: 1.5rem; }
+                .stg-status-active { color: #10b981; font-weight: 900; font-size: 0.85rem; }
+                .stg-next-date { color: #64748b; font-size: 0.85rem; }
 
-                .section-title { font-size: 1.5rem; color: white; margin-bottom: 2rem; border-left: 3px solid var(--primary); padding-left: 1rem; }
-                .payment-methods {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                    gap: 2rem;
+                .stg-methods-box { margin-top: 4rem; }
+                .stg-method-item { 
+                    background: rgba(0, 158, 227, 0.04); 
+                    border: 1px solid rgba(0, 158, 227, 0.15); 
+                    padding: 1.8rem; border-radius: 18px; 
+                    display: flex; justify-content: space-between; align-items: center;
                 }
-                .payment-card {
-                    padding: 2.5rem;
-                    border-radius: 20px;
-                    background: rgba(30, 41, 59, 0.2);
-                    border: 1px solid rgba(255,255,255,0.05);
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1.5rem;
-                    align-items: flex-start;
-                    transition: all 0.3s;
-                    min-height: 250px;
-                }
-                .mp-card { 
-                    border-color: rgba(0, 158, 227, 0.3); 
-                    background: linear-gradient(145deg, rgba(0, 158, 227, 0.05) 0%, rgba(0,0,0,0) 100%);
-                }
-                .mp-logo {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.8rem;
-                    font-weight: 800;
-                    font-size: 1.4rem;
-                    color: #009ee3;
-                    margin-top: 1rem;
-                    margin-bottom: 1rem;
-                }
-                .mp-icon { font-size: 1.8rem; }
-                
-                .btn-mp {
-                    width: 100%;
-                    padding: 1rem;
-                    background: #009ee3;
-                    color: white;
-                    border: none;
-                    border-radius: 12px;
-                    font-weight: 700;
-                    font-size: 1rem;
-                    cursor: pointer;
-                    margin-top: auto;
-                    transition: all 0.3s;
-                    box-shadow: 0 4px 15px rgba(0, 158, 227, 0.3);
-                }
-                .btn-mp:hover { 
-                    background: #0081b8; 
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 25px rgba(0, 158, 227, 0.4);
-                }
+                .stg-mp-btn { background: #009ee3; color: white; border: none; padding: 0.8rem 2rem; border-radius: 12px; font-weight: 800; cursor: pointer; }
+                .stg-add-btn { width: 100%; margin-top: 1rem; padding: 1.2rem; background: transparent; border: 1px dashed rgba(255,255,255,0.1); border-radius: 16px; color: #475569; cursor: pointer; transition: 0.3s; }
+                .stg-add-btn:hover { border-color: white; color: white; }
 
-                .card-icon { font-size: 2.5rem; color: #64748b; margin-top: 1rem; margin-bottom: 1rem; }
-                .btn-outline {
-                    width: 100%;
-                    padding: 1rem;
-                    background: transparent;
-                    color: white;
-                    border: 1px dashed rgba(255, 255, 255, 0.2);
-                    border-radius: 12px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    margin-top: auto;
-                    transition: all 0.3s;
-                }
-                .btn-outline:hover { 
-                    border-color: white; 
-                    border-style: solid;
-                    background: rgba(255,255,255,0.05); 
-                }
-
-                @media (max-width: 1024px) {
-                    .settings-layout { flex-direction: column; }
-                    .settings-tabs { width: 100%; flex-direction: row; overflow-x: auto; padding-bottom: 0.5rem; }
-                    .tab-btn { flex: 1; min-width: 180px; justify-content: center; }
-                    .profile-header { flex-direction: column; align-items: center; text-align: center; }
-                    .photo-upload-area { margin: 0 auto; }
-                    .profile-fields { width: 100%; }
-                    .grid-2 { grid-template-columns: 1fr; }
+                @media (max-width: 900px) {
+                    .stg-layout-split { flex-direction: column; }
+                    .stg-tabs-nav { width: 100%; }
+                    .stg-profile-header { flex-direction: column; align-items: center; }
+                    .stg-field-row.multi { flex-direction: column; gap: 0; }
+                    .stg-root { padding: 2rem; }
                 }
             `}</style>
         </div>

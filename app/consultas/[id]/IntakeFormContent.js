@@ -43,7 +43,7 @@ export default function IntakeFormContent({ id }) {
             if (!id) return;
             const { data, error } = await supabase
                 .from('profiles')
-                .select('full_name, especialidades, matricula')
+                .select('full_name, especialidades, matricula, avatar_url')
                 .eq('id', id)
                 .single();
 
@@ -105,7 +105,13 @@ export default function IntakeFormContent({ id }) {
                 <div className="unified-card">
                     {/* Left: Lawyer Identity */}
                     <div className="lawyer-side">
-                        <div className="avatar-lg">{lawyer.full_name?.charAt(0) || 'D'}</div>
+                        <div className={`avatar-lg ${lawyer.avatar_url ? 'has-image' : ''}`}>
+                            {lawyer.avatar_url ? (
+                                <img src={lawyer.avatar_url} alt={lawyer.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                                lawyer.full_name?.charAt(0) || 'D'
+                            )}
+                        </div>
                         <h1 className="lawyer-name">{lawyer.full_name || 'Tu Abogado'}</h1>
                         {lawyer.matricula && (
                             <span className="lawyer-matricula" style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '1.5rem', display: 'block' }}>
@@ -194,7 +200,9 @@ export default function IntakeFormContent({ id }) {
                 margin-bottom: 1.5rem;
                 box-shadow: 0 10px 30px -10px rgba(251, 191, 36, 0.5);
                 border: 2px solid rgba(255,255,255,0.1);
+                overflow: hidden;
             }
+            .avatar-lg.has-image { background: transparent; border-color: #fbbf24; }
 
             .lawyer-name { font-size: 1.8rem; color: white; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
             .lawyer-badge {

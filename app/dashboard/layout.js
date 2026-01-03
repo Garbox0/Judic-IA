@@ -111,8 +111,12 @@ export default function DashboardLayout({ children }) {
 
         <div className="user-profile glass-card">
           <div className="profile-upper">
-            <div className="avatar glow-avatar">
-              {getInitials()}
+            <div className={`avatar glow-avatar ${profile?.avatar_url ? 'has-image' : ''}`}>
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="Profile" className="avatar-image-sidebar" />
+              ) : (
+                getInitials()
+              )}
             </div>
             <div className="info">
               <p className="name">
@@ -281,6 +285,13 @@ export default function DashboardLayout({ children }) {
           font-size: 1.1rem;
           box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
           border: 1px solid rgba(255, 255, 255, 0.1);
+          overflow: hidden;
+        }
+        .avatar.has-image { background: transparent; border-color: var(--primary); }
+        .avatar-image-sidebar {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
         .info { min-width: 0; }
         .info .name {

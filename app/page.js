@@ -17,36 +17,42 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
+      {/* Import Fonts */}
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap');
+      `}</style>
+
       {/* Navbar */}
-      <nav className="glass-navbar">
-        <div className="nav-brand">
-          <img src="/logo.png" alt="Logo" className="nav-logo" />
-          <span className="nav-title">Judic-IA</span>
-        </div>
-        <div className="nav-links">
-          <Link href="#features" className="link-item">Servicios</Link>
-          <Link href="#pricing" className="link-item">Precios</Link>
-          <Link href="/login" className="btn-login">Login Abogado</Link>
+      <nav className="glass-navbar fade-in">
+        <div className="nav-container">
+          <div className="nav-brand">
+            <img src="/logo.png" alt="Logo" className="nav-logo" />
+            <span className="nav-title text-glow">Judic-IA <span className="justice-emoji">⚖️</span></span>
+          </div>
+          <div className="nav-links">
+            <Link href="#features" className="link-item">Servicios</Link>
+            <Link href="#pricing" className="link-item">Precios</Link>
+            <Link href="/login" className="btn-login-premium">Login Abogado</Link>
+          </div>
         </div>
       </nav>
 
       {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-content">
-          <div className="badge-new">✨ Nueva Versión 2.0</div>
-          <h1 className="hero-title">
+          <div className="badge-new slide-up">✨ Versión 2.0 • IA Legal de Élite</div>
+          <h1 className="hero-title slide-up-delayed">
             Tu Estudio Jurídico, <br />
-            <span className="gradient-text">Potenciado por IA.</span>
+            <span className="gradient-text italic-serif">Potenciado por IA.</span>
           </h1>
-          <p className="hero-subtitle">
-            Automatiza la atención de consultas, investiga jurisprudencia en segundos y gestiona tus expedientes en una sola plataforma segura.
-            <br />Especializado en Derecho Laboral Argentino.
+          <p className="hero-subtitle slide-up-extra-delayed">
+            Automatiza la atención de consultas, investiga jurisprudencia en segundos y gestiona tus expedientes en una sola plataforma segura de alto rendimiento.
           </p>
-          <div className="hero-actions">
-            <Link href="/demo" className="btn-primary glow">
+          <div className="hero-actions slide-up-extra-delayed">
+            <Link href="/demo" className="btn-primary-glow">
               Probar Demo Cliente ↘️
             </Link>
-            <Link href="#pricing" className="btn-secondary">
+            <Link href="#pricing" className="btn-secondary-outline">
               Ver Planes y Precios
             </Link>
           </div>
@@ -54,254 +60,274 @@ export default function Home() {
         <div className="hero-visual">
           <div className="orb orb-1"></div>
           <div className="orb orb-2"></div>
+          <div className="orb orb-3"></div>
         </div>
       </section>
 
       {/* Services Grid */}
       <section id="features" className="section-container">
-        <h2 className="section-title">Todo lo que necesitas para litigar mejor</h2>
-        <div className="services-grid">
-          <div className="service-card glass-card">
-            <div className="icon-box">🤖</div>
-            <h3>Asistente Virtual 24/7</h3>
-            <p>Tu propio chatbot en tu web. Responde consultas básicas, filtra casos viables y agenda citas automáticamente mientras duermes.</p>
-          </div>
-          <div className="service-card glass-card">
-            <div className="icon-box">⚖️</div>
-            <h3>Investigación Legal</h3>
-            <p>Buscador jurídico con IA. Encuentra fallos, leyes y doctrina relevante al instante. Genera resúmenes y estrategias de caso.</p>
-          </div>
-          <div className="service-card glass-card">
-            <div className="icon-box">📂</div>
-            <h3>Gestión de Expedientes</h3>
-            <p>Un CRM legal diseñado para abogados. Organiza clientes, documentos y estados procesales en un tablero visual tipo Kanban.</p>
-          </div>
-          <div className="service-card glass-card">
-            <div className="icon-box">📅</div>
-            <h3>Agenda Inteligente</h3>
-            <p>Nunca pierdas un plazo. Tu agenda te notifica vencimientos y audiencias importantes. Sincronizada con tus casos.</p>
-          </div>
+        <div className="section-header">
+          <h2 className="section-title">Soluciones de Próxima Generación</h2>
+          <p className="section-subtitle">Lo mejor de la tecnología legal diseñado para abogados exigentes.</p>
         </div>
-      </section>
-
-      {/* How it Works */}
-      <section className="section-container">
-        <h2 className="section-title">Automatiza tu estudio en 3 pasos</h2>
-        <div className="steps-container">
-          <div className="step-item">
-            <div className="step-number">1</div>
-            <h3>Regístrate</h3>
-            <p>Crea tu cuenta profesional y configura tu perfil.</p>
+        <div className="services-grid">
+          <div className="service-card-premium">
+            <div className="icon-box-premium">🤖</div>
+            <h3>Asistente Virtual 24/7</h3>
+            <p>Atención automatizada que filtra casos viables y agenda citas mientras te enfocas en litigar.</p>
           </div>
-          <div className="connector"></div>
-          <div className="step-item">
-            <div className="step-number">2</div>
-            <h3>Personaliza</h3>
-            <p>Entrena a tu IA con tus preferencias y horarios.</p>
+          <div className="service-card-premium">
+            <div className="icon-box-premium">⚖️</div>
+            <h3>Investigación Avanzada</h3>
+            <p>IA especializada que encuentra fallos y doctrina relevante en tiempo récord con precisión quirúrgica.</p>
           </div>
-          <div className="connector"></div>
-          <div className="step-item">
-            <div className="step-number">3</div>
-            <h3>Automatiza</h3>
-            <p>Instala el widget y deja que trabaje por ti.</p>
+          <div className="service-card-premium">
+            <div className="icon-box-premium">📂</div>
+            <h3>CRM Legal Inteligente</h3>
+            <p>Control total de tus expedientes y documentos en un entorno seguro y visualmente intuitivo.</p>
+          </div>
+          <div className="service-card-premium">
+            <div className="icon-box-premium">📅</div>
+            <h3>Agenda Judicial</h3>
+            <p>Notificaciones inteligentes de plazos y audiencias sincronizadas con tu flujo de trabajo.</p>
           </div>
         </div>
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="section-container">
-        <h2 className="section-title">Planes flexibles</h2>
+      <section id="pricing" className="section-container bg-radial-accent">
+        <div className="section-header">
+          <h2 className="section-title">Excelencia a tu Alcance</h2>
+          <p className="section-subtitle">Elige el plan que impulsará tu crecimiento profesional.</p>
+        </div>
         <div className="pricing-grid">
-          <div className="pricing-card glass-card">
+          <div className="pricing-card-premium">
             <h3>Starter</h3>
-            <div className="price">Gratis <small>/ 14 días</small></div>
-            <ul>
+            <div className="price-tag">Gratis <small>/ 14 días</small></div>
+            <ul className="benefits-list">
               <li>✓ Asistente IA Básico</li>
-              <li>✓ Hasta 5 consultas/día</li>
-              <li>✓ Acceso a Investigación</li>
+              <li>✓ Hasta 5 consultas diarias</li>
+              <li>✓ Búsqueda de jurisprudencia</li>
             </ul>
-            <Link href="/register" className="btn-outline">Comenzar Prueba</Link>
+            <Link href="/register" className="btn-outline-gold">Comenzar Gratis</Link>
           </div>
-          <div className="pricing-card glass-card featured">
-            <div className="featured-badge">RECOMENDADO</div>
+          <div className="pricing-card-premium featured">
+            <div className="top-badge">MÁS ELEGIDO</div>
             <h3>Profesional</h3>
-            <div className="price">$15.000 <small>/ mes</small></div>
-            <ul>
+            <div className="price-tag gold">$15.000 <small>/ mes</small></div>
+            <ul className="benefits-list">
               <li>✓ <strong>Asistente IA Ilimitado</strong></li>
-              <li>✓ <strong>Gestión de Clientes Full</strong></li>
-              <li>✓ Agenda y Vencimientos</li>
-              <li>✓ Soporte Prioritario</li>
+              <li>✓ <strong>Gestión Completa de Clientes</strong></li>
+              <li>✓ Alertas de plazos y vencimientos</li>
+              <li>✓ Soporte VIP 24/7</li>
             </ul>
-            <Link href="/register" className="btn-primary">Suscribirse Ahora</Link>
+            <Link href="/register" className="btn-gold-fill">Suscribirse Ahora</Link>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="footer glass-panel">
+      <footer className="footer-premium">
         <div className="footer-content">
-          <div className="footer-brand">Judic-IA</div>
-          <div className="footer-links">
-            <span>© 2026 Judic-IA LegalTech</span>
-            <Link href="#">Términos</Link>
-            <Link href="#">Privacidad</Link>
-            <Link href="/consultas/auth">Acceso Clientes</Link>
+          <div className="footer-brand-area">
+            <div className="footer-logo">Judic-IA <span className="justice-emoji">⚖️</span></div>
+            <p className="footer-tagline">Tecnología de élite para el derecho argentino.</p>
           </div>
+          <div className="footer-nav-links">
+            <div className="nav-col">
+              <h4>Plataforma</h4>
+              <Link href="/login">Abogados</Link>
+              <Link href="/consultas/auth">Clientes</Link>
+            </div>
+            <div className="nav-col">
+              <h4>Legales</h4>
+              <Link href="#">Privacidad</Link>
+              <Link href="#">Términos</Link>
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          © 2026 Judic-IA LegalTech. All rights reserved.
         </div>
       </footer>
 
       {/* Styles */}
       <style jsx>{`
-        /* GLOBAL LAYOUT */
-        .glass-navbar {
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            display: flex; 
-            justify-content: center;
-            align-items: center; 
-            padding: 1.5rem 0; 
-            z-index: 100;
-            background: transparent;
-        }
-        
-        /* Inner container for max-width content */
-        .glass-navbar::after {
-            /* Optional: subtle gradient at top if needed, but clean is better */
-            content: '';
+        /* COLORS & FONTS */
+        :global(body) {
+          background-color: #020617;
+          font-family: 'Inter', sans-serif;
         }
 
-        .nav-brand { display: flex; align-items: center; gap: 0.8rem; margin-right: auto; padding-left: 2rem; }
-        .nav-logo { width: 40px; }
-        .nav-title { font-weight: 800; font-size: 1.5rem; color: #fbbf24; letter-spacing: -0.02em; text-shadow: 0 2px 10px rgba(251, 191, 36, 0.2); }
-        
-        .nav-links { display: flex; gap: 2.5rem; align-items: center; font-size: 0.95rem; padding-right: 2rem; }
-        .link-item { color: #cbd5e1; text-decoration: none; transition: 0.2s; font-weight: 500; }
-        .link-item:hover { color: #fbbf24; text-shadow: 0 0 8px rgba(251, 191, 36, 0.4); }
-        
-        .btn-login { 
-            color: #0f172a; 
-            background: #fbbf24;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            font-weight: 700; 
-            text-decoration: none;
-            transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2);
+        .text-glow { text-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
+        .justice-emoji { font-style: normal; }
+        .italic-serif { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 700; }
+
+        /* NAVBAR */
+        .glass-navbar {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            background: rgba(2, 6, 23, 0.7); backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1rem 0;
         }
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.3);
-            background: #f59e0b;
+        .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; }
+        .nav-brand { display: flex; align-items: center; gap: 0.75rem; }
+        .nav-logo { width: 38px; filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.3)); }
+        .nav-title { font-size: 1.4rem; font-weight: 800; color: #fbbf24; letter-spacing: -0.01em; }
+        
+        .nav-links { display: flex; gap: 2.5rem; align-items: center; }
+        .link-item { color: #94a3b8; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: 0.3s; }
+        .link-item:hover { color: #fbbf24; }
+        
+        .btn-login-premium { 
+            background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3);
+            padding: 0.6rem 1.4rem; border-radius: 10px; font-weight: 700; text-decoration: none; transition: 0.3s;
         }
+        .btn-login-premium:hover { background: #fbbf24; color: #020617; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(251, 191, 36, 0.2); }
 
         /* HERO */
         .hero-section {
-            min-height: 90vh; display: flex; align-items: center; justify-content: center;
-            text-align: center; padding-top: 6rem; position: relative; overflow: hidden;
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding-top: 5rem; position: relative; overflow: hidden;
+            background: radial-gradient(circle at 50% 10%, #0f172a, #020617);
         }
-        .hero-content { z-index: 2; max-width: 800px; padding: 0 1rem; }
+        .hero-content { z-index: 10; max-width: 900px; padding: 0 2rem; }
         .badge-new {
-            display: inline-block; background: rgba(251, 191, 36, 0.1); color: #fbbf24;
-            padding: 0.4rem 1rem; border-radius: 99px; font-size: 0.85rem; font-weight: 600;
-            border: 1px solid rgba(251, 191, 36, 0.3); margin-bottom: 1.5rem;
+            display: inline-block; background: linear-gradient(90deg, rgba(251, 191, 36, 0.1), rgba(217, 119, 6, 0.1));
+            color: #fbbf24; padding: 0.5rem 1.25rem; border-radius: 99px; font-size: 0.85rem; font-weight: 600;
+            border: 1px solid rgba(251, 191, 36, 0.2); margin-bottom: 2rem;
+            backdrop-filter: blur(5px);
         }
-        .hero-title { font-size: 4rem; font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; color: white; }
+        .hero-title { font-family: 'Playfair Display', serif; font-size: 5rem; font-weight: 900; line-height: 0.95; margin-bottom: 1.5rem; color: #f8fafc; }
         .gradient-text {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+            background: linear-gradient(135deg, #fbbf24 0%, #fcd34d 50%, #d97706 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(251, 191, 36, 0.3);
         }
-        .hero-subtitle { font-size: 1.25rem; color: #94a3b8; margin-bottom: 2.5rem; line-height: 1.6; }
-        .hero-actions { display: flex; gap: 1rem; justify-content: center; }
-        .btn-primary {
-            background: #fbbf24; color: #0f172a; padding: 1rem 2rem; border-radius: 12px;
-            font-weight: 700; text-decoration: none; border: none; transition: all 0.2s;
+        .hero-subtitle { font-size: 1.4rem; color: #94a3b8; margin-bottom: 3rem; line-height: 1.6; max-width: 700px; margin-left: auto; margin-right: auto; font-weight: 300; }
+        .hero-actions { display: flex; gap: 1.5rem; justify-content: center; }
+        
+        .btn-primary-glow {
+            background: linear-gradient(135deg, #fbbf24, #d97706); color: #020617; padding: 1.1rem 2.5rem; border-radius: 14px;
+            font-weight: 800; text-decoration: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(217, 119, 6, 0.3); font-size: 1.1rem;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(251, 191, 36, 0.2); }
-        .btn-secondary {
-            background: rgba(255,255,255,0.05); color: white; padding: 1rem 2rem; border-radius: 12px;
-            font-weight: 600; text-decoration: none; border: 1px solid rgba(255,255,255,0.1); transition: all 0.2s;
+        .btn-primary-glow:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 20px 40px rgba(217, 119, 6, 0.4); }
+        
+        .btn-secondary-outline {
+            background: rgba(255, 255, 255, 0.03); color: #f8fafc; padding: 1.1rem 2.5rem; border-radius: 14px;
+            font-weight: 700; text-decoration: none; border: 1px solid rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(5px); transition: 0.3s; font-size: 1.1rem;
         }
-        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
-        .btn-outline {
-             color: #fbbf24; padding: 0.8rem 1.5rem; border-radius: 8px; border: 1px solid #fbbf24;
-             font-weight: 600; text-decoration: none; display: inline-block; width: 100%; text-align: center;
-        }
-        .btn-outline:hover { background: rgba(251, 191, 36, 0.1); }
+        .btn-secondary-outline:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); }
+
+        /* ORBS */
+        .hero-visual { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        .orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.3; }
+        .orb-1 { width: 500px; height: 500px; background: #fbbf24; top: -150px; right: -150px; animation: float 12s infinite alternate; }
+        .orb-2 { width: 600px; height: 600px; background: #3b82f6; bottom: -200px; left: -200px; opacity: 0.15; animation: float 18s infinite reverse; }
+        .orb-3 { width: 300px; height: 300px; background: #f59e0b; top: 40%; left: 10%; opacity: 0.1; animation: pulse 8s infinite alternate; }
+        
+        @keyframes float { 0% { transform: translate(0, 0); } 100% { transform: translate(50px, 40px); } }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.1; } 100% { transform: scale(1.2); opacity: 0.2; } }
 
         /* SECTIONS */
-        .section-container { max-width: 1100px; margin: 0 auto; padding: 6rem 2rem; text-align: center; }
-        .section-title { font-size: 2.5rem; font-weight: 700; color: white; margin-bottom: 3rem; }
+        .section-container { max-width: 1200px; margin: 0 auto; padding: 8rem 2rem; }
+        .section-header { text-align: center; margin-bottom: 5rem; }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-weight: 800; color: #f8fafc; margin-bottom: 1rem; }
+        .section-subtitle { font-size: 1.2rem; color: #64748b; font-weight: 400; max-width: 600px; margin: 0 auto; }
 
-        /* GRIDS */
-        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2rem; }
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 400px)); gap: 3rem; justify-content: center; }
-
-        .glass-card {
-            background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.05);
-            padding: 2.5rem; border-radius: 20px; text-align: left; transition: 0.3s;
-            backdrop-filter: blur(10px);
+        /* SERVICES GRID */
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2.5rem; }
+        .service-card-premium {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.3), rgba(15, 23, 42, 0.3));
+            border: 1px solid rgba(255, 255, 255, 0.05); padding: 3rem 2rem; border-radius: 24px;
+            backdrop-filter: blur(10px); transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            text-align: center;
         }
-        .glass-card:hover { transform: translateY(-5px); border-color: rgba(251, 191, 36, 0.3); background: rgba(30, 41, 59, 0.6); }
-
-        .service-card h3 { color: white; margin: 1rem 0; font-size: 1.3rem; }
-        .service-card p { color: #94a3b8; font-size: 0.95rem; line-height: 1.6; }
-        .icon-box { font-size: 2.5rem; margin-bottom: 0.5rem; }
-
-        .pricing-card { position: relative; }
-        .pricing-card.featured { border: 1px solid #fbbf24; background: rgba(251, 191, 36, 0.05); }
-        .featured-badge {
-            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-            background: #fbbf24; color: #0f172a; font-size: 0.75rem; font-weight: 800;
-            padding: 0.3rem 0.8rem; border-radius: 99px;
+        .service-card-premium:hover {
+            transform: translateY(-8px); border-color: rgba(251, 191, 36, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); background: rgba(30, 41, 59, 0.5);
         }
-        .pricing-card h3 { color: white; font-size: 1.5rem; margin-bottom: 0.5rem; }
-        .pricing-card .price { font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 2rem; }
-        .pricing-card .price small { font-size: 1rem; color: #94a3b8; font-weight: 400; }
-        .pricing-card ul { list-style: none; padding: 0; margin-bottom: 2rem; text-align: left; }
-        .pricing-card li { color: #cbd5e1; margin-bottom: 0.8rem; padding-bottom: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
-
-        /* STEPS */
-        .steps-container { display: flex; align-items: flex-start; justify-content: center; gap: 2rem; flex-wrap: wrap; }
-        .step-item { flex: 1; max-width: 250px; text-align: center; }
-        .step-number {
-            width: 50px; height: 50px; background: rgba(251, 191, 36, 0.2); color: #fbbf24;
-            font-size: 1.5rem; font-weight: 800; border-radius: 50%; display: flex;
-            align-items: center; justify-content: center; margin: 0 auto 1.5rem;
-            border: 2px solid #fbbf24;
+        .icon-box-premium {
+            font-size: 3rem; margin-bottom: 1.5rem; display: inline-flex;
+            width: 80px; height: 80px; background: rgba(251, 191, 36, 0.05);
+            align-items: center; justify-content: center; border-radius: 20px;
+            border: 1px solid rgba(251, 191, 36, 0.1);
         }
-        .connector { width: 50px; height: 2px; background: rgba(255,255,255,0.1); margin-top: 25px; display: none; }
-        @media(min-width: 768px) { .connector { display: block; } }
+        .service-card-premium h3 { font-size: 1.5rem; color: #f8fafc; margin-bottom: 1rem; font-weight: 700; }
+        .service-card-premium p { color: #94a3b8; font-size: 1rem; line-height: 1.6; font-weight: 400; }
 
-        .step-item h3 { color: white; margin-bottom: 0.8rem; }
-        .step-item p { color: #94a3b8; font-size: 0.95rem; }
+        /* PRICING */
+        .bg-radial-accent { background: radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.03), transparent); }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 420px)); gap: 3rem; justify-content: center; }
+        .pricing-card-premium {
+            background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 4rem 3rem; border-radius: 30px; text-align: center; position: relative;
+            backdrop-filter: blur(10px); transition: 0.3s;
+        }
+        .pricing-card-premium.featured {
+            border: 2px solid #fbbf24; box-shadow: 0 0 50px rgba(251, 191, 36, 0.1);
+            background: rgba(15, 23, 42, 0.8); transform: scale(1.05); z-index: 5;
+        }
+        .top-badge {
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            background: #fbbf24; color: #020617; font-size: 0.8rem; font-weight: 900;
+            padding: 0.5rem 1.5rem; border-radius: 99px; letter-spacing: 0.05em;
+        }
+        .price-tag { font-size: 3rem; font-weight: 800; color: #f8fafc; margin: 2rem 0; }
+        .price-tag.gold { color: #fbbf24; text-shadow: 0 0 20px rgba(251, 191, 36, 0.2); }
+        .price-tag small { font-size: 1rem; color: #64748b; font-weight: 400; }
+        
+        .benefits-list { list-style: none; padding: 0; margin-bottom: 3rem; text-align: left; }
+        .benefits-list li { color: #94a3b8; margin-bottom: 1.25rem; font-size: 1rem; padding-left: 1.5rem; position: relative; }
+        .benefits-list li::before { content: '✓'; position: absolute; left: 0; color: #fbbf24; font-weight: 800; }
+        
+        .btn-outline-gold {
+            display: block; padding: 1rem; border: 1px solid #fbbf24; color: #fbbf24;
+            text-decoration: none; border-radius: 12px; font-weight: 700; transition: 0.3s;
+        }
+        .btn-outline-gold:hover { background: rgba(251, 191, 36, 0.1); box-shadow: 0 0 20px rgba(251, 191, 36, 0.2); }
+        
+        .btn-gold-fill {
+            display: block; padding: 1.1rem; background: #fbbf24; color: #020617;
+            text-decoration: none; border-radius: 12px; font-weight: 800; transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(251, 191, 36, 0.3);
+        }
+        .btn-gold-fill:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(251, 191, 36, 0.4); filter: brightness(1.1); }
 
         /* FOOTER */
-        .footer { padding: 3rem 0; margin-top: 4rem; border-top: 1px solid rgba(255,255,255,0.05); }
-        .footer-content {
-            max-width: 1100px; margin: 0 auto; padding: 0 2rem; display: flex;
-            justify-content: space-between; align-items: center;
+        .footer-premium {
+            background: #020617; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 6rem 2rem 4rem;
         }
-        .footer-brand { font-weight: 800; color: white; font-size: 1.2rem; }
-        .footer-links { display: flex; gap: 2rem; color: #64748b; font-size: 0.9rem; }
-        .footer-links a { color: #94a3b8; text-decoration: none; }
-        .footer-links a:hover { color: #fbbf24; }
-
-        /* BLOBS */
-        .hero-visual { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: hidden; }
-        .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; }
-        .orb-1 { width: 400px; height: 400px; background: #fbbf24; top: -100px; right: -100px; animation: float 10s infinite alternate; }
-        .orb-2 { width: 500px; height: 500px; background: #009ee3; bottom: -150px; left: -150px; opacity: 0.2; animation: float 15s infinite reverse; }
+        .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 4rem; }
+        .footer-logo { font-size: 2rem; font-weight: 900; color: #fbbf24; margin-bottom: 1rem; font-family: 'Playfair Display', serif; }
+        .footer-tagline { color: #64748b; font-size: 1rem; line-height: 1.5; font-weight: 400; }
         
-        @keyframes float { from { transform: translate(0,0); } to { transform: translate(30px, 30px); } }
+        .footer-nav-links { display: flex; gap: 4rem; }
+        .nav-col h4 { color: #f8fafc; font-size: 1rem; margin-bottom: 1.5rem; font-weight: 700; }
+        .nav-col { display: flex; flex-direction: column; gap: 0.75rem; }
+        .nav-col a { color: #64748b; text-decoration: none; transition: 0.3s; font-size: 0.95rem; }
+        .nav-col a:hover { color: #fbbf24; }
+        
+        .footer-bottom { 
+            max-width: 1200px; margin: 5rem auto 0; text-align: center; color: #334155; 
+            padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.03); font-size: 0.85rem;
+        }
 
-        @media(max-width: 768px) {
-            .hero-title { font-size: 2.5rem; }
-            .nav-links { display: none; } /* Mobile menu todo */
-            .steps-container { flex-direction: column; align-items: center; }
-            .connector { display: none; }
+        /* ANIMATIONS */
+        .slide-up { animation: slideUp 0.8s ease forwards; opacity: 0; }
+        .slide-up-delayed { animation: slideUp 0.8s ease 0.2s forwards; opacity: 0; }
+        .slide-up-extra-delayed { animation: slideUp 0.8s ease 0.4s forwards; opacity: 0; }
+        .fade-in { animation: fadeIn 1s ease forwards; }
+
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        @media(max-width: 850px) {
+            .hero-title { font-size: 3.5rem; }
+            .pricing-card-premium.featured { transform: scale(1); }
+            .hero-actions { flex-direction: column; }
+            .nav-links { display: none; }
         }
       `}</style>
 
