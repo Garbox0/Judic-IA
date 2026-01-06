@@ -86,7 +86,20 @@ export default function DashboardLayout({ children }) {
         <div className="logo-section">
           <Link href="/dashboard" className="logo-link">
             <img src="/logo.png" alt="Judic-IA" className="dashboard-logo" />
-            <span className="logo-text">Judic-IA</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className="logo-text">Judic-IA</span>
+              {profile && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    router.push('/dashboard/settings?tab=billing');
+                  }}
+                  className={`plan-badge-btn ${profile.plan_tier === 'professional' ? 'pro' : 'starter'}`}
+                >
+                  {profile.plan_tier === 'professional' ? '👑 PRO SUITE' : '⚖️ PLAN STARTER'}
+                </button>
+              )}
+            </div>
           </Link>
         </div>
 
@@ -94,18 +107,36 @@ export default function DashboardLayout({ children }) {
 
         <nav className="nav-links">
           <Link href="/dashboard/research" className={`nav-item ${pathname.includes('/research') ? 'active' : ''}`}>
-            <span className="nav-icon">🔍</span> Investigación Legal
+            <span className="nav-icon">🔍</span>
+            <span className="nav-label">Investigación</span>
           </Link>
           <Link href="/dashboard/clients" className={`nav-item ${pathname.includes('/clients') ? 'active' : ''}`}>
-            <span className="nav-icon">👥</span> Mis Clientes
+            <span className="nav-icon">👥</span>
+            <span className="nav-label">Clientes</span>
           </Link>
           <Link href="/dashboard/agenda" className={`nav-item ${pathname.includes('/agenda') ? 'active' : ''}`}>
-            <span className="nav-icon">📅</span> Agenda
+            <span className="nav-icon">📅</span>
+            <span className="nav-label">Agenda</span>
           </Link>
           <Link href="/dashboard/settings" className={`nav-item ${pathname.includes('/settings') ? 'active' : ''}`}>
-            <span className="nav-icon">⚙️</span> Configuración
+            <span className="nav-icon">⚙️</span>
+            <span className="nav-label">Ajustes</span>
           </Link>
         </nav>
+
+        {profile?.plan_tier !== 'professional' && (
+          <div
+            className="upgrade-card"
+            onClick={() => router.push('/dashboard/settings?tab=billing')}
+          >
+            <div className="upgrade-glow"></div>
+            <div className="upgrade-content">
+              <span className="spark-icon">✨</span>
+              <span className="elite-text">Oferta Elite</span>
+              <span className="arrow-icon">→</span>
+            </div>
+          </div>
+        )}
 
         <div className="sidebar-divider"></div>
 
@@ -119,9 +150,7 @@ export default function DashboardLayout({ children }) {
               )}
             </div>
             <div className="info">
-              <p className="name">
-                {getDisplayName()}
-              </p>
+              <p className="name">{getDisplayName()}</p>
               <p className="role">{user?.email}</p>
             </div>
           </div>
@@ -129,7 +158,7 @@ export default function DashboardLayout({ children }) {
             className="btn-logout-premium"
             onClick={() => supabase.auth.signOut().then(() => router.push('/login'))}
           >
-            <span className="icon">🚪</span> Cerrar Sesión
+            <span className="icon">🚪</span> SALIR
           </button>
         </div>
       </aside>
@@ -154,16 +183,19 @@ export default function DashboardLayout({ children }) {
           font-family: 'Outfit', sans-serif;
         }
 
-        /* SIDEBAR */
+        /* SIDEBAR refined */
         .sidebar {
           width: 280px;
           height: 100vh;
-          padding: 2rem 1.5rem;
+          padding: 2.5rem 1.2rem;
           display: flex;
           flex-direction: column;
           z-index: 100;
           border-radius: 0;
           flex-shrink: 0;
+          background: rgba(2, 6, 23, 0.8);
+          backdrop-filter: blur(12px);
+          border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
         .logo-link {
           display: flex;
@@ -172,83 +204,143 @@ export default function DashboardLayout({ children }) {
           text-decoration: none;
         }
         .logo-section {
-          margin-bottom: 3rem;
+          margin-bottom: 2.5rem;
           padding-left: 0.5rem;
         }
         .dashboard-logo {
-          width: 32px;
-          height: 32px;
+          width: 36px;
+          height: 36px;
+          filter: drop-shadow(0 0 8px var(--primary-glow));
         }
         .logo-text {
-          font-size: 1.5rem;
+          font-size: 1.4rem;
           font-weight: 900;
           color: white;
-          letter-spacing: -0.01em;
-          background: linear-gradient(to right, white, var(--primary));
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
+          letter-spacing: -0.02em;
         }
+
+        /* PLAN BADGE BTN */
+        .plan-badge-btn {
+          background: transparent;
+          border: none;
+          padding: 2px 0;
+          text-align: left;
+          cursor: pointer;
+          font-family: 'Outfit', sans-serif;
+          font-size: 0.65rem;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+          transition: all 0.3s;
+          margin-top: -2px;
+        }
+        .plan-badge-btn.starter { color: #64748b; }
+        .plan-badge-btn.pro { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
+        .plan-badge-btn:hover {
+          transform: translateX(3px);
+          filter: brightness(1.3);
+        }
+
         .sidebar-divider {
           height: 1px;
           background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.05), transparent);
-          margin: 1.2rem 0;
+          margin: 1.5rem 0;
           width: 100%;
         }
+
         .nav-links {
           flex: 1;
           display: flex;
           flex-direction: column;
-          gap: 1.2rem;
-          margin-top: 2rem;
+          gap: 0.8rem;
+          margin-top: 1rem;
         }
         .nav-item {
           display: flex;
           align-items: center;
-          gap: 1.5rem;
-          padding: 1.2rem 1.8rem;
+          gap: 1.2rem;
+          padding: 1rem 1.4rem;
           color: #94a3b8;
           text-decoration: none;
-          border-radius: 16px;
-          transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-          font-size: 1rem;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
+          border-radius: 14px;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          font-size: 0.9rem;
+          font-weight: 600;
+          letter-spacing: 0.02em;
           border: 1px solid transparent;
-          position: relative;
         }
         .nav-item:hover {
           color: white;
           background: rgba(255, 255, 255, 0.03);
-          border-color: rgba(255, 255, 255, 0.05);
-          padding-left: 2rem;
+          transform: translateX(5px);
         }
         .nav-item.active {
-          background: rgba(197, 160, 33, 0.08);
+          background: rgba(197, 160, 33, 0.1);
           color: var(--primary);
-          border: 1px solid rgba(197, 160, 33, 0.2);
-          box-shadow: 0 0 25px rgba(197, 160, 33, 0.08);
-          padding-left: 2rem;
-        }
-        .nav-item.active::after {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 15%;
-          bottom: 15%;
-          width: 4px;
-          background: var(--primary);
-          border-radius: 0 4px 4px 0;
-          box-shadow: 0 0 15px var(--primary-glow);
+          border: 1px solid rgba(197, 160, 33, 0.15);
+          box-shadow: 0 4px 20px rgba(197, 160, 33, 0.05);
         }
         .nav-icon {
-          font-size: 1.6rem;
+          font-size: 1.4rem;
           transition: all 0.3s;
-          filter: grayscale(1) opacity(0.5);
+          filter: grayscale(1) opacity(0.6);
         }
-        .nav-item:hover .nav-icon, .nav-item.active .nav-icon {
+        .nav-item.active .nav-icon {
           filter: grayscale(0) opacity(1);
-          transform: scale(1.15);
+          transform: scale(1.1);
+        }
+
+        /* UPGRADE CARD simplified & centered */
+        .upgrade-card {
+          position: relative;
+          margin: 1.5rem 0.8rem;
+          padding: 1.1rem;
+          background: rgba(251, 191, 36, 0.05);
+          border: 1px solid rgba(251, 191, 36, 0.2);
+          border-radius: 99px;
+          overflow: hidden;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .upgrade-card:hover {
+          background: rgba(251, 191, 36, 0.1);
+          border-color: #fbbf24;
+          transform: translateY(-2px);
+          box-shadow: 0 10px 25px rgba(251, 191, 36, 0.15);
+        }
+        .upgrade-content {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          width: 100%;
+          color: #fbbf24;
+          font-weight: 700;
+          font-size: 0.9rem;
+          letter-spacing: 0.02em;
+          white-space: nowrap;
+        }
+        .spark-icon { font-size: 1.1rem; }
+        .arrow-icon {
+          opacity: 0.6;
+          transition: transform 0.3s;
+          font-size: 1.1rem;
+        }
+        .upgrade-card:hover .arrow-icon {
+          transform: translateX(4px);
+          opacity: 1;
+        }
+        .upgrade-glow {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle at center, rgba(251, 191, 36, 0.1), transparent 70%);
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
+        .upgrade-card:hover .upgrade-glow {
+          opacity: 1;
         }
 
         .user-profile {
@@ -260,81 +352,54 @@ export default function DashboardLayout({ children }) {
           background: rgba(255, 255, 255, 0.02);
           border: 1px solid rgba(255, 255, 255, 0.05);
           border-radius: 20px;
-          transition: all 0.3s;
-        }
-        .user-profile:hover {
-          background: rgba(255, 255, 255, 0.04);
-          border-color: rgba(197, 160, 33, 0.15);
-          transform: translateY(-2px);
         }
         .profile-upper {
           display: flex;
           align-items: center;
-          gap: 1rem;
+          gap: 0.8rem;
         }
         .avatar {
-          width: 44px;
-          height: 44px;
-          border-radius: 14px;
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
           background: linear-gradient(135deg, var(--primary), #8a6a1b);
           color: white;
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: 700;
-          font-size: 1.1rem;
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+          font-size: 1rem;
           border: 1px solid rgba(255, 255, 255, 0.1);
-          overflow: hidden;
         }
-        .avatar.has-image { background: transparent; border-color: var(--primary); }
-        .avatar-image-sidebar {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-        .info { min-width: 0; }
+        .avatar-image-sidebar { width: 100%; height: 100%; object-fit: cover; border-radius: 11px; }
         .info .name {
           font-weight: 700;
-          font-size: 0.95rem;
+          font-size: 0.9rem;
           color: white;
           margin: 0;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          letter-spacing: 0.01em;
         }
         .info .role {
-          font-size: 0.75rem;
-          color: #94a3b8;
+          font-size: 0.7rem;
+          color: #64748b;
           margin-top: 0.1rem;
-          opacity: 0.8;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
         }
         .btn-logout-premium {
           width: 100%;
-          padding: 0.8rem;
-          background: rgba(239, 68, 68, 0.03);
+          padding: 0.7rem;
+          background: rgba(239, 68, 68, 0.05);
           color: #fca5a5;
-          border: 1px solid rgba(239, 68, 68, 0.1);
-          border-radius: 12px;
-          font-weight: 700;
-          font-size: 0.8rem;
+          border: 1px solid rgba(239, 68, 68, 0.15);
+          border-radius: 10px;
+          font-weight: 800;
+          font-size: 0.7rem;
           cursor: pointer;
-          transition: all 0.3s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.6rem;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
+          transition: all 0.3s;
+          letter-spacing: 0.1em;
         }
         .btn-logout-premium:hover {
-          background: rgba(239, 68, 68, 0.1);
-          border-color: #ef4444;
+          background: #ef4444;
           color: white;
+          border-color: #ef4444;
         }
 
         /* VIEWPORT */
@@ -343,7 +408,10 @@ export default function DashboardLayout({ children }) {
           height: 100vh;
           overflow-y: auto;
           position: relative;
-          background: radial-gradient(circle at 50% 0%, rgba(197, 160, 33, 0.03) 0%, transparent 50%);
+          background: #020617;
+          background-image: 
+            radial-gradient(at 0% 0%, rgba(197, 160, 33, 0.03) 0, transparent 50%), 
+            radial-gradient(at 100% 100%, rgba(197, 160, 33, 0.02) 0, transparent 50%);
         }
       `}</style>
     </div>
