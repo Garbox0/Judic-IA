@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
