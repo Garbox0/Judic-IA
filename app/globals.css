@@ -45,6 +45,14 @@ body {
   height: 100%;
 }
 
+html,
+body,
+.auth-body,
+.auth-main {
+  background-color: #020617;
+  /* Force dark immediately */
+}
+
 body {
   color: var(--foreground);
   /* Deep Atmospheric Background */

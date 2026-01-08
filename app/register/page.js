@@ -155,9 +155,12 @@ export default function RegisterPage() {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap');
       `}</style>
 
+            <div className="back-wrapper">
+                <Link href="/" className="back">← Volver al Inicio</Link>
+            </div>
+
             <div className="auth-container expanded">
                 <div className="auth-card glass-premium fade-in">
-                    <Link href="/" className="btn-back-premium">← Volver al Inicio</Link>
 
                     <header className="brand-header">
                         <img src="/logo.png" alt="Logo" className="brand-logo-img" width="55" height="55" />
@@ -287,9 +290,7 @@ export default function RegisterPage() {
                     <div className="divider-premium"><span>o</span></div>
 
                     <footer className="auth-nav-footer">
-                        <p>¿Ya tienes una cuenta?
-                            <Link href="/login" className="link-gold">Inicia Sesión</Link>
-                        </p>
+                        <p>¿Ya tienes una cuenta? <Link href="/login" className="link-gold">Inicia Sesión →</Link></p>
                     </footer>
                 </div>
             </div>
@@ -361,10 +362,17 @@ export default function RegisterPage() {
         .error-premium { background: rgba(239, 68, 68, 0.1); color: #fca5a5; padding: 1.25rem; border-radius: 14px; text-align: center; border: 1px solid rgba(239, 68, 68, 0.2); }
         .success-premium { background: rgba(34, 197, 94, 0.1); color: #86efac; padding: 1.25rem; border-radius: 14px; text-align: center; border: 1px solid rgba(34, 197, 94, 0.2); }
         
-        .btn-back-premium { position: absolute; top: 1.5rem; left: 1.5rem; color: #64748b; text-decoration: none; font-size: 0.8rem; font-weight: 600; transition: 0.3s; }
-        .btn-back-premium:hover { color: #fbbf24; }
+        .back-wrapper { 
+            position: absolute; top: 2rem; left: 2rem; 
+            z-index: 10;
+        }
+        .back {
+             color: #64748b; text-decoration: none; 
+             font-size: .85rem; transition: 0.3s; 
+        }
+        .back:hover { color: #fbbf24; }
 
-        .auth-nav-footer { text-align: center; font-size: 1rem; color: #94a3b8; }
+        .auth-nav-footer { text-align: center; font-size: .9rem; color: #94a3b8; margin-top: 2rem; }
         .link-gold { color: #fbbf24; text-decoration: none; font-weight: 700; margin-left: 0.5rem; }
         .link-gold:hover { text-decoration: underline; }
 
