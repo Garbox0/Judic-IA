@@ -160,7 +160,7 @@ export default function RegisterPage() {
                     <Link href="/" className="btn-back-premium">← Volver al Inicio</Link>
 
                     <header className="brand-header">
-                        <img src="/logo.png" alt="Logo" className="brand-logo-img" />
+                        <img src="/logo.png" alt="Logo" className="brand-logo-img" width="55" height="55" />
                         <h1 className="brand-name-premium">Judic-IA <span className="justice-emoji">⚖️</span></h1>
                         <p className="brand-status">Registro Profesional • Abogados</p>
                     </header>

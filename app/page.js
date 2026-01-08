@@ -26,7 +26,7 @@ export default function Home() {
       <nav className="glass-navbar fade-in">
         <div className="nav-container">
           <div className="nav-brand">
-            <img src="/logo.png" alt="Logo" className="nav-logo" />
+            <img src="/logo.png" alt="Logo" className="nav-logo" width="38" height="38" />
             <span className="nav-title text-glow">Judic-IA <span className="justice-emoji">⚖️</span></span>
           </div>
           <div className="nav-links">
@@ -146,7 +146,7 @@ export default function Home() {
         <div className="footer-v2-grid">
           <div className="footer-v2-main">
             <div className="footer-v2-brand">
-              <img src="/logo.png" alt="Logo" className="footer-v2-logo-img" />
+              <img src="/logo.png" alt="Logo" className="footer-v2-logo-img" width="40" height="40" />
               <span className="footer-v2-logo-text">Judic-IA <span className="justice-emoji">⚖️</span></span>
             </div>
             <p className="footer-v2-desc">

@@ -76,7 +76,7 @@ export default function LoginPage() {
         fontFamily: "'Inter', sans-serif"
       }}>
         <div style={{ textAlign: 'center' }}>
-          <img src="/logo.png" alt="Logo" style={{ width: '60px', marginBottom: '20px', filter: 'drop-shadow(0 0 10px rgba(251, 191, 36, 0.3))' }} />
+          <img src="/logo.png" alt="Logo" style={{ width: '60px', marginBottom: '20px', filter: 'drop-shadow(0 0 10px rgba(251, 191, 36, 0.3))' }} width="60" height="60" />
           <p style={{ fontSize: '1.2rem', fontWeight: '600' }}>Verificando credenciales...</p>
         </div>
       </div>
@@ -94,7 +94,7 @@ export default function LoginPage() {
           <Link href="/" className="btn-back-premium">← Volver al Inicio</Link>
 
           <header className="brand-header">
-            <img src="/logo.png" alt="Logo" className="brand-logo-img" />
+            <img src="/logo.png" alt="Logo" className="brand-logo-img" width="55" height="55" />
             <h1 className="brand-name-premium">Judic-IA <span className="justice-emoji">⚖️</span></h1>
             <p className="brand-status">Acceso Profesional • Abogados</p>
           </header>
