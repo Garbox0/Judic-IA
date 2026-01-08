@@ -164,11 +164,14 @@ export default function SettingsPage() {
     const handleSaveBilling = async () => {
         setSaving(true);
         try {
-            // STEP 1: Get Plan ID (ideally from env, but user provided it)
-            // Use the ID provided by the user in the context: 5f74627148bc432fa9699389ce7e8da2
-            // In a real scenario, this should be: process.env.NEXT_PUBLIC_MP_PREAPPROVAL_PLAN_ID
-            // For now, I will hardcode it as requested in the "Solución Definitiva" to ensure it works immediately.
-            const planId = "5f74627148bc432fa9699389ce7e8da2";
+            // STEP 1: Get Plan ID from Environment Variable (Vercel)
+            const planId = process.env.NEXT_PUBLIC_MP_PREAPPROVAL_PLAN_ID;
+
+            if (!planId) {
+                alert("❌ Error: No se encontró el ID del plan de suscripción (NEXT_PUBLIC_MP_PREAPPROVAL_PLAN_ID).");
+                setSaving(false);
+                return;
+            }
 
             console.log("🔗 Redirecting to MP Subscription Checkout for Plan:", planId);
 
