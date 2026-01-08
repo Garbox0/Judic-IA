@@ -1,4 +1,4 @@
-import { Outfit } from "next/font/google"; // Using Outfit for modern/premium feel
+import { Outfit, Playfair_Display } from "next/font/google"; // Using Outfit for modern/premium feel
 import "./globals.css";
 import "./landing.css"; // Fix FOUC
 
@@ -6,6 +6,12 @@ import "./landing.css"; // Fix FOUC
 const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-outfit",
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
   display: "swap",
 });
 
@@ -17,7 +23,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${outfit.variable}`}>
+      <body className={`${outfit.variable} ${playfair.variable}`}>
         {children}
       </body>
     </html>

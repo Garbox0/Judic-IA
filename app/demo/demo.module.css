@@ -1,0 +1,214 @@
+/* Demo Page CSS Module */
+.main {
+    width: 100%;
+    min-height: 100vh;
+    position: relative;
+    background: #020617;
+    margin: 0;
+    padding: 0;
+    /* Ensure no parent scroll interferes */
+    height: 100%;
+    overflow-x: hidden;
+}
+
+.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(2, 6, 23, 0.95), transparent);
+}
+
+.brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tag {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.backBtn {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    z-index: 60;
+}
+
+.backBtn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* Sober, professional gradient */
+    background: linear-gradient(180deg, #020617 0%, #0f172a 40%, #020617 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.content {
+    text-align: center;
+    max-width: 600px;
+    padding: 2rem;
+    position: relative;
+    z-index: 10;
+    /* Removed animation for instant, solid feel */
+}
+
+.title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #f8fafc;
+    letter-spacing: -0.02em;
+}
+
+.highlight {
+    color: #fbbf24;
+}
+
+.meta {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin-bottom: 2rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Chat Container - Fixed dimensions to prevent CLS */
+.chatWrapper {
+    width: 100%;
+    max-width: 450px;
+    height: 500px;
+    /* Fixed height matching the widget */
+    margin: 0 auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    /* Optional: glass border if you want the container visible before load, 
+       but standard practice is letting the skeleton frame it. */
+}
+
+/* Skeleton Styles */
+.skeletonContainer {
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow: hidden;
+}
+
+.skeletonHeader {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 0.5rem;
+}
+
+.skeletonAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeletonTitle {
+    width: 120px;
+    height: 14px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeletonBubble {
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    width: 80%;
+    animation: shimmer 2s infinite linear;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 100%);
+    background-size: 200% 100%;
+}
+
+.skeletonBubble.right {
+    align-self: flex-end;
+    width: 60%;
+    opacity: 0.7;
+}
+
+.skeletonInput {
+    margin-top: auto;
+    height: 50px;
+    width: 100%;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}

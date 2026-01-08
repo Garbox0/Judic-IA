@@ -232,11 +232,45 @@ export async function POST(request) {
             systemPrompt = INTAKE_SYSTEM_PROMPT; // Reuse Intake Prompt for Demo
             caseType = 'DEMO';
 
-            // DEMO LIMIT CHECK
-            // Count user messages in history to limit usage
-            const userMsgCount = (history || []).filter(m => m.role === 'user').length;
-            if (userMsgCount >= 5) {
-                return NextResponse.json({ reply: "🔒 **Fin de la Demo**\n\n¡Gracias por probar el asistente! Para continuar usándolo sin límites y acceder a todas las funciones, contacta a ventas o regístrate en Judic-IA." });
+            // DEMO LIMIT CHECK (IP BASED)
+            // Use x-forwarded-for from Vercel/Next.js or fallback for localhost
+            const forwardedFor = request.headers.get('x-forwarded-for');
+            let ip = forwardedFor ? forwardedFor.split(',')[0] : null;
+
+            // Localhost Fallback
+            if (!ip) {
+                const realIp = request.headers.get('x-real-ip');
+                ip = realIp || '127.0.0.1'; // Default to localhost ID for testing
+            }
+
+            if (ip) {
+                // 1. Check Limit in DB
+                const { data: limitData, error: limitError } = await db
+                    .from('demo_limits')
+                    .select('message_count')
+                    .eq('ip_address', ip)
+                    .single();
+
+                let currentCount = 0;
+                if (limitData) {
+                    currentCount = limitData.message_count;
+                }
+
+                // 2. Reject if Limit Exceeded
+                if (currentCount >= 5) {
+                    return NextResponse.json({ reply: "🔒 **Fin de la Demo**\n\nAlcanzaste el límite de interacciones gratuitas por hoy para esta IP. \n\n¡La IA real tiene un costo, pero para tus clientes será ilimitada! 😉 Contactanos." });
+                }
+
+                // 3. Increment Limit
+                const { error: upsertError } = await db
+                    .from('demo_limits')
+                    .upsert({
+                        ip_address: ip,
+                        message_count: currentCount + 1,
+                        last_interaction: new Date().toISOString()
+                    }, { onConflict: 'ip_address' });
+
+                if (upsertError) console.error("Limit DB Error:", upsertError);
             }
         } else {
             systemPrompt = SALES_SYSTEM_PROMPT;
