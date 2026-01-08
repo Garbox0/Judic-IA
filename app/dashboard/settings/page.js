@@ -194,10 +194,12 @@ export default function SettingsPage() {
     return (
         <div className="stg-root">
             <div className="stg-container">
-                <nav className="stg-breadcrumb">
-                    <Link href="/dashboard">Gabinete</Link> / <span>Ajustes</span>
+                <nav className="breadcrumb">
+                    <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
+                    <span className="breadcrumb-separator">/</span>
+                    <span className="breadcrumb-current">Ajustes</span>
                 </nav>
-                <h1 className="stg-main-title">Configuración Profesional ⚖️</h1>
+                <h1 className="dashboard-page-title">Configuración Profesional ⚖️</h1>
 
                 <div className="stg-layout-split">
                     {/* Sidebar de Ajustes (Interno) */}
@@ -425,13 +427,11 @@ export default function SettingsPage() {
                     min-height: 100vh;
                     background: #020617;
                     color: white;
-                    padding: 3rem 4rem 3rem 2rem;
-                    font-family: 'Inter', sans-serif;
+                    padding: 0 4rem 3rem 2rem;
+                    font-family: var(--font-main);
                 }
                 .stg-container { max-width: 1200px; margin: 0 auto; }
-                .stg-breadcrumb { font-size: 0.8rem; color: #475569; margin-bottom: 0.8rem; letter-spacing: 0.05em; }
-                .stg-breadcrumb Link { color: #475569; text-decoration: none; }
-                .stg-main-title { font-family: 'Playfair Display', serif; font-size: 2.8rem; color: #fbbf24; margin-bottom: 3.5rem; font-weight: 900; }
+
 
                 .stg-layout-split { 
                     display: flex; 

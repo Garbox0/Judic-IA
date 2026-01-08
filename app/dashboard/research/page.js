@@ -219,7 +219,7 @@ export default function ResearchPage() {
                 <div className="header-flex">
                     <img src="/logo.png" alt="Judic-IA Logo" className="logo-main" />
                     <div className="header-text">
-                        <h1 className="glow-text">Investigación y Jurisprudencia</h1>
+                        <h1 className="dashboard-page-title">Investigación y Jurisprudencia</h1>
                         <p>Consulta normativa, códigos y fallos similares para tus casos con tecnología IA.</p>
                     </div>
                 </div>
@@ -382,42 +382,14 @@ export default function ResearchPage() {
 
             <style jsx>{`
                 .research-container {
-                    padding: 2.5rem 3rem;
+                    padding: 0 3rem 2.5rem;
                     max-width: 1300px;
                     margin: 0 auto;
                     color: var(--foreground);
                     font-family: var(--font-main);
                 }
-                .research-nav {
-                    margin-bottom: 3.5rem;
-                }
-                .breadcrumb {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.8rem;
-                    font-size: 0.9rem;
-                    color: var(--muted);
-                }
-                .breadcrumb-item {
-                    color: var(--muted);
-                    text-decoration: none;
-                    transition: all 0.2s;
-                    font-weight: 500;
-                    opacity: 0.8;
-                }
-                .breadcrumb-item:hover {
-                    color: var(--primary);
-                    opacity: 1;
-                }
-                .breadcrumb-separator {
-                    opacity: 0.3;
-                    font-size: 0.8rem;
-                }
-                .breadcrumb-current {
-                    color: white;
-                    font-weight: 600;
-                    letter-spacing: 0.02em;
-                }
+
+
 
                 .research-header {
                     margin-bottom: 3.5rem;
@@ -436,13 +408,7 @@ export default function ResearchPage() {
                 .header-text {
                     text-align: left;
                 }
-                .research-header h1 { 
-                    color: var(--primary); 
-                    margin-bottom: 0.2rem; 
-                    font-size: 2.8rem; 
-                    font-weight: 800;
-                    letter-spacing: -0.02em;
-                }
+
                 .research-header p { 
                     color: var(--muted); 
                     font-size: 1.1rem;

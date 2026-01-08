@@ -194,7 +194,7 @@ export default function ClientsPage() {
                 <div className="header-flex">
                     <div className="header-icon-box">👥</div>
                     <div className="header-text">
-                        <h1 className="glow-text">Mis Clientes</h1>
+                        <h1 className="dashboard-page-title">Mis Clientes</h1>
                         <p>Gestiona tus expedientes y consultas entrantes.</p>
                     </div>
                 </div>
@@ -378,16 +378,12 @@ export default function ClientsPage() {
             )}
 
             <style jsx>{`
-                .clients-container { padding: 3rem; max-width: 1200px; margin: 0 auto; color: white; }
-                .clients-nav { margin-bottom: 3rem; }
-                .breadcrumb { display: flex; align-items: center; gap: 0.8rem; font-size: 0.9rem; color: var(--muted); }
-                .breadcrumb-item { color: var(--muted); text-decoration: none; } 
-                .breadcrumb-current { color: white; font-weight: 600; }
+                .clients-container { padding: 0 3rem 3rem; max-width: 1200px; margin: 0 auto; color: white; }
+
 
                 .clients-header { margin-bottom: 2rem; }
                 .header-flex { display: flex; align-items: center; gap: 2rem; }
                 .header-icon-box { width: 80px; height: 80px; background: rgba(197, 160, 33, 0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #fbbf24; }
-                .glow-text { font-size: 2.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem; }
                 .header-text p { color: var(--muted); }
 
                 .smart-link-card {

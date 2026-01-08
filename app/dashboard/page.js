@@ -66,7 +66,9 @@ export default function DashboardHome() {
   return (
     <div className="dashboard-container">
 
-      <div className="breadcrumb">Panel Principal</div>
+      <div className="breadcrumb">
+        <span className="breadcrumb-current">Gabinete de {user?.user_metadata?.first_name || 'Legal'}</span>
+      </div>
 
       <header className="dashboard-header">
         <h2>Bienvenido, Dr. {user?.user_metadata?.first_name}</h2>

@@ -17,7 +17,7 @@ export default function AgendaPage() {
                 <div className="header-flex">
                     <div className="header-icon-box">📅</div>
                     <div className="header-text">
-                        <h1 className="glow-text">Agenda y Plazos</h1>
+                        <h1 className="dashboard-page-title">Agenda y Plazos</h1>
                         <p>Controla tus audiencias, plazos procesales y recordatorios importantes.</p>
                     </div>
                 </div>
@@ -34,15 +34,12 @@ export default function AgendaPage() {
 
             <style jsx>{`
                 .agenda-container {
-                    padding: 3rem;
+                    padding: 0 3rem 3rem;
                     max-width: 1200px;
                     margin: 0 auto;
                 }
                 .agenda-nav { margin-bottom: 3rem; }
-                .breadcrumb { display: flex; align-items: center; gap: 0.8rem; font-size: 0.9rem; color: var(--muted); }
-                .breadcrumb-item { color: var(--muted); text-decoration: none; transition: all 0.2s; font-weight: 500; }
-                .breadcrumb-item:hover { color: var(--primary); }
-                .breadcrumb-current { color: white; font-weight: 600; }
+
 
                 .agenda-header { margin-bottom: 4rem; }
                 .header-flex { display: flex; align-items: center; gap: 2.5rem; }
@@ -57,14 +54,6 @@ export default function AgendaPage() {
                     justify-content: center;
                     font-size: 3rem;
                     box-shadow: 0 0 30px rgba(0,0,0,0.3);
-                }
-                .glow-text {
-                    font-size: 3.2rem;
-                    font-weight: 800;
-                    margin-bottom: 0.5rem;
-                    background: linear-gradient(135deg, #fff 0%, #10b981 100%);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
                 }
                 .header-text p { color: var(--muted); font-size: 1.2rem; }
 
