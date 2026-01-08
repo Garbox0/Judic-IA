@@ -22,9 +22,10 @@ export default function DemoPage() {
                     color: #94a3b8; text-decoration: none; font-size: 0.9rem; font-weight: 500;
                     display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;
                     border-radius: 8px; transition: all 0.2s;
-                    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+                    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+                    cursor: pointer; z-index: 60;
                 }
-                .btn-back-demo:hover { background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.1); }
+                .btn-back-demo:hover { background: rgba(255,255,255,0.2); color: white; border-color: rgba(255,255,255,0.3); transform: translateY(-1px); }
                 
                 .demo-container {
                     min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
