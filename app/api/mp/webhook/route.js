@@ -52,7 +52,15 @@ export async function POST(req) {
         if (sub.status === "authorized") {
             patch.subscription_status = "active";
             patch.plan_tier = "professional";
-            patch.subscription_started_at = new Date().toISOString();
+
+            const now = new Date();
+            patch.subscription_started_at = now.toISOString();
+
+            // Calculate expiry (30 days from now)
+            const expiryDate = new Date(now);
+            expiryDate.setDate(expiryDate.getDate() + 30);
+            patch.subscription_expiry = expiryDate.toISOString();
+
             // Reset quotas for new pro user
             patch.ai_message_quota = 1000;
             patch.inquiry_quota = 100;

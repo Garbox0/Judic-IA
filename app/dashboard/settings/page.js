@@ -34,6 +34,7 @@ export default function SettingsPage() {
     };
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [paymentPending, setPaymentPending] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [user, setUser] = useState(null);
     const fileInputRef = useRef(null);
@@ -161,31 +162,85 @@ export default function SettingsPage() {
         }
     };
 
+    // Realtime Payment Listener
+    useEffect(() => {
+        if (!user) return;
+
+        console.log("🔌 Conectando listener de pagos para:", user.id);
+        const channel = supabase
+            .channel('profile_changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'profiles',
+                    filter: `id=eq.${user.id}`
+                },
+                (payload) => {
+                    console.log("🔔 Cambio detectado en perfil:", payload.new);
+                    if (payload.new.plan_tier === 'professional' && payload.new.subscription_status === 'active') {
+                        setFormData(prev => ({
+                            ...prev,
+                            plan_tier: payload.new.plan_tier,
+                            subscription_status: payload.new.subscription_status,
+                            subscription_expiry: payload.new.subscription_expiry
+                        }));
+                        setPaymentPending(false);
+                        setSaving(false);
+                        alert("🎉 ¡Pago confirmado! Tu suscripción Profesional está activa.");
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
+    }, [user]);
+
     const handleSaveBilling = async () => {
         setSaving(true);
-        try {
-            // STEP 1: Get Plan ID from Environment Variable (Vercel)
-            const planId = process.env.NEXT_PUBLIC_MP_PREAPPROVAL_PLAN_ID;
+        setPaymentPending(true); // UI State: Esperando...
 
-            if (!planId) {
-                alert("❌ Error: No se encontró el ID del plan de suscripción (NEXT_PUBLIC_MP_PREAPPROVAL_PLAN_ID).");
-                setSaving(false);
-                return;
+        try {
+            // Utilizar el endpoint del servidor
+            const response = await fetch('/api/mp/subscription/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const errorMsg = typeof data.error === 'object'
+                    ? JSON.stringify(data.error, null, 2)
+                    : (data.error || 'Error al iniciar suscripción');
+                throw new Error(errorMsg);
             }
 
-            console.log("🔗 Redirecting to MP Subscription Checkout for Plan:", planId);
+            if (data.init_point) {
+                console.log("🔗 Abriendo Mercado Pago en nueva pestaña:", data.init_point);
+                // Abrir en nueva pestaña
+                const paymentWindow = window.open(data.init_point, '_blank');
 
-            // STEP 2: Direct Redirect to Mercado Pago Hosted Checkout
-            // IMPORTANT: This uses the user's email if possible, but for hosted checkout we just send them to the link.
-            // If we want to pre-fill email, we might need to append it? Hosted checkout usually handles this.
-            // The URL format is: https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=...
-
-            window.location.href = `https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=${planId}`;
+                // Detectar cuando se cierra la ventana
+                const pollTimer = setInterval(() => {
+                    if (paymentWindow && paymentWindow.closed) {
+                        clearInterval(pollTimer);
+                        console.log("❌ Ventana de pago cerrada por el usuario.");
+                        setPaymentPending(false);
+                        setSaving(false); // <--- FIX: También liberar el estado de carga
+                    }
+                }, 1000);
+            } else {
+                throw new Error("No se recibió link de pago.");
+            }
 
         } catch (error) {
-            console.error("Redirect Error:", error);
-            alert("❌ Error al redirigir: " + error.message);
+            console.error("Subscription Error:", error);
+            alert("❌ Error al procesar: " + error.message);
             setSaving(false);
+            setPaymentPending(false);
         }
     };
 
@@ -369,9 +424,10 @@ export default function SettingsPage() {
                                                     <button
                                                         className="stg-gold-btn pulse-anim"
                                                         style={{
-                                                            width: '100%',
-                                                            padding: '1.2rem',
-                                                            fontSize: '1.1rem',
+                                                            width: 'auto', // Changed from 100%
+                                                            minWidth: '280px',
+                                                            padding: '1rem 2rem', // Reduced padding
+                                                            fontSize: '1rem', // Reduced font size
                                                             fontWeight: '800',
                                                             borderRadius: '16px',
                                                             boxShadow: '0 8px 25px rgba(251, 191, 36, 0.25)',
@@ -379,10 +435,12 @@ export default function SettingsPage() {
                                                             textTransform: 'uppercase'
                                                         }}
                                                         onClick={handleSaveBilling}
-                                                        disabled={saving}
+                                                        disabled={saving || paymentPending} // Disable main button if pending
                                                     >
-                                                        {saving ? 'PROCESANDO...' : 'SUSCRIBIRSE AHORA'}
+                                                        {paymentPending ? 'ESPERANDO COMPROBACIÓN...' : (saving ? 'PROCESANDO...' : 'SUSCRIBIRSE AHORA')}
                                                     </button>
+
+
 
                                                     <div style={{
                                                         display: 'flex',
