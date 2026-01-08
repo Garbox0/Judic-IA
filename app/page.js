@@ -114,7 +114,7 @@ export default function Home() {
           <div className="pricing-card-premium featured">
             <div className="top-badge">MÁS ELEGIDO</div>
             <h3>Profesional</h3>
-            <div className="price-tag gold">$15.000 <small>/ mes</small></div>
+            <div className="price-tag gold">$25.000 <small>/ mes</small></div>
             <ul className="benefits-list">
               <li>✓ <strong>Asistente IA Ilimitado</strong></li>
               <li>✓ <strong>Gestión Completa de Clientes</strong></li>

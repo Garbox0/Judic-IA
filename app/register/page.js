@@ -143,7 +143,7 @@ export default function RegisterPage() {
                 setError(signUpError.message);
             }
         } else {
-            setMessage("¡Registro Exitoso! Bienvenido a Judic-IA.");
+            setMessage("¡Registro Exitoso! Revisa tu email (incluso SPAM) para confirmar.");
             setRedirectCountdown(10); // Start countdown
         }
         setLoading(false);
@@ -267,6 +267,10 @@ export default function RegisterPage() {
                         {message && (
                             <div className="success-premium">
                                 📩 {message}
+                                <br />
+                                <small style={{ color: '#fff', display: 'block', marginTop: '5px' }}>
+                                    ⚠️ Si no lo ves, <strong>revisá Correo no deseado / Spam</strong>.
+                                </small>
                                 {redirectCountdown !== null && (
                                     <div style={{ marginTop: '0.8rem', fontWeight: 700, color: '#white' }}>
                                         Redirigiendo al login en {redirectCountdown} segundos...

@@ -343,7 +343,7 @@ export default function SettingsPage() {
                                             <small className="stg-tag">Gabinete de Élite</small>
                                             <h2 className="stg-plan-name">Judic-IA Suite Pro</h2>
                                             <div className="stg-price-row">
-                                                <span className="stg-val">$15.000</span>
+                                                <span className="stg-val">$25.000</span>
                                                 <span className="stg-period">/ mensual</span>
                                             </div>
                                             <ul className="stg-plan-list">
