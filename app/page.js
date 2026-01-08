@@ -169,17 +169,17 @@ export default function Home() {
             </div>
             <div className="v2-nav-col">
               <h4>Compañía</h4>
-              <Link href="#">Sobre Judic-IA</Link>
-              <Link href="#">Centro de Ayuda</Link>
-              <Link href="#">Blog LegalTech</Link>
-              <Link href="#">Contacto</Link>
+              <Link href="#features">Sobre Judic-IA</Link>
+              <Link href="mailto:soporte@judic-ia.com">Centro de Ayuda</Link>
+              <Link href="#features">Blog LegalTech</Link>
+              <Link href="mailto:soporte@judic-ia.com">Contacto</Link>
             </div>
             <div className="v2-nav-col">
               <h4>Legales</h4>
-              <Link href="#">Políticas de Privacidad</Link>
-              <Link href="#">Términos de Servicio</Link>
-              <Link href="#">Seguridad de Datos</Link>
-              <Link href="#">Cookies</Link>
+              <Link href="/legal#privacy">Políticas de Privacidad</Link>
+              <Link href="/legal#terms">Términos de Servicio</Link>
+              <Link href="/legal#security">Seguridad de Datos</Link>
+              <Link href="/legal#privacy">Cookies</Link>
             </div>
           </div>
         </div>
