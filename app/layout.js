@@ -1,5 +1,7 @@
 import { Outfit } from "next/font/google"; // Using Outfit for modern/premium feel
 import "./globals.css";
+import "./landing.css"; // Fix FOUC
+
 
 const outfit = Outfit({
   subsets: ["latin"],
