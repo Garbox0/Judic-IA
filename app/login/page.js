@@ -16,12 +16,18 @@ export default function LoginPage() {
   const [error, setError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
 
+  // NEW: Loading state for session check
+  const [checkingSession, setCheckingSession] = useState(true);
+
   // Auto-redirect if already logged in
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         router.push('/dashboard');
+        // Keep checkingSession true to avoid flash while redirecting
+      } else {
+        setCheckingSession(false);
       }
     };
     checkUser();
@@ -29,7 +35,7 @@ export default function LoginPage() {
     // Listen for sign-in event specifically
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // Only redirect if we weren't already trying to go elsewhere
+        setCheckingSession(true); // Show loader while redirecting
         router.push('/dashboard');
       }
     });
@@ -57,6 +63,25 @@ export default function LoginPage() {
       router.push('/dashboard');
     }
   };
+
+  if (checkingSession) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'radial-gradient(circle at 50% 10%, #0f172a, #020617)',
+        color: '#fbbf24',
+        fontFamily: "'Inter', sans-serif"
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <img src="/logo.png" alt="Logo" style={{ width: '60px', marginBottom: '20px', filter: 'drop-shadow(0 0 10px rgba(251, 191, 36, 0.3))' }} />
+          <p style={{ fontSize: '1.2rem', fontWeight: '600' }}>Verificando credenciales...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="auth-main">
