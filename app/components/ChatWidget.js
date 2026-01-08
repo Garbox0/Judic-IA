@@ -178,10 +178,11 @@ export default function ChatWidget({ mode = "client", initialMessage = "Hola..."
                     <button
                         className="btn-primary"
                         style={{
-                            width: "60px", height: "60px", borderRadius: "50%",
+                            width: "60px", height: "60px",
+                            borderRadius: "50%",
                             boxShadow: `0 8px 24px -4px ${botConfig.color}44`,
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            background: 'rgba(15, 23, 42, 0.8)',
+                            background: '#0f172a', // Dark background to prevent "cutout" look
                             border: `2px solid ${botConfig.color}`,
                             cursor: 'pointer',
                             padding: 0,

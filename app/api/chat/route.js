@@ -231,7 +231,13 @@ export async function POST(request) {
         } else if (mode === 'demo') {
             systemPrompt = INTAKE_SYSTEM_PROMPT; // Reuse Intake Prompt for Demo
             caseType = 'DEMO';
-            // Note: We bypass lawyerId valid check or use dummy one
+
+            // DEMO LIMIT CHECK
+            // Count user messages in history to limit usage
+            const userMsgCount = (history || []).filter(m => m.role === 'user').length;
+            if (userMsgCount >= 5) {
+                return NextResponse.json({ reply: "🔒 **Fin de la Demo**\n\n¡Gracias por probar el asistente! Para continuar usándolo sin límites y acceder a todas las funciones, contacta a ventas o regístrate en Judic-IA." });
+            }
         } else {
             systemPrompt = SALES_SYSTEM_PROMPT;
         }
