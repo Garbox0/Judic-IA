@@ -19,13 +19,17 @@ const nextConfig = {
             value: 'strict-origin-when-cross-origin',
           },
           {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+          {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
           {
             key: 'Content-Security-Policy',
             // Permissive CSP for Next.js (allowing scripts/styles) but blocking framing/mixed content
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://*.supabase.co https://lh3.googleusercontent.com; connect-src 'self' https://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com; frame-description 'none'; frame-ancestors 'none';",
+            value: "default-src 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://*.supabase.co https://lh3.googleusercontent.com; connect-src 'self' https://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com; frame-description 'none'; frame-ancestors 'none';",
           },
         ],
       },
