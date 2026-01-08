@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Judic-IA — Landing Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#020617;
+      --bg2:#0b1224;
+      --card:rgba(255,255,255,.04);
+      --card2:rgba(255,255,255,.06);
+      --stroke:rgba(255,255,255,.08);
+      --muted:#94a3b8;
+      --text:#f8fafc;
+      --gold:#fbbf24;
+      --gold2:#d97706;
+      --shadow:0 20px 60px rgba(0,0,0,.55);
+      --radius:18px;
+      --radius2:26px;
+      --max:1120px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1000px 700px at 20% 15%, rgba(251,191,36,.12), transparent 55%),
+        radial-gradient(900px 650px at 85% 25%, rgba(217,119,6,.10), transparent 55%),
+        radial-gradient(1200px 900px at 50% 0%, #0f172a, transparent 60%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      overflow-x:hidden;
+    }
+    a{color:inherit}
+    .wrap{max-width:var(--max); margin:0 auto; padding:0 22px;}
+
+    /* NAV */
+    .nav{
+      position:fixed; inset:0 0 auto 0;
+      z-index:50;
+      background:rgba(2,6,23,.70);
+      backdrop-filter: blur(14px);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .nav-inner{height:72px; display:flex; align-items:center; justify-content:space-between; gap:16px;}
+    .brand{display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:-.02em;}
+    .logo{
+      width:38px; height:38px; border-radius:12px;
+      background:linear-gradient(135deg, rgba(251,191,36,.18), rgba(217,119,6,.18));
+      border:1px solid rgba(251,191,36,.25);
+      display:grid; place-items:center;
+      box-shadow:0 10px 25px rgba(0,0,0,.35);
+    }
+    .brand span{color:var(--gold); text-shadow:0 0 14px rgba(251,191,36,.25)}
+    .links{display:flex; align-items:center; gap:26px; color:var(--muted); font-weight:600}
+    .links a{opacity:.95; text-decoration:none}
+    .links a:hover{color:var(--gold)}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 16px;
+      border-radius:14px;
+      border:1px solid rgba(251,191,36,.30);
+      background:rgba(251,191,36,.10);
+      color:var(--gold);
+      font-weight:800;
+      text-decoration:none;
+      transition:.25s ease;
+      white-space:nowrap;
+    }
+    .btn:hover{background:linear-gradient(135deg, var(--gold), var(--gold2)); color:#0b1020; box-shadow:0 16px 40px rgba(217,119,6,.28); transform:translateY(-1px)}
+
+    /* HERO */
+    .hero{padding:120px 0 56px; position:relative;}
+    .hero-grid{display:grid; grid-template-columns: 1.15fr .85fr; gap:36px; align-items:center;}
+    .badge{
+      display:inline-flex; align-items:center; gap:10px;
+      padding:8px 14px;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(251,191,36,.10), rgba(217,119,6,.10));
+      border:1px solid rgba(251,191,36,.20);
+      color:var(--gold);
+      font-weight:700;
+      backdrop-filter: blur(6px);
+    }
+    h1{
+      margin:14px 0 14px;
+      font-family:"Playfair Display", serif;
+      font-weight:900;
+      letter-spacing:-.02em;
+      font-size: clamp(40px, 5vw, 66px);
+      line-height: .95;
+    }
+    .grad{
+      background:linear-gradient(135deg, var(--gold) 0%, #fcd34d 45%, var(--gold2) 100%);
+      -webkit-background-clip:text; background-clip:text;
+      color:transparent;
+      font-style:italic;
+    }
+    .sub{color:var(--muted); font-size:18px; line-height:1.7; max-width:54ch; margin:0 0 22px;}
+    .actions{display:flex; gap:14px; flex-wrap:wrap;}
+    .primary{
+      background:linear-gradient(135deg, var(--gold), var(--gold2));
+      color:#0b1020;
+      border:none;
+      padding:12px 18px;
+      border-radius:16px;
+      font-weight:900;
+      text-decoration:none;
+      box-shadow:0 18px 46px rgba(217,119,6,.28);
+      transition:.25s ease;
+    }
+    .primary:hover{transform:translateY(-2px); box-shadow:0 26px 70px rgba(217,119,6,.33)}
+    .secondary{
+      padding:12px 18px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      font-weight:800;
+      text-decoration:none;
+      transition:.25s ease;
+    }
+    .secondary:hover{border-color:rgba(251,191,36,.25); background:rgba(251,191,36,.06)}
+
+    /* HERO CARD */
+    .hero-card{
+      border-radius: var(--radius2);
+      border:1px solid rgba(255,255,255,.10);
+      background:
+        radial-gradient(500px 240px at 20% 10%, rgba(251,191,36,.10), transparent 60%),
+        radial-gradient(420px 220px at 80% 20%, rgba(217,119,6,.10), transparent 60%),
+        rgba(255,255,255,.03);
+      box-shadow: var(--shadow);
+      padding:18px;
+      position:relative;
+      overflow:hidden;
+      min-height:340px;
+    }
+    .hero-card:before{
+      content:"";
+      position:absolute; inset:-120px;
+      background: conic-gradient(from 180deg, rgba(251,191,36,.0), rgba(251,191,36,.10), rgba(217,119,6,.0));
+      filter: blur(38px);
+      opacity:.55;
+      transform: rotate(12deg);
+    }
+    .mini{
+      position:relative;
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(2,6,23,.55);
+      padding:16px;
+      min-height:304px;
+      display:flex; flex-direction:column; gap:12px;
+    }
+    .mini-head{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+    .pill{font-size:12px; color:var(--muted); border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.03); padding:6px 10px; border-radius:999px;}
+    .mini-title{font-weight:900}
+    .mini-title small{display:block; font-weight:700; color:var(--muted); margin-top:2px}
+    .bubble{
+      border:1px solid rgba(255,255,255,.09);
+      background:rgba(255,255,255,.03);
+      padding:12px 12px;
+      border-radius:16px;
+      color:#e2e8f0;
+      line-height:1.5;
+    }
+    .chips{display:flex; flex-wrap:wrap; gap:8px}
+    .chip{
+      font-size:13px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(251,191,36,.22);
+      background:rgba(251,191,36,.08);
+      color:var(--gold);
+      font-weight:800;
+    }
+    .input{
+      margin-top:auto;
+      display:flex; gap:10px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.03);
+      padding:10px;
+      border-radius:16px;
+    }
+    .input input{
+      flex:1; border:none; outline:none; background:transparent; color:var(--text);
+      font-size:14px;
+    }
+    .send{
+      width:44px; height:40px; border:none;
+      border-radius:14px;
+      background:linear-gradient(135deg, var(--gold), var(--gold2));
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    /* SECTION */
+    section{padding:54px 0}
+    .section-title{
+      text-align:center;
+      font-family:"Playfair Display", serif;
+      font-weight:900;
+      font-size: clamp(30px, 3.6vw, 52px);
+      margin:0 0 10px;
+    }
+    .section-sub{color:var(--muted); text-align:center; max-width:70ch; margin:0 auto 26px; line-height:1.7}
+
+    .grid4{display:grid; grid-template-columns: repeat(4, 1fr); gap:16px;}
+    .card{
+      border-radius: var(--radius);
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.03);
+      padding:18px;
+      min-height:160px;
+      box-shadow:0 16px 40px rgba(0,0,0,.35);
+      transition:.22s ease;
+    }
+    .card:hover{transform:translateY(-3px); border-color:rgba(251,191,36,.22); background:rgba(255,255,255,.04)}
+    .ic{
+      width:46px; height:46px; border-radius:16px;
+      display:grid; place-items:center;
+      background:rgba(251,191,36,.10);
+      border:1px solid rgba(251,191,36,.22);
+      margin-bottom:10px;
+      font-size:20px;
+    }
+    .card h3{margin:0 0 6px; font-size:16px}
+    .card p{margin:0; color:var(--muted); line-height:1.6; font-size:14px}
+
+    /* PRICING */
+    .pricing{background: radial-gradient(900px 500px at 50% 0%, rgba(251,191,36,.08), transparent 60%);}
+    .grid2{display:grid; grid-template-columns: 1fr 1fr; gap:16px; align-items:stretch;}
+    .price{
+      border-radius: 26px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.03);
+      padding:20px;
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .price.featured{border-color: rgba(251,191,36,.35);}
+    .ribbon{
+      position:absolute; top:14px; left:14px;
+      background:rgba(251,191,36,.14);
+      border:1px solid rgba(251,191,36,.28);
+      color:var(--gold);
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:12px;
+    }
+    .price h3{margin:0 0 8px}
+    .money{font-size:42px; font-weight:900; letter-spacing:-.03em}
+    .money small{font-size:14px; color:var(--muted); font-weight:800; margin-left:8px}
+    .list{margin:16px 0 18px; padding:0; list-style:none; display:grid; gap:10px; color:#cbd5e1}
+    .list li{display:flex; gap:10px; align-items:flex-start}
+    .tick{color:var(--gold); font-weight:900}
+
+    /* CTA */
+    .cta{
+      padding:66px 0 80px;
+    }
+    .cta-card{
+      border-radius: 34px;
+      border:1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(700px 320px at 18% 20%, rgba(251,191,36,.11), transparent 60%),
+        rgba(255,255,255,.03);
+      box-shadow: var(--shadow);
+      padding:34px;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* FOOTER */
+    footer{padding:26px 0 44px; color:var(--muted); border-top:1px solid rgba(255,255,255,.06); background:rgba(2,6,23,.55)}
+    .foot{display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap}
+
+    /* RESPONSIVE */
+    @media (max-width: 980px){
+      .hero-grid{grid-template-columns: 1fr;}
+      .grid4{grid-template-columns: repeat(2, 1fr)}
+      .grid2{grid-template-columns: 1fr}
+      .links{gap:16px}
+    }
+    @media (max-width: 560px){
+      .links a{display:none}
+      .grid4{grid-template-columns: 1fr}
+      h1{font-size:44px}
+    }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <div class="wrap">
+      <div class="nav-inner">
+        <div class="brand">
+          <div class="logo">⚖️</div>
+          <span>Judic-IA</span>
+        </div>
+        <div class="links">
+          <a href="#features">Servicios</a>
+          <a href="#pricing">Precios</a>
+          <a class="btn" href="#">Login Abogado</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <div class="badge">✨ Versión 2.0 · IA Legal de Élite</div>
+          <h1>
+            Tu Estudio Jurídico,<br>
+            <span class="grad">Potenciado por IA.</span>
+          </h1>
+          <p class="sub">
+            Automatizá la atención de consultas, investigá jurisprudencia en segundos y gestioná tus expedientes en una sola plataforma segura de alto rendimiento.
+          </p>
+          <div class="actions">
+            <a class="primary" href="#">Probar Demo Cliente ↘</a>
+            <a class="secondary" href="#pricing">Ver Planes y Precios</a>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <div class="mini">
+            <div class="mini-head">
+              <div class="mini-title">Dr. Martínez <small>Abogado · Derecho Laboral · CABA</small></div>
+              <div class="pill">Demo en vivo</div>
+            </div>
+            <div class="bubble">👋 Hola, soy el asistente virtual del Dr. Martínez. ¿En qué puedo ayudarte hoy?</div>
+            <div class="chips">
+              <div class="chip">Despido</div>
+              <div class="chip">Trabajo en negro</div>
+              <div class="chip">Liquidación</div>
+              <div class="chip">Art / Riesgos</div>
+            </div>
+            <div class="input">
+              <input placeholder="Escribí tu consulta…" />
+              <button class="send">▶</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <section id="features">
+    <div class="wrap">
+      <h2 class="section-title">Soluciones de Próxima Generación</h2>
+      <p class="section-sub">Lo mejor de la tecnología legal, diseñado para abogados exigentes. Menos fricción, más velocidad, más cierres.</p>
+
+      <div class="grid4">
+        <div class="card">
+          <div class="ic">🤖</div>
+          <h3>Asistente Virtual 24/7</h3>
+          <p>Filtra casos viables, responde FAQs y deriva a agenda cuando corresponde.</p>
+        </div>
+        <div class="card">
+          <div class="ic">⚖️</div>
+          <h3>Investigación Avanzada</h3>
+          <p>Encuentra fallos y doctrina relevante con enfoque práctico y citación clara.</p>
+        </div>
+        <div class="card">
+          <div class="ic">📂</div>
+          <h3>CRM Legal</h3>
+          <p>Casos, clientes y documentación en un panel simple, rápido y auditado.</p>
+        </div>
+        <div class="card">
+          <div class="ic">📅</div>
+          <h3>Agenda Judicial</h3>
+          <p>Recordatorios inteligentes de plazos, audiencias y tareas críticas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="pricing">
+    <div class="wrap">
+      <h2 class="section-title">Excelencia a tu Alcance</h2>
+      <p class="section-sub">Precios claros. Beneficio rápido. Sin humo.</p>
+
+      <div class="grid2">
+        <div class="price">
+          <h3>Starter</h3>
+          <div class="money">Gratis <small>/ 14 días</small></div>
+          <ul class="list">
+            <li><span class="tick">✓</span> Asistente IA básico</li>
+            <li><span class="tick">✓</span> Hasta 5 consultas diarias</li>
+            <li><span class="tick">✓</span> Búsqueda de jurisprudencia</li>
+          </ul>
+          <a class="secondary" href="#">Comenzar Gratis</a>
+        </div>
+
+        <div class="price featured">
+          <div class="ribbon">MÁS ELEGIDO</div>
+          <h3>Profesional</h3>
+          <div class="money">$25.000 <small>/ mes</small></div>
+          <ul class="list">
+            <li><span class="tick">✓</span> <strong>Asistente IA ilimitado</strong></li>
+            <li><span class="tick">✓</span> <strong>Gestión completa de clientes</strong></li>
+            <li><span class="tick">✓</span> Alertas de plazos y vencimientos</li>
+            <li><span class="tick">✓</span> Soporte VIP 24/7</li>
+          </ul>
+          <a class="primary" href="#">Suscribirse Ahora</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="wrap">
+      <div class="cta-card">
+        <h2 class="section-title" style="margin-bottom:8px">¿Listo para transformar tu práctica legal?</h2>
+        <p class="section-sub" style="margin-bottom:18px">Unite a los estudios que ya automatizan, responden más rápido y convierten mejor.</p>
+        <div class="actions" style="justify-content:center">
+          <a class="primary" href="#">Empezar Ahora</a>
+          <a class="secondary" href="#features">Ver servicios ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <div style="display:flex; gap:10px; align-items:center">
+          <div class="logo" style="width:34px;height:34px;border-radius:12px">⚖️</div>
+          <div>
+            <div style="font-weight:900; color:#e2e8f0">Judic-IA</div>
+            <div style="font-size:12px">© 2026 — LegalTech Argentina</div>
+          </div>
+        </div>
+        <div style="font-size:12px">Seguridad · Privacidad · Términos</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

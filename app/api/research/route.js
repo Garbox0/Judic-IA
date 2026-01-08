@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request) {
     const apiKey = process.env.OPENROUTER_API_KEY;
-    const { query, jurisdiction, userId } = await request.json();
+    const { query, jurisdiction, userId, mode } = await request.json();
 
     // BLOQUE 3: ENFORZAR LÍMITES
     const supabase = createClient(
@@ -13,13 +13,49 @@ export async function POST(request) {
         process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
-    if (userId) {
+    // --- DEMO MODE CHECK (IP BASED) ---
+    if (mode === 'demo') {
+        const forwardedFor = request.headers.get('x-forwarded-for');
+        let ip = forwardedFor ? forwardedFor.split(',')[0] : null;
+
+        if (!ip) {
+            const realIp = request.headers.get('x-real-ip');
+            ip = realIp || '127.0.0.1';
+        }
+
+        if (ip) {
+            // 1. Check Limit
+            const { data: limitData } = await supabase
+                .from('demo_limits')
+                .select('research_count')
+                .eq('ip_address', ip)
+                .single();
+
+            const currentCount = limitData?.research_count || 0;
+
+            if (currentCount >= 2) {
+                return NextResponse.json({
+                    laws: "🔒 LÍMITE DE DEMO ALCANZADO",
+                    cases: "Has utilizado tus 2 consultas gratuitas de investigación.\n\nPara acceso ilimitado a jurisprudencia y normativa, suscríbete a Judic-IA.",
+                    strategy: "Contacta a ventas@judic-ia.com",
+                    links: []
+                }, { status: 402 });
+            }
+
+            // 2. Increment Limit
+            // Note: We use upsert to ensure row creation if it doesn't exist (e.g. user went straight to research)
+            await supabase.from('demo_limits').upsert({
+                ip_address: ip,
+                research_count: currentCount + 1,
+                last_interaction: new Date().toISOString()
+            }, { onConflict: 'ip_address' });
+        }
+    } else if (userId) {
+        // --- AUTHENTICATED USER CHECK ---
         const { data: quota, error: quotaErr } = await supabase.rpc("consume_ai_message", { p_user: userId });
 
         if (quotaErr) {
             console.error("Quota Check Error:", quotaErr);
-            // Fallback: Si falla el RPC, permitimos por ahora para no bloquear errores técnicos, o bloqueamos.
-            // Bloqueamos por seguridad.
             return NextResponse.json({
                 laws: "Error verificando cuota.",
                 cases: "Contacte soporte.",

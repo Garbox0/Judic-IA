@@ -44,6 +44,33 @@
     border: 1px solid rgba(251, 191, 36, 0.2);
 }
 
+.navActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.dashboardBtnNav {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    color: #fbbf24;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.dashboardBtnNav:hover {
+    background: rgba(251, 191, 36, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.1);
+}
+
 .backBtn {
     color: #94a3b8;
     text-decoration: none;

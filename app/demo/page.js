@@ -11,9 +11,14 @@ export default function DemoPage() {
                     <div className={styles.brand}>
                         Judic-IA <span className={styles.tag}>DEMO</span>
                     </div>
-                    <Link href="/" className={styles.backBtn}>
-                        <span>←</span> Volver al inicio
-                    </Link>
+                    <div className={styles.navActions}>
+                        <Link href="/demo/dashboard" className={styles.dashboardBtnNav}>
+                            👨‍⚖️ Panel Abogado
+                        </Link>
+                        <Link href="/" className={styles.backBtn}>
+                            <span>←</span> Volver al inicio
+                        </Link>
+                    </div>
                 </nav>
 
                 <div className={styles.content}>
