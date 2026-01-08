@@ -51,7 +51,9 @@ export default function ChatWidget({ mode = "client", initialMessage = "Hola..."
                     activeSessionId = cid;
                 } else if (mode === 'demo') {
                     // Demo Mode: Always Fresh Session (No Persistence)
-                    activeSessionId = `demo-${crypto.randomUUID()}`;
+                    // Fix: Use existing sessionId state if available to prevent infinite loop
+                    // Fix: Use clean UUID (no prefix) for Postgres compatibility
+                    activeSessionId = sessionId || crypto.randomUUID();
                 } else {
                     // Fallback: Browser LocalStorage (Persistence for returning clients)
                     let storedId = localStorage.getItem(`judic-ia-session-${mode}`);
