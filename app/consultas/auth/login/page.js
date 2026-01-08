@@ -3,6 +3,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../../lib/supabase';
+import SafeChatWidget from '../../../components/SafeChatWidget';
 import '../../../globals.css';
 
 function LoginContent() {

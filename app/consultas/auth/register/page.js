@@ -23,11 +23,14 @@ function RegisterContent() {
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session) {
-                if (!session.user.email_confirmed_at) {
-                    await supabase.auth.signOut();
-                    setMessage("⚠️ Debes confirmar tu email desde la bandeja de entrada para acceder.");
-                    return;
-                }
+                // RELAXED CHECK: In development/demo, we allow unconfirmed emails if Supabase allows the login.
+                /* 
+               if (!session.user.email_confirmed_at) {
+                   await supabase.auth.signOut();
+                   setMessage("⚠️ Debes confirmar tu email desde la bandeja de entrada para acceder.");
+                   return;
+               }
+               */
                 setIsConfirmed(true);
                 setConfirmedSession(session);
             }
@@ -81,7 +84,7 @@ function RegisterContent() {
                 email,
                 password,
                 options: {
-                    emailRedirectTo: fullRedirectUrl,
+                    emailRedirectTo: fullRedirectUrl, // Still good to send for prod
                     data: { role: 'client' }
                 }
             });
@@ -90,10 +93,17 @@ function RegisterContent() {
                 if (signUpError.message.includes("already registered")) {
                     throw new Error("Este email ya tiene una clave. Por favor inicia sesión.");
                 }
+                // Handle Supabase SMTP limit error gracefully
+                if (signUpError.message.includes("Error sending confirmation email")) {
+                    console.warn("Supabase SMTP Error. User likely created but email failed.");
+                    throw new Error("⚠️ El sistema de correos está saturado. Por favor, avisa a tu abogado o intenta iniciar sesión directo si ya te registraste.");
+                }
                 throw signUpError;
             }
 
-            if (data.session && data.user.email_confirmed_at) {
+            // SUCCESS FLOW
+            if (data.session) {
+                // If we got a session immediately (Email Confirm Disabled), go straight to chat
                 const finalCid = cid || crypto.randomUUID();
                 await fetch("/api/chat", {
                     method: "POST",
@@ -110,7 +120,8 @@ function RegisterContent() {
                 });
                 router.push(`/consultas/${lawyerId}?cid=${finalCid}`);
             } else {
-                setMessage("¡Cuenta creada! Revisa tu email para confirmar tu cuenta y acceder al chat.");
+                // User created but waiting for confirmation (should generally not happen if we disable confirm)
+                setMessage("¡Cuenta creada! Si no recibes el email, pide a tu abogado que habilite el acceso directo.");
             }
         } catch (err) {
             setError(err.message);

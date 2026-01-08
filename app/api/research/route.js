@@ -1,9 +1,43 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
+import { createClient } from '@supabase/supabase-js';
+
 export async function POST(request) {
     const apiKey = process.env.OPENROUTER_API_KEY;
-    const { query, jurisdiction } = await request.json();
+    const { query, jurisdiction, userId } = await request.json();
+
+    // BLOQUE 3: ENFORZAR LÍMITES
+    const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    if (userId) {
+        const { data: quota, error: quotaErr } = await supabase.rpc("consume_ai_message", { p_user: userId });
+
+        if (quotaErr) {
+            console.error("Quota Check Error:", quotaErr);
+            // Fallback: Si falla el RPC, permitimos por ahora para no bloquear errores técnicos, o bloqueamos.
+            // Bloqueamos por seguridad.
+            return NextResponse.json({
+                laws: "Error verificando cuota.",
+                cases: "Contacte soporte.",
+                links: []
+            }, { status: 500 });
+        }
+
+        if (!quota?.ok) {
+            return NextResponse.json({
+                laws: "⚠️ LÍMITE ALCANZADO",
+                cases: quota?.reason === 'demo_expired'
+                    ? "Tu periodo de prueba ha finalizado."
+                    : "Has consumido tus consultas gratuitas.",
+                strategy: "Actualiza a PRO para continuar.",
+                links: []
+            }, { status: 402 }); // Payment Required
+        }
+    }
 
     const openai = new OpenAI({
         apiKey: apiKey,

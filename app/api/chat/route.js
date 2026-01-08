@@ -153,7 +153,7 @@ CASE 4: OTROS / GENÉRICO
 --------------------------------------------------------
 INSTRUCCIONES DE "UPLOAD" (SUBIDA DE ARCHIVOS):
 - Si el usuario dice "Ya lo tengo", "Cómo lo mando" o "Acá está":
-- Responde: "Perfecto. Toca el ícono del CLIP 📎 que figura abajo a la izquierda del chat y selecciona las fotos o PDFs. Yo los guardaré en tu expediente."
+- Responde: "Perfecto. Toca el botón 📎 (Clip) o 'Adjuntar' para subir las fotos o PDFs. Yo los guardaré en tu expediente."
 --------------------------------------------------------
 
 --------------------------------------------------------
@@ -165,21 +165,18 @@ FORMAT:
 <extraction>
 {
     "contact_name": "Extract Name if present. If unknown, use null. NEVER use 'Usuario' or generic placeholders.",
-    "contact_phone": "Extract Phone if present, else null",
-    "case_type": "Classify: 'Divorcio', 'Sucesión', 'Despido', 'ART', 'Penal', or 'Civil'",
+    "contact_phone": "Extract Phone if present (just digits). If unknown, use null",
+    "case_type": "Classify: 'Divorcio', 'Sucesión', 'Despido', 'ART', 'Penal', or 'Civil'. Default: 'Nuevo Caso'",
     "ai_summary": "Brief 1-sentence summary of the case facts known so far",
-    "priority_score": 50 (Adjust 1-100 based on urgency)
+    "priority_score": 50
 }
 </extraction>
     
 RULES FOR EXTRACTION:
-1. YOU MUST ALWAYS output the <extraction> block at the end of your response.
-2. STATE & CORRECTIONS:
-   - Generally, maintain the known data from previous turns.
-   - EXCEPTION: If the user explicitly CORRECTS a field (e.g., "My name is actually Gerardo", "New phone is..."), YOU MUST OVERWRITE the old value with the new one.
-3. Do NOT invent data. Use null if unknown.
-4. The JSON must be the VERY LAST thing in your response.
-5. Do NOT mention the JSON to the user.
+1. YOU MUST ALWAYS output the <extraction> block at the end of your response IF you detected new info.
+2. IF the user just said "Hola", sending nulls is fine.
+3. The JSON must be the VERY LAST thing in your response.
+4. Do NOT mention the JSON to the user.
     
 --------------------------------------------------------
 `;

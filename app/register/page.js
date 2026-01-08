@@ -29,6 +29,8 @@ export default function RegisterPage() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [customJurisdiccion, setCustomJurisdiccion] = useState('');
 
+    const [redirectCountdown, setRedirectCountdown] = useState(null);
+
     // Password Validations
     const passwordValidations = {
         length: password.length >= 8,
@@ -48,6 +50,22 @@ export default function RegisterPage() {
         };
         checkUser();
     }, [router]);
+
+    // Countdown Effect
+    useEffect(() => {
+        if (redirectCountdown === null) return;
+
+        if (redirectCountdown === 0) {
+            router.push('/login');
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setRedirectCountdown(prev => prev - 1);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [redirectCountdown, router]);
 
     const SPECIALTIES_OPTIONS = [
         'Derecho Administrativo', 'Derecho Ambiental', 'Derecho Bancario',
@@ -106,6 +124,7 @@ export default function RegisterPage() {
                 data: {
                     first_name: firstName,
                     last_name: lastName,
+                    full_name: `${firstName} ${lastName}`,
                     cuit: cuit,
                     role: 'lawyer',
                     matricula: finalMatricula,
@@ -124,7 +143,8 @@ export default function RegisterPage() {
                 setError(signUpError.message);
             }
         } else {
-            setMessage("¡Registro iniciado! Revisa tu email para confirmar tu cuenta. ⚠️ IMPORTANTE: Busca en la carpeta de SPAM si no lo ves en Recibidos.");
+            setMessage("¡Registro Exitoso! Bienvenido a Judic-IA.");
+            setRedirectCountdown(10); // Start countdown
         }
         setLoading(false);
     };
@@ -244,7 +264,16 @@ export default function RegisterPage() {
                         </div>
 
                         {error && <div className="error-premium">⚠️ {error}</div>}
-                        {message && <div className="success-premium">📩 {message}</div>}
+                        {message && (
+                            <div className="success-premium">
+                                📩 {message}
+                                {redirectCountdown !== null && (
+                                    <div style={{ marginTop: '0.8rem', fontWeight: 700, color: '#white' }}>
+                                        Redirigiendo al login en {redirectCountdown} segundos...
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         <button type="submit" disabled={loading || !isPasswordStrong || !passwordsMatch} className="btn-gold-action">
                             {loading ? 'Procesando Registro...' : 'Confirmar Registro Profesional'}

@@ -164,36 +164,24 @@ export default function SettingsPage() {
     const handleSaveBilling = async () => {
         setSaving(true);
         try {
-            const response = await fetch('/api/checkout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId: user.id,
-                    userEmail: user.email
-                })
-            });
+            // STEP 1: Get Plan ID (ideally from env, but user provided it)
+            // Use the ID provided by the user in the context: 5f74627148bc432fa9699389ce7e8da2
+            // In a real scenario, this should be: process.env.NEXT_PUBLIC_MP_PREAPPROVAL_PLAN_ID
+            // For now, I will hardcode it as requested in the "Solución Definitiva" to ensure it works immediately.
+            const planId = "5f74627148bc432fa9699389ce7e8da2";
 
-            const data = await response.json();
-            if (data.id) {
-                // Initialize Mercado Pago with the Public Key
-                // Since I don't have the key, I'll try to find it from common patterns or ask the user
-                // IMPORTANT: Use the public key here (e.g., APP_USR-xxx or TEST-xxx)
-                const mp = new window.MercadoPago('APP_USR-67fd1ccd-8094-4c54-8664-5eb326fc998d'); // Use your public key
+            console.log("🔗 Redirecting to MP Subscription Checkout for Plan:", planId);
 
-                mp.checkout({
-                    preference: {
-                        id: data.id
-                    },
-                    autoOpen: true, // Open the modal automatically
-                });
+            // STEP 2: Direct Redirect to Mercado Pago Hosted Checkout
+            // IMPORTANT: This uses the user's email if possible, but for hosted checkout we just send them to the link.
+            // If we want to pre-fill email, we might need to append it? Hosted checkout usually handles this.
+            // The URL format is: https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=...
 
-                setSaving(false);
-            } else {
-                throw new Error(data.error || 'No se pudo generar la preferencia');
-            }
+            window.location.href = `https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=${planId}`;
+
         } catch (error) {
-            console.error("MP Modal Error:", error);
-            alert("❌ Error al iniciar pago: " + error.message);
+            console.error("Redirect Error:", error);
+            alert("❌ Error al redirigir: " + error.message);
             setSaving(false);
         }
     };

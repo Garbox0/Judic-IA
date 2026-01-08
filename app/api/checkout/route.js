@@ -39,13 +39,12 @@ export async function POST(request) {
                     failure: `${siteUrl}/dashboard/settings?status=failure`,
                     pending: `${siteUrl}/dashboard/settings?status=pending`,
                 },
-                auto_return: 'approved',
+                auto_return: siteUrl.includes('localhost') ? undefined : 'approved',
                 notification_url: `${webhookUrl}/api/webhooks/mercadopago`,
                 external_reference: userId,
             }
         };
 
-        console.log('💰 Creating MP Preference...');
         const result = await preference.create(preferenceData);
 
         console.log('✅ Preference Created:', result.id);

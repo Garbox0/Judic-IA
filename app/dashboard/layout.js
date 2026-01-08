@@ -30,6 +30,27 @@ export default function DashboardLayout({ children }) {
 
       if (!profileError && profileData) {
         setProfile(profileData);
+
+        // BLOQUE 4: ACTIVAR DEMO AUTOMÁTICAMENTE
+        if (!profileData.subscription_status || !profileData.demo_expires_at) {
+          console.log("🎭 New User detected, activating Demo...");
+          fetch('/api/demo/activate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: user.id })
+          }).then(res => res.json()).then(data => {
+            if (data.ok) {
+              console.log("✅ Demo Activated!", data);
+              // Update local state to reflect changes instantly
+              setProfile(prev => ({
+                ...prev,
+                subscription_status: 'demo',
+                plan_tier: 'starter',
+                demo_expires_at: data.demo_expires_at
+              }));
+            }
+          }).catch(err => console.error("❌ Failed to activate demo:", err));
+        }
       }
 
       setLoading(false);
@@ -193,7 +214,7 @@ export default function DashboardLayout({ children }) {
           z-index: 100;
           border-radius: 0;
           flex-shrink: 0;
-          background: rgba(2, 6, 23, 0.8);
+          background: var(--glass-strong);
           backdrop-filter: blur(12px);
           border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
@@ -274,28 +295,20 @@ export default function DashboardLayout({ children }) {
           transform: translateX(5px);
         }
         .nav-item.active {
-          background: rgba(197, 160, 33, 0.1);
+          background: rgba(212, 178, 76, 0.1);
           color: var(--primary);
-          border: 1px solid rgba(197, 160, 33, 0.15);
-          box-shadow: 0 4px 20px rgba(197, 160, 33, 0.05);
-        }
-        .nav-icon {
-          font-size: 1.4rem;
-          transition: all 0.3s;
-          filter: grayscale(1) opacity(0.6);
-        }
-        .nav-item.active .nav-icon {
-          filter: grayscale(0) opacity(1);
-          transform: scale(1.1);
+          border: 1px solid rgba(212, 178, 76, 0.15);
+          border-left: 3px solid var(--primary); /* Active Indicator */
+          box-shadow: 0 4px 20px rgba(212, 178, 76, 0.05);
         }
 
-        /* UPGRADE CARD simplified & centered */
+        /* UPGRADE CARD refined */
         .upgrade-card {
           position: relative;
           margin: 1.5rem 0.8rem;
           padding: 1.1rem;
-          background: rgba(251, 191, 36, 0.05);
-          border: 1px solid rgba(251, 191, 36, 0.2);
+          background: rgba(212, 178, 76, 0.05);
+          border: 1px solid rgba(212, 178, 76, 0.2);
           border-radius: 99px;
           overflow: hidden;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -303,6 +316,12 @@ export default function DashboardLayout({ children }) {
           display: flex;
           align-items: center;
           justify-content: center;
+          animation: pulse 4s infinite ease-in-out; /* Pulsing effect */
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(212,178,76, 0); border-color: rgba(212,178,76, 0.2); }
+            50% { box-shadow: 0 0 15px 0 rgba(212,178,76, 0.15); border-color: rgba(212,178,76, 0.4); }
+            100% { box-shadow: 0 0 0 0 rgba(212,178,76, 0); border-color: rgba(212,178,76, 0.2); }
         }
         .upgrade-card:hover {
           background: rgba(251, 191, 36, 0.1);

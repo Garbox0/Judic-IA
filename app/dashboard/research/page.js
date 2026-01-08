@@ -186,7 +186,8 @@ export default function ResearchPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     query: finalQuery,
-                    jurisdiction: scope === 'nacional' ? 'Nacional' : province
+                    jurisdiction: scope === 'nacional' ? 'Nacional' : province,
+                    userId: userProfile?.id
                 })
             });
             const data = await res.json();

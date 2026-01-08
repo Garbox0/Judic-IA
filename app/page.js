@@ -242,7 +242,7 @@ export default function Home() {
             border: 1px solid rgba(251, 191, 36, 0.2); margin-bottom: 2rem;
             backdrop-filter: blur(5px);
         }
-        .hero-title { font-family: 'Playfair Display', serif; font-size: 5rem; font-weight: 900; line-height: 0.95; margin-bottom: 1.5rem; color: #f8fafc; }
+        .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(3rem, 6vw, 5rem); font-weight: 900; line-height: 0.95; margin-bottom: 1.5rem; color: #f8fafc; }
         .gradient-text {
             background: linear-gradient(135deg, #fbbf24 0%, #fcd34d 50%, #d97706 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
