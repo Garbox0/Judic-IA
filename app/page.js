@@ -22,7 +22,7 @@ export default function Home() {
             <img src="/logo.png" alt="Logo" className="nav-logo" width="38" height="38" />
             <span className="nav-title text-glow">Judic-IA <span className="justice-emoji">⚖️</span></span>
           </div>
-          <div className="nav-links">
+          <div className="landing-nav-links">
             <Link href="#features" className="link-item">Servicios</Link>
             <Link href="#pricing" className="link-item">Precios</Link>
             <Link href="/login" className="btn-login-premium">Login Abogado</Link>

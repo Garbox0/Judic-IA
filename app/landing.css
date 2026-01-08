@@ -85,8 +85,10 @@ body {
     letter-spacing: -0.01em;
 }
 
-.nav-links {
+.landing-nav-links {
     display: flex;
+    flex-direction: row;
+    /* Explicitly set to row */
     gap: 2.5rem;
     align-items: center;
 }
@@ -557,13 +559,13 @@ body {
         grid-template-columns: 1fr;
     }
 
-    .nav-links {
+    .landing-nav-links {
         gap: 1rem;
     }
 }
 
 @media (max-width: 560px) {
-    .nav-links {
+    .landing-nav-links {
         display: none;
     }
 
