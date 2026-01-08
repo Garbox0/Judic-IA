@@ -49,8 +49,11 @@ export default function ChatWidget({ mode = "client", initialMessage = "Hola..."
                 const cid = searchParams.get('cid');
                 if (cid) {
                     activeSessionId = cid;
+                } else if (mode === 'demo') {
+                    // Demo Mode: Always Fresh Session (No Persistence)
+                    activeSessionId = `demo-${crypto.randomUUID()}`;
                 } else {
-                    // Fallback: Browser LocalStorage
+                    // Fallback: Browser LocalStorage (Persistence for returning clients)
                     let storedId = localStorage.getItem(`judic-ia-session-${mode}`);
                     if (!storedId) {
                         storedId = crypto.randomUUID();
@@ -140,6 +143,7 @@ export default function ChatWidget({ mode = "client", initialMessage = "Hola..."
         switch (mode) {
             case 'sales': return { name: "Ventas Judic-IA", color: "#c5a021", icon: "🤖" };
             case 'internal': return { name: "Soporte Interno", color: "#38bdf8", icon: "🛠️" };
+            case 'demo': return { name: "Asistente Dr. Martínez", color: "#fbbf24", icon: "⚖️" };
             default: return { name: "Asistente Legal", color: "#4ade80", icon: "💬" };
         }
     };

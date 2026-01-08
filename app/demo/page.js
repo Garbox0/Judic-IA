@@ -30,9 +30,10 @@ export default function DemoPage() {
                 </p>
             </div>
 
-            {/* Client Bot Widget - Mode: CLIENT - Dynamically loaded */}
+            {/* Demo Context */}{/* Client Bot Widget - Mode: DEMO - Dynamically loaded */}
             <SafeChatWidget
-                mode="client"
+                mode="demo"
+                lawyerId="00000000-0000-0000-0000-000000000000" // Fictitious Isolated ID
                 initialMessage="Hola, soy el asistente virtual del Dr. Martínez. ¿En qué puedo ayudarte hoy?"
                 embedded={true}
             />

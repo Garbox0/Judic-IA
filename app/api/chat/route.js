@@ -228,6 +228,10 @@ export async function POST(request) {
             caseType = 'Nuevo Caso (Web)';
 
             if (!lawyerId) return NextResponse.json({ reply: "Error: Falta ID del Abogado." }, { status: 400 });
+        } else if (mode === 'demo') {
+            systemPrompt = INTAKE_SYSTEM_PROMPT; // Reuse Intake Prompt for Demo
+            caseType = 'DEMO';
+            // Note: We bypass lawyerId valid check or use dummy one
         } else {
             systemPrompt = SALES_SYSTEM_PROMPT;
         }
