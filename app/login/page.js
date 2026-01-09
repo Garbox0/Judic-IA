@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import SafeChatWidget from '../components/SafeChatWidget';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -127,6 +128,11 @@ export default function LoginPage() {
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 )}
               </button>
+            </div>
+            <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
+              <Link href="/forgot-password" style={{ color: '#94a3b8', fontSize: '0.8rem', textDecoration: 'none' }}>
+                ¿Olvidaste tu contraseña?
+              </Link>
             </div>
           </div>
 
@@ -324,6 +330,7 @@ export default function LoginPage() {
         .fade-in { animation: fadeIn 0.8s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
+      <SafeChatWidget mode="lawyer_login" initialMessage="¿Problemas para ingresar? Estoy aquí para ayudarte." />
     </main>
   );
 }
