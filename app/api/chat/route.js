@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
+
 import { supabase } from '../../lib/supabase';
+import { routeContactChannel } from '../../lib/contact-router';
 
 // GET: Fetch Chat History for a Session (Persistence)
 export async function GET(request) {
@@ -312,9 +314,24 @@ export async function POST(request) {
         let replyContent = "";
         if (openai) {
             try {
+                // CONTACT ROUTING LOGIC
+                const contactChannel = routeContactChannel(message);
+                let contactInstruction = "";
+
+                if (contactChannel) {
+                    console.log("🔀 Contact Intent Detected:", contactChannel.key);
+                    contactInstruction = `\n\n✋ [SYSTEM OVERRIDE]: EL USUARIO ESTÁ PREGUNTANDO SOBRE: ${contactChannel.label.toUpperCase()}.
+                    
+                    TU RESPUESTA DEBE INCLUIR OBLIGATORIAMENTE ESTA INFORMACIÓN DE CONTACTO AL FINAL:
+                    "Para resolver esto rápidamente, te recomendamos escribir a: **${contactChannel.email}**"
+                    (Asunto sugerido: "${contactChannel.defaultSubject}")
+                    
+                    Si es un problema técnico o de facturación, NO intentes debuggearlo tú. Derívalo al mail.`;
+                }
+
                 const completion = await openai.chat.completions.create({
                     messages: [
-                        { role: "system", content: systemPrompt },
+                        { role: "system", content: systemPrompt + contactInstruction },
                         ...(history || []),
                         { role: "user", content: message }
                     ],

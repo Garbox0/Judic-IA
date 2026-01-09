@@ -3,77 +3,90 @@ import React from 'react';
 import Link from 'next/link';
 
 export default function LegalPage() {
-    return (
-        <main>
-            <Link href="/" className="back">← Volver al inicio</Link>
+  return (
+    <main>
+      <Link href="/" className="back">← Volver al inicio</Link>
 
-            <header>
-                <h1>Información Legal y Seguridad</h1>
-                <div className="subtitle">
-                    Transparencia, confidencialidad y protección de la información profesional.
-                </div>
-            </header>
+      <header>
+        <h1>Información Legal y Seguridad</h1>
+        <div className="subtitle">
+          Transparencia, confidencialidad y protección de la información profesional.
+        </div>
+      </header>
 
-            {/* TÉRMINOS */}
-            <section>
-                <h2>1. Términos de Servicio</h2>
-                <p>
-                    Bienvenido a <strong>Judic-IA</strong>. Al utilizar nuestra plataforma,
-                    aceptás los presentes términos y condiciones.
-                </p>
-                <ul>
-                    <li>Judic-IA es una herramienta de asistencia mediante inteligencia artificial.</li>
-                    <li>No reemplaza el criterio ni el juicio profesional del abogado.</li>
-                    <li>El acceso es personal, profesional e intransferible.</li>
-                    <li>Nos reservamos el derecho de suspender cuentas ante usos indebidos.</li>
-                    <li>Los pagos se procesan de forma segura a través de plataformas externas.</li>
-                </ul>
-            </section>
+      {/* TÉRMINOS */}
+      <section>
+        <h2>1. Términos de Servicio</h2>
+        <p>
+          Bienvenido a <strong>Judic-IA</strong>. Al utilizar nuestra plataforma,
+          aceptás los presentes términos y condiciones.
+        </p>
+        <ul>
+          <li>Judic-IA es una herramienta de asistencia mediante inteligencia artificial.</li>
+          <li>No reemplaza el criterio ni el juicio profesional del abogado.</li>
+          <li>El acceso es personal, profesional e intransferible.</li>
+          <li>Nos reservamos el derecho de suspender cuentas ante usos indebidos.</li>
+          <li>Los pagos se procesan de forma segura a través de plataformas externas.</li>
+        </ul>
+      </section>
 
-            {/* PRIVACIDAD */}
-            <section>
-                <h2>2. Política de Privacidad</h2>
-                <p>
-                    La privacidad de tu información y la de tus clientes es una prioridad.
-                </p>
-                <ul>
-                    <li>No compartimos datos personales con terceros sin consentimiento.</li>
-                    <li>Los datos se utilizan únicamente para la prestación del servicio.</li>
-                    <li>Podés solicitar la eliminación de tus datos en cualquier momento.</li>
-                    <li>No utilizamos conversaciones para entrenar modelos sin anonimización.</li>
-                </ul>
-            </section>
+      {/* PRIVACIDAD */}
+      <section>
+        <h2>2. Política de Privacidad</h2>
+        <p>
+          La privacidad de tu información y la de tus clientes es una prioridad.
+        </p>
+        <ul>
+          <li>No compartimos datos personales con terceros sin consentimiento.</li>
+          <li>Los datos se utilizan únicamente para la prestación del servicio.</li>
+          <li>Podés solicitar la eliminación de tus datos en cualquier momento.</li>
+          <li>No utilizamos conversaciones para entrenar modelos sin anonimización.</li>
+        </ul>
+      </section>
 
-            {/* SEGURIDAD */}
-            <section>
-                <h2>3. Seguridad de los Datos</h2>
-                <p>
-                    Implementamos estándares de seguridad alineados con las mejores prácticas
-                    de la industria tecnológica.
-                </p>
+      {/* SEGURIDAD */}
+      <section>
+        <h2>3. Seguridad de los Datos</h2>
+        <p>
+          Implementamos estándares de seguridad alineados con las mejores prácticas
+          de la industria tecnológica.
+        </p>
 
-                <div className="badges">
-                    <div className="badge">🔒 Encriptación SSL</div>
-                    <div className="badge">🛡️ Datos anonimizados</div>
-                    <div className="badge">💾 Backups automáticos</div>
-                    <div className="badge">☁️ Infraestructura segura</div>
-                </div>
+        <div className="badges">
+          <div className="badge">🔒 Encriptación SSL</div>
+          <div className="badge">🛡️ Datos anonimizados</div>
+          <div className="badge">💾 Backups automáticos</div>
+          <div className="badge">☁️ Infraestructura segura</div>
+        </div>
 
-                <p>
-                    Las consultas realizadas dentro de Judic-IA son confidenciales y se procesan
-                    en entornos protegidos, respetando el secreto profesional.
-                </p>
-            </section>
+        <p>
+          Las consultas realizadas dentro de Judic-IA son confidenciales y se procesan
+          en entornos protegidos, respetando el secreto profesional.
+        </p>
+      </section>
 
-            <footer>
-                © {new Date().getFullYear()} Judic-IA · Todos los derechos reservados
-            </footer>
+      {/* CONTACTO */}
+      <section>
+        <h2>4. Contacto y Soporte</h2>
+        <p>
+          Para consultas específicas, utiliza los siguientes canales oficiales:
+        </p>
+        <ul>
+          <li><strong>Soporte Técnico:</strong> <a href="mailto:soporte@judic-ia.com" style={{ color: '#fbbf24', textDecoration: 'none' }}>soporte@judic-ia.com</a></li>
+          <li><strong>Facturación y Pagos:</strong> <a href="mailto:billing@judic-ia.com" style={{ color: '#fbbf24', textDecoration: 'none' }}>billing@judic-ia.com</a></li>
+          <li><strong>Consultas Generales:</strong> <a href="mailto:hola@judic-ia.com" style={{ color: '#fbbf24', textDecoration: 'none' }}>hola@judic-ia.com</a></li>
+        </ul>
+      </section>
 
-            <style jsx global>{`
+      <footer>
+        © {new Date().getFullYear()} Judic-IA · Todos los derechos reservados
+      </footer>
+
+      <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap');
       `}</style>
 
-            <style jsx>{`
+      <style jsx>{`
         :root{
           --bg:#020617;
           --card:#0f172a;
@@ -179,6 +192,6 @@ export default function LegalPage() {
           font-size: .9rem;
         }
       `}</style>
-        </main>
-    );
+    </main>
+  );
 }

@@ -164,7 +164,7 @@ export default function Home() {
             </div>
           </div>
           <div className="foot-note">
-            <Link href="/legal#security">Seguridad</Link> · <Link href="/legal#privacy">Privacidad</Link> · <Link href="/legal#terms">Términos</Link>
+            <Link href="/legal#security">Seguridad</Link> · <Link href="/legal#privacy">Privacidad</Link> · <Link href="/legal#terms">Términos</Link> · <a href="mailto:hola@judic-ia.com">Ventas</a> · <a href="mailto:soporte@judic-ia.com">Soporte</a>
           </div>
         </div>
       </footer>

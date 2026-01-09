@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
+import { CONTACT_CHANNELS, buildMailto } from '../../lib/contact-channels';
 import '../../globals.css';
 
 const SPECIALTIES_OPTIONS = [
@@ -22,7 +23,7 @@ export default function SettingsPage() {
     // Sync tab with URL on mount and whenever searchParams change
     useEffect(() => {
         const tab = searchParams.get('tab');
-        if (tab && ['profile', 'security', 'billing'].includes(tab)) {
+        if (tab && ['profile', 'security', 'billing', 'support'].includes(tab)) {
             setActiveTab(tab);
         }
     }, [searchParams]);
@@ -268,6 +269,9 @@ export default function SettingsPage() {
                         <button className={`stg-tab-btn ${activeTab === 'billing' ? 'active' : ''}`} onClick={() => handleTabChange('billing')}>
                             💳 Facturación
                         </button>
+                        <button className={`stg-tab-btn ${activeTab === 'support' ? 'active' : ''}`} onClick={() => handleTabChange('support')}>
+                            🧩 Soporte y Ayuda
+                        </button>
                     </aside>
 
                     {/* Contenido Principal */}
@@ -475,11 +479,106 @@ export default function SettingsPage() {
                                 {/* El botón de confirmar aquí es redundante ya que el pago se inicia arriba */}
                             </div>
                         )}
+                        {activeTab === 'support' && (
+                            <div className="stg-tab-pane">
+                                <h3 className="stg-sec-title">Centro de Ayuda</h3>
+                                <p style={{ color: '#94a3b8', marginBottom: '2rem' }}>
+                                    Selecciona el canal adecuado para agilizar tu consulta.
+                                </p>
+                                <div className="stg-support-grid">
+                                    <div className="stg-support-card">
+                                        <div className="icon-circle">🔧</div>
+                                        <h4>{CONTACT_CHANNELS.support.label}</h4>
+                                        <p>¿Algo no funciona bien en la plataforma?</p>
+                                        <a
+                                            href={buildMailto(
+                                                CONTACT_CHANNELS.support.email,
+                                                CONTACT_CHANNELS.support.defaultSubject,
+                                                `Hola equipo Judic-IA,\n\nSoy el usuario: ${user?.id}\nPlan: ${formData.plan_tier}\n\nMi problema es:`
+                                            )}
+                                            className="stg-link-btn"
+                                        >
+                                            {CONTACT_CHANNELS.support.email}
+                                        </a>
+                                    </div>
+
+                                    <div className="stg-support-card">
+                                        <div className="icon-circle">💳</div>
+                                        <h4>{CONTACT_CHANNELS.billing.label}</h4>
+                                        <p>Dudas sobre tu plan o pagos.</p>
+                                        <a
+                                            href={buildMailto(
+                                                CONTACT_CHANNELS.billing.email,
+                                                CONTACT_CHANNELS.billing.defaultSubject,
+                                                `Hola,\n\nConsulta sobre facturación.\nUsuario: ${user?.id}`
+                                            )}
+                                            className="stg-link-btn"
+                                        >
+                                            {CONTACT_CHANNELS.billing.email}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </main>
                 </div>
             </div>
 
             <style jsx global>{`
+                /* SUPPORT GRID STYLES */
+                .stg-support-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 1.5rem;
+                }
+                .stg-support-card {
+                    background: rgba(255,255,255,0.03);
+                    border: 1px solid rgba(255,255,255,0.08);
+                    border-radius: 20px;
+                    padding: 2rem;
+                    text-align: center;
+                    transition: 0.3s;
+                }
+                .stg-support-card:hover {
+                    background: rgba(255,255,255,0.05);
+                    border-color: rgba(251, 191, 36, 0.3);
+                    transform: translateY(-3px);
+                }
+                .icon-circle {
+                    width: 60px; height: 60px;
+                    background: rgba(15, 23, 42, 0.6);
+                    border-radius: 50%;
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 1.8rem;
+                    margin: 0 auto 1rem;
+                    border: 1px solid rgba(255,255,255,0.1);
+                }
+                .stg-support-card h4 {
+                    margin: 0.5rem 0;
+                    font-size: 1.1rem;
+                    color: white;
+                }
+                .stg-support-card p {
+                    color: #64748b;
+                    font-size: 0.9rem;
+                    margin-bottom: 1.5rem;
+                }
+                .stg-link-btn {
+                    display: inline-block;
+                    padding: 0.8rem 1.2rem;
+                    background: rgba(251, 191, 36, 0.1);
+                    color: #fbbf24;
+                    text-decoration: none;
+                    font-weight: 700;
+                    border-radius: 12px;
+                    font-size: 0.9rem;
+                    transition: 0.3s;
+                }
+                .stg-link-btn:hover {
+                    background: #fbbf24;
+                    color: #020617;
+                }
+
                 /* ENCAPSULATED ROOT - PREVENT OVERLAP */
                 .stg-root {
                     min-height: 100vh;
