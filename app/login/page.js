@@ -24,7 +24,7 @@ export default function LoginPage() {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // router.push('/dashboard'); 
+        router.push('/dashboard');
         // BREAK LOOP: If session exists but proxy rejected us, let user re-login
         console.log("User found on client, but forcing form render to fix session sync.");
       }
