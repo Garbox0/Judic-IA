@@ -84,6 +84,8 @@ function RegisterContent() {
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [phone, setPhone] = useState('');
     const [confirmEmail, setConfirmEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -181,7 +183,11 @@ function RegisterContent() {
                 password,
                 options: {
                     emailRedirectTo: fullRedirectUrl, // Still good to send for prod
-                    data: { role: 'client' }
+                    data: {
+                        role: 'client',
+                        full_name: fullName,
+                        phone: phone
+                    }
                 }
             });
 
@@ -255,6 +261,28 @@ function RegisterContent() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="tu@email.com"
+                                required
+                            />
+                        </div>
+
+                        <div className="input-field">
+                            <label>Nombre Completo</label>
+                            <input
+                                type="text"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                                placeholder="Nombre Apellido"
+                                required
+                            />
+                        </div>
+
+                        <div className="input-field">
+                            <label>Celular</label>
+                            <input
+                                type="tel"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                placeholder="+54 9 11..."
                                 required
                             />
                         </div>

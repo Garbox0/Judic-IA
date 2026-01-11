@@ -15,6 +15,7 @@ export default function IntakeFormContent({ id }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [restricted, setRestricted] = useState(false);
+    const [isDeleted, setIsDeleted] = useState(false); // New state for Zombie UI
 
     useEffect(() => {
         async function checkAuthAndFetchLawyer() {
@@ -51,9 +52,24 @@ export default function IntakeFormContent({ id }) {
 
             if (profileError || !userProfile) {
                 console.warn("💀 ZOMBIE DETECTED: Session valid but User deleted from DB.");
-                await supabase.auth.signOut();
-                alert("⛔ TU CUENTA HA SIDO ELIMINADA.\n\nTu abogado ha cerrado este expediente y tu acceso ha sido revocado permanentemente.");
-                window.location.href = "/"; // Force hard redirect to landing
+
+                // Fetch lawyer name for the nice message
+                let lawyerName = "el estudio";
+                if (id) {
+                    const { data: lawyerData } = await supabase.from('profiles').select('full_name').eq('id', id).single();
+                    if (lawyerData) lawyerName = lawyerData.full_name;
+                }
+
+                // Set special state (don't sign out yet, let them see the message)
+                setLawyer({ full_name: lawyerName }); // Hack to reuse lawyer state or just use local var
+                setIsDeleted(true);
+
+                // Sign out after delay
+                setTimeout(async () => {
+                    await supabase.auth.signOut();
+                    window.location.href = "/";
+                }, 5000);
+
                 return;
             }
 
@@ -108,6 +124,27 @@ export default function IntakeFormContent({ id }) {
                         Este acceso ha expirado o el abogado ha revocado el permiso para este caso específico.
                     </p>
                     <p style={{ marginTop: '2rem', fontSize: '0.75rem', opacity: 0.5 }}>Redirigiendo fuera...</p>
+                </div>
+            </div>
+        )
+    }
+
+    // New ZOMBIE UI
+    if (isDeleted) {
+        return (
+            <div className="error-screen">
+                <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', maxWidth: '450px', borderRadius: '20px', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(15,23,42,0.9)' }}>
+                    <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🚫</div>
+                    <h2 style={{ color: '#fbbf24', marginBottom: '1.5rem', fontFamily: 'Playfair Display, serif' }}>Acceso Revocado</h2>
+                    <p style={{ color: '#cbd5e1', fontSize: '1rem', lineHeight: '1.6' }}>
+                        Usted ya no forma parte de la cartera de clientes de <strong style={{ color: 'white' }}>{lawyer?.full_name || 'este abogado'}</strong>.
+                    </p>
+                    <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '1rem' }}>
+                        Su expediente ha sido cerrado.
+                    </p>
+                    <div style={{ marginTop: '2.5rem', fontSize: '0.85rem', color: '#64748b' }}>
+                        Será redirigido al inicio en 5 segundos...
+                    </div>
                 </div>
             </div>
         )
