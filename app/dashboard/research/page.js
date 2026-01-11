@@ -17,16 +17,28 @@ export default function ResearchPage() {
     const [placeholder, setPlaceholder] = useState("Ej: Despido sin causa con antigüedad de 10 años en CABA...");
     const [userProfile, setUserProfile] = useState(null);
     const [logoBase64, setLogoBase64] = useState(null);
+    const [history, setHistory] = useState([]);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
 
     useEffect(() => {
-        const fetchUser = async () => {
+        const fetchUserAndHistory = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
                 setUserProfile(profile);
+
+                // Fetch History
+                const { data: reports } = await supabase
+                    .from('research_reports')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+
+                if (reports) setHistory(reports);
             }
         };
-        fetchUser();
+        fetchUserAndHistory();
 
         // Convert logo to base64 for PDF
         const convertLogo = async () => {
@@ -207,178 +219,230 @@ export default function ResearchPage() {
 
     return (
         <div className="research-container">
-            <nav className="research-nav">
-                <div className="breadcrumb">
-                    <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
-                    <span className="breadcrumb-separator">/</span>
-                    <span className="breadcrumb-current">Investigación y Jurisprudencia</span>
-                </div>
-            </nav>
+            <div className="research-layout" style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
 
-            <header className="research-header">
-                <div className="header-flex">
-                    <img src="/logo.png" alt="Judic-IA Logo" className="logo-main" />
-                    <div className="header-text">
-                        <h1 className="dashboard-page-title">Investigación y Jurisprudencia</h1>
-                        <p>Consulta normativa, códigos y fallos similares para tus casos con tecnología IA.</p>
-                    </div>
-                </div>
-            </header>
-
-            <div className="search-box-container glass-panel">
-                <div className="jurisdiction-selector">
-                    <label className={`radio-btn ${scope === 'nacional' ? 'active' : ''}`}>
-                        <input
-                            type="radio"
-                            name="scope"
-                            value="nacional"
-                            checked={scope === 'nacional'}
-                            onChange={() => setScope('nacional')}
-                        />
-                        🇦🇷 Justicia Nacional / Federal
-                    </label>
-                    <label className={`radio-btn ${scope === 'provincial' ? 'active' : ''}`}>
-                        <input
-                            type="radio"
-                            name="scope"
-                            value="provincial"
-                            checked={scope === 'provincial'}
-                            onChange={() => setScope('provincial')}
-                        />
-                        📍 Justicia Provincial
-                    </label>
-
-                    {scope === 'provincial' && (
-                        <select
-                            className="province-select"
-                            value={province}
-                            onChange={(e) => setProvince(e.target.value)}
-                        >
-                            {provinces.map(p => <option key={p} value={p}>{p}</option>)}
-                        </select>
-                    )}
-                </div>
-
-                <form onSubmit={handleSearch} className="search-box">
-                    <input
-                        type="text"
-                        placeholder={placeholder}
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                    />
-                    <button type="submit" disabled={loading}>
-                        {loading ? 'Buscando...' : 'Consultar IA Legal'}
-                    </button>
-                </form>
-                {results && (
-                    <div className="action-buttons">
-                        <div className="copy-container">
-                            <button
-                                className="btn-action"
-                                onClick={() => {
-                                    const text = `ESTUDIO LEGAL - INVESTIGACIÓN\n\nNORMATIVA:\n${results.laws}\n\nJURISPRUDENCIA:\n${results.cases}\n\nESTRATEGIA:\n${results.strategy}`;
-                                    navigator.clipboard.writeText(text);
-                                    setCopySuccess(true);
-                                    setTimeout(() => setCopySuccess(false), 2000);
-                                }}
-                            >
-                                📋 Copiar Texto
-                            </button>
-                            {copySuccess && <span className="copy-toast">✨ ¡Copiado!</span>}
-                        </div>
-                        <button className="btn-action btn-pdf" onClick={handleDownloadPDF}>
-                            📄 Descargar PDF
+                {/* HISTORY SIDEBAR */}
+                <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`} style={{ width: sidebarOpen ? '300px' : '60px', transition: '0.3s', padding: '1.5rem', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                        {sidebarOpen && <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', textTransform: 'uppercase' }}>Historial</h4>}
+                        <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', color: '#fbbf24', cursor: 'pointer', fontSize: '1.2rem' }}>
+                            {sidebarOpen ? '◀' : '▶'}
                         </button>
                     </div>
-                )}
-            </div>
 
-            {results && (
-                <div className="results-area">
-                    <section className="result-card glass-card">
-                        <h3>📚 Normativa Aplicable</h3>
-                        <div className="content">{results.laws}</div>
-                    </section>
-
-                    <section className="result-card glass-card">
-                        <h3>⚖️ Jurisprudencia Similares</h3>
-                        <div className="content">{results.cases}</div>
-                    </section>
-
-                    {results.calculation && (
-                        <section className="result-card glass-card calculation">
-                            <h3>💰 Liquidación Estimada</h3>
-                            <div className="content">{results.calculation}</div>
-                        </section>
+                    {sidebarOpen && (
+                        <div className="history-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                            {history.length === 0 && <p style={{ fontSize: '0.85rem', color: '#64748b', fontStyle: 'italic' }}>Sin investigaciones recientes.</p>}
+                            {history.map(item => (
+                                <div
+                                    key={item.id}
+                                    className="history-item"
+                                    onClick={() => { setQuery(item.query); setResults(item.result_json); }}
+                                    style={{
+                                        padding: '0.8rem',
+                                        background: 'rgba(255,255,255,0.03)',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        transition: '0.2s',
+                                        fontSize: '0.85rem'
+                                    }}
+                                    onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                                    onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                                >
+                                    <div style={{ fontWeight: 600, color: '#e2e8f0', marginBottom: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {item.query}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                                        {new Date(item.created_at).toLocaleDateString()} • {item.jurisdiction}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     )}
+                </aside>
 
-                    {results.evidence && (
-                        <section className="result-card glass-card evidence">
-                            <h3>🔍 Puntos de Prueba (Sugeridos)</h3>
-                            <div className="content">{results.evidence}</div>
-                        </section>
-                    )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <nav className="research-nav">
+                        <div className="breadcrumb">
+                            <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
+                            <span className="breadcrumb-separator">/</span>
+                            <span className="breadcrumb-current">Investigación y Jurisprudencia</span>
+                        </div>
+                    </nav>
 
-                    <section className="result-card glass-card strategy">
-                        <h3>💡 Sugerencia de Estrategia</h3>
-                        <div className="content">{results.strategy}</div>
-                    </section>
-
-                    {results.links && results.links.length > 0 && (
-                        <section className="result-card links">
-                            <h3>🔗 Recursos y Enlaces Útiles</h3>
-                            <div className="links-grid">
-                                {results.links.map((link, idx) => {
-                                    const safeUrl = link.url.startsWith('http') ? link.url : `https://${link.url}`;
-                                    return (
-                                        <a key={idx} href={safeUrl} target="_blank" rel="noopener noreferrer" className="link-item">
-                                            {link.title} ↗
-                                        </a>
-                                    );
-                                })}
+                    <header className="research-header">
+                        <div className="header-flex">
+                            <img src="/logo.png" alt="Judic-IA Logo" className="logo-main" />
+                            <div className="header-text">
+                                <h1 className="dashboard-page-title">Investigación y Jurisprudencia</h1>
+                                <p>Consulta normativa, códigos y fallos similares para tus casos con tecnología IA.</p>
                             </div>
-                        </section>
-                    )}
-                </div>
-            )}
+                        </div>
+                    </header>
 
-            {!results && !loading && (
-                <div className="guided-research">
-                    <h3>💡 ¿Sobre qué quieres investigar hoy?</h3>
-                    <div className="categories-grid">
-                        <div className={`category-card glass-card ${activeCategory === 'laboral' ? 'active' : ''}`}
-                            onClick={() => { setPlaceholder('Jurisprudencia sobre despidos con justa causa en CABA'); setQuery(''); setActiveCategory('laboral'); }}>
-                            <span className="icon">💼</span>
-                            <h4>Laboral</h4>
-                            <p>Despidos, accidentes, trabajo en negro.</p>
+                    <div className="search-box-container glass-panel">
+                        <div className="jurisdiction-selector">
+                            <label className={`radio-btn ${scope === 'nacional' ? 'active' : ''}`}>
+                                <input
+                                    type="radio"
+                                    name="scope"
+                                    value="nacional"
+                                    checked={scope === 'nacional'}
+                                    onChange={() => setScope('nacional')}
+                                />
+                                🇦🇷 Justicia Nacional / Federal
+                            </label>
+                            <label className={`radio-btn ${scope === 'provincial' ? 'active' : ''}`}>
+                                <input
+                                    type="radio"
+                                    name="scope"
+                                    value="provincial"
+                                    checked={scope === 'provincial'}
+                                    onChange={() => setScope('provincial')}
+                                />
+                                📍 Justicia Provincial
+                            </label>
+
+                            {scope === 'provincial' && (
+                                <select
+                                    className="province-select"
+                                    value={province}
+                                    onChange={(e) => setProvince(e.target.value)}
+                                >
+                                    {provinces.map(p => <option key={p} value={p}>{p}</option>)}
+                                </select>
+                            )}
                         </div>
-                        <div className={`category-card glass-card ${activeCategory === 'penal' ? 'active' : ''}`}
-                            onClick={() => { setPlaceholder('Jurisprudencia sobre robo con arma de guerra y abuso de autoridad'); setQuery(''); setActiveCategory('penal'); }}>
-                            <span className="icon">⚖️</span>
-                            <h4>Penal</h4>
-                            <p>Robo con armas, abusos, delitos complejos.</p>
-                        </div>
-                        <div className={`category-card glass-card ${activeCategory === 'civil' ? 'active' : ''}`}
-                            onClick={() => { setPlaceholder('Sucesión con herederos forzosos y bienes en varias provincias'); setQuery(''); setActiveCategory('civil'); }}>
-                            <span className="icon">🏠</span>
-                            <h4>Civil & Familia</h4>
-                            <p>Sucesiones, divorcios, medianería.</p>
-                        </div>
-                        <div className={`category-card glass-card ${activeCategory === 'propiedad' ? 'active' : ''}`}
-                            onClick={() => { setPlaceholder('Jurisprudencia sobre mediación y medianería en edificios'); setQuery(''); setActiveCategory('propiedad'); }}>
-                            <span className="icon">🏙️</span>
-                            <h4>Propiedad</h4>
-                            <p>Medianería, consorcios, desalojos.</p>
-                        </div>
+
+                        <form onSubmit={handleSearch} className="search-box">
+                            <input
+                                type="text"
+                                placeholder={placeholder}
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                            />
+                            <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                                {loading ? (
+                                    <>
+                                        <span className="spinner"></span>
+                                        Analizando...
+                                    </>
+                                ) : 'Consultar IA Legal'}
+                            </button>
+                        </form>
+                        {results && (
+                            <div className="action-buttons">
+                                <div className="copy-container">
+                                    <button
+                                        className="btn-action"
+                                        onClick={() => {
+                                            const text = `ESTUDIO LEGAL - INVESTIGACIÓN\n\nNORMATIVA:\n${results.laws}\n\nJURISPRUDENCIA:\n${results.cases}\n\nESTRATEGIA:\n${results.strategy}`;
+                                            navigator.clipboard.writeText(text);
+                                            setCopySuccess(true);
+                                            setTimeout(() => setCopySuccess(false), 2000);
+                                        }}
+                                    >
+                                        📋 Copiar Texto
+                                    </button>
+                                    {copySuccess && <span className="copy-toast">✨ ¡Copiado!</span>}
+                                </div>
+                                <button className="btn-action btn-pdf" onClick={handleDownloadPDF}>
+                                    📄 Descargar PDF
+                                </button>
+                            </div>
+                        )}
                     </div>
-                </div>
-            )}
 
-            {!results && !loading && (
-                <div className="empty-state">
-                    <p>O escribe tu propia consulta legal en la barra superior.</p>
+                    {results && (
+                        <div className="results-area">
+                            <section className="result-card glass-card">
+                                <h3>📚 Normativa Aplicable</h3>
+                                <div className="content">{results.laws}</div>
+                            </section>
+
+                            <section className="result-card glass-card">
+                                <h3>⚖️ Jurisprudencia Similares</h3>
+                                <div className="content">{results.cases}</div>
+                            </section>
+
+                            {results.calculation && (
+                                <section className="result-card glass-card calculation">
+                                    <h3>💰 Liquidación Estimada</h3>
+                                    <div className="content">{results.calculation}</div>
+                                </section>
+                            )}
+
+                            {results.evidence && (
+                                <section className="result-card glass-card evidence">
+                                    <h3>🔍 Puntos de Prueba (Sugeridos)</h3>
+                                    <div className="content">{results.evidence}</div>
+                                </section>
+                            )}
+
+                            <section className="result-card glass-card strategy">
+                                <h3>💡 Sugerencia de Estrategia</h3>
+                                <div className="content">{results.strategy}</div>
+                            </section>
+
+                            {results.links && results.links.length > 0 && (
+                                <section className="result-card links">
+                                    <h3>🔗 Recursos y Enlaces Útiles</h3>
+                                    <div className="links-grid">
+                                        {results.links.map((link, idx) => {
+                                            const safeUrl = link.url.startsWith('http') ? link.url : `https://${link.url}`;
+                                            return (
+                                                <a key={idx} href={safeUrl} target="_blank" rel="noopener noreferrer" className="link-item">
+                                                    {link.title} ↗
+                                                </a>
+                                            );
+                                        })}
+                                    </div>
+                                </section>
+                            )}
+                        </div>
+                    )}
+
+                    {!results && !loading && (
+                        <div className="guided-research">
+                            <h3>💡 ¿Sobre qué quieres investigar hoy?</h3>
+                            <div className="categories-grid">
+                                <div className={`category-card glass-card ${activeCategory === 'laboral' ? 'active' : ''}`}
+                                    onClick={() => { setPlaceholder('Jurisprudencia sobre despidos con justa causa en CABA'); setQuery(''); setActiveCategory('laboral'); }}>
+                                    <span className="icon">💼</span>
+                                    <h4>Laboral</h4>
+                                    <p>Despidos, accidentes, trabajo en negro.</p>
+                                </div>
+                                <div className={`category-card glass-card ${activeCategory === 'penal' ? 'active' : ''}`}
+                                    onClick={() => { setPlaceholder('Jurisprudencia sobre robo con arma de guerra y abuso de autoridad'); setQuery(''); setActiveCategory('penal'); }}>
+                                    <span className="icon">⚖️</span>
+                                    <h4>Penal</h4>
+                                    <p>Robo con armas, abusos, delitos complejos.</p>
+                                </div>
+                                <div className={`category-card glass-card ${activeCategory === 'civil' ? 'active' : ''}`}
+                                    onClick={() => { setPlaceholder('Sucesión con herederos forzosos y bienes en varias provincias'); setQuery(''); setActiveCategory('civil'); }}>
+                                    <span className="icon">🏠</span>
+                                    <h4>Civil & Familia</h4>
+                                    <p>Sucesiones, divorcios, medianería.</p>
+                                </div>
+                                <div className={`category-card glass-card ${activeCategory === 'propiedad' ? 'active' : ''}`}
+                                    onClick={() => { setPlaceholder('Jurisprudencia sobre mediación y medianería en edificios'); setQuery(''); setActiveCategory('propiedad'); }}>
+                                    <span className="icon">🏙️</span>
+                                    <h4>Propiedad</h4>
+                                    <p>Medianería, consorcios, desalojos.</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {!results && !loading && (
+                        <div className="empty-state">
+                            <p>O escribe tu propia consulta legal en la barra superior.</p>
+                        </div>
+                    )}
+
                 </div>
-            )}
+            </div>
 
             <style jsx>{`
                 .research-container {
@@ -677,33 +741,30 @@ export default function ResearchPage() {
                     .research-container {
                         padding: 0 1.5rem 2rem;
                     }
-                    .header-flex {
-                        flex-direction: column;
-                        text-align: center;
-                        gap: 1rem;
-                    }
-                    .header-text {
-                        text-align: center;
-                    }
-                    .dashboard-page-title {
-                        font-size: 2rem;
-                    }
-                    .search-box-container {
-                        padding: 1.5rem;
-                    }
-                    .search-box {
-                        flex-direction: column;
-                    }
-                    .search-box button {
-                        width: 100%;
-                        padding: 1rem;
-                    }
-                    .categories-grid {
-                        grid-template-columns: 1fr;
-                    }
-                    .jurisdiction-selector {
-                        justify-content: center;
-                    }
+                    /* ... existing mobile styles ... */
+                }
+
+                .spinner {
+                    width: 16px;
+                    height: 16px;
+                    border: 2px solid rgba(255,255,255,0.3);
+                    border-radius: 50%;
+                    border-top-color: #fff;
+                    animation: spin 1s ease-in-out infinite;
+                }
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+                .spinner {
+                    width: 16px;
+                    height: 16px;
+                    border: 2px solid rgba(255,255,255,0.3);
+                    border-radius: 50%;
+                    border-top-color: #fff;
+                    animation: spin 1s ease-in-out infinite;
+                }
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
                 }
             `}</style>
         </div>

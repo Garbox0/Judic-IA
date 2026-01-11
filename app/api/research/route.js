@@ -133,11 +133,25 @@ export async function POST(request) {
                 { role: "system", content: SYSTEM_PROMPT },
                 { role: "user", content: `Consulta del abogado: ${query}` }
             ],
-            model: "openai/gpt-4o-mini",
+            model: "openai/gpt-4o",
             response_format: { type: "json_object" }
         });
 
         const result = JSON.parse(completion.choices[0].message.content);
+
+        // --- PERSISTENCE: Save Report in DB ---
+        if (userId) {
+            const { error: saveError } = await supabase
+                .from('research_reports')
+                .insert({
+                    user_id: userId,
+                    query: query,
+                    jurisdiction: jurisdiction || 'Nacional',
+                    result_json: result
+                });
+
+            if (saveError) console.error("Error saving research report:", saveError);
+        }
 
         // Post-procesamiento: Forzar orden por fecha en links de Google
         if (result.links && Array.isArray(result.links)) {
