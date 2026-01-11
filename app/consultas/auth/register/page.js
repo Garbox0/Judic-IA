@@ -84,7 +84,8 @@ function RegisterContent() {
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
-    const [fullName, setFullName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [phone, setPhone] = useState('');
     const [confirmEmail, setConfirmEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -185,7 +186,7 @@ function RegisterContent() {
                     emailRedirectTo: fullRedirectUrl, // Still good to send for prod
                     data: {
                         role: 'client',
-                        full_name: fullName,
+                        full_name: `${firstName} ${lastName}`,
                         phone: phone
                     }
                 }
@@ -265,15 +266,27 @@ function RegisterContent() {
                             />
                         </div>
 
-                        <div className="input-field">
-                            <label>Nombre Completo</label>
-                            <input
-                                type="text"
-                                value={fullName}
-                                onChange={(e) => setFullName(e.target.value)}
-                                placeholder="Nombre Apellido"
-                                required
-                            />
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <div className="input-field" style={{ flex: 1 }}>
+                                <label>Nombre</label>
+                                <input
+                                    type="text"
+                                    value={firstName}
+                                    onChange={(e) => setFirstName(e.target.value)}
+                                    placeholder="Juan"
+                                    required
+                                />
+                            </div>
+                            <div className="input-field" style={{ flex: 1 }}>
+                                <label>Apellido</label>
+                                <input
+                                    type="text"
+                                    value={lastName}
+                                    onChange={(e) => setLastName(e.target.value)}
+                                    placeholder="Pérez"
+                                    required
+                                />
+                            </div>
                         </div>
 
                         <div className="input-field">
