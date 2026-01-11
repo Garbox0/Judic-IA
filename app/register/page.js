@@ -189,11 +189,25 @@ export default function RegisterPage() {
                             <div className="register-field-row">
                                 <div style={{ flex: 1 }}>
                                     <label>Tomo</label>
-                                    <input type="number" placeholder="80" value={tomo} onChange={e => setTomo(e.target.value)} required />
+                                    <input
+                                        type="number"
+                                        placeholder="80"
+                                        value={tomo}
+                                        onChange={e => setTomo(e.target.value)}
+                                        onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
+                                        required
+                                    />
                                 </div>
                                 <div style={{ flex: 1 }}>
                                     <label>Folio</label>
-                                    <input type="number" placeholder="500" value={folio} onChange={e => setFolio(e.target.value)} required />
+                                    <input
+                                        type="number"
+                                        placeholder="500"
+                                        value={folio}
+                                        onChange={e => setFolio(e.target.value)}
+                                        onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
+                                        required
+                                    />
                                 </div>
                             </div>
 
@@ -301,9 +315,11 @@ export default function RegisterPage() {
                             </div>
                         )}
 
-                        <button type="submit" disabled={loading || !isPasswordStrong || !passwordsMatch || !emailsMatch} className="btn-register-action">
-                            {loading ? 'Procesando Registro...' : 'Confirmar Registro Profesional'}
-                        </button>
+                        {!message && (
+                            <button type="submit" disabled={loading || !isPasswordStrong || !passwordsMatch || !emailsMatch} className="btn-register-action">
+                                {loading ? 'Procesando Registro...' : 'Confirmar Registro Profesional'}
+                            </button>
+                        )}
                     </form>
 
                     <div className="divider"><span>o</span></div>
