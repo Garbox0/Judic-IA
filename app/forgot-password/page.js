@@ -112,6 +112,12 @@ export default function ForgotPasswordPage() {
                 :root { --bg: #020617; --card: #0f172a; --gold: #fbbf24; }
                 .auth-body { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 10%, #0f172a, #020617); font-family: 'Inter', sans-serif; padding: 2rem; color: white; position: relative; }
                 .card { width: 100%; max-width: 420px; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border-radius: 28px; padding: 3.5rem 3rem; box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); text-align: center; }
+                
+                @media (max-width: 640px) {
+                    .card { padding: 2rem 1.5rem; border-radius: 20px; }
+                    .auth-body { padding: 1rem; }
+                    h1 { font-size: 1.5rem; }
+                }
                 .back-wrapper { position: absolute; top: 2rem; left: 2rem; z-index: 10; }
                 .back { color: #94a3b8; text-decoration: none; font-size: 0.85rem; transition: 0.3s; }
                 .back:hover { color: #fbbf24; }

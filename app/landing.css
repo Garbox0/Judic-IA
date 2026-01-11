@@ -574,7 +574,12 @@ body {
     }
 
     .hero-title {
-        font-size: 44px;
+        font-size: 38px;
+    }
+
+    .hero-section {
+        padding-top: 100px;
+        padding-bottom: 40px;
     }
 }
 

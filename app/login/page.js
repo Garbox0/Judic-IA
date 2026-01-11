@@ -184,6 +184,19 @@ export default function LoginPage() {
           border:1px solid rgba(255,255,255,.08);
         }
 
+        @media (max-width: 640px) {
+          .card {
+            padding: 2rem 1.5rem;
+            border-radius: 20px;
+          }
+          .auth-body {
+            padding: 1rem;
+          }
+          h1 {
+            font-size: 1.8rem;
+          }
+        }
+
         .back-wrapper {
           position:absolute;
           top:2rem;

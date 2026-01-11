@@ -149,6 +149,12 @@ export default function UpdatePasswordPage() {
                     box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6); 
                 }
 
+                @media (max-width: 640px) {
+                    .glass-premium { padding: 2rem 1.5rem; border-radius: 20px; }
+                    .auth-main { padding: 1rem; }
+                    .brand-name-premium { font-size: 1.8rem; }
+                }
+
                 .brand-header { text-align: center; margin-bottom: 2.5rem; }
                 .brand-logo-img { width: 60px; margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.3)); }
                 .brand-name-premium { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; color: #fbbf24; margin: 0; }
