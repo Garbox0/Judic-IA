@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
+import EventModal from '../../components/dashboard/EventModal';
 
 export default function ClientsPage() {
     const [clients, setClients] = useState([]);
@@ -14,6 +15,10 @@ export default function ClientsPage() {
     const [clientToDelete, setClientToDelete] = useState(null);
     const [showDetails, setShowDetails] = useState(true); // Toggle sidebar
     const [attachments, setAttachments] = useState([]);
+
+    // Agenda Modal State
+    const [eventModalOpen, setEventModalOpen] = useState(false);
+    const [eventInitialData, setEventInitialData] = useState(null);
 
     // 1. INITIAL FETCH & AUTH
     useEffect(() => {
@@ -144,6 +149,31 @@ export default function ClientsPage() {
         setSelectedClient(null);
         setChatHistory([]);
         setAttachments([]);
+    };
+
+    const openEventModalForClient = () => {
+        if (!selectedClient) return;
+
+        // Smart Parsing: Try to find dates in AI summary
+        const summary = selectedClient.ai_summary || '';
+        const title = `Vencimiento: ${selectedClient.contact_name || 'Nuevo Cliente'}`;
+        let date = new Date().toISOString().split('T')[0];
+
+        // Simple Regex for dates like DD/MM/YYYY (common in AI summaries)
+        const dateMatch = summary.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if (dateMatch) {
+            // Convert DD/MM/YYYY to YYYY-MM-DD
+            date = `${dateMatch[3]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}`;
+        }
+
+        setEventInitialData({
+            title: title,
+            description: `Relacionado al caso de ${selectedClient.contact_name}.\n\nContexto IA: ${summary}`,
+            date: date,
+            time: '09:00',
+            type: 'hearing'
+        });
+        setEventModalOpen(true);
     };
 
     const copySmartLink = () => {
@@ -295,6 +325,9 @@ export default function ClientsPage() {
                                 <Link href={`/dashboard/clients/${selectedClient.id}/generate`} className="btn-generate-action" >
                                     ⚡ Generar Escrito
                                 </Link>
+                                <button className="btn-agenda-action" onClick={openEventModalForClient} title="Agendar Plazo">
+                                    📅 Crear Plazo
+                                </button>
                                 <button onClick={closeModal} className="close-btn">×</button>
                             </div>
                         </div>
@@ -376,6 +409,14 @@ export default function ClientsPage() {
                     </div>
                 </div>
             )}
+
+            {/* AGENDA MODAL */}
+            <EventModal
+                isOpen={eventModalOpen}
+                onClose={() => setEventModalOpen(false)}
+                onEventCreated={() => { }} // No refresh needed for clients list
+                initialData={eventInitialData}
+            />
 
             <style jsx>{`
                 .clients-container { padding: 0 3rem 3rem; max-width: 1200px; margin: 0 auto; color: white; }
@@ -490,6 +531,13 @@ export default function ClientsPage() {
                 }
                 .btn-generate-action:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3); }
 
+                .btn-agenda-action {
+                    background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4);
+                    padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer;
+                    display: flex; align-items: center; gap: 0.5rem; transition: 0.2s;
+                }
+                .btn-agenda-action:hover { background: rgba(16, 185, 129, 0.3); color: white; transform: translateY(-2px); }
+
                 .btn-delete {
                     background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.5);
                     width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
@@ -541,6 +589,6 @@ export default function ClientsPage() {
                     .btn-toggle-details span { display: none; } /* Hide text, keep icon if needed, or just keep text */
                 }
             `}</style>
-        </div>
+        </div >
     );
 }
