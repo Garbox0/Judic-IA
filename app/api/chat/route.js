@@ -230,19 +230,25 @@ export async function POST(request) {
                 });
                 const rawContent = completion.choices[0].message.content;
 
-                // --- DATA EXTRACTION LOGIC ---
+                // --- DATA EXTRACTION LOGIC (Robust) ---
                 let extractedData = null;
                 replyContent = rawContent;
 
-                const extractionMatch = rawContent.match(/<extraction>([\s\S]*?)<\/extraction>/);
-                if (extractionMatch) {
+                // Match XML <extraction> OR Markdown **[EXTRACCIÓN]**
+                // Group 1: XML Content
+                // Group 2: Markdown Content
+                const extractionRegex = /(?:<extraction>([\s\S]*?)<\/extraction>)|(?:\*\*\[EXTRACCIÓN\]\*\*\s*({[\s\S]*?}))/i;
+                const match = rawContent.match(extractionRegex);
+
+                if (match) {
                     try {
-                        const cleanJson = extractionMatch[1].replace(/```json/g, '').replace(/```/g, '').trim();
-                        console.log("🕵️ Raw Extraction:", cleanJson);
-                        extractedData = JSON.parse(cleanJson);
+                        const jsonStr = (match[1] || match[2] || "").trim().replace(/```json/g, '').replace(/```/g, '');
+                        console.log("🕵️ Raw Extraction Found:", jsonStr);
+                        extractedData = JSON.parse(jsonStr);
 
                         // Remove metadata from response shown to user
-                        replyContent = rawContent.replace(/<extraction>[\s\S]*?<\/extraction>/, "").trim();
+                        // We replace the WHOLE match with empty string
+                        replyContent = rawContent.replace(match[0], "").trim();
                     } catch (e) {
                         console.error("❌ JSON Parse Error in Extraction:", e);
                     }
