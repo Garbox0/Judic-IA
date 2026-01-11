@@ -223,12 +223,33 @@ export default function ResearchPage() {
 
                 {/* HISTORY SIDEBAR */}
                 <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`} style={{ width: sidebarOpen ? '300px' : '60px', transition: '0.3s', padding: '1.5rem', flexShrink: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: sidebarOpen ? '1.5rem' : '1rem', flexDirection: sidebarOpen ? 'row' : 'column' }}>
                         {sidebarOpen && <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', textTransform: 'uppercase' }}>Historial</h4>}
-                        <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', color: '#fbbf24', cursor: 'pointer', fontSize: '1.2rem' }}>
+                        <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', color: '#fbbf24', cursor: 'pointer', fontSize: '1.2rem', padding: sidebarOpen ? 0 : '0.5rem' }}>
                             {sidebarOpen ? '◀' : '▶'}
                         </button>
                     </div>
+
+                    {!sidebarOpen && (
+                        <div
+                            onClick={() => setSidebarOpen(true)}
+                            style={{
+                                writingMode: 'vertical-rl',
+                                textOrientation: 'mixed',
+                                transform: 'rotate(180deg)',
+                                margin: '0 auto',
+                                color: '#94a3b8',
+                                fontSize: '0.85rem',
+                                letterSpacing: '2px',
+                                cursor: 'pointer',
+                                height: '100px',
+                                textAlign: 'center',
+                                textTransform: 'uppercase'
+                            }}
+                        >
+                            Ver Historial
+                        </div>
+                    )}
 
                     {sidebarOpen && (
                         <div className="history-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
@@ -529,6 +550,7 @@ export default function ResearchPage() {
                     display: flex;
                     gap: 1rem;
                     margin: 0;
+                    width: 100%;
                 }
                 .action-buttons {
                     display: flex;

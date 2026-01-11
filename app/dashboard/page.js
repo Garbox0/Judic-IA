@@ -71,7 +71,7 @@ export default function DashboardHome() {
       </div>
 
       <header className="dashboard-header">
-        <h2>Bienvenido, Dr. {user?.user_metadata?.first_name}</h2>
+        <h2>Hola, {user?.user_metadata?.first_name}</h2>
         <div className="header-stats">
           <span>📅 <b>{stats.deadlines}</b> vencimientos hoy</span>
           <span>👥 <b>{stats.clients}</b> clientes activos</span>
