@@ -512,6 +512,34 @@ export default function ClientsPage() {
 
                 .client-details-container { padding: 0 1.5rem; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; }
                 .no-msgs { text-align:center; color: var(--muted); padding: 2rem; font-style: italic; }
+
+                /* MOBILE RESPONSIVE */
+                @media (max-width: 768px) {
+                    .clients-container { padding: 0 1rem 2rem; }
+                    .header-flex { flex-direction: column; text-align: center; gap: 1rem; }
+                    .smart-link-card { flex-direction: column; text-align: center; gap: 1.5rem; }
+                    .btn-copy { width: 100%; }
+                    
+                    /* Modal Mobile */
+                    .modal-content { height: 100vh; width: 100%; border-radius: 0; border: none; }
+                    .modal-header h2 { font-size: 1.2rem; }
+                    
+                    /* Details Sidebar as Overlay */
+                    .details-sidebar.open {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        z-index: 50;
+                        background: #0f172a; /* Full opaque on mobile */
+                    }
+                    .details-inner-wrapper { width: 100%; }
+                    
+                    /* Hide chat when sidebar is open? No, sidebar covers it with z-index */
+                    
+                    .btn-toggle-details span { display: none; } /* Hide text, keep icon if needed, or just keep text */
+                }
             `}</style>
         </div>
     );

@@ -790,6 +790,12 @@ export default function SettingsPage() {
                     .stg-root { padding: 2rem; }
                     .stg-plan-list { grid-template-columns: 1fr; }
                 }
+
+                @media (max-width: 600px) {
+                    .stg-root { padding: 1rem; }
+                    .stg-main-content { padding: 1.5rem; }
+                    .stg-header-title { font-size: 1.8rem; }
+                }
             `}</style>
             <Script
                 src="https://sdk.mercadopago.com/js/v2"

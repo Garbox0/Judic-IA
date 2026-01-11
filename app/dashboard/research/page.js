@@ -671,6 +671,40 @@ export default function ResearchPage() {
                 .category-card p { color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin: 0; opacity: 0.8; }
  
                 .empty-state { text-align: center; padding: 4rem 0; color: #475569; font-style: italic; }
+
+                /* MOBILE RESPONSIVE */
+                @media (max-width: 768px) {
+                    .research-container {
+                        padding: 0 1.5rem 2rem;
+                    }
+                    .header-flex {
+                        flex-direction: column;
+                        text-align: center;
+                        gap: 1rem;
+                    }
+                    .header-text {
+                        text-align: center;
+                    }
+                    .dashboard-page-title {
+                        font-size: 2rem;
+                    }
+                    .search-box-container {
+                        padding: 1.5rem;
+                    }
+                    .search-box {
+                        flex-direction: column;
+                    }
+                    .search-box button {
+                        width: 100%;
+                        padding: 1rem;
+                    }
+                    .categories-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    .jurisdiction-selector {
+                        justify-content: center;
+                    }
+                }
             `}</style>
         </div>
     );

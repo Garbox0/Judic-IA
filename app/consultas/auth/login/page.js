@@ -66,6 +66,16 @@ const AuthStyles = () => (
         .slide-up { animation: slideUp 0.6s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* PASSWORD TOGGLE STYLES */
+        .pass-input-wrapper { position: relative; width: 100%; }
+        .eye-toggle-premium { 
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%); 
+            background: none; border: none; cursor: pointer; color: #94a3b8; 
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.6; transition: 0.3s;
+        }
+        .eye-toggle-premium:hover { opacity: 1; color: #fbbf24; }
     `}</style>
 );
 
@@ -75,6 +85,7 @@ function LoginContent() {
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(null);
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [confirmedSession, setConfirmedSession] = useState(null);
@@ -85,6 +96,13 @@ function LoginContent() {
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session) {
+                // HARDEN: Block lawyers here too
+                if (session.user.user_metadata?.role === 'lawyer') {
+                    await supabase.auth.signOut();
+                    setError("🚫 Acceso Denegado: Esta área es solo para clientes.");
+                    return;
+                }
+
                 if (!session.user.email_confirmed_at) {
                     await supabase.auth.signOut();
                     setError("⚠️ Debes confirmar tu email antes de ingresar.");
@@ -96,6 +114,8 @@ function LoginContent() {
         });
         return () => subscription.unsubscribe();
     }, []);
+
+    // ... (existing code) ...
 
     const enterIntake = async () => {
         if (!confirmedSession || !lawyerId) return;
@@ -126,6 +146,12 @@ function LoginContent() {
                     throw new Error("Clave de acceso incorrecta. Revisa tus datos.");
                 }
                 throw loginError;
+            }
+
+            // RESTRICT LAWYERS
+            if (data.user?.user_metadata?.role === 'lawyer') {
+                await supabase.auth.signOut();
+                throw new Error("🚫 Acceso Denegado: Esta área es solo para clientes. Los abogados deben ingresar por el panel principal.");
             }
 
             if (!data.user.email_confirmed_at) {
@@ -179,13 +205,22 @@ function LoginContent() {
                         </div>
                         <div className="input-field">
                             <label>Tu Clave de Acceso</label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
-                                required
-                            />
+                            <div className="pass-input-wrapper">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    required
+                                />
+                                <button type="button" className="eye-toggle-premium" onClick={() => setShowPassword(!showPassword)}>
+                                    {showPassword ? (
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                    ) : (
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    )}
+                                </button>
+                            </div>
                         </div>
 
                         {error && <div className="error-premium">⚠️ {error}</div>}
@@ -198,6 +233,11 @@ function LoginContent() {
                     <div className="divider-premium"><span>o</span></div>
 
                     <footer className="auth-nav-footer">
+                        <p style={{ marginBottom: '0.8rem' }}>
+                            <Link href="/forgot-password" className="link-gold" style={{ fontSize: '0.85rem', fontWeight: 500, opacity: 0.8 }}>
+                                ¿Olvidaste tu clave?
+                            </Link>
+                        </p>
                         <p>¿Aún no tienes una clave?
                             <button type="button" className="btn-text-gold" onClick={() => router.push(`/consultas/auth/register?${searchParams.toString()}`)}>
                                 Crear Nueva Clave

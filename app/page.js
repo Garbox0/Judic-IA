@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from "./page.module.css";
 import Link from "next/link";
@@ -12,6 +12,9 @@ export default function Home() {
   useEffect(() => {
     // Optional: add some logic here if needed, but not for redirection
   }, []);
+
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
 
   return (
     <main className={styles.main}>
@@ -27,7 +30,24 @@ export default function Home() {
             <Link href="#pricing" className="link-item">Precios</Link>
             <Link href="/login" className="btn-login-premium">Login Abogado</Link>
           </div>
+
+          <button
+            className="mobile-menu-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Menú"
+          >
+            ☰
+          </button>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div className="mobile-menu-overlay fade-in">
+            <Link href="#features" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Servicios</Link>
+            <Link href="#pricing" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Precios</Link>
+            <Link href="/login" className="btn-login-mobile" onClick={() => setMobileMenuOpen(false)}>Login Abogado</Link>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
@@ -174,6 +194,6 @@ export default function Home() {
         mode="sales"
         initialMessage="¡Hola! 👋 Soy el asistente de ventas de Judic-IA. ¿Tienes preguntas sobre cómo automatizar tu estudio?"
       />
-    </main>
+    </main >
   );
 }

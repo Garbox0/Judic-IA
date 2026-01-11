@@ -66,6 +66,16 @@ const AuthStyles = () => (
         
         .fade-in { animation: fadeIn 0.5s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* PASSWORD RULES & TOGGLE */
+        .pass-input-wrapper { position: relative; }
+        .eye-toggle-premium { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.2rem; opacity: 0.5; transition: 0.3s; color: white; }
+        .eye-toggle-premium:hover { opacity: 1; color: #fbbf24; }
+
+        .password-checklist-premium { background: rgba(2, 6, 23, 0.4); padding: 1rem; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.05); margin-top: 0.5rem; }
+        .password-checklist-premium p { margin: 0.3rem 0; font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 0.5rem; }
+        .password-checklist-premium p.valid { color: #86efac; font-weight: 600; }
+        .password-checklist-premium p.invalid { color: #fca5a5; }
     `}</style>
 );
 
@@ -74,33 +84,54 @@ function RegisterContent() {
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
+    const [confirmEmail, setConfirmEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState(null);
     const [message, setMessage] = useState(null);
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [confirmedSession, setConfirmedSession] = useState(null);
 
+    const [redirectCountdown, setRedirectCountdown] = useState(null);
+
     const lawyerId = searchParams.get('lawyerId') || searchParams.get('lawyer');
     const cid = searchParams.get('cid');
+
+    // Password Validations
+    const passwordValidations = {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        number: /[0-9]/.test(password),
+        symbol: /[^A-Za-z0-9]/.test(password)
+    };
+    const isPasswordStrong = Object.values(passwordValidations).every(v => v);
+    const passwordsMatch = password === confirmPassword && confirmPassword !== '';
+    const emailsMatch = email === confirmEmail && email !== '';
 
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session) {
-                // RELAXED CHECK: In development/demo, we allow unconfirmed emails if Supabase allows the login.
-                /* 
-               if (!session.user.email_confirmed_at) {
-                   await supabase.auth.signOut();
-                   setMessage("⚠️ Debes confirmar tu email desde la bandeja de entrada para acceder.");
-                   return;
-               }
-               */
                 setIsConfirmed(true);
                 setConfirmedSession(session);
             }
         });
         return () => subscription.unsubscribe();
     }, []);
+
+    // Countdown Logic
+    useEffect(() => {
+        if (redirectCountdown === null) return;
+        if (redirectCountdown === 0) {
+            router.push(`/consultas/auth/login?${searchParams.toString()}`);
+            return;
+        }
+        const timer = setTimeout(() => {
+            setRedirectCountdown(prev => prev - 1);
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, [redirectCountdown, router, searchParams]);
 
     const enterIntake = async () => {
         if (!confirmedSession || !lawyerId) return;
@@ -135,10 +166,11 @@ function RegisterContent() {
         setMessage(null);
 
         try {
-            if (password !== confirmPassword) throw new Error("Las contraseñas no coinciden.");
-            if (password.length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres.");
+            if (!isPasswordStrong) throw new Error("La contraseña no es segura.");
+            if (!passwordsMatch) throw new Error("Las contraseñas no coinciden.");
+            if (email.toLowerCase() !== confirmEmail.toLowerCase()) throw new Error("Los correos electrónicos no coinciden.");
 
-            const redirectBase = `${window.location.origin}/consultas/auth/register`;
+            const redirectBase = `${window.location.origin}/consultas/auth/login`;
             const redirectParams = new URLSearchParams();
             if (lawyerId) redirectParams.set('lawyerId', lawyerId);
             if (cid) redirectParams.set('cid', cid);
@@ -157,7 +189,6 @@ function RegisterContent() {
                 if (signUpError.message.includes("already registered")) {
                     throw new Error("Este email ya tiene una clave. Por favor inicia sesión.");
                 }
-                // Handle Supabase SMTP limit error gracefully
                 if (signUpError.message.includes("Error sending confirmation email")) {
                     console.warn("Supabase SMTP Error. User likely created but email failed.");
                     throw new Error("⚠️ El sistema de correos está saturado. Por favor, avisa a tu abogado o intenta iniciar sesión directo si ya te registraste.");
@@ -184,8 +215,8 @@ function RegisterContent() {
                 });
                 router.push(`/consultas/${lawyerId}?cid=${finalCid}`);
             } else {
-                // User created but waiting for confirmation (should generally not happen if we disable confirm)
-                setMessage("¡Cuenta creada! Si no recibes el email, pide a tu abogado que habilite el acceso directo.");
+                setMessage("¡Cuenta creada! Revisa tu email para confirmar y acceder.");
+                setRedirectCountdown(10);
             }
         } catch (err) {
             setError(err.message);
@@ -229,31 +260,98 @@ function RegisterContent() {
                         </div>
 
                         <div className="input-field">
-                            <label>Crear Clave de Acceso</label>
+                            <label>Confirmar Email</label>
                             <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
+                                type="email"
+                                value={confirmEmail}
+                                onChange={(e) => setConfirmEmail(e.target.value)}
+                                placeholder="Repite tu email"
                                 required
+                                style={{ borderColor: (confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase()) ? '#ef4444' : '' }}
                             />
+                            {confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase() && (
+                                <div style={{ color: '#fca5a5', fontSize: '0.8rem', marginTop: '0.3rem' }}>No coinciden</div>
+                            )}
+                        </div>
+
+                        <div className="input-field">
+                            <label>Crear Clave de Acceso</label>
+                            <div className="pass-input-wrapper">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    required
+                                />
+                                <button type="button" className="eye-toggle-premium" onClick={() => setShowPassword(!showPassword)}>
+                                    {showPassword ? (
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                    ) : (
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    )}
+                                </button>
+                            </div>
                         </div>
 
                         <div className="input-field">
                             <label>Repetir Clave</label>
-                            <input
-                                type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                placeholder="••••••••"
-                                required
-                            />
+                            <div className="pass-input-wrapper">
+                                <input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    required
+                                />
+                                <button type="button" className="eye-toggle-premium" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                    {showConfirmPassword ? (
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                    ) : (
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* PASSWORD RULES */}
+                        <div className="password-checklist-premium">
+                            <p className={passwordValidations.length ? 'valid' : ''}>
+                                {passwordValidations.length ? '✅' : '❌'} Mínimo 8 caracteres
+                            </p>
+                            <p className={passwordValidations.uppercase ? 'valid' : ''}>
+                                {passwordValidations.uppercase ? '✅' : '❌'} Al menos 1 Mayúscula
+                            </p>
+                            <p className={passwordValidations.number ? 'valid' : ''}>
+                                {passwordValidations.number ? '✅' : '❌'} Al menos 1 Número
+                            </p>
+                            <p className={passwordValidations.symbol ? 'valid' : ''}>
+                                {passwordValidations.symbol ? '✅' : '❌'} Al menos 1 Símbolo
+                            </p>
+                            {confirmPassword && (
+                                <p className={passwordsMatch ? 'valid' : 'invalid'}>
+                                    {passwordsMatch ? '✅' : '❌'} Las contraseñas coinciden
+                                </p>
+                            )}
                         </div>
 
                         {error && <div className="error-premium">⚠️ {error}</div>}
-                        {message && <div className="success-premium">📩 {message}</div>}
+                        {message && (
+                            <div className="success-premium">
+                                📩 {message}
+                                <br />
+                                <small style={{ color: '#fff', display: 'block', marginTop: '5px' }}>
+                                    ⚠️ Si no lo ves, <strong>revisá SPAM</strong>.
+                                </small>
+                                {redirectCountdown !== null && (
+                                    <div style={{ marginTop: '0.8rem', fontWeight: 700, color: '#white' }}>
+                                        Redirigiendo al login en {redirectCountdown} segundos...
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
-                        <button type="submit" className="btn-gold-action" disabled={loading}>
+                        <button type="submit" className="btn-gold-action" disabled={loading || !isPasswordStrong || !passwordsMatch || !emailsMatch || message}>
                             {loading ? 'Creando Acceso...' : 'Comenzar Consulta Segura'}
                         </button>
                     </form>

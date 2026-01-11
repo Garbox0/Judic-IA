@@ -48,7 +48,8 @@ import {
     INTAKE_SYSTEM_PROMPT,
     CLIENT_AUTH_SYSTEM_PROMPT,
     LAWYER_AUTH_SYSTEM_PROMPT,
-    LAWYER_RESET_SYSTEM_PROMPT
+    LAWYER_RESET_SYSTEM_PROMPT,
+    SPECIALTY_MODULES // [NEW] Import Modules
 } from '../../lib/prompts';
 
 export async function POST(request) {
@@ -81,7 +82,7 @@ export async function POST(request) {
 
     try {
         const body = await request.json();
-        const { message, history, mode, sessionId, lawyerId, clientUserId, clientEmail } = body;
+        const { message, history, mode, sessionId, lawyerId, clientUserId, clientEmail, lawyerSpecialties } = body;
 
         // 1. CHOOSE SYSTEM PROMPT
         let systemPrompt = "";
@@ -105,6 +106,19 @@ export async function POST(request) {
         } else if (mode === 'intake') {
             systemPrompt = INTAKE_SYSTEM_PROMPT;
             caseType = 'Nuevo Caso (Web)';
+
+            // [NEW] DYNAMIC SPECIALTY INJECTION
+            if (lawyerSpecialties && Array.isArray(lawyerSpecialties) && lawyerSpecialties.length > 0) {
+                const specialtyInstructions = lawyerSpecialties
+                    .map(spec => SPECIALTY_MODULES[spec]) // Get module text
+                    .filter(text => text) // Remove undefined (if specialty has no module yet)
+                    .join("\n\n");
+
+                if (specialtyInstructions) {
+                    systemPrompt += `\n\n=== REGLAS ESPECIALES SEGUN ESPECIALIDAD ===\n${specialtyInstructions}`;
+                    console.log(`🧠 Injected ${lawyerSpecialties.length} specialty modules into prompt.`);
+                }
+            }
 
             if (!lawyerId) return NextResponse.json({ reply: "Error: Falta ID del Abogado." }, { status: 400 });
         } else if (mode === 'demo') {

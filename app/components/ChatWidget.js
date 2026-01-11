@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 
 import { useSearchParams } from "next/navigation";
 
-export default function ChatWidget({ mode = "client", initialMessage = "Hola...", startOpen = false, embedded = false, lawyerId = null }) {
+export default function ChatWidget({ mode = "client", initialMessage = "Hola...", startOpen = false, embedded = false, lawyerId = null, clientEmail = null, clientUserId = null, lawyerSpecialties = [] }) {
     const [isOpen, setIsOpen] = useState(startOpen || embedded);
     const [messages, setMessages] = useState([
         { role: "assistant", content: initialMessage }
@@ -107,14 +107,16 @@ export default function ChatWidget({ mode = "client", initialMessage = "Hola..."
 
         try {
             // Check for Authenticated Client User
-            let clientUserId = null;
-            let clientEmail = null;
+            // 1. Prefer Props (from IntakeForm)
+            // 2. Fallback to Supabase Auth check (for standalone usage)
+            let userIdToSend = clientUserId;
+            let emailToSend = clientEmail;
 
-            if (mode === 'client' || mode === 'intake') {
+            if (!userIdToSend && (mode === 'client' || mode === 'intake')) {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
-                    clientUserId = user.id;
-                    clientEmail = user.email;
+                    userIdToSend = user.id;
+                    emailToSend = user.email;
                 }
             }
 
@@ -127,8 +129,9 @@ export default function ChatWidget({ mode = "client", initialMessage = "Hola..."
                     mode,
                     sessionId,
                     lawyerId, // Pass the lawyer ID for attribution
-                    clientUserId, // [NEW] Link to Auth User
-                    clientEmail   // [NEW] Save Email automatically
+                    clientUserId: userIdToSend,
+                    clientEmail: emailToSend,
+                    lawyerSpecialties: lawyerSpecialties || [] // [NEW] Pass specialties to AI logic
                 }),
             });
             const data = await res.json();

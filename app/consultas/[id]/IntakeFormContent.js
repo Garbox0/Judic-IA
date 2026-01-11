@@ -11,6 +11,7 @@ export default function IntakeFormContent({ id }) {
 
     const [lawyer, setLawyer] = useState(null);
     const [clientEmail, setClientEmail] = useState('');
+    const [clientUserId, setClientUserId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [restricted, setRestricted] = useState(false);
@@ -37,7 +38,24 @@ export default function IntakeFormContent({ id }) {
             }
 
             setClientEmail(user.email);
-            console.log("🔓 Usuario autenticado:", user.email);
+            setClientUserId(user.id);
+            console.log("🔓 Usuario autenticado:", user.email, user.id);
+
+            // 2.5 ZOMBIE CHECK (CRÍTICO): Verify current user still exists in DB
+            // If lawyer deleted the client, the session is valid but the user is dead.
+            const { data: userProfile, error: profileError } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('id', user.id)
+                .single();
+
+            if (profileError || !userProfile) {
+                console.warn("💀 ZOMBIE DETECTED: Session valid but User deleted from DB.");
+                await supabase.auth.signOut();
+                alert("⛔ TU CUENTA HA SIDO ELIMINADA.\n\nTu abogado ha cerrado este expediente y tu acceso ha sido revocado permanentemente.");
+                window.location.href = "/"; // Force hard redirect to landing
+                return;
+            }
 
             // 3. FETCH LAWYER PROFILE
             if (!id) return;
@@ -48,12 +66,18 @@ export default function IntakeFormContent({ id }) {
                 .single();
 
             if (error) {
-                console.warn("⚠️ No se pudo cargar el perfil del abogado:", error.message);
+                console.warn("⚠️ No se pudo cargar el perfil del abogado:", error);
+
+                // DEBUG: Show actual error to solve the mystery
+                setError(`Error (${error.code}): ${error.message} - Hint: ${error.hint || 'No hint'}`);
+
+                /* 
                 if (error.code === 'PGRST116') {
                     setError(`Perfil del abogado no encontrado (ID: ${id}).`);
                 } else {
                     setError(`Error de Acceso (RLS): No se pudo cargar el perfil. Por favor, ejecuta el script SQL de corrección de RLS.`);
                 }
+                */
             } else {
                 setLawyer(data);
             }
@@ -91,6 +115,11 @@ export default function IntakeFormContent({ id }) {
 
     if (error) return <div className="error-screen">⚠️ {error}</div>;
 
+    async function handleLogout() {
+        await supabase.auth.signOut();
+        window.location.reload();
+    }
+
     return (
         <main className={styles.main}>
             {/* Navbar Minimal */}
@@ -127,6 +156,19 @@ export default function IntakeFormContent({ id }) {
                             </p>
                         </div>
 
+                        {/* NEW: USER SESSION FOOTER */}
+                        {clientEmail && (
+                            <div className="user-session">
+                                <div className="session-info">
+                                    <div className="status-dot"></div>
+                                    <span>{clientEmail}</span>
+                                </div>
+                                <button onClick={handleLogout} className="logout-btn-mini">
+                                    Cerrar Sesión
+                                </button>
+                            </div>
+                        )}
+
 
                     </div>
 
@@ -137,6 +179,9 @@ export default function IntakeFormContent({ id }) {
                             lawyerId={id}
                             embedded={true}
                             initialMessage={`Bienvenido. Cuénteme brevemente su situación legal para poder ayudarle.`}
+                            clientEmail={clientEmail}
+                            clientUserId={clientUserId}
+                            lawyerSpecialties={lawyer?.especialidades || []}
                         />
                     </div>
                 </div>
@@ -154,7 +199,7 @@ export default function IntakeFormContent({ id }) {
                 background-image:
                 radial-gradient(circle at 10% 20%, rgba(197, 160, 33, 0.05) 0%, transparent 40%),
                 radial-gradient(circle at 90% 80%, rgba(56, 189, 248, 0.05) 0%, transparent 40%);
-                min-height: 100vh;
+                min-height: 100dvh;
             }
             .intake-container {
                 min-height: 100vh;
@@ -225,7 +270,7 @@ export default function IntakeFormContent({ id }) {
             @media (max-width: 768px) {
                 .unified-card { flex-direction: column; height: auto; min-height: 90vh; }
                 .lawyer-side { width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2rem; }
-                .chat-side { height: 600px; }
+                .chat-side { height: 75dvh; }
                 .avatar-lg { width: 80px; height: 80px; font-size: 2rem; border-radius: 25px; }
             }
 

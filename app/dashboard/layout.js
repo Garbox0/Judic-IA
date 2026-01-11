@@ -13,6 +13,7 @@ export default function DashboardLayout({ children }) {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     // ... logic same ...
@@ -22,6 +23,14 @@ export default function DashboardLayout({ children }) {
         router.push('/login');
         return;
       }
+
+      // SECURITY: Prevent Clients from accessing Lawyer Dashboard
+      if (user.user_metadata?.role === 'client') {
+        await supabase.auth.signOut();
+        router.push('/consultas/auth/login?error=access_denied&error_description=Acceso+Restringido');
+        return;
+      }
+
       setUser(user);
 
       // Fetch profile data
@@ -85,8 +94,27 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="dashboard-layout">
+      {/* MOBILE OVERLAY */}
+      {mobileSidebarOpen && (
+        <div
+          className="mobile-sidebar-overlay"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+
+      {/* MOBILE HEADER */}
+      <div className="mobile-header">
+        <button
+          className="mobile-toggle-btn"
+          onClick={() => setMobileSidebarOpen(true)}
+        >
+          ☰
+        </button>
+        <span className="mobile-brand">Judic-IA</span>
+      </div>
+
       {/* SIDEBAR */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${mobileSidebarOpen ? 'open' : ''}`}>
         <div className="logo-section">
           <Link href="/dashboard" className="logo-link">
             <h1>Judic-IA</h1>
@@ -97,16 +125,16 @@ export default function DashboardLayout({ children }) {
         </div>
 
         <nav className="nav-links">
-          <Link href="/dashboard/research" className={`nav-item ${pathname.includes('/research') ? 'active' : ''}`}>
+          <Link href="/dashboard/research" className={`nav-item ${pathname.includes('/research') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <span>🔍 Investigación</span>
           </Link>
-          <Link href="/dashboard/clients" className={`nav-item ${pathname.includes('/clients') ? 'active' : ''}`}>
+          <Link href="/dashboard/clients" className={`nav-item ${pathname.includes('/clients') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <span>👥 Clientes</span>
           </Link>
-          <Link href="/dashboard/agenda" className={`nav-item ${pathname.includes('/agenda') ? 'active' : ''}`}>
+          <Link href="/dashboard/agenda" className={`nav-item ${pathname.includes('/agenda') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <span>📅 Agenda</span>
           </Link>
-          <Link href="/dashboard/settings" className={`nav-item ${pathname.includes('/settings') ? 'active' : ''}`}>
+          <Link href="/dashboard/settings" className={`nav-item ${pathname.includes('/settings') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <span>⚙️ Ajustes</span>
           </Link>
         </nav>

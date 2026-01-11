@@ -6,9 +6,10 @@ import { supabase } from '../../lib/supabase';
 export default function AuthFormContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [isLogin, setIsLogin] = useState(false); // Default to Register for new clients
+    const [isLogin, setIsLogin] = useState(searchParams.get('view') === 'login'); // Default to Register for new clients unless param set
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
+    const [confirmEmail, setConfirmEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState(null);
@@ -152,6 +153,7 @@ export default function AuthFormContent() {
 
             } else {
                 // REGISTER
+                if (email !== confirmEmail) throw new Error("Los correos electrónicos no coinciden.");
                 if (password !== confirmPassword) throw new Error("Las contraseñas no coinciden.");
                 if (password.length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres.");
 
@@ -159,6 +161,7 @@ export default function AuthFormContent() {
                 const redirectParams = new URLSearchParams();
                 if (lawyerId) redirectParams.set('lawyerId', lawyerId);
                 if (cid) redirectParams.set('cid', cid);
+                redirectParams.set('view', 'login'); // Force login view on return
                 const fullRedirectUrl = `${redirectBase}?${redirectParams.toString()}`;
 
                 const { data, error: signUpError } = await supabase.auth.signUp({
@@ -282,6 +285,23 @@ export default function AuthFormContent() {
                                     required
                                 />
                             </div>
+
+                            {!isLogin && (
+                                <div className="input-group">
+                                    <label>Confirmar Email</label>
+                                    <input
+                                        type="email"
+                                        placeholder="Repite tu email"
+                                        value={confirmEmail}
+                                        onChange={(e) => setConfirmEmail(e.target.value)}
+                                        required
+                                        style={{ borderColor: (confirmEmail && email !== confirmEmail) ? '#ef4444' : '' }}
+                                    />
+                                    {confirmEmail && email !== confirmEmail && (
+                                        <div style={{ color: '#fca5a5', fontSize: '0.8rem', marginTop: '0.3rem' }}>No coinciden</div>
+                                    )}
+                                </div>
+                            )}
 
                             <div className="input-group">
                                 <label>Crear Clave de Acceso</label>
