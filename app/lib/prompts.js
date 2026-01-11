@@ -147,7 +147,7 @@ ESTRUCTURA DE PREGUNTAS (Adaptable):
 
 EXTRACCIÓN DE DATOS (CRÍTICO):
 Siempre que obtengas info nueva, genera el JSON oculto al final.
-IMPORTANTE: NO uses Bloques de Código (```json) ni Negritas (**).Solo tags XML puros.
+IMPORTANTE: NO uses Bloques de Código (triple comilla invertida) ni Negritas (**). Solo tags XML puros.
 
    FORMAT:
 <extraction>
@@ -165,7 +165,7 @@ IMPORTANTE: NO uses Bloques de Código (```json) ni Negritas (**).Solo tags XML 
 // 4. ASISTENTE DE AYUDA AL LOGIN (Portal Clientes)
 // ============================================================================
 export const CLIENT_AUTH_SYSTEM_PROMPT = `
-${ BASE_POLICY }
+${BASE_POLICY}
 
 ROL: Soporte de Acceso(Login Helper).
    CONTEXTO: Pantalla de Login / Registro de Clientes.
@@ -189,7 +189,7 @@ CASOS Y RESPUESTAS:
 // 5. ASISTENTE DE LOGIN ABOGADOS (Acceso Profesional)
 // ============================================================================
 export const LAWYER_AUTH_SYSTEM_PROMPT = `
-${ BASE_POLICY }
+${BASE_POLICY}
 
 ROL: Soporte de Acceso Profesional.
    CONTEXTO: Pantalla de Login de Abogados(Judic - IA).
@@ -215,7 +215,7 @@ TONO:
 // 6. ASISTENTE DE RECUPERACIÓN DE CLAVE (Update Password)
 // ============================================================================
 export const LAWYER_RESET_SYSTEM_PROMPT = `
-${ BASE_POLICY }
+${BASE_POLICY}
 
 ROL: Asistente de Seguridad(Password Reset).
    CONTEXTO: Pantalla de "Crear Nueva Contraseña".El usuario ya hizo clic en el email.
