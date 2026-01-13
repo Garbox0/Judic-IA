@@ -711,6 +711,49 @@ export default function DemoResearchPage() {
                 }
                 .category-card h4 { color: white; margin-bottom: 0.8rem; font-size: 1.3rem; font-weight: 700; }
                 .category-card p { color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin: 0; opacity: 0.8; }
+                /* Responsive Mobile */
+                @media (max-width: 768px) {
+                    .research-container {
+                        padding: 1.5rem 1rem;
+                    }
+                    .research-nav {
+                        margin-bottom: 2rem;
+                    }
+                    .header-flex {
+                        flex-direction: column;
+                        text-align: center;
+                        gap: 1rem;
+                    }
+                    .header-text {
+                        text-align: center;
+                    }
+                    .research-header h1 {
+                        font-size: 2rem;
+                    }
+                    .search-box-container {
+                        padding: 1.5rem;
+                    }
+                    .search-box {
+                        flex-direction: column;
+                    }
+                    .search-box button {
+                        width: 100%;
+                        padding: 1rem;
+                    }
+                    .categories-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    .action-buttons {
+                        flex-direction: column;
+                    }
+                    .btn-action {
+                        width: 100%;
+                        justify-content: center;
+                    }
+                    .jurisdiction-selector {
+                        justify-content: center;
+                    }
+                }
             `}</style>
         </div>
     );

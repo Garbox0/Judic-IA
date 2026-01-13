@@ -281,6 +281,42 @@ export default function DemoDashboardHome() {
           .welcome-text { font-size: 2rem; }
           .hub-card { padding: 1.5rem; }
         }
+
+        @media (max-width: 600px) {
+            .demo-nav-bar {
+                position: relative;
+                top: 0;
+                left: 0;
+                right: 0;
+                margin-bottom: 2rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .home-container {
+                padding: 1.5rem 1rem;
+                justify-content: flex-start;
+            }
+            .welcome-text {
+                font-size: 1.8rem;
+            }
+            .daily-brief {
+                flex-direction: column;
+                gap: 0.5rem;
+                background: transparent;
+                border: none;
+                padding: 0;
+            }
+            .brief-divider { display: none; }
+            .hub-card {
+                padding: 1.2rem;
+                gap: 1rem;
+            }
+            .card-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.4rem;
+            }
+        }
       `}</style>
         </div>
     );

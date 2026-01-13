@@ -16,14 +16,28 @@ export default function ResearchPage() {
     const [activeCategory, setActiveCategory] = useState(null);
     const [placeholder, setPlaceholder] = useState("Ej: Despido sin causa con antigüedad de 10 años en CABA...");
     const [userProfile, setUserProfile] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
     const [logoBase64, setLogoBase64] = useState(null);
     const [history, setHistory] = useState([]);
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [timeLeft, setTimeLeft] = useState(0);
+
+
+    useEffect(() => {
+        let timer;
+        if (loading && timeLeft > 0) {
+            timer = setInterval(() => {
+                setTimeLeft((prev) => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [loading, timeLeft]);
 
     useEffect(() => {
         const fetchUserAndHistory = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
+                setCurrentUser(user);
                 const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
                 setUserProfile(profile);
 
@@ -89,13 +103,18 @@ export default function ResearchPage() {
                 pdf.setTextColor(15, 23, 42);
                 pdf.text("Judic-IA: Informe Legal", 42, 22);
 
-                if (userProfile) {
+                if (userProfile || currentUser) {
                     pdf.setFontSize(9);
                     pdf.setTextColor(71, 85, 105);
-                    const lawyerLines = [
-                        userProfile.full_name || 'Dr./Dra. Judic-IA',
-                        userProfile.matricula ? `Matrícula: ${userProfile.matricula}` : 'Matrícula: (Pendiente de registro)'
-                    ];
+
+                    const name = userProfile?.full_name || currentUser?.user_metadata?.full_name || 'Dr./Dra. Judic-IA';
+                    const matriculaRaw = userProfile?.matricula || currentUser?.user_metadata?.matricula;
+                    const matriculaText = matriculaRaw ? `Matrícula: ${matriculaRaw}` : null; // Don't show "Pendiente" if we can help it, or show it if really missing
+
+                    const lawyerLines = [name];
+                    if (matriculaText) lawyerLines.push(matriculaText);
+                    else lawyerLines.push('Matrícula: (Pendiente de registro)');
+
                     pdf.text(lawyerLines, 196, 18, { align: 'right' });
                 }
 
@@ -118,17 +137,41 @@ export default function ResearchPage() {
 
         let yPos = addHeader(doc, true);
 
+        const safeRender = (content) => {
+            if (!content) return "";
+            let text = "";
+            if (typeof content === 'string') text = content;
+            else if (Array.isArray(content)) {
+                if (content.length > 0 && content[0].title) {
+                    // Remove emojis from here, use simple bullets
+                    text = content.map(c => `• ${c.title}\n  ${c.summary}\n  (Fuente: ${c.source})`).join('\n\n');
+                } else {
+                    text = content.join('\n');
+                }
+            } else if (typeof content === 'object') {
+                text = Object.entries(content).map(([k, v]) => `${k.toUpperCase()}:\n${v}`).join('\n\n');
+            } else {
+                text = String(content);
+            }
+
+            return text
+                .replace(/\*\*/g, '')      // Remove bold markers
+                .replace(/###\s?/g, '')    // Remove header markers
+                .replace(/[^\x20-\x7E\n\r\t¡¿áéíóúÁÉÍÓÚñÑüÜ]/g, ''); // Remove non-latin chars (emojis)
+        };
+
         const sections = [
-            { title: "Normativa Aplicable", content: results.laws },
-            { title: "Análisis de Jurisprudencia", content: results.cases },
-            { title: "Liquidación Estimativa", content: results.calculation },
-            { title: "Puntos de Prueba", content: results.evidence },
-            { title: "Estrategia Recomendada", content: results.strategy }
+            { title: "Normativa Aplicable", content: safeRender(results.laws) },
+            { title: "Análisis de Jurisprudencia", content: safeRender(results.cases) },
+            { title: "Liquidación Estimativa", content: safeRender(results.calculation) },
+            { title: "Puntos de Prueba", content: safeRender(results.evidence) },
+            { title: "Estrategia Recomendada", content: safeRender(results.strategy) }
         ];
 
         sections.forEach(section => {
             if (section.content) {
-                const splitContent = doc.splitTextToSize(section.content, 180);
+                // Adjust width to be safe (170 instead of 180)
+                const splitContent = doc.splitTextToSize(section.content, 170);
                 const sectionHeight = (splitContent.length * 5) + 15;
 
                 if (yPos + sectionHeight > 275) {
@@ -184,13 +227,28 @@ export default function ResearchPage() {
         doc.save(`Informe_JudicIA_${new Date().getTime()}.pdf`);
     };
 
+    const renderContent = (content) => {
+        if (!content) return null;
+        if (typeof content === 'string') return content;
+        if (typeof content === 'object') {
+            if (Array.isArray(content)) return content.join('\n');
+            return Object.entries(content).map(([k, v]) => `### ${k}\n${v}`).join('\n\n');
+        }
+        return String(content);
+    };
+
     const handleSearch = async (e) => {
         if (e) e.preventDefault();
         const finalQuery = query || (placeholder.startsWith("Ej:") ? "" : placeholder);
         if (!finalQuery) return;
 
         setLoading(true);
+        setTimeLeft(60); // Extended to 60s for Deep Mode
         setResults(null);
+
+        // ... (existing fetch logic) ...
+        // ...
+
 
         try {
             const res = await fetch('/api/research', {
@@ -199,7 +257,8 @@ export default function ResearchPage() {
                 body: JSON.stringify({
                     query: finalQuery,
                     jurisdiction: scope === 'nacional' ? 'Nacional' : province,
-                    userId: userProfile?.id
+                    userId: userProfile?.id,
+                    mode: 'pro' // FORCE PRO FOR DEBUGGING
                 })
             });
             const data = await res.json();
@@ -222,32 +281,67 @@ export default function ResearchPage() {
             <div className="research-layout" style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
 
                 {/* HISTORY SIDEBAR */}
-                <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`} style={{ width: sidebarOpen ? '300px' : '60px', transition: '0.3s', padding: '1.5rem', flexShrink: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: sidebarOpen ? '1.5rem' : '1rem', flexDirection: sidebarOpen ? 'row' : 'column' }}>
-                        {sidebarOpen && <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', textTransform: 'uppercase' }}>Historial</h4>}
-                        <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', color: '#fbbf24', cursor: 'pointer', fontSize: '1.2rem', padding: sidebarOpen ? 0 : '0.5rem' }}>
-                            {sidebarOpen ? '◀' : '▶'}
-                        </button>
-                    </div>
+                <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`} style={{ width: sidebarOpen ? '300px' : '70px', transition: '0.3s', padding: sidebarOpen ? '1.5rem' : '0.5rem', flexShrink: 0 }}>
+                    {sidebarOpen && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', textTransform: 'uppercase' }}>Historial</h4>
+                            <button onClick={() => setSidebarOpen(false)} style={{ background: 'none', border: 'none', color: '#fbbf24', cursor: 'pointer', fontSize: '1.2rem' }}>
+                                ◀
+                            </button>
+                        </div>
+                    )}
 
                     {!sidebarOpen && (
                         <div
                             onClick={() => setSidebarOpen(true)}
                             style={{
-                                writingMode: 'vertical-rl',
-                                textOrientation: 'mixed',
-                                transform: 'rotate(180deg)',
-                                margin: '0 auto',
-                                color: '#94a3b8',
-                                fontSize: '0.85rem',
-                                letterSpacing: '2px',
+                                width: '100%',
+                                height: '100%',
                                 cursor: 'pointer',
-                                height: '100px',
-                                textAlign: 'center',
-                                textTransform: 'uppercase'
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '1rem',
+                                transition: 'all 0.3s'
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.parentElement.style.background = 'rgba(197, 160, 33, 0.08)';
+                                e.currentTarget.parentElement.style.borderColor = 'rgba(197, 160, 33, 0.3)';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.parentElement.style.background = '';
+                                e.currentTarget.parentElement.style.borderColor = '';
                             }}
                         >
-                            Ver Historial
+                            <div style={{
+                                width: '100%',
+                                height: '90%',
+                                border: '1px solid rgba(197, 160, 33, 0.3)',
+                                borderRadius: '99px',
+                                background: 'rgba(197, 160, 33, 0.05)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '1.5rem',
+                                padding: '1rem 0'
+                            }}>
+                                <span style={{ fontSize: '1.4rem' }}>🕒</span>
+                                <span style={{
+                                    writingMode: 'vertical-rl',
+                                    textOrientation: 'mixed',
+                                    transform: 'rotate(180deg)',
+                                    color: '#fbbf24',
+                                    fontSize: '0.9rem',
+                                    letterSpacing: '2px',
+                                    fontWeight: '700',
+                                    textTransform: 'uppercase',
+                                    whiteSpace: 'nowrap'
+                                }}>
+                                    Historial
+                                </span>
+                            </div>
                         </div>
                     )}
 
@@ -343,23 +437,43 @@ export default function ResearchPage() {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                             />
-                            <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                            <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', minWidth: '180px' }}>
                                 {loading ? (
                                     <>
                                         <span className="spinner"></span>
-                                        Analizando...
+                                        {timeLeft > 0 ? `Analizando... (${timeLeft}s)` : 'Finalizando...'}
                                     </>
                                 ) : 'Consultar IA Legal'}
                             </button>
                         </form>
+                        {loading && <p style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--primary)', fontSize: '0.9rem', animation: 'pulse 1.5s infinite' }}>⏳ Realizando búsqueda avanzada, espere...</p>}
                         {results && (
                             <div className="action-buttons">
                                 <div className="copy-container">
                                     <button
                                         className="btn-action"
                                         onClick={() => {
-                                            const text = `ESTUDIO LEGAL - INVESTIGACIÓN\n\nNORMATIVA:\n${results.laws}\n\nJURISPRUDENCIA:\n${results.cases}\n\nESTRATEGIA:\n${results.strategy}`;
-                                            navigator.clipboard.writeText(text);
+                                            const parts = [
+                                                "🏦 ESTUDIO LEGAL - INVESTIGACIÓN DE IA (JUDIC-IA)",
+                                                "",
+                                                "📜 NORMATIVA APLICABLE:",
+                                                results.laws,
+                                                "",
+                                                "⚖️ JURISPRUDENCIA & FALLOS:",
+                                                Array.isArray(results.cases)
+                                                    ? results.cases.map(c => `🔹 ${c.title}\n   ${c.summary}\n   Fuente: ${c.source}`).join('\n\n')
+                                                    : results.cases,
+                                                "",
+                                                results.calculation ? `💰 LIQUIDACIÓN ESTIMAD@:\n${results.calculation}\n` : null,
+                                                results.evidence ? `🔍 PUNTOS DE PRUEBA:\n${results.evidence}\n` : null,
+                                                "💡 ESTRATEGIA SUGERIDA:",
+                                                results.strategy,
+                                                "",
+                                                "🔗 FUENTES & LINKS:",
+                                                results.links?.map(l => `- ${l.title}: ${l.url}`).join('\n') || "No hay enlaces digitales directos."
+                                            ].filter(Boolean).join('\n');
+
+                                            navigator.clipboard.writeText(parts);
                                             setCopySuccess(true);
                                             setTimeout(() => setCopySuccess(false), 2000);
                                         }}
@@ -379,31 +493,74 @@ export default function ResearchPage() {
                         <div className="results-area">
                             <section className="result-card glass-card">
                                 <h3>📚 Normativa Aplicable</h3>
-                                <div className="content">{results.laws}</div>
+                                <div className="content" style={{ whiteSpace: 'pre-line' }}>{renderContent(results.laws)}</div>
                             </section>
 
                             <section className="result-card glass-card">
                                 <h3>⚖️ Jurisprudencia Similares</h3>
-                                <div className="content">{results.cases}</div>
+                                <div className="content">
+                                    {Array.isArray(results.cases) ? (
+                                        <div className="cases-grid">
+                                            {results.cases.length === 0 && <p style={{ fontStyle: 'italic', color: '#64748b' }}>No se encontraron fallos digitales directos.</p>}
+                                            {results.cases.map((c, i) => {
+                                                const safeUrl = (c.url && c.url.startsWith('http')) ? c.url : (c.url ? `https://${c.url}` : null);
+                                                return (
+                                                    <div key={i} className="case-item-card" style={{ marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                                                            <div>
+                                                                <h4 style={{ margin: '0 0 0.4rem 0', color: '#e2e8f0', fontSize: '1rem' }}>🏛️ {c.title}</h4>
+                                                                <p style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.5 }}>{c.summary}</p>
+                                                                <span style={{ fontSize: '0.8rem', color: '#fbbf24', opacity: 0.8 }}>Fuente: {c.source || 'Referencia Legal'}</span>
+                                                            </div>
+                                                            {safeUrl && (
+                                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                                    <a
+                                                                        href={safeUrl}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="btn-link-icon"
+                                                                        title="Abrir Fuente"
+                                                                    >
+                                                                        🔗
+                                                                    </a>
+                                                                    <button
+                                                                        className="btn-preview-icon"
+                                                                        title="Visualizar en Pestaña"
+                                                                        onClick={() => window.open(`/api/proxy-pdf?url=${encodeURIComponent(safeUrl)}`, '_blank')}
+                                                                    >
+                                                                        👁️
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        // Fallback for old history items (String)
+                                        results.cases
+                                    )}
+                                </div>
                             </section>
 
                             {results.calculation && (
                                 <section className="result-card glass-card calculation">
                                     <h3>💰 Liquidación Estimada</h3>
-                                    <div className="content">{results.calculation}</div>
+                                    <div className="content" style={{ whiteSpace: 'pre-line' }}>{renderContent(results.calculation)}</div>
                                 </section>
                             )}
 
                             {results.evidence && (
                                 <section className="result-card glass-card evidence">
                                     <h3>🔍 Puntos de Prueba (Sugeridos)</h3>
-                                    <div className="content">{results.evidence}</div>
+                                    <div className="content" style={{ whiteSpace: 'pre-line' }}>{renderContent(results.evidence)}</div>
                                 </section>
                             )}
 
                             <section className="result-card glass-card strategy">
                                 <h3>💡 Sugerencia de Estrategia</h3>
-                                <div className="content">{results.strategy}</div>
+                                <div className="content" style={{ whiteSpace: 'pre-line' }}>{renderContent(results.strategy)}</div>
                             </section>
 
                             {results.links && results.links.length > 0 && (
@@ -413,9 +570,12 @@ export default function ResearchPage() {
                                         {results.links.map((link, idx) => {
                                             const safeUrl = link.url.startsWith('http') ? link.url : `https://${link.url}`;
                                             return (
-                                                <a key={idx} href={safeUrl} target="_blank" rel="noopener noreferrer" className="link-item">
-                                                    {link.title} ↗
-                                                </a>
+                                                <div key={idx} className="link-wrapper">
+                                                    <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="link-item">
+                                                        {link.title} ↗
+                                                    </a>
+
+                                                </div>
                                             );
                                         })}
                                     </div>
@@ -423,6 +583,8 @@ export default function ResearchPage() {
                             )}
                         </div>
                     )}
+
+
 
                     {!results && !loading && (
                         <div className="guided-research">
@@ -651,9 +813,9 @@ export default function ResearchPage() {
                     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
                 }
                 .result-card h3 { 
+                    font-size: 1.3rem;
                     color: var(--primary); 
-                    margin-bottom: 1.5rem; 
-                    font-size: 1.3rem; 
+                    margin: 0 0 1.5rem 0; /* Increased margin for separation */
                     font-weight: 800;
                     display: flex;
                     align-items: center;
@@ -662,11 +824,12 @@ export default function ResearchPage() {
                     padding-bottom: 1rem; 
                 }
                 .result-card .content { 
-                    line-height: 1.8; 
+                    line-height: 1.9; /* Slightly increased for readability */
                     color: #e2e8f0; 
                     white-space: pre-wrap; 
                     font-size: 1.05rem; 
                     letter-spacing: 0.01em;
+                    padding-left: 0.5rem; /* Indentation for visual hierarchy */
                 }
                 
                 .strategy { 
@@ -737,6 +900,67 @@ export default function ResearchPage() {
                     border-color: rgba(255, 255, 255, 0.2);
                     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
                 }
+
+                .link-wrapper { display: flex; align-items: center; gap: 0.5rem; width: 100%; }
+                .link-item { flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+                .btn-preview {
+                    background: rgba(197, 160, 33, 0.1);
+                    border: 1px solid rgba(197, 160, 33, 0.3);
+                    color: #fbbf24;
+                    cursor: pointer;
+                    border-radius: 8px;
+                    padding: 0.5rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s;
+                }
+                .btn-preview:hover {
+                    background: var(--primary);
+                    color: #020617;
+                }
+
+                .pdf-modal-overlay {
+                    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+                    background: rgba(0,0,0,0.8);
+                    display: flex; justify-content: center; align-items: center;
+                    z-index: 1000;
+                    backdrop-filter: blur(5px);
+                }
+                .pdf-modal-content {
+                    width: 90vw; height: 90vh;
+                    background: #0f172a;
+                    border: 1px solid var(--border);
+                    border-radius: 12px;
+                    display: flex; flex-direction: column;
+                    overflow: hidden;
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                }
+                .pdf-header {
+                    padding: 1rem; border-bottom: 1px solid var(--border);
+                    display: flex; justify-content: space-between; align-items: center;
+                    background: rgba(15,23,42,0.9);
+                }
+                .pdf-header h4 { margin: 0; color: white; display: flex; align-items: center; gap: 0.5rem; }
+                .pdf-header button { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.2rem; transition: 0.2s; }
+                .pdf-header button:hover { color: white; }
+                .pdf-iframe { width: 100%; height: 100%; border: none; background: #e2e8f0; }
+
+                /* NEW: Jurisprudence Card Styles */
+                .btn-link-icon, .btn-preview-icon {
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    color: #94a3b8;
+                    width: 32px; height: 32px;
+                    display: flex; align-items: center; justify-content: center;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    text-decoration: none;
+                }
+                .btn-link-icon:hover { background: rgba(56, 189, 248, 0.1); color: #38bdf8; border-color: #38bdf8; }
+                .btn-preview-icon:hover { background: rgba(251, 191, 36, 0.1); color: #fbbf24; border-color: #fbbf24; }
+
                 .category-card.active {
                     background: rgba(197, 160, 33, 0.12);
                     border-color: var(--primary);
