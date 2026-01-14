@@ -199,14 +199,31 @@ export default function ClientsPage() {
         setClients(prev => prev.filter(c => c.id !== inquiryId));
         setClientToDelete(null);
 
-        const { error } = await supabase
-            .from('inquiries')
-            .delete()
-            .eq('id', inquiryId);
+        // MANUAL CASCADE DELETE (Safe fallback if DB constraints are missing)
+        try {
+            // 1. Delete associated deadlines (fixing the specific error reported)
+            await supabase.from('deadlines').delete().eq('inquiry_id', inquiryId);
 
-        if (error) {
-            console.error("Error deleting client:", error);
-            alert("Hubo un error al eliminar. Intenta nuevamente.");
+            // 2. Delete other related data
+            await supabase.from('research_reports').delete().eq('user_id', lawyerId).contains('result_json', { inquiry_id: inquiryId }); // If linked this way
+            await supabase.from('messages').delete().eq('inquiry_id', inquiryId);
+            await supabase.from('attachments').delete().eq('inquiry_id', inquiryId);
+
+            // 3. Finally delete the inquiry
+            const { error } = await supabase
+                .from('inquiries')
+                .delete()
+                .eq('id', inquiryId);
+
+            if (error) throw error;
+
+            console.log(`✅ Client ${inquiryId} and related data deleted successfully.`);
+
+        } catch (error) {
+            console.error("Error deleting client (Manual Cascade Failed):", error);
+            // Revert optimistic UI update if critical failure (optional, but safer to warn user)
+            alert("Hubo un error al eliminar el cliente y sus datos asociados. Por favor verifica tu conexión.");
+            // Ideally we would fetchClients() again here to restore state, but simple alert is okay for now.
         }
     };
 

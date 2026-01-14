@@ -121,7 +121,7 @@ export default function AgendaPage() {
     const deleteEvent = async (id) => {
         if (confirm('¿Seguro que deseas eliminar este evento?')) {
             await supabase.from('deadlines').update({
-                status: 'deleted',
+                status: 'cancelled', // Use 'cancelled' as 'deleted' is not in constraint
                 deleted_at: new Date().toISOString()
             }).eq('id', id);
             fetchDeadlines();
@@ -294,7 +294,6 @@ export default function AgendaPage() {
                                 <div className="section-title">Vencidos</div>
                                 {groups.overdue.map(ev => (
                                     <div key={ev.id} className={`deadline-card urgency-${ev.urgency.level}`}>
-                                        <div className={`priority-indicator type-${ev.type}`}></div>
 
                                         <div className="card-main">
                                             <div className="card-top">
@@ -326,7 +325,6 @@ export default function AgendaPage() {
                                 <div className="section-title">Hoy</div>
                                 {groups.today.map(ev => (
                                     <div key={ev.id} className={`deadline-card urgency-${ev.urgency.level}`}>
-                                        <div className={`priority-indicator type-${ev.type}`}></div>
 
                                         <div className="card-main">
                                             <div className="card-top">
@@ -358,7 +356,6 @@ export default function AgendaPage() {
                                 <div className="section-title">Próximos</div>
                                 {groups.next.map(ev => (
                                     <div key={ev.id} className={`deadline-card urgency-${ev.urgency.level}`}>
-                                        <div className={`priority-indicator type-${ev.type}`}></div>
 
                                         <div className="card-main">
                                             <div className="card-top">
@@ -393,7 +390,7 @@ export default function AgendaPage() {
             {hoverDay && (
                 <div
                     className="day-tooltip"
-                    style={{ left: hoverDay.x, top: hoverDay.y }}
+                    style={{ transform: `translate(${hoverDay.x}px, ${hoverDay.y}px)` }}
                 >
                     <div className="tt-head">
                         <div className="tt-date">
@@ -645,6 +642,8 @@ export default function AgendaPage() {
                 /* Tooltip flotante */
                 .day-tooltip {
                     position: fixed;
+                    top: 0;
+                    left: 0;
                     width: 340px;
                     max-height: 240px;
                     overflow: hidden;
@@ -748,6 +747,11 @@ export default function AgendaPage() {
                     border: 1px solid rgba(255,255,255,0.08);
                     border-radius: 10px;
                     color: #e2e8f0;
+                    cursor: pointer;
+                }
+                .select option {
+                    background-color: #0f172a;
+                    color: #e2e8f0;
                 }
                 .check {
                     display: flex;
@@ -762,63 +766,88 @@ export default function AgendaPage() {
                     display: flex;
                     flex-direction: column;
                     gap: 1rem;
+                    padding-bottom: 2rem;
                 }
                 .section-title {
                     color: #94a3b8;
-                    font-size: 0.85rem;
-                    margin: 0.2rem 0 0.5rem;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    margin: 0.5rem 0 0.8rem;
                     text-transform: uppercase;
-                    letter-spacing: 0.06em;
+                    letter-spacing: 0.08em;
+                    padding-left: 4px;
                 }
                 .deadline-card {
                     display: flex;
-                    gap: 0.8rem;
-                    padding: 0.9rem;
-                    background: rgba(255,255,255,0.03);
-                    border: 1px solid rgba(255,255,255,0.06);
-                    border-radius: 12px;
-                    transition: 0.2s;
+                    gap: 0; /* Removed gap since priority indicator is gone */
+                    padding: 1rem 1.1rem; /* Adjusted padding */
+                    background: linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(30, 41, 59, 0.4) 100%);
+                    border: 1px solid rgba(255,255,255,0.08);
+                    border-radius: 14px;
+                    transition: all 0.2s ease-out;
+                    position: relative;
+                    overflow: hidden;
                 }
                 .deadline-card:hover {
-                    background: rgba(255,255,255,0.06);
-                    transform: translateY(-1px);
+                    background: rgba(30, 41, 59, 0.9);
+                    border-color: rgba(255,255,255,0.15);
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
                 }
                 .card-main {
                     flex: 1;
                     min-width: 0;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    padding-left: 4px; /* Slight left padding for text */
                 }
                 .card-top {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    margin-bottom: 0.35rem;
+                    margin-bottom: 0.4rem;
                 }
                 .badge {
-                    font-size: 0.7rem;
-                    font-weight: 800;
-                    padding: 0.2rem 0.45rem;
-                    border-radius: 999px;
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    padding: 0.25rem 0.6rem;
+                    border-radius: 6px;
                     border: 1px solid rgba(255,255,255,0.08);
-                    color: #e2e8f0;
-                    background: rgba(255,255,255,0.03);
+                    color: #fff;
+                    background: rgba(255,255,255,0.05);
+                    letter-spacing: 0.03em;
                 }
                 .countdown {
-                    font-size: 0.8rem;
-                    color: #e2e8f0;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    color: #94a3b8;
+                    background: rgba(0,0,0,0.2);
+                    padding: 3px 10px;
+                    border-radius: 6px;
+                    white-space: nowrap; /* Prevent stacking */
+                    display: inline-block;
+                    line-height: 1;
                 }
                 .card-title {
-                    color: #e2e8f0;
-                    font-weight: 700;
-                    font-size: 0.95rem;
+                    color: #f8fafc;
+                    font-weight: 600;
+                    font-size: 1rem;
+                    line-height: 1.3;
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
+                    margin-bottom: 0.2rem;
                 }
                 .card-client {
                     font-size: 0.8rem;
                     color: #fbbf24;
-                    margin-bottom: 0.2rem;
                     font-weight: 500;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    margin-bottom: 0.3rem;
+                    opacity: 0.9;
                 }
                 .tt-client {
                     font-size: 0.75rem; 
@@ -826,30 +855,46 @@ export default function AgendaPage() {
                     margin-top: 1px;
                 }
                 .card-meta {
-                    margin-top: 0.2rem;
-                    color: #94a3b8;
-                    font-size: 0.82rem;
+                    color: #64748b;
+                    font-size: 0.8rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
                 }
                 .event-actions {
                     display: flex;
-                    gap: 0.5rem;
+                    flex-direction: column;
+                    justify-content: center;
+                    gap: 0.2rem;
                     opacity: 0;
                     transition: 0.2s;
+                    border-left: 1px solid rgba(255,255,255,0.05);
+                    padding-left: 0.8rem;
                 }
                 .deadline-card:hover .event-actions {
                     opacity: 1;
                 }
                 .event-actions button {
-                    background: none;
+                    background: rgba(255,255,255,0.05);
                     border: none;
                     cursor: pointer;
-                    font-size: 1rem;
+                    font-size: 0.9rem;
+                    padding: 6px;
+                    border-radius: 6px;
+                    transition: background 0.2s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                 }
-                /* urgencia: borde sutil para “prioridad visual” */
-                .urgency-overdue { box-shadow: 0 0 0 1px rgba(239,68,68,0.20) inset; }
-                .urgency-critical { box-shadow: 0 0 0 1px rgba(239,68,68,0.14) inset; }
-                .urgency-high { box-shadow: 0 0 0 1px rgba(245,158,11,0.14) inset; }
-                .urgency-medium { box-shadow: 0 0 0 1px rgba(234,179,8,0.12) inset; }
+                .event-actions button:hover {
+                    background: rgba(255,255,255,0.1);
+                    transform: scale(1.1);
+                }
+                /* urgencia: borde izquierdo de color en lugar de shadow interno */
+                .deadline-card.urgency-overdue { border-left: 4px solid #ef4444; }
+                .deadline-card.urgency-critical { border-left: 4px solid #f97316; }
+                .deadline-card.urgency-high { border-left: 4px solid #f59e0b; }
+                .deadline-card.urgency-medium { border-left: 4px solid #eab308; }
 
                 .empty-state {
                     padding: 1rem;
@@ -904,7 +949,7 @@ export default function AgendaPage() {
                     align-items: flex-start;
                 }
                 .history-card.status-done { border-left: 3px solid #10b981; }
-                .history-card.status-deleted { border-left: 3px solid #ef4444; opacity: 0.7; }
+                .history-card.status-deleted, .history-card.status-cancelled { border-left: 3px solid #ef4444; opacity: 0.7; }
                 
                 .card-info { display: flex; flex-direction: column; gap: 4px; }
                 .card-info h4 { font-size: 0.9rem; color: #f1f5f9; margin: 0; }
@@ -918,7 +963,7 @@ export default function AgendaPage() {
                     margin-bottom: 4px;
                 }
                 .badge-status.done { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-                .badge-status.deleted { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+                .badge-status.deleted, .badge-status.cancelled { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
                 .empty-msg { text-align: center; color: #64748b; font-size: 0.9rem; padding: 2rem; }
 
                 @media (max-width: 1024px) {

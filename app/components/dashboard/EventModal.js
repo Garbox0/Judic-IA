@@ -14,6 +14,19 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
     const [loading, setLoading] = useState(false);
     const [clients, setClients] = useState([]); // State for clients dropdown
 
+    // Calculator State
+    const [showCalculator, setShowCalculator] = useState(false);
+    const [calcStart, setCalcStart] = useState(new Date().toISOString().split('T')[0]);
+    const [calcDays, setCalcDays] = useState(3);
+
+    useEffect(() => {
+        if (showCalculator) {
+            const resultDate = addBusinessDays(calcStart, parseInt(calcDays) || 0);
+            const isoDate = resultDate.toISOString().split('T')[0];
+            setEventData(prev => ({ ...prev, date: isoDate }));
+        }
+    }, [calcStart, calcDays, showCalculator]);
+
     useEffect(() => {
         if (isOpen) {
             // Fetch clients for dropdown
@@ -108,6 +121,38 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
                         ))}
                     </select>
 
+                    {/* Deadline Calculator */}
+                    <div className="calc-toggle" onClick={() => setShowCalculator(!showCalculator)}>
+                        <span>{showCalculator ? '▼' : '▶'}</span> 🧮 Calculadora de Plazos (Días Hábiles)
+                    </div>
+
+                    {showCalculator && (
+                        <div className="calculator-box">
+                            <div className="row">
+                                <div>
+                                    <label style={{ color: '#fbbf24' }}>Fecha Notificación</label>
+                                    <input
+                                        type="date"
+                                        value={calcStart}
+                                        onChange={e => setCalcStart(e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ color: '#fbbf24' }}>Plazo (Días)</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={calcDays}
+                                        onChange={e => setCalcDays(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#94a3b8' }}>
+                                * Se calculan días hábiles automáticamente y se actualiza la fecha abajo.
+                            </div>
+                        </div>
+                    )}
+
                     <div className="row">
                         <div>
                             <label>Fecha</label>
@@ -169,6 +214,8 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
                     padding: 2rem;
                     border-radius: 16px;
                     width: 400px;
+                    max-height: 85vh;      /* Prevent overflow on small screens */
+                    overflow-y: auto;      /* Enable toggle/scroll */
                     border: 1px solid rgba(255,255,255,0.1);
                     color: white;
                 }
@@ -189,7 +236,46 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
                 .btn-cancel { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; }
                 .btn-primary { background: #fbbf24; color: #0f172a; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 700; cursor: pointer; }
                 .btn-primary:disabled { opacity: 0.7; }
+
+                /* Fix for dropdown visibility */
+                select option {
+                    background-color: #1e293b;
+                    color: white;
+                }
+                
+                /* Calculator Styles */
+                .calculator-box {
+                    background: rgba(251, 191, 36, 0.05);
+                    border: 1px dashed rgba(251, 191, 36, 0.3);
+                    padding: 1rem;
+                    border-radius: 8px;
+                    margin-bottom: 1rem;
+                }
+                .calc-toggle {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    margin-bottom: 1rem;
+                    cursor: pointer;
+                    color: #fbbf24;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                }
             `}</style>
         </div>
     );
+}
+
+// Helper for business days (skipping Sat/Sun)
+function addBusinessDays(startDate, days) {
+    let count = 0;
+    const curDate = new Date(startDate);
+    while (count < days) {
+        curDate.setDate(curDate.getDate() + 1);
+        const day = curDate.getDay();
+        if (day !== 0 && day !== 6) { // 0=Sun, 6=Sat
+            count++;
+        }
+    }
+    return curDate;
 }
