@@ -15,14 +15,69 @@ const getFirstDayOfMonth = (year, month) => {
     return day === 0 ? 6 : day - 1;
 };
 
+const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+const toISODate = (d) => {
+    const yy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yy}-${mm}-${dd}`;
+};
+
+// devuelve: { level: 'overdue'|'critical'|'high'|'medium'|'ok', label: 'CRÍTICO', hoursLeft: number }
+const getUrgency = (dueDateStr) => {
+    const due = new Date(dueDateStr);
+    const now = new Date();
+    const diffMs = due - now;
+    const hoursLeft = Math.ceil(diffMs / (1000 * 60 * 60));
+
+    if (hoursLeft <= 0) return { level: "overdue", label: "VENCIDO", hoursLeft };
+    if (hoursLeft <= 24) return { level: "critical", label: "CRÍTICO", hoursLeft };
+    if (hoursLeft <= 72) return { level: "high", label: "ALTO", hoursLeft };
+    if (hoursLeft <= 168) return { level: "medium", label: "MEDIO", hoursLeft };
+    return { level: "ok", label: "OK", hoursLeft };
+};
+
+const humanCountdown = (hoursLeft) => {
+    if (hoursLeft <= 0) return "vencido";
+    if (hoursLeft < 24) return `en ${hoursLeft}h`;
+    const days = Math.ceil(hoursLeft / 24);
+    return `en ${days}d`;
+};
+
+
 export default function AgendaPage() {
     const [loading, setLoading] = useState(true);
     const [deadlines, setDeadlines] = useState([]);
     const [currentDate, setCurrentDate] = useState(new Date());
     const [modalOpen, setModalOpen] = useState(false);
 
-    // Form State
-    // Local Modal state removed in favor of EventModal
+    const [range, setRange] = useState("48h");   // 48h | 7d | 30d
+    const [sortBy, setSortBy] = useState("urgency"); // urgency | date | title
+    const [onlyCritical, setOnlyCritical] = useState(false);
+    const [showHistory, setShowHistory] = useState(false);
+    const [hoverDay, setHoverDay] = useState(null);
+
+    const openHover = (e, dateStr, items) => {
+        if (!items || items.length === 0) return;
+        const w = 340, h = 240, pad = 16;
+        const x = Math.min(e.clientX + 14, window.innerWidth - w - pad);
+        const y = Math.min(e.clientY + 14, window.innerHeight - h - pad);
+        setHoverDay({ dateStr, x, y, items });
+    };
+
+    const moveHover = (e) => {
+        setHoverDay((prev) => {
+            if (!prev) return prev;
+            const w = 340, h = 240, pad = 16;
+            const x = Math.min(e.clientX + 14, window.innerWidth - w - pad);
+            const y = Math.min(e.clientY + 14, window.innerHeight - h - pad);
+            return { ...prev, x, y };
+        });
+    };
+
+    const closeHover = () => setHoverDay(null);
+
 
     const fetchDeadlines = async () => {
         setLoading(true);
@@ -30,7 +85,7 @@ export default function AgendaPage() {
         if (user) {
             const { data, error } = await supabase
                 .from('deadlines')
-                .select('*')
+                .select('*, inquiries(contact_name, id)')
                 .eq('user_id', user.id)
                 .order('due_date', { ascending: true });
 
@@ -56,18 +111,63 @@ export default function AgendaPage() {
     };
 
     const markAsDone = async (id) => {
-        await supabase.from('deadlines').update({ status: 'done' }).eq('id', id);
+        await supabase.from('deadlines').update({
+            status: 'done',
+            done_at: new Date().toISOString()
+        }).eq('id', id);
         fetchDeadlines();
     };
 
     const deleteEvent = async (id) => {
         if (confirm('¿Seguro que deseas eliminar este evento?')) {
-            await supabase.from('deadlines').delete().eq('id', id);
+            await supabase.from('deadlines').update({
+                status: 'deleted',
+                deleted_at: new Date().toISOString()
+            }).eq('id', id);
             fetchDeadlines();
         }
     };
 
+    // Logic calculation
+    const now = new Date();
+    const todayISO = toISODate(now);
+
+    const pending = deadlines.filter(d => d.status === "pending");
+
+    const withUrgency = pending.map(ev => ({
+        ...ev,
+        urgency: getUrgency(ev.due_date),
+    }));
+
+    const rangeHours = range === "48h" ? 48 : range === "7d" ? 168 : 720;
+
+    let filtered = withUrgency
+        .filter(ev => ev.urgency.hoursLeft <= rangeHours) // incluye vencidos también
+        .filter(ev => (onlyCritical ? ["overdue", "critical"].includes(ev.urgency.level) : true));
+
+    if (sortBy === "date") {
+        filtered.sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+    } else if (sortBy === "title") {
+        filtered.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+    } else {
+        // urgency
+        const order = { overdue: 0, critical: 1, high: 2, medium: 3, ok: 4 };
+        filtered.sort((a, b) => order[a.urgency.level] - order[b.urgency.level] || (new Date(a.due_date) - new Date(b.due_date)));
+    }
+
+    const groups = {
+        overdue: filtered.filter(e => e.urgency.level === "overdue"),
+        today: filtered.filter(e => e.due_date?.startsWith(todayISO) && e.urgency.level !== "overdue"),
+        next: filtered.filter(e => !e.due_date?.startsWith(todayISO) && e.urgency.level !== "overdue"),
+    };
+
+    // KPIs
+    const kpiOverdue = withUrgency.filter(e => e.urgency.level === "overdue").length;
+    const kpiToday = withUrgency.filter(e => e.due_date?.startsWith(todayISO) && e.urgency.level !== "overdue").length;
+    const kpi7d = withUrgency.filter(e => e.urgency.hoursLeft > 0 && e.urgency.hoursLeft <= 168).length;
+
     // Calendar Generation Logic
+
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const monthName = currentDate.toLocaleString('es-AR', { month: 'long', year: 'numeric' });
@@ -82,22 +182,38 @@ export default function AgendaPage() {
     // Days of current month
     for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const dayEvents = deadlines.filter(ev => ev.due_date.startsWith(dateStr));
+        // Filter pending events for calendar
+        const dayEvents = deadlines.filter(ev => ev.due_date.startsWith(dateStr) && ev.status === 'pending');
         const isToday = new Date().toISOString().split('T')[0] === dateStr;
+        const hasEvents = dayEvents.length > 0;
+
+        const uniqueTypes = [...new Set(dayEvents.map((ev) => ev.type))].slice(0, 3);
+        const extraCount = Math.max(0, dayEvents.length - uniqueTypes.length);
 
         days.push(
-            <div key={d} className={`calendar-day ${isToday ? 'today' : ''}`}>
+            <div
+                key={d}
+                className={`calendar-day ${isToday ? 'today' : ''} ${hasEvents ? 'has-events' : ''}`}
+                onMouseEnter={(e) => openHover(e, dateStr, dayEvents)}
+                onMouseMove={hasEvents ? moveHover : undefined}
+                onMouseLeave={closeHover}
+            >
                 <span className="day-number">{d}</span>
-                <div className="day-events">
-                    {dayEvents.map(ev => (
-                        <div key={ev.id} className={`event-chip type-${ev.type} status-${ev.status}`} title={ev.title}>
-                            {ev.title}
+                {hasEvents && (
+                    <>
+                        <div className="day-marker" aria-hidden="true" />
+                        <div className="day-dots" aria-hidden="true">
+                            {uniqueTypes.map((t) => (
+                                <span key={t} className={`day-dot dot-${t}`} />
+                            ))}
+                            {extraCount > 0 && <span className="dot-count">+{extraCount}</span>}
                         </div>
-                    ))}
-                </div>
+                    </>
+                )}
             </div>
         );
     }
+
 
     return (
         <div className="agenda-container">
@@ -129,37 +245,233 @@ export default function AgendaPage() {
                     </div>
                 </div>
 
-                {/* UPCOMING LIST */}
+                {/* UPCOMING LIST (Pro Inbox) */}
                 <aside className="upcoming-panel glass-panel">
-                    <h3>🔔 Vencimientos Próximos (48hs)</h3>
-                    <div className="upcoming-list">
-                        {deadlines.filter(ev => {
-                            const eventDate = new Date(ev.due_date);
-                            const now = new Date();
-                            const diffTime = eventDate - now;
-                            const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
-                            return diffHours > 0 && diffHours <= 48 && ev.status === 'pending';
-                        }).length === 0 && <p className="empty-msg">No hay vencimientos urgentes.</p>}
+                    <div className="upcoming-sticky">
+                        <div className="upcoming-title-row">
+                            <h3>🔔 Plazos</h3>
+                            <div className="upcoming-mini">
+                                <span className="pill">Vencidos: {kpiOverdue}</span>
+                                <span className="pill">Hoy: {kpiToday}</span>
+                                <span className="pill">7d: {kpi7d}</span>
+                            </div>
+                        </div>
 
-                        {deadlines
-                            .filter(ev => ev.status === 'pending')
-                            .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
-                            .slice(0, 5)
-                            .map(ev => (
-                                <div key={ev.id} className="upcoming-item">
-                                    <div className={`priority-indicator type-${ev.type}`}></div>
-                                    <div className="event-info">
-                                        <h4>{ev.title}</h4>
-                                        <small>{new Date(ev.due_date).toLocaleString('es-AR', { weekday: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</small>
+                        <div className="upcoming-filters">
+                            <div className="segmented">
+                                <button className={range === "48h" ? "active" : ""} onClick={() => setRange("48h")}>48h</button>
+                                <button className={range === "7d" ? "active" : ""} onClick={() => setRange("7d")}>7d</button>
+                                <button className={range === "30d" ? "active" : ""} onClick={() => setRange("30d")}>30d</button>
+                            </div>
+
+                            <select className="select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                                <option value="urgency">Orden: Urgencia</option>
+                                <option value="date">Orden: Fecha</option>
+                                <option value="title">Orden: Título</option>
+                            </select>
+
+                            <label className="check">
+                                <input
+                                    type="checkbox"
+                                    checked={onlyCritical}
+                                    onChange={(e) => setOnlyCritical(e.target.checked)}
+                                />
+                                Solo críticos
+                            </label>
+                        </div>
+                    </div>
+
+                    <div className="upcoming-scroll">
+                        {filtered.length === 0 && (
+                            <div className="empty-state">
+                                <div className="empty-title">No hay plazos en este rango ✅</div>
+                                <div className="empty-sub">Probá ampliar a 7d/30d o creá un nuevo evento.</div>
+                            </div>
+                        )}
+
+                        {groups.overdue.length > 0 && (
+                            <div className="section">
+                                <div className="section-title">Vencidos</div>
+                                {groups.overdue.map(ev => (
+                                    <div key={ev.id} className={`deadline-card urgency-${ev.urgency.level}`}>
+                                        <div className={`priority-indicator type-${ev.type}`}></div>
+
+                                        <div className="card-main">
+                                            <div className="card-top">
+                                                <div className="badge">{ev.urgency.label}</div>
+                                                <div className="countdown">{humanCountdown(ev.urgency.hoursLeft)}</div>
+                                            </div>
+
+                                            {ev.inquiries?.contact_name && (
+                                                <div className="card-client">👤 {ev.inquiries.contact_name}</div>
+                                            )}
+
+                                            <div className="card-title">{ev.title}</div>
+                                            <div className="card-meta">
+                                                {new Date(ev.due_date).toLocaleString('es-AR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                            </div>
+                                        </div>
+
+                                        <div className="event-actions">
+                                            <button onClick={() => markAsDone(ev.id)} title="Marcar completado">✅</button>
+                                            <button onClick={() => deleteEvent(ev.id)} title="Eliminar">🗑️</button>
+                                        </div>
                                     </div>
-                                    <div className="event-actions">
-                                        <button onClick={() => markAsDone(ev.id)} title="Marcar completado">✅</button>
-                                        <button onClick={() => deleteEvent(ev.id)} title="Eliminar">🗑️</button>
+                                ))}
+                            </div>
+                        )}
+
+                        {groups.today.length > 0 && (
+                            <div className="section">
+                                <div className="section-title">Hoy</div>
+                                {groups.today.map(ev => (
+                                    <div key={ev.id} className={`deadline-card urgency-${ev.urgency.level}`}>
+                                        <div className={`priority-indicator type-${ev.type}`}></div>
+
+                                        <div className="card-main">
+                                            <div className="card-top">
+                                                <div className="badge">{ev.urgency.label}</div>
+                                                <div className="countdown">{humanCountdown(ev.urgency.hoursLeft)}</div>
+                                            </div>
+
+                                            {ev.inquiries?.contact_name && (
+                                                <div className="card-client">👤 {ev.inquiries.contact_name}</div>
+                                            )}
+
+                                            <div className="card-title">{ev.title}</div>
+                                            <div className="card-meta">
+                                                {new Date(ev.due_date).toLocaleString('es-AR', { hour: '2-digit', minute: '2-digit' })} • {new Date(ev.due_date).toLocaleString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                                            </div>
+                                        </div>
+
+                                        <div className="event-actions">
+                                            <button onClick={() => markAsDone(ev.id)} title="Marcar completado">✅</button>
+                                            <button onClick={() => deleteEvent(ev.id)} title="Eliminar">🗑️</button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
+                        )}
+
+                        {groups.next.length > 0 && (
+                            <div className="section">
+                                <div className="section-title">Próximos</div>
+                                {groups.next.map(ev => (
+                                    <div key={ev.id} className={`deadline-card urgency-${ev.urgency.level}`}>
+                                        <div className={`priority-indicator type-${ev.type}`}></div>
+
+                                        <div className="card-main">
+                                            <div className="card-top">
+                                                <div className="badge">{ev.urgency.label}</div>
+                                                <div className="countdown">{humanCountdown(ev.urgency.hoursLeft)}</div>
+                                            </div>
+
+                                            {ev.inquiries?.contact_name && (
+                                                <div className="card-client">👤 {ev.inquiries.contact_name}</div>
+                                            )}
+
+                                            <div className="card-title">{ev.title}</div>
+                                            <div className="card-meta">
+                                                {new Date(ev.due_date).toLocaleString('es-AR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                            </div>
+                                        </div>
+
+                                        <div className="event-actions">
+                                            <button onClick={() => markAsDone(ev.id)} title="Marcar completado">✅</button>
+                                            <button onClick={() => deleteEvent(ev.id)} title="Eliminar">🗑️</button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </aside>
+
+            </div>
+
+            {/* Hover Tooltip */}
+            {hoverDay && (
+                <div
+                    className="day-tooltip"
+                    style={{ left: hoverDay.x, top: hoverDay.y }}
+                >
+                    <div className="tt-head">
+                        <div className="tt-date">
+                            {new Date(hoverDay.dateStr + "T00:00:00").toLocaleDateString('es-AR', {
+                                weekday: 'long', day: 'numeric', month: 'long'
+                            })}
+                        </div>
+                        <div className="tt-count">{hoverDay.items.length} plazos</div>
+                    </div>
+
+                    <div className="tt-list">
+                        {hoverDay.items.slice(0, 6).map((ev) => (
+                            <div key={ev.id} className="tt-item">
+                                <span className={`tt-dot dot-${ev.type}`} />
+                                <div className="tt-main">
+                                    <div className="tt-title">{ev.title}</div>
+                                    {ev.inquiries?.contact_name && (
+                                        <div className="tt-client">👤 {ev.inquiries.contact_name}</div>
+                                    )}
+                                    <div className="tt-meta">
+                                        {new Date(ev.due_date).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+
+                        {hoverDay.items.length > 6 && (
+                            <div className="tt-more">
+                                +{hoverDay.items.length - 6} más (miralos en la lista de la derecha)
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* History Panel */}
+            <div className={`history-panel ${showHistory ? 'expanded' : ''}`}>
+                <div className="history-head" onClick={() => setShowHistory(!showHistory)}>
+                    <div className="history-title">
+                        <span className="icon">📜</span>
+                        <h3>Historial de Plazos</h3>
+                        <span className="count">
+                            {deadlines.filter(ev => ev.status !== 'pending').length} archivados
+                        </span>
+                    </div>
+                    <button className="btn-toggle">{showHistory ? '▼ Ocultar' : '▲ Ver Historial'}</button>
+                </div>
+                {showHistory && (
+                    <div className="history-body">
+                        <div className="history-list">
+                            {deadlines.filter(ev => ev.status !== 'pending').length === 0 ? (
+                                <p className="empty-msg">No hay plazos en el historial.</p>
+                            ) : (
+                                <div className="history-grid">
+                                    {deadlines
+                                        .filter(ev => ev.status !== 'pending')
+                                        .sort((a, b) => new Date(b.done_at || b.deleted_at || 0) - new Date(a.done_at || a.deleted_at || 0))
+                                        .map(ev => (
+                                            <div key={ev.id} className={`history-card status-${ev.status}`}>
+                                                <div className="card-info">
+                                                    <span className={`badge-status ${ev.status}`}>
+                                                        {ev.status === 'done' ? '✓ COMPLETADO' : '✕ ELIMINADO'}
+                                                    </span>
+                                                    <h4>{ev.title}</h4>
+                                                    <span className="date">
+                                                        📅 Venció: {new Date(ev.due_date).toLocaleDateString()}
+                                                    </span>
+                                                    <span className="timestamp">
+                                                        🕒 {ev.status === 'done' ? 'Completado' : 'Eliminado'} el: {new Date(ev.done_at || ev.deleted_at).toLocaleDateString()}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* MODAL */}
@@ -194,7 +506,7 @@ export default function AgendaPage() {
                     cursor: pointer;
                     transition: transform 0.2s;
                 }
-                  .btn-primary:hover { transform: translateY(-2px); }
+                .btn-primary:hover { transform: translateY(-2px); }
 
                 .agenda-grid {
                     display: grid;
@@ -238,88 +550,376 @@ export default function AgendaPage() {
                 }
                 .calendar-day {
                     background: rgba(255,255,255,0.03);
-                    min-height: 100px;
-                    padding: 0.5rem;
-                    border-radius: 6px;
-                    transition: background 0.2s;
+                    min-height: 110px;
+                    padding: 10px;
+                    border-radius: 10px;
+                    transition: background 0.2s, transform 0.12s;
+                    position: relative;
+                    overflow: hidden;
                 }
                 .calendar-day:hover { background: rgba(255,255,255,0.06); }
-                .calendar-day.empty { background: transparent; }
+                .calendar-day.empty { background: transparent; cursor: default; }
                 .calendar-day.today { border: 1px solid var(--primary); background: rgba(197, 160, 33, 0.05); }
-                .day-number { font-size: 0.85rem; color: #94a3b8; font-weight: 600; }
+                .calendar-day.has-events { cursor: pointer; }
+                .calendar-day.has-events:hover { transform: translateY(-1px); }
+
+                /* Usamos :global para asegurar que estilice los elementos generados en el array */
+                /* IMPERATIVO: El contenedor del día DEBE ser relativo para que los hijos absolutos se posicionen dentro de él */
+                .calendar-grid :global(.calendar-day) {
+                    position: relative !important;
+                    min-height: 100px;
+                    z-index: 1;
+                }
+
+                /* Usamos :global para asegurar que estilice los elementos generados */
+                .calendar-grid :global(.day-number) {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 2rem !important;
+                    color: rgba(148, 163, 184, 0.5); 
+                    font-weight: 800;
+                    z-index: 5;
+                    transition: all 0.2s;
+                    user-select: none;
+                    pointer-events: none;
+                }
+                .calendar-grid :global(.calendar-day.has-events:hover .day-number) {
+                    color: #fff;
+                    transform: translate(-50%, -50%) scale(1.1);
+                    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+                }
+
+                .calendar-grid :global(.day-marker) {
+                    position: absolute;
+                    inset: 4px;
+                    border-radius: 12px;
+                    /* Más notable por defecto como pidió el usuario */
+                    border: 1px solid rgba(212,178,76,0.3); 
+                    background: rgba(212,178,76,0.02);
+                    z-index: 1;
+                    transition: 0.2s;
+                    opacity: 1; /* Full opacity base */
+                }
                 
-                .day-events { display: flex; flex-direction: column; gap: 2px; margin-top: 5px; }
-                .event-chip {
+                .calendar-grid :global(.calendar-day.has-events:hover .day-marker) {
+                    border: 1.5px solid rgba(212,178,76,1) !important;
+                    background: rgba(212,178,76,0.2) !important;
+                    box-shadow: 0 0 20px rgba(212,178,76,0.4) !important;
+                    opacity: 1;
+                    transform: scale(1.02); /* Sutil pop */
+                }
+
+                .calendar-grid :global(.day-dots) {
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    bottom: 12px;
+                    display: flex;
+                    justify-content: center; /* Centrar dots también */
+                    gap: 6px;
+                    align-items: center;
+                    z-index: 2;
+                }
+                .day-dot {
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 999px;
+                    opacity: 0.95;
+                }
+                .dot-count {
+                    font-size: 0.72rem;
+                    color: #e2e8f0;
+                    padding: 2px 7px;
+                    border-radius: 999px;
+                    border: 1px solid rgba(255,255,255,0.10);
+                    background: rgba(255,255,255,0.03);
+                }
+
+                .dot-hearing { background: #ef4444; }
+                .dot-filing  { background: #3b82f6; }
+                .dot-meeting { background: #10b981; }
+                .dot-other   { background: #94a3b8; }
+
+                /* Tooltip flotante */
+                .day-tooltip {
+                    position: fixed;
+                    width: 340px;
+                    max-height: 240px;
+                    overflow: hidden;
+                    border-radius: 14px;
+                    background: rgba(15, 23, 42, 0.92);
+                    border: 1px solid rgba(255,255,255,0.10);
+                    box-shadow: 0 18px 60px rgba(0,0,0,0.35);
+                    backdrop-filter: blur(12px);
+                    padding: 12px;
+                    z-index: 9999;
+                    pointer-events: none;
+                }
+                .tt-head {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 10px;
+                    padding-bottom: 10px;
+                    border-bottom: 1px solid rgba(255,255,255,0.06);
+                    margin-bottom: 10px;
+                }
+                .tt-date { color: #e2e8f0; font-weight: 800; text-transform: capitalize; }
+                .tt-count { color: #94a3b8; font-size: 0.85rem; font-weight: 600; }
+                .tt-list { display: flex; flex-direction: column; gap: 8px; }
+                .tt-item { display: flex; gap: 10px; align-items: flex-start; }
+                .tt-dot { width: 8px; height: 8px; border-radius: 999px; margin-top: 6px; }
+                .tt-title { color: #e2e8f0; font-weight: 700; font-size: 0.92rem; line-height: 1.15; }
+                .tt-meta { color: #94a3b8; font-size: 0.82rem; margin-top: 2px; }
+                .tt-more { margin-top: 6px; color: #94a3b8; font-size: 0.82rem; }
+
+                /* UPCOMING SIDEBAR (Task Rail) */
+                .upcoming-panel {
+                    padding: 1.2rem;
+                    background: rgba(15, 23, 42, 0.6);
+                    border-radius: 16px;
+                    height: calc(100vh - 220px);   /* clave: columna alta */
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;             /* para que el scroll sea interno */
+                }
+                .upcoming-sticky {
+                    position: sticky;
+                    top: 0;
+                    z-index: 5;
+                    background: rgba(15, 23, 42, 0.75);
+                    backdrop-filter: blur(10px);
+                    border-bottom: 1px solid rgba(255,255,255,0.06);
+                    padding-bottom: 0.8rem;
+                    margin-bottom: 0.8rem;
+                }
+                .upcoming-title-row {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+                .upcoming-panel h3 {
+                    margin: 0;
+                    font-size: 1.15rem;
+                    color: var(--primary);
+                }
+                .upcoming-mini {
+                    display: flex;
+                    gap: 0.5rem;
+                    flex-wrap: wrap;
+                }
+                .pill {
+                    font-size: 0.75rem;
+                    color: #e2e8f0;
+                    border: 1px solid rgba(255,255,255,0.08);
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 999px;
+                    background: rgba(255,255,255,0.03);
+                }
+                .upcoming-filters {
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    gap: 0.6rem;
+                    margin-top: 0.8rem;
+                }
+                .segmented {
+                    display: flex;
+                    gap: 0.4rem;
+                }
+                .segmented button {
+                    flex: 1;
+                    background: rgba(255,255,255,0.03);
+                    border: 1px solid rgba(255,255,255,0.08);
+                    color: #e2e8f0;
+                    border-radius: 10px;
+                    padding: 0.45rem 0.6rem;
+                    cursor: pointer;
+                }
+                .segmented button.active {
+                    border-color: rgba(212,178,76,0.45);
+                    background: rgba(212,178,76,0.08);
+                    color: #fff;
+                }
+                .select {
+                    width: 100%;
+                    padding: 0.55rem 0.7rem;
+                    background: rgba(255,255,255,0.03);
+                    border: 1px solid rgba(255,255,255,0.08);
+                    border-radius: 10px;
+                    color: #e2e8f0;
+                }
+                .check {
+                    display: flex;
+                    gap: 0.5rem;
+                    align-items: center;
+                    color: #94a3b8;
+                    font-size: 0.85rem;
+                }
+                .upcoming-scroll {
+                    overflow: auto;
+                    padding-right: 6px; /* espacio para scrollbar */
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+                .section-title {
+                    color: #94a3b8;
+                    font-size: 0.85rem;
+                    margin: 0.2rem 0 0.5rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.06em;
+                }
+                .deadline-card {
+                    display: flex;
+                    gap: 0.8rem;
+                    padding: 0.9rem;
+                    background: rgba(255,255,255,0.03);
+                    border: 1px solid rgba(255,255,255,0.06);
+                    border-radius: 12px;
+                    transition: 0.2s;
+                }
+                .deadline-card:hover {
+                    background: rgba(255,255,255,0.06);
+                    transform: translateY(-1px);
+                }
+                .card-main {
+                    flex: 1;
+                    min-width: 0;
+                }
+                .card-top {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 0.35rem;
+                }
+                .badge {
                     font-size: 0.7rem;
-                    padding: 2px 4px;
-                    border-radius: 4px;
+                    font-weight: 800;
+                    padding: 0.2rem 0.45rem;
+                    border-radius: 999px;
+                    border: 1px solid rgba(255,255,255,0.08);
+                    color: #e2e8f0;
+                    background: rgba(255,255,255,0.03);
+                }
+                .countdown {
+                    font-size: 0.8rem;
+                    color: #e2e8f0;
+                }
+                .card-title {
+                    color: #e2e8f0;
+                    font-weight: 700;
+                    font-size: 0.95rem;
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    cursor: pointer;
                 }
-                .status-done { opacity: 0.5; text-decoration: line-through; }
-                .type-hearing { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border-left: 2px solid #ef4444; }
-                .type-filing { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border-left: 2px solid #3b82f6; }
-                .type-meeting { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border-left: 2px solid #10b981; }
-                .type-other { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border-left: 2px solid #94a3b8; }
-
-                /* UPCOMING SIDEBAR */
-                .upcoming-panel {
-                    padding: 1.5rem;
-                    background: rgba(15, 23, 42, 0.6);
-                    border-radius: 16px;
-                    height: fit-content;
+                .card-client {
+                    font-size: 0.8rem;
+                    color: #fbbf24;
+                    margin-bottom: 0.2rem;
+                    font-weight: 500;
                 }
-                .upcoming-panel h3 { margin-top: 0; font-size: 1.1rem; color: var(--primary); margin-bottom: 1rem; }
-                .upcoming-list { display: flex; flex-direction: column; gap: 1rem; }
-                .upcoming-item {
+                .tt-client {
+                    font-size: 0.75rem; 
+                    color: #fbbf24;
+                    margin-top: 1px;
+                }
+                .card-meta {
+                    margin-top: 0.2rem;
+                    color: #94a3b8;
+                    font-size: 0.82rem;
+                }
+                .event-actions {
                     display: flex;
-                    align-items: center;
-                    gap: 0.8rem;
-                    padding: 0.8rem;
-                    background: rgba(255,255,255,0.03);
-                    border-radius: 8px;
+                    gap: 0.5rem;
+                    opacity: 0;
                     transition: 0.2s;
                 }
-                .upcoming-item:hover { background: rgba(255,255,255,0.06); }
-                .priority-indicator { width: 4px; height: 30px; border-radius: 2px; }
-                .event-info h4 { margin: 0; font-size: 0.9rem; color: #e2e8f0; }
-                .event-info small { color: #94a3b8; font-size: 0.8rem; }
-                .event-actions { margin-left: auto; display: flex; gap: 0.5rem; opacity: 0; transition: 0.2s; }
-                .upcoming-item:hover .event-actions { opacity: 1; }
-                .event-actions button { background: none; border: none; cursor: pointer; font-size: 1rem; }
+                .deadline-card:hover .event-actions {
+                    opacity: 1;
+                }
+                .event-actions button {
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 1rem;
+                }
+                /* urgencia: borde sutil para “prioridad visual” */
+                .urgency-overdue { box-shadow: 0 0 0 1px rgba(239,68,68,0.20) inset; }
+                .urgency-critical { box-shadow: 0 0 0 1px rgba(239,68,68,0.14) inset; }
+                .urgency-high { box-shadow: 0 0 0 1px rgba(245,158,11,0.14) inset; }
+                .urgency-medium { box-shadow: 0 0 0 1px rgba(234,179,8,0.12) inset; }
 
-                /* MODAL */
-                .modal-overlay {
-                    position: fixed;
-                    top: 0; left: 0; right: 0; bottom: 0;
-                    background: rgba(0,0,0,0.7);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 1000;
-                    backdrop-filter: blur(5px);
+                .empty-state {
+                    padding: 1rem;
+                    border: 1px dashed rgba(255,255,255,0.12);
+                    border-radius: 12px;
+                    background: rgba(255,255,255,0.02);
                 }
-                .modal-content {
-                    background: #1e293b;
-                    padding: 2rem;
+                .empty-title { color: #e2e8f0; font-weight: 700; }
+                .empty-sub { color: #94a3b8; margin-top: 0.25rem; font-size: 0.85rem; }
+
+                /* HISTORY PANEL */
+                .history-panel {
+                    margin-top: 2rem;
+                    background: rgba(15, 23, 42, 0.6);
+                    border: 1px solid rgba(255,255,255,0.08);
                     border-radius: 16px;
-                    width: 400px;
-                    border: 1px solid var(--border);
+                    overflow: hidden;
+                    backdrop-filter: blur(10px);
                 }
-                .modal-content form { display: flex; flex-direction: column; gap: 1rem; }
-                .modal-content input, .modal-content select, .modal-content textarea {
-                    padding: 0.8rem;
-                    background: rgba(0,0,0,0.3);
-                    border: 1px solid var(--border);
-                    border-radius: 6px;
-                    color: white;
+                .history-head {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 1rem 1.5rem;
+                    cursor: pointer;
+                    background: rgba(255,255,255,0.02);
                 }
-                .row { display: flex; gap: 1rem; }
-                .row > div { flex: 1; display: flex; flex-direction: column; }
-                .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem; }
-                .btn-cancel { background: transparent; border: 1px solid var(--border); color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; }
+                .history-head:hover { background: rgba(255,255,255,0.04); }
+                .history-title { display: flex; align-items: center; gap: 10px; }
+                .history-title h3 { font-size: 1rem; color: #e2e8f0; margin: 0; }
+                .history-title .count { font-size: 0.75rem; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px; }
+                .btn-toggle { background: transparent; border: none; color: var(--primary); font-size: 0.8rem; cursor: pointer; font-weight: 600; }
+                
+                .history-body {
+                    max-height: 400px;
+                    overflow-y: auto;
+                    padding: 1.5rem;
+                    border-top: 1px solid rgba(255,255,255,0.06);
+                }
+                .history-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                    gap: 1rem;
+                }
+                .history-card {
+                    background: rgba(255,255,255,0.02);
+                    border: 1px solid rgba(255,255,255,0.05);
+                    padding: 1rem;
+                    border-radius: 12px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                }
+                .history-card.status-done { border-left: 3px solid #10b981; }
+                .history-card.status-deleted { border-left: 3px solid #ef4444; opacity: 0.7; }
+                
+                .card-info { display: flex; flex-direction: column; gap: 4px; }
+                .card-info h4 { font-size: 0.9rem; color: #f1f5f9; margin: 0; }
+                .card-info span { font-size: 0.75rem; color: #94a3b8; }
+                .badge-status { 
+                    font-size: 0.65rem; 
+                    font-weight: 800; 
+                    padding: 2px 6px; 
+                    border-radius: 4px; 
+                    width: fit-content;
+                    margin-bottom: 4px;
+                }
+                .badge-status.done { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+                .badge-status.deleted { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+                .empty-msg { text-align: center; color: #64748b; font-size: 0.9rem; padding: 2rem; }
 
                 @media (max-width: 1024px) {
                     .agenda-grid { grid-template-columns: 1fr; }

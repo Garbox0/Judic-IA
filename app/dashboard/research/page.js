@@ -19,7 +19,7 @@ export default function ResearchPage() {
     const [currentUser, setCurrentUser] = useState(null);
     const [logoBase64, setLogoBase64] = useState(null);
     const [history, setHistory] = useState([]);
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
 
 
@@ -278,10 +278,9 @@ export default function ResearchPage() {
 
     return (
         <div className="research-container">
-            <div className="research-layout" style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
-
+            <div className={`research-layout ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
                 {/* HISTORY SIDEBAR */}
-                <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`} style={{ width: sidebarOpen ? '300px' : '70px', transition: '0.3s', padding: sidebarOpen ? '1.5rem' : '0.5rem', flexShrink: 0 }}>
+                <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`}>
                     {sidebarOpen && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                             <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', textTransform: 'uppercase' }}>Historial</h4>
@@ -377,7 +376,7 @@ export default function ResearchPage() {
                     )}
                 </aside>
 
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="main-content-area">
                     <nav className="research-nav">
                         <div className="breadcrumb">
                             <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
@@ -437,7 +436,7 @@ export default function ResearchPage() {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                             />
-                            <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', minWidth: '180px' }}>
+                            <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
                                 {loading ? (
                                     <>
                                         <span className="spinner"></span>
@@ -507,9 +506,18 @@ export default function ResearchPage() {
                                                 return (
                                                     <div key={i} className="case-item-card" style={{ marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                                                            <div>
+                                                            <div style={{ flex: 1, minWidth: 0 }}>
                                                                 <h4 style={{ margin: '0 0 0.4rem 0', color: '#e2e8f0', fontSize: '1rem' }}>🏛️ {c.title}</h4>
-                                                                <p style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.5 }}>{c.summary}</p>
+                                                                <div className="case-summary-scroll" style={{
+                                                                    maxHeight: '4.5em', // Approx 3 lines
+                                                                    overflowY: 'auto',
+                                                                    paddingRight: '5px',
+                                                                    marginBottom: '0.4rem'
+                                                                }}>
+                                                                    <p style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.5 }}>
+                                                                        {c.summary}
+                                                                    </p>
+                                                                </div>
                                                                 <span style={{ fontSize: '0.8rem', color: '#fbbf24', opacity: 0.8 }}>Fuente: {c.source || 'Referencia Legal'}</span>
                                                             </div>
                                                             {safeUrl && (
@@ -634,6 +642,27 @@ export default function ResearchPage() {
                     margin: 0 auto;
                     color: var(--foreground);
                     font-family: var(--font-main);
+                    overflow-x: hidden;
+                }
+                .research-layout {
+                    display: flex;
+                    gap: 2rem;
+                    align-items: flex-start;
+                    transition: all 0.3s ease;
+                }
+                .research-sidebar {
+                    width: 300px;
+                    transition: 0.3s;
+                    padding: 1.5rem;
+                    flex-shrink: 0;
+                }
+                .research-sidebar.closed {
+                    width: 70px;
+                    padding: 0.5rem;
+                }
+                .main-content-area {
+                    flex: 1;
+                    min-width: 0;
                 }
 
 
@@ -766,7 +795,7 @@ export default function ResearchPage() {
                     100% { opacity: 0; transform: translateY(-5px); }
                 }
                 .search-box input {
-                    flex: 1;
+                    flex: 3;
                     padding: 1.2rem;
                     background: rgba(15, 23, 42, 0.5);
                     border: 1px solid var(--border);
@@ -781,7 +810,10 @@ export default function ResearchPage() {
                 }
                 .search-box input::placeholder { color: #475569; font-style: italic; }
                 .search-box button {
-                    padding: 0 2rem;
+                    flex: 1;
+                    min-width: 180px;
+                    max-width: 250px;
+                    padding: 0 1.5rem;
                     background: var(--primary);
                     color: #020617;
                     border-radius: 12px;
@@ -983,11 +1015,29 @@ export default function ResearchPage() {
                 .empty-state { text-align: center; padding: 4rem 0; color: #475569; font-style: italic; }
 
                 /* MOBILE RESPONSIVE */
+                @media (max-width: 1024px) {
+                    .research-container { padding: 0 1.5rem 2rem; }
+                    .research-layout { flex-direction: column; gap: 1.5rem; }
+                    .research-sidebar { width: 100% !important; padding: 1rem !important; }
+                    .research-sidebar.closed { height: 60px; overflow: hidden; }
+                    .header-flex { flex-direction: column; text-align: center; gap: 1rem; }
+                    .logo-main { width: 60px; height: 60px; }
+                    .header-text { text-align: center; }
+                    .categories-grid { grid-template-columns: repeat(2, 1fr); }
+                }
+
                 @media (max-width: 768px) {
-                    .research-container {
-                        padding: 0 1.5rem 2rem;
-                    }
-                    /* ... existing mobile styles ... */
+                    .search-box { flex-direction: column; }
+                    .search-box button { width: 100%; max-width: none; min-width: 0; height: 55px; }
+                    .jurisdiction-selector { justify-content: center; }
+                    .action-buttons { flex-direction: column; }
+                    .btn-action { width: 100%; justify-content: center; }
+                    .copy-toast { right: 50%; transform: translateX(50%); bottom: -2rem; }
+                }
+                
+                @media (max-width: 480px) {
+                    .categories-grid { grid-template-columns: 1fr; }
+                    .dashboard-page-title { font-size: 1.5rem; }
                 }
 
                 .spinner {

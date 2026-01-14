@@ -19,14 +19,21 @@ export default function LoginPage() {
   // NEW: Loading state for session check
   const [checkingSession, setCheckingSession] = useState(false);
 
-  // Auto-redirect if already logged in
+  // Auto-redirect if already logged in and session is healthy
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        router.push('/dashboard');
-        // BREAK LOOP: If session exists but proxy rejected us, let user re-login
-        console.log("User found on client, but forcing form render to fix session sync.");
+        // Double check session persistence
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        if (profile) {
+          router.push('/dashboard');
+        }
       }
     };
     checkUser();
@@ -34,11 +41,8 @@ export default function LoginPage() {
     // Listen for sign-in event specifically
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // setCheckingSession(true); 
-        // router.push('/dashboard');
-        // Prevent loop: Don't auto-redirect on background auth changes. 
-        // Let explicit user action (handleLogin) or initial checkUser handle it.
-        console.log("Auth state changed to SIGNED_IN. Staying on page to avoid loop.");
+        // Only auto-redirect if session is established and valid
+        router.push('/dashboard');
       }
     });
 

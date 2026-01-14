@@ -1,0 +1,17 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Every 48 hours to ensure we stay under the 7-day inactivity limit
+    - cron: '0 0 */2 * *'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Heartbeat Endpoint
+        run: |
+          # Replace with your actual production URL when deployed
+          # For development, this is just a template documentation
+          curl -I https://judic-ia.vercel.app/api/health

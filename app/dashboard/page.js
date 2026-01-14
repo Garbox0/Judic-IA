@@ -14,14 +14,28 @@ export default function DashboardHome() {
 
       if (user) {
         // Fetch Real Client Count (Inquiries)
-        const { count, error } = await supabase
+        const { count: inquiryCount, error: inquiryError } = await supabase
           .from('inquiries')
           .select('*', { count: 'exact', head: true })
           .neq('status', 'link_generated')
-          .eq('assigned_lawyer_id', user.id); // Ensure we only count user's clients
+          .eq('assigned_lawyer_id', user.id);
 
-        if (!error) {
-          setStats(prev => ({ ...prev, clients: count || 0 }));
+        if (!inquiryError) {
+          setStats(prev => ({ ...prev, clients: inquiryCount || 0 }));
+        }
+
+        // Fetch Today's Deadlines Count
+        const todayStr = new Date().toISOString().split('T')[0];
+        const { count: deadlineCount, error: deadlineError } = await supabase
+          .from('deadlines')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('status', 'pending')
+          .gte('due_date', `${todayStr}T00:00:00Z`)
+          .lte('due_date', `${todayStr}T23:59:59Z`);
+
+        if (!deadlineError) {
+          setStats(prev => ({ ...prev, deadlines: deadlineCount || 0 }));
         }
       }
     };

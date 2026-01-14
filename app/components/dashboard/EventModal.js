@@ -8,25 +8,44 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
         description: '',
         date: new Date().toISOString().split('T')[0],
         time: '09:00',
-        type: 'hearing'
+        type: 'hearing',
+        inquiry_id: null // New field
     });
     const [loading, setLoading] = useState(false);
+    const [clients, setClients] = useState([]); // State for clients dropdown
 
     useEffect(() => {
-        if (isOpen && initialData) {
-            setEventData(prev => ({
-                ...prev,
-                ...initialData
-            }));
-        } else if (isOpen) {
-            // Reset if opening fresh without data
-            setEventData({
-                title: '',
-                description: '',
-                date: new Date().toISOString().split('T')[0],
-                time: '09:00',
-                type: 'hearing'
-            });
+        if (isOpen) {
+            // Fetch clients for dropdown
+            const fetchClients = async () => {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data } = await supabase
+                        .from('inquiries')
+                        .select('id, contact_name')
+                        .neq('status', 'link_generated') // Only active clients
+                        .order('contact_name', { ascending: true });
+
+                    if (data) setClients(data);
+                }
+            };
+            fetchClients();
+
+            if (initialData) {
+                setEventData(prev => ({
+                    ...prev,
+                    ...initialData
+                }));
+            } else {
+                setEventData({
+                    title: '',
+                    description: '',
+                    date: new Date().toISOString().split('T')[0],
+                    time: '09:00',
+                    type: 'hearing',
+                    inquiry_id: null
+                });
+            }
         }
     }, [isOpen, initialData]);
 
@@ -46,7 +65,8 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
                 description: eventData.description,
                 due_date: due_date,
                 type: eventData.type,
-                status: 'pending'
+                status: 'pending',
+                inquiry_id: eventData.inquiry_id // Save relation
             });
 
         setLoading(false);
@@ -73,6 +93,20 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
                         required
                         placeholder="Ej: Audiencia Testimonial"
                     />
+
+                    {/* Client Selector */}
+                    <label>Asociar a Cliente (Opcional)</label>
+                    <select
+                        value={eventData.inquiry_id || ''}
+                        onChange={e => setEventData({ ...eventData, inquiry_id: e.target.value || null })}
+                    >
+                        <option value="">-- Sin asignar --</option>
+                        {clients.map(c => (
+                            <option key={c.id} value={c.id}>
+                                👤 {c.contact_name || 'Sin Nombre'}
+                            </option>
+                        ))}
+                    </select>
 
                     <div className="row">
                         <div>

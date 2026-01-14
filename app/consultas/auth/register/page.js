@@ -84,10 +84,11 @@ function RegisterContent() {
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
+    const [confirmEmail, setConfirmEmail] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [countryCode, setCountryCode] = useState('+54 9');
     const [phone, setPhone] = useState('');
-    const [confirmEmail, setConfirmEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -187,7 +188,7 @@ function RegisterContent() {
                     data: {
                         role: 'client',
                         full_name: `${firstName} ${lastName}`,
-                        phone: phone
+                        phone: `${countryCode} ${phone}`
                     }
                 }
             });
@@ -266,6 +267,21 @@ function RegisterContent() {
                             />
                         </div>
 
+                        <div className="input-field">
+                            <label>Confirmar Email</label>
+                            <input
+                                type="email"
+                                value={confirmEmail}
+                                onChange={(e) => setConfirmEmail(e.target.value)}
+                                placeholder="Repite tu email"
+                                required
+                                style={{ borderColor: (confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase()) ? '#ef4444' : '' }}
+                            />
+                            {confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase() && (
+                                <div style={{ color: '#fca5a5', fontSize: '0.8rem', marginTop: '0.3rem' }}>No coinciden</div>
+                            )}
+                        </div>
+
                         <div style={{ display: 'flex', gap: '1rem' }}>
                             <div className="input-field" style={{ flex: 1 }}>
                                 <label>Nombre</label>
@@ -291,28 +307,37 @@ function RegisterContent() {
 
                         <div className="input-field">
                             <label>Celular</label>
-                            <input
-                                type="tel"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                placeholder="+54 9 11..."
-                                required
-                            />
-                        </div>
-
-                        <div className="input-field">
-                            <label>Confirmar Email</label>
-                            <input
-                                type="email"
-                                value={confirmEmail}
-                                onChange={(e) => setConfirmEmail(e.target.value)}
-                                placeholder="Repite tu email"
-                                required
-                                style={{ borderColor: (confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase()) ? '#ef4444' : '' }}
-                            />
-                            {confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase() && (
-                                <div style={{ color: '#fca5a5', fontSize: '0.8rem', marginTop: '0.3rem' }}>No coinciden</div>
-                            )}
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <select
+                                    value={countryCode}
+                                    onChange={(e) => setCountryCode(e.target.value)}
+                                    style={{
+                                        width: '130px',
+                                        padding: '1rem 0.5rem',
+                                        background: '#020617',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '14px',
+                                        color: 'white',
+                                        fontSize: '0.9rem',
+                                        outline: 'none'
+                                    }}
+                                >
+                                    <option value="+54 9">+54 9 (AR)</option>
+                                    <option value="+598">+598 (UY)</option>
+                                    <option value="+56">+56 (CL)</option>
+                                    <option value="+55">+55 (BR)</option>
+                                    <option value="+57">+57 (CO)</option>
+                                    <option value="+1">+1 (US/CA)</option>
+                                </select>
+                                <input
+                                    type="tel"
+                                    style={{ flex: 1 }}
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    placeholder="11 1234 5678"
+                                    required
+                                />
+                            </div>
                         </div>
 
                         <div className="input-field">

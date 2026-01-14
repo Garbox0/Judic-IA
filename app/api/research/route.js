@@ -210,11 +210,15 @@ export async function POST(request) {
                 OUTPUT 'cases':
                 Debe ser un ARRAY DE OBJETOS.
                 
-                FORMATO:
-                - "summary": Mantenelo CONCISO (1-2 líneas máx). Título y Subtítulo informativo.
-                - ESTILO DE TEXTO: NO USES NEGRITAS (doble asterisco **). Ensucian el PDF.
-                  Usá mayúsculas o subtítulos (###) para destacar, pero no **negrita**.
-                
+                FORMATO OBLIGATORIO:
+                - "summary": MÁXIMO 30-40 PALABRAS (2-3 líneas). Debe ser un resumen ULTRA-CONCISO del holding.
+                - ESTILO DE TEXTO: Texto plano. NADA DE NEGRITAS (**). NADA DE MARKDOWN en los valores.
+
+                FILTRO DE CALIDAD (CRÍTICO):
+                - Descartá CUALQUIER resultado que sea un índice, un boletín sumario sin desarrollo, o un PDF que solo menciona la palabra clave al pasar.
+                - Si el snippet dice "Índice", "Boletín", "Sumario", "Tabla de contenidos" -> IGNORARLO.
+                - Solo incluí "cases" si estás 90% seguro de que es un FALLO/SENTENCIA real con autos definidos. Prefiero 3 fallos reales que 10 enlaces basura.
+
                 JSON SCHEMA:
                 - "laws": (Texto detallado con subtítulos y items)
                 - "cases": [
