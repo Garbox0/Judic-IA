@@ -120,6 +120,27 @@ export async function POST(request) {
                 }
             }
 
+            // [NEW] CLIENT CONTEXT INJECTION (Prevents AI asking for known Name/Email)
+            let clientContext = "";
+            // We might receive 'clientName' in body or derive it from clientEmail if needed
+            // Ideally, the frontend sends it via the 'message' hidden prefix or a new body param. 
+            // For now, let's look at the body params 'clientEmail' and 'clientUserId'.
+
+            // NOTE: The user requested the AI "La IA solo tiene que sacar la intencion".
+            // We tell the AI: "You ALREADY KNOW the user."
+
+            if (clientEmail) {
+                clientContext += `\n\n=== DATOS DEL CLIENTE (YA CONOCIDOS) ===\nEMAIL: ${clientEmail}\n`;
+            }
+            // If we had a name passed in, we would add it. 
+            // Since the IntakeFormContent has the Auth User, it has the email. 
+            // The AI should address them politely but NOT ask for name/email again unless confirming.
+            clientContext += `INSTRUCCION CLAVE: El cliente ya está registrado. NO pidas su nombre ni email ni teléfono salvo que sea estrictamente necesario para el caso.
+            TU OBJETIVO PRINCIPAL: Determinar la intención legal ("Case Type") y un resumen del problema.
+            Saluda cortésmente (ej: "Hola, veo que ya estás registrado. ¿En qué puedo ayudarte hoy?") y ve directo al punto legal.`;
+
+            systemPrompt += clientContext;
+
             if (!lawyerId) return NextResponse.json({ reply: "Error: Falta ID del Abogado." }, { status: 400 });
         } else if (mode === 'demo') {
             systemPrompt = INTAKE_SYSTEM_PROMPT; // Reuse Intake Prompt for Demo
@@ -171,6 +192,32 @@ export async function POST(request) {
 
         // 2. SUPABASE: CREATE/UPDATE INQUIRY
         if (sessionId) {
+            // [SECURITY CHECK] PREVENT RESURRECTION OF DELETED CHATS
+            // If the client sends SIGNIFICANT history (implying an ongoing chat) but the inquiry is gone, block it.
+            // New clients have: 1 (Greeting) + 1 (User Message) = 2. 
+            // So we allow history <= 2. Only block if > 2.
+
+            console.log(`🛡️ Security Check | Session: ${sessionId} | History Length: ${history?.length || 0}`);
+
+            const isOngoingChat = history && history.length > 2; // Fixed: Allow Greeting + First Message (Len=2)
+
+            if (isOngoingChat) {
+                // Check if it exists FIRST
+                const { data: existingInquiry } = await db
+                    .from('inquiries')
+                    .select('id')
+                    .eq('id', sessionId)
+                    .maybeSingle();
+
+                if (!existingInquiry) {
+                    console.warn(`🚫 BLOCKED RESURRECTION: Session ${sessionId} was deleted.`);
+                    return NextResponse.json({
+                        reply: "⛔ **SESIÓN REVOCADA**\n\nEl profesional ha cerrado este expediente. No es posible enviar más mensajes.",
+                        error: "SESSION_REVOKED"
+                    }, { status: 403 });
+                }
+            }
+
             const upsertData = {
                 id: sessionId,
                 case_type: caseType,
@@ -187,7 +234,7 @@ export async function POST(request) {
 
             const { error: upsertError } = await db
                 .from('inquiries')
-                .upsert(upsertData, { onConflict: 'id', ignoreDuplicates: true });
+                .upsert(upsertData, { onConflict: 'id' });
 
             if (upsertError) console.error("❌ Supabase Upsert Error:", upsertError);
         }

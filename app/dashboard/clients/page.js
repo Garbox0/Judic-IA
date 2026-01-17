@@ -29,6 +29,7 @@ export default function ClientsPage() {
                 const { data, error } = await supabase
                     .from('inquiries')
                     .select('*')
+                    .eq('assigned_lawyer_id', user.id) // FIXED: Filter by lawyer
                     .neq('status', 'link_generated')
                     .order('created_at', { ascending: false });
 
@@ -199,31 +200,20 @@ export default function ClientsPage() {
         setClients(prev => prev.filter(c => c.id !== inquiryId));
         setClientToDelete(null);
 
-        // MANUAL CASCADE DELETE (Safe fallback if DB constraints are missing)
-        try {
-            // 1. Delete associated deadlines (fixing the specific error reported)
-            await supabase.from('deadlines').delete().eq('inquiry_id', inquiryId);
+        const { error } = await supabase
+            .from('inquiries')
+            .delete()
+            .eq('id', inquiryId);
 
-            // 2. Delete other related data
-            await supabase.from('research_reports').delete().eq('user_id', lawyerId).contains('result_json', { inquiry_id: inquiryId }); // If linked this way
-            await supabase.from('messages').delete().eq('inquiry_id', inquiryId);
-            await supabase.from('attachments').delete().eq('inquiry_id', inquiryId);
-
-            // 3. Finally delete the inquiry
-            const { error } = await supabase
-                .from('inquiries')
-                .delete()
-                .eq('id', inquiryId);
-
-            if (error) throw error;
-
-            console.log(`✅ Client ${inquiryId} and related data deleted successfully.`);
-
-        } catch (error) {
-            console.error("Error deleting client (Manual Cascade Failed):", error);
-            // Revert optimistic UI update if critical failure (optional, but safer to warn user)
-            alert("Hubo un error al eliminar el cliente y sus datos asociados. Por favor verifica tu conexión.");
-            // Ideally we would fetchClients() again here to restore state, but simple alert is okay for now.
+        if (error) {
+            console.error("Error deleting client:", error);
+            console.error("Error Details:", {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code
+            });
+            alert(`Error al eliminar: ${error.message || 'Desconocido'}. Revisá la consola para los detalles.`);
         }
     };
 
@@ -301,7 +291,7 @@ export default function ClientsPage() {
                         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
                         <h2 style={{ marginBottom: '1rem' }}>¿Eliminar Expediente?</h2>
                         <p style={{ color: 'var(--muted)', marginBottom: '2rem' }}>
-                            Esta acción borrará el chat, los archivos adjuntos y todos los datos del cliente de forma permanente.
+                            Esta acción borrará el chat, los archivos adjuntos y <strong>la cuenta de acceso del cliente</strong> de forma permanente. El cliente no podrá volver a ingresar.
                         </p>
                         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                             <button onClick={() => setClientToDelete(null)} className="btn-cancel">

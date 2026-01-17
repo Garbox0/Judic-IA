@@ -42,62 +42,99 @@ export default function IntakeFormContent({ id }) {
             setClientUserId(user.id);
             console.log("🔓 Usuario autenticado:", user.email, user.id);
 
-            // 2.5 ZOMBIE CHECK (CRÍTICO): Verify current user still exists in DB
-            // If lawyer deleted the client, the session is valid but the user is dead.
-            const { data: userProfile, error: profileError } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('id', user.id)
-                .single();
+            // 3. STRICT RELATIONSHIP CHECK (The "Zombie" Fix)
+            // Does this user actually have an open inquiry with this lawyer?
+            const { data: inquiryData, error: inquiryError } = await supabase
+                .from('inquiries')
+                .select('id, status')
+                .eq('assigned_lawyer_id', id)
+                .or(`client_auth_id.eq.${user.id},contact_email.eq.${user.email}`) // Check both auth/email
+                .maybeSingle();
 
-            if (profileError || !userProfile) {
-                console.warn("💀 ZOMBIE DETECTED: Session valid but User deleted from DB.");
+            if (!inquiryData) {
+                // Check if user was just created (within last 30 seconds)
+                // This gives the API/Background sync time to finish if needed
+                const isNewUser = (new Date() - new Date(user.created_at)) < 30000;
 
-                // Fetch lawyer name for the nice message
-                let lawyerName = "el estudio";
-                if (id) {
-                    const { data: lawyerData } = await supabase.from('profiles').select('full_name').eq('id', id).single();
-                    if (lawyerData) lawyerName = lawyerData.full_name;
+                if (!isNewUser) {
+                    console.warn("💀 ZOMBIE DETECTED: User exists but Inquiry was deleted/missing.");
+                    setLawyer({ full_name: 'el estudio' });
+                    setIsDeleted(true);
+                    setTimeout(async () => {
+                        await supabase.auth.signOut();
+                        window.location.href = "/";
+                    }, 5000);
+                    return;
+                } else {
+                    console.log("⏳ New user detected. Waiting for inquiry sync...");
+                    // Try again in 2 seconds
+                    setTimeout(checkAuthAndFetchLawyer, 2000);
+                    return;
                 }
-
-                // Set special state (don't sign out yet, let them see the message)
-                setLawyer({ full_name: lawyerName }); // Hack to reuse lawyer state or just use local var
-                setIsDeleted(true);
-
-                // Sign out after delay
-                setTimeout(async () => {
-                    await supabase.auth.signOut();
-                    window.location.href = "/";
-                }, 5000);
-
-                return;
             }
 
-            // 3. FETCH LAWYER PROFILE
+            // 4. REALTIME KILL SWITCH
+            // Listen for deletion of MY inquiry
+            const channel = supabase.channel(`access-guard-${user.id}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'DELETE',
+                        schema: 'public',
+                        table: 'inquiries',
+                        filter: `id=eq.${inquiryData.id}`  // Listen specifically for THIS case
+                    },
+                    (payload) => {
+                        console.warn("🚫 REALTIME ACCESS REVOKED: Inquiry deleted by lawyer.");
+                        setIsDeleted(true);
+                    }
+                )
+                .subscribe();
+
+
+            // 5. FETCH LAWYER PROFILE
             if (!id) return;
             const { data, error } = await supabase
                 .from('profiles')
                 .select('full_name, especialidades, matricula, avatar_url')
                 .eq('id', id)
-                .single();
+                .maybeSingle();
 
             if (error) {
-                console.warn("⚠️ No se pudo cargar el perfil del abogado:", error);
-
-                // DEBUG: Show actual error to solve the mystery
-                setError(`Error (${error.code}): ${error.message} - Hint: ${error.hint || 'No hint'}`);
-
-                /* 
-                if (error.code === 'PGRST116') {
-                    setError(`Perfil del abogado no encontrado (ID: ${id}).`);
-                } else {
-                    setError(`Error de Acceso (RLS): No se pudo cargar el perfil. Por favor, ejecuta el script SQL de corrección de RLS.`);
-                }
-                */
+                console.warn("⚠️ Error fetching lawyer profile:", error);
+                setError(`Error técnico al cargar el perfil. Código: ${error.code}`);
+            } else if (!data) {
+                console.warn("⚠️ Lawyer profile not found for ID:", id);
+                setError("El perfil del profesional no se encuentra disponible. Es posible que el enlace sea antiguo o incorrecto.");
             } else {
                 setLawyer(data);
             }
             setLoading(false);
+
+            // 6. ROBUST POLLING (BACKUP FOR REALTIME)
+            // Polling every 4 seconds ensures that if Realtime misses the DELETE event (common with RLS),
+            // we typically catch it within seconds regardless.
+            const zombieInterval = setInterval(async () => {
+                if (!inquiryData?.id) return;
+
+                const { error: checkError } = await supabase
+                    .from('inquiries')
+                    .select('id')
+                    .eq('id', inquiryData.id)
+                    .single(); // Will throw error if not found
+
+                if (checkError) {
+                    // Logic: If error is "PGRST116" (not found), it's deleted.
+                    console.warn("💀 POLLING DETECTED ZOMBIE: Inquiry gone.");
+                    setIsDeleted(true);
+                    clearInterval(zombieInterval);
+                }
+            }, 4000);
+
+            return () => {
+                supabase.removeChannel(channel);
+                clearInterval(zombieInterval);
+            };
         }
         checkAuthAndFetchLawyer();
     }, [id, searchParams, router]);

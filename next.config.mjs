@@ -28,8 +28,17 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            // Permissive CSP for Next.js (allowing scripts/styles) but blocking framing/mixed content
-            value: "default-src 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://*.supabase.co https://lh3.googleusercontent.com; connect-src 'self' https://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com; frame-description 'none'; frame-ancestors 'none';",
+            // Hardened CSP: Removing unsafe-eval, limiting frames and connect sources
+            value: "default-src 'self'; " +
+              "form-action 'self'; " +
+              "script-src 'self' 'unsafe-inline' https://apis.google.com; " +
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+              "font-src 'self' https://fonts.gstatic.com data:; " +
+              "img-src 'self' data: https://*.supabase.co https://lh3.googleusercontent.com; " +
+              "connect-src 'self' https://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com; " +
+              "frame-src 'none'; " +
+              "frame-ancestors 'none'; " +
+              "object-src 'none';",
           },
         ],
       },

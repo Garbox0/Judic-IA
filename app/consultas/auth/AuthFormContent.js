@@ -18,24 +18,38 @@ export default function AuthFormContent() {
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [confirmedSession, setConfirmedSession] = useState(null);
 
-    // Get context from URL
-    const lawyerId = searchParams.get('lawyerId') || searchParams.get('lawyer');
-    const cid = searchParams.get('cid');
+    // Get context from URL or LocalStorage fallback
+    const [lawyerId, setLawyerId] = useState(null);
+    const [cid, setCid] = useState(null);
 
-    // Handle Detection of invalid/deleted access
+    // Initial load and persistence
     useEffect(() => {
-        // 1. Check if the URL has an error from Supabase (e.g. invalid invite/confirmation)
+        const urlLawyer = searchParams.get('lawyerId') || searchParams.get('lawyer');
+        const urlCid = searchParams.get('cid');
+
+        // Restore from storage if missing in URL (e.g. returning from email confirmation)
+        const storedLawyer = localStorage.getItem('judic_ia_lawyer_id');
+        const storedCid = localStorage.getItem('judic_ia_cid');
+
+        const finalLawyer = urlLawyer || storedLawyer;
+        const finalCid = urlCid || storedCid;
+
+        if (finalLawyer) {
+            setLawyerId(finalLawyer);
+            localStorage.setItem('judic_ia_lawyer_id', finalLawyer);
+        }
+        if (finalCid) {
+            setCid(finalCid);
+            localStorage.setItem('judic_ia_cid', finalCid);
+        }
+
+        // 1. Check if the URL has an error from Supabase
         const errorCode = searchParams.get('error');
         const errorDesc = searchParams.get('error_description');
         if (errorCode === 'access_denied' || errorDesc?.includes('expired') || errorDesc?.includes('invalid')) {
             setRestricted(true);
         }
-
-        // 2. CID Validation REMOVED
-        // We allow entry to the auth form for any link.
-        // If the lawyer id is genuinely missing, we handle it during/after login.
-        // This prevents RLS blocks for anonymous clients.
-    }, [searchParams, cid, lawyerId]);
+    }, [searchParams]);
 
     // Redirect out if restricted
     useEffect(() => {
@@ -74,17 +88,23 @@ export default function AuthFormContent() {
     }, [lawyerId, searchParams, router]);
 
     const enterIntake = async () => {
-        if (!confirmedSession || !lawyerId) return;
+        if (!confirmedSession || !lawyerId) {
+            console.error("❌ Confirmed session or Lawyer ID missing:", { hasSession: !!confirmedSession, lawyerId });
+            setError("Falta información de sesión o abogado. Si vienes desde el email de confirmación, por favor intenta presionar el botón de nuevo.");
+            return;
+        }
         setLoading(true);
+        setError(null);
 
         try {
-            const currentCid = searchParams.get('cid') || crypto.randomUUID();
+            const currentCid = cid || searchParams.get('cid') || crypto.randomUUID();
+            console.log("🚀 Syncing session with database...", { cid: currentCid, lawyer: lawyerId });
 
-            await fetch("/api/chat", {
+            const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    message: `[SISTEMA: Cliente verificado: ${confirmedSession.user.email}]`,
+                    message: `[SISTEMA: Cliente verificado y listo para consulta: ${confirmedSession.user.email}]`,
                     history: [],
                     mode: 'intake',
                     sessionId: currentCid,
@@ -94,9 +114,16 @@ export default function AuthFormContent() {
                 }),
             });
 
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || "Error al sincronizar sesión.");
+            }
+
+            console.log("✅ Session synced. Entering chat...");
             router.push(`/consultas/${lawyerId}?cid=${currentCid}`);
         } catch (err) {
-            setError("Error al entrar al chat. Intenta de nuevo.");
+            console.error("❌ enterIntake Error:", err);
+            setError("No pudimos preparar tu sesión. Por favor intenta presionar el botón nuevamente.");
         } finally {
             setLoading(false);
         }
@@ -168,7 +195,10 @@ export default function AuthFormContent() {
                     email,
                     password,
                     options: {
-                        emailRedirectTo: fullRedirectUrl
+                        emailRedirectTo: fullRedirectUrl,
+                        data: {
+                            role: 'client' // EXPLICIT ROLE ASSIGNMENT
+                        }
                     }
                 });
                 if (signUpError) throw signUpError;
