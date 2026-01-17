@@ -4,7 +4,18 @@ import { supabase } from "../lib/supabase";
 
 import { useSearchParams } from "next/navigation";
 
-export default function ChatWidget({ mode = "client", initialMessage = "Hola...", startOpen = false, embedded = false, lawyerId = null, clientEmail = null, clientUserId = null, lawyerSpecialties = [] }) {
+export default function ChatWidget({
+    mode = "client",
+    initialMessage = "Hola...",
+    startOpen = false,
+    embedded = false,
+    lawyerId = null,
+    clientEmail = null,
+    clientUserId = null,
+    clientName = null,
+    clientPhone = null,
+    lawyerSpecialties = []
+}) {
     const [isOpen, setIsOpen] = useState(startOpen || embedded);
     const [messages, setMessages] = useState([
         { role: "assistant", content: initialMessage }
@@ -131,6 +142,8 @@ export default function ChatWidget({ mode = "client", initialMessage = "Hola..."
                     lawyerId, // Pass the lawyer ID for attribution
                     clientUserId: userIdToSend,
                     clientEmail: emailToSend,
+                    clientName,
+                    clientPhone,
                     lawyerSpecialties: lawyerSpecialties || [] // [NEW] Pass specialties to AI logic
                 }),
             });
@@ -288,7 +301,11 @@ export default function ChatWidget({ mode = "client", initialMessage = "Hola..."
                                                 history: messages,
                                                 mode,
                                                 sessionId,
-                                                lawyerId
+                                                lawyerId,
+                                                clientUserId: userIdToSend,
+                                                clientEmail: emailToSend,
+                                                clientName,
+                                                clientPhone
                                             }),
                                         });
                                         const apiData = await apiRes.json();

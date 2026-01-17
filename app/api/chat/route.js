@@ -82,7 +82,29 @@ export async function POST(request) {
 
     try {
         const body = await request.json();
-        const { message, history, mode, sessionId, lawyerId, clientUserId, clientEmail, lawyerSpecialties } = body;
+        const {
+            message, history, mode, sessionId, lawyerId,
+            clientUserId, clientEmail, clientName, clientPhone,
+            lawyerSpecialties
+        } = body;
+
+        // [STRICT GATEKEEPER] Verify Profile existence for identified users IMMEDIATELY
+        if (clientUserId && mode === 'intake') {
+            const { data: profileExists } = await db
+                .from('profiles')
+                .select('id')
+                .eq('id', clientUserId)
+                .maybeSingle();
+
+            if (!profileExists) {
+                console.warn(`🚫 BLOCKED ACCESS: Profile for user ${clientUserId} no longer exists (Zombie attempt).`);
+                return NextResponse.json({
+                    reply: "⛔ **SESIÓN CERRADA**\n\nTu acceso ha sido revocado por el profesional. No es posible enviar más mensajes.",
+                    error: "ACCESS_REVOKED",
+                    code: "ZOMBIE_DETECTION"
+                }, { status: 403 });
+            }
+        }
 
         // 1. CHOOSE SYSTEM PROMPT
         let systemPrompt = "";
@@ -218,12 +240,44 @@ export async function POST(request) {
                 }
             }
 
+            // [SMART UPSERT] Only overwrite name/phone if they are empty or "Nuevo Cliente"
+            const { data: currentInquiry } = await db
+                .from('inquiries')
+                .select('contact_name, contact_phone, id')
+                .eq('id', sessionId)
+                .maybeSingle();
+
+            // [ZOMBIE REBIRTH PREVENTION 2.2]
+            // We never recreate a missing inquiry during a "SYSTEM SYNC" message,
+            // UNLESS it's an explicit "New Registration" flow.
+            const isSystemSync = message.includes('[SISTEMA:');
+            const isNewRegistration = message.includes('SISTEMA: Nuevo cliente registrado');
+
+            if (!currentInquiry && mode === 'intake' && isSystemSync && !isNewRegistration) {
+                console.warn(`💀 RESURRECTION BLOCKED: Refusing to recreate deleted inquiry ${sessionId} during sync.`);
+                return NextResponse.json({
+                    error: "EXPEDIENTE ELIMINADO",
+                    code: "ZOMBIE_REBIRTH_PREVENTED"
+                }, { status: 410 });
+            }
+
             const upsertData = {
                 id: sessionId,
                 case_type: caseType,
-                contact_name: 'Nuevo Cliente', // Fixed: Avoid "usuario" placeholder
                 status: 'Nuevo'
             };
+
+            // Only set names/phones if we have better data or if current is placeholder
+            const nameIsPlaceholder = !currentInquiry?.contact_name || currentInquiry.contact_name === 'Nuevo Cliente';
+            if (clientName && nameIsPlaceholder) {
+                upsertData.contact_name = clientName;
+            } else if (nameIsPlaceholder) {
+                upsertData.contact_name = 'Nuevo Cliente';
+            }
+
+            if (clientPhone && (!currentInquiry?.contact_phone)) {
+                upsertData.contact_phone = clientPhone;
+            }
 
             // CRITICAL: Assign Lawyer and Link Client Auth
             if (mode === 'intake' && lawyerId) {
@@ -236,7 +290,10 @@ export async function POST(request) {
                 .from('inquiries')
                 .upsert(upsertData, { onConflict: 'id' });
 
-            if (upsertError) console.error("❌ Supabase Upsert Error:", upsertError);
+            if (upsertError) {
+                console.error("❌ Supabase Upsert Error:", upsertError);
+                return NextResponse.json({ error: "Error al registrar la sesión de consulta." }, { status: 500 });
+            }
         }
 
         // 3. SUPABASE: SAVE USER MESSAGE

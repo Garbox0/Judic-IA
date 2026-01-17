@@ -122,9 +122,62 @@ function LoginContent() {
         setLoading(true);
         try {
             const currentCid = cid || crypto.randomUUID();
+            console.log("🚀 Syncing session with database...", { cid: currentCid, lawyer: lawyerId });
+
+            let res = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: `[SISTEMA: Cliente verificado: ${confirmedSession.user.email}]`,
+                    history: [],
+                    mode: 'intake',
+                    sessionId: currentCid,
+                    lawyerId: lawyerId,
+                    clientUserId: confirmedSession.user.id,
+                    clientEmail: confirmedSession.user.email,
+                    clientName: confirmedSession.user.user_metadata?.full_name,
+                    clientPhone: confirmedSession.user.user_metadata?.phone
+                }),
+            });
+
+            // [FRESH START LOGIC] If the inquiry was deleted, generate a new one and retry
+            if (res.status === 410) {
+                console.warn("⚠️ Inquiry ID was deleted. Starting a fresh session...");
+                const newCid = crypto.randomUUID();
+                localStorage.removeItem('judic_ia_cid');
+
+                // Retry sync with new CID
+                res = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: `[SISTEMA: Nuevo cliente registrado: ${confirmedSession.user.email}]`, // Use 'registered' to bypass 410 guard
+                        history: [],
+                        mode: 'intake',
+                        sessionId: newCid,
+                        lawyerId: lawyerId,
+                        clientUserId: confirmedSession.user.id,
+                        clientEmail: confirmedSession.user.email,
+                        clientName: confirmedSession.user.user_metadata?.full_name,
+                        clientPhone: confirmedSession.user.user_metadata?.phone
+                    }),
+                });
+
+                if (res.ok) {
+                    router.push(`/consultas/${lawyerId}?cid=${newCid}`);
+                    return;
+                }
+            }
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || "Error al sincronizar sesión.");
+            }
+
             router.push(`/consultas/${lawyerId}?cid=${currentCid}`);
         } catch (err) {
-            setError("Error al entrar al chat.");
+            console.error("❌ enterIntake Error:", err);
+            setError(err.message || "Error al entrar al chat.");
         } finally {
             setLoading(false);
         }
@@ -160,6 +213,57 @@ function LoginContent() {
             }
 
             const currentCid = cid || crypto.randomUUID();
+            console.log("🚀 Syncing login with database...", { cid: currentCid, lawyer: lawyerId });
+
+            let syncRes = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: `[SISTEMA: Intento de ingreso: ${data.user.email}]`,
+                    history: [],
+                    mode: 'intake',
+                    sessionId: currentCid,
+                    lawyerId: lawyerId,
+                    clientUserId: data.user.id,
+                    clientEmail: data.user.email,
+                    clientName: data.user.user_metadata?.full_name,
+                    clientPhone: data.user.user_metadata?.phone
+                }),
+            });
+
+            // [FRESH START LOGIC] Handle deleted inquiries during main login
+            if (syncRes.status === 410) {
+                console.warn("⚠️ Login using deleted CID. Forcing fresh start...");
+                const newCid = crypto.randomUUID();
+                localStorage.removeItem('judic_ia_cid');
+
+                syncRes = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: `[SISTEMA: Nuevo cliente registrado: ${data.user.email}]`,
+                        history: [],
+                        mode: 'intake',
+                        sessionId: newCid,
+                        lawyerId: lawyerId,
+                        clientUserId: data.user.id,
+                        clientEmail: data.user.email,
+                        clientName: data.user.user_metadata?.full_name,
+                        clientPhone: data.user.user_metadata?.phone
+                    }),
+                });
+
+                if (syncRes.ok) {
+                    router.push(`/consultas/${lawyerId}?cid=${newCid}`);
+                    return;
+                }
+            }
+
+            if (!syncRes.ok) {
+                const errData = await syncRes.json();
+                throw new Error(errData.error || "Error al preparar la sesión jurídica.");
+            }
+
             router.push(`/consultas/${lawyerId}?cid=${currentCid}`);
         } catch (err) {
             let msg = err.message;

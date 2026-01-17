@@ -12,8 +12,10 @@ export default function AuthFormContent() {
     const [confirmEmail, setConfirmEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [viewOnly, setViewOnly] = useState(false); // New state to handle "Success" view
     const [error, setError] = useState(null);
     const [message, setMessage] = useState(null);
+    const [validating, setValidating] = useState(true); // Binary Gatekeeper state
     const [restricted, setRestricted] = useState(false); // Restricted access state
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [confirmedSession, setConfirmedSession] = useState(null);
@@ -43,12 +45,78 @@ export default function AuthFormContent() {
             localStorage.setItem('judic_ia_cid', finalCid);
         }
 
-        // 1. Check if the URL has an error from Supabase
-        const errorCode = searchParams.get('error');
-        const errorDesc = searchParams.get('error_description');
-        if (errorCode === 'access_denied' || errorDesc?.includes('expired') || errorDesc?.includes('invalid')) {
-            setRestricted(true);
-        }
+        // --- BINARY ACCESS CHECK ---
+        const validateAccess = async () => {
+            console.log("🛡️ Gatekeeper: Validating CID access...");
+
+            // 1. Detect errors in Query Params AND Hash Fragment (Supabase defaults)
+            const hash = window.location.hash;
+            const hashParams = new URLSearchParams(hash.replace('#', '?'));
+            const errorCode = searchParams.get('error') || hashParams.get('error');
+            const errorDesc = (searchParams.get('error_description') || hashParams.get('error_description') || '').toLowerCase();
+
+            if (errorCode === 'access_denied' || errorDesc.includes('expired') || errorDesc.includes('invalid') || errorDesc.includes('not found')) {
+                console.warn("🚫 AUTH ERROR DETECTED:", errorCode, errorDesc);
+                setRestricted(true);
+                setValidating(false);
+                return;
+            }
+
+            // 2. Validate CID existence and USER relationship
+            if (finalCid) {
+                const { data: inquiry, error: inqErr } = await supabase
+                    .from('inquiries')
+                    .select('id, client_auth_id')
+                    .eq('id', finalCid)
+                    .maybeSingle();
+
+                if (!inquiry || inqErr) {
+                    console.warn("🚫 CID INVALID OR DELETED:", finalCid);
+                    localStorage.removeItem('judic_ia_cid');
+                    setRestricted(true);
+                    setValidating(false);
+                    return;
+                }
+
+                // If inquiry is linked to a user, that user PROFILE must exist (Anti-Zombie)
+                if (inquiry.client_auth_id) {
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('id')
+                        .eq('id', inquiry.client_auth_id)
+                        .maybeSingle();
+
+                    if (!profile) {
+                        console.warn("🚫 CID LINKS TO DELETED PROFILE:", inquiry.client_auth_id);
+                        setRestricted(true);
+                        setValidating(false);
+                        return;
+                    }
+                }
+            }
+
+            // 3. Validate Current Session Profile (if authenticated)
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('id', user.id)
+                    .maybeSingle();
+
+                if (!profile) {
+                    console.warn("🚫 LOGGED USER HAS NO PROFILE:", user.id);
+                    await supabase.auth.signOut();
+                    setRestricted(true);
+                    setValidating(false);
+                    return;
+                }
+            }
+
+            setValidating(false);
+        };
+
+        validateAccess();
     }, [searchParams]);
 
     // Redirect out if restricted
@@ -88,42 +156,89 @@ export default function AuthFormContent() {
     }, [lawyerId, searchParams, router]);
 
     const enterIntake = async () => {
-        if (!confirmedSession || !lawyerId) {
-            console.error("❌ Confirmed session or Lawyer ID missing:", { hasSession: !!confirmedSession, lawyerId });
-            setError("Falta información de sesión o abogado. Si vienes desde el email de confirmación, por favor intenta presionar el botón de nuevo.");
+        // Fallback check for lawyerId from localStorage if state is lost
+        const activeLawyerId = lawyerId || localStorage.getItem('judic_ia_lawyer_id');
+        const activeCid = cid || searchParams.get('cid') || localStorage.getItem('judic_ia_cid') || crypto.randomUUID();
+
+        if (!activeLawyerId) {
+            console.error("❌ Lawyer ID missing for redirection");
+            setError("No pudimos identificar al abogado. Por favor usa el link original que te enviaron.");
             return;
         }
+
         setLoading(true);
         setError(null);
 
         try {
-            const currentCid = cid || searchParams.get('cid') || crypto.randomUUID();
-            console.log("🚀 Syncing session with database...", { cid: currentCid, lawyer: lawyerId });
+            console.log("🚀 Syncing session with database...", { cid: activeCid, lawyer: activeLawyerId });
 
-            const res = await fetch("/api/chat", {
+            // We use the current session from Supabase if confirmedSession is missing but user is logged in
+            let session = confirmedSession;
+            if (!session) {
+                const { data } = await supabase.auth.getSession();
+                session = data?.session;
+            }
+
+            if (!session) {
+                throw new Error("No hay una sesión activa. Por favor ingresa tus credenciales.");
+            }
+
+            let res = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    message: `[SISTEMA: Cliente verificado y listo para consulta: ${confirmedSession.user.email}]`,
+                    message: `[SISTEMA: Cliente verificado y listo para consulta: ${session.user.email}]`,
                     history: [],
                     mode: 'intake',
-                    sessionId: currentCid,
-                    lawyerId: lawyerId,
-                    clientUserId: confirmedSession.user.id,
-                    clientEmail: confirmedSession.user.email
+                    sessionId: activeCid,
+                    lawyerId: activeLawyerId,
+                    clientUserId: session.user.id,
+                    clientEmail: session.user.email,
+                    clientName: session.user.user_metadata?.full_name,
+                    clientPhone: session.user.user_metadata?.phone
                 }),
             });
 
+            // [FRESH START LOGIC] Handle 410 Gone (Inquiry was deleted)
+            if (res.status === 410) {
+                console.warn("⚠️ CID detected as deleted by server. Initiating Fresh Start...");
+                localStorage.removeItem('judic_ia_cid');
+                const newCid = crypto.randomUUID();
+
+                // Retry sync with new CID using 'Nuevo cliente registrado' to bypass 410 guard
+                res = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: `[SISTEMA: Nuevo cliente registrado: ${session.user.email}]`,
+                        history: [],
+                        mode: 'intake',
+                        sessionId: newCid,
+                        lawyerId: activeLawyerId,
+                        clientUserId: session.user.id,
+                        clientEmail: session.user.email,
+                        clientName: session.user.user_metadata?.full_name,
+                        clientPhone: session.user.user_metadata?.phone
+                    }),
+                });
+
+                if (res.ok) {
+                    router.push(`/consultas/${activeLawyerId}?cid=${newCid}`);
+                    return;
+                }
+            }
+
             if (!res.ok) {
                 const errData = await res.json();
+                console.error("❌ Sync failed:", errData);
                 throw new Error(errData.error || "Error al sincronizar sesión.");
             }
 
             console.log("✅ Session synced. Entering chat...");
-            router.push(`/consultas/${lawyerId}?cid=${currentCid}`);
+            router.push(`/consultas/${activeLawyerId}?cid=${activeCid}`);
         } catch (err) {
             console.error("❌ enterIntake Error:", err);
-            setError("No pudimos preparar tu sesión. Por favor intenta presionar el botón nuevamente.");
+            setError(err.message || "No pudimos preparar tu sesión. Por favor intenta de nuevo.");
         } finally {
             setLoading(false);
         }
@@ -173,7 +288,8 @@ export default function AuthFormContent() {
                 }
 
                 if (lawyerId) {
-                    router.push(`/consultas/${lawyerId}?cid=${finalCid}`);
+                    setIsConfirmed(true);
+                    setConfirmedSession(signInData.session);
                 } else {
                     router.push('/');
                 }
@@ -255,6 +371,19 @@ export default function AuthFormContent() {
             setLoading(false);
         }
     };
+
+    if (validating) {
+        return (
+            <div className="auth-container">
+                <div className="loading-spinner">Verificando seguridad judicial...</div>
+                <style jsx>{`
+                    .loading-spinner { font-size: 1.2rem; color: #94a3b8; font-style: italic; animation: pulse 2s infinite; }
+                    .auth-container { min-height: 100vh; display: flex; justify-content: center; align-items: center; background: #0f172a; }
+                    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+                `}</style>
+            </div>
+        )
+    }
 
     if (restricted) {
         return (

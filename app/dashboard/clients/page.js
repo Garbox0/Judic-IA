@@ -194,26 +194,37 @@ export default function ClientsPage() {
     const confirmDelete = async () => {
         if (!clientToDelete) return;
         const inquiryId = clientToDelete;
+        const clientObj = clients.find(c => c.id === inquiryId);
+        const authId = clientObj?.client_auth_id;
 
         // Optimistic UI update
         if (selectedClient?.id === inquiryId) setSelectedClient(null);
         setClients(prev => prev.filter(c => c.id !== inquiryId));
         setClientToDelete(null);
 
-        const { error } = await supabase
-            .from('inquiries')
-            .delete()
-            .eq('id', inquiryId);
+        try {
+            // 🚀 POWER DELETE: We delegate EVERYTHING to the Admin API
+            // This bypasses RLS issues and ensures messages + inquiry + auth are all gone.
+            console.log("🧹 Calling Admin API for Atomic Power Delete...", { inquiryId, authId });
 
-        if (error) {
-            console.error("Error deleting client:", error);
-            console.error("Error Details:", {
-                message: error.message,
-                details: error.details,
-                hint: error.hint,
-                code: error.code
+            const apiRes = await fetch("/api/clients/delete", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    clientAuthId: authId,
+                    inquiryId: inquiryId
+                })
             });
-            alert(`Error al eliminar: ${error.message || 'Desconocido'}. Revisá la consola para los detalles.`);
+
+            if (!apiRes.ok) {
+                const errData = await apiRes.json();
+                throw new Error(errData.error || "Error en el servidor de borrado.");
+            }
+
+            console.log("✅ Atomic cleanup successful: Card and Auth are permanently gone.");
+        } catch (error) {
+            console.error("❌ Error during full client deletion:", error);
+            alert(`Error al eliminar: ${error.message || 'Desconocido'}. El usuario podría seguir activo.`);
         }
     };
 

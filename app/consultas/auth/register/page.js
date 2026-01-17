@@ -142,7 +142,7 @@ function RegisterContent() {
         setLoading(true);
         try {
             const currentCid = cid || crypto.randomUUID();
-            await fetch("/api/chat", {
+            const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -152,9 +152,17 @@ function RegisterContent() {
                     sessionId: currentCid,
                     lawyerId: lawyerId,
                     clientUserId: confirmedSession.user.id,
-                    clientEmail: confirmedSession.user.email
+                    clientEmail: confirmedSession.user.email,
+                    clientName: confirmedSession.user.user_metadata?.full_name,
+                    clientPhone: confirmedSession.user.user_metadata?.phone
                 }),
             });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || "Error al sincronizar sesión.");
+            }
+
             router.push(`/consultas/${lawyerId}?cid=${currentCid}`);
         } catch (err) {
             setError("Error al entrar al chat. Intenta de nuevo.");
@@ -208,7 +216,7 @@ function RegisterContent() {
             if (data.session) {
                 // If we got a session immediately (Email Confirm Disabled), go straight to chat
                 const finalCid = cid || crypto.randomUUID();
-                await fetch("/api/chat", {
+                const syncRes = await fetch("/api/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -218,9 +226,17 @@ function RegisterContent() {
                         sessionId: finalCid,
                         lawyerId: lawyerId,
                         clientUserId: data.user.id,
-                        clientEmail: email
+                        clientEmail: email,
+                        clientName: `${firstName} ${lastName}`,
+                        clientPhone: `${countryCode} ${phone}`
                     }),
                 });
+
+                if (!syncRes.ok) {
+                    const errData = await syncRes.json();
+                    throw new Error(errData.error || "Error al preparar tu sesión jurídica.");
+                }
+
                 router.push(`/consultas/${lawyerId}?cid=${finalCid}`);
             } else {
                 setMessage("¡Cuenta creada! Revisa tu email para confirmar y acceder.");

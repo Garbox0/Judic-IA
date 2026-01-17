@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 import EventModal from '../../components/dashboard/EventModal';
 
@@ -217,6 +218,14 @@ export default function AgendaPage() {
 
     return (
         <div className="agenda-container">
+            <nav className="agenda-nav">
+                <div className="breadcrumb">
+                    <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
+                    <span className="breadcrumb-separator">/</span>
+                    <span className="breadcrumb-current">Agenda Jurídica</span>
+                </div>
+            </nav>
+
             <header className="agenda-header">
                 <div>
                     <h1 className="dashboard-page-title">📅 Agenda Jurídica</h1>

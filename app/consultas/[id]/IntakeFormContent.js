@@ -11,6 +11,8 @@ export default function IntakeFormContent({ id }) {
 
     const [lawyer, setLawyer] = useState(null);
     const [clientEmail, setClientEmail] = useState('');
+    const [clientName, setClientName] = useState('');
+    const [clientPhone, setClientPhone] = useState('');
     const [clientUserId, setClientUserId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -29,10 +31,11 @@ export default function IntakeFormContent({ id }) {
             // This prevents "Restricted Access" for valid new links.
 
             // 2. AUTH PROTECTION
+            console.log("🔍 Checking auth status...");
             const { data: { user }, error: authError } = await supabase.auth.getUser();
 
             if (authError || !user) {
-                console.log("🔒 Usuario no autenticado o sesión inválida. Redirigiendo a Login...");
+                console.log("🔒 Usuario no autenticado o sesión inválida. Error:", authError);
                 const redirectUrl = `/consultas/auth?lawyerId=${id}${cid ? `&cid=${cid}` : ''}`;
                 router.push(redirectUrl);
                 return;
@@ -40,24 +43,46 @@ export default function IntakeFormContent({ id }) {
 
             setClientEmail(user.email);
             setClientUserId(user.id);
-            console.log("🔓 Usuario autenticado:", user.email, user.id);
+            setClientName(user.user_metadata?.full_name || '');
+            setClientPhone(user.user_metadata?.phone || '');
+            console.log("🔓 Usuario autenticado:", user.email, user.id, "Metadata:", user.user_metadata);
 
             // 3. STRICT RELATIONSHIP CHECK (The "Zombie" Fix)
-            // Does this user actually have an open inquiry with this lawyer?
-            const { data: inquiryData, error: inquiryError } = await supabase
+            console.log("🔍 Fetching inquiry data for:", {
+                lawyerId: id,
+                userId: user.id,
+                email: user.email
+            });
+
+            const { data: inquiryRows, error: inquiryError } = await supabase
                 .from('inquiries')
                 .select('id, status')
                 .eq('assigned_lawyer_id', id)
-                .or(`client_auth_id.eq.${user.id},contact_email.eq.${user.email}`) // Check both auth/email
-                .maybeSingle();
+                .or(`client_auth_id.eq.${user.id},contact_email.eq.${user.email}`)
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            const inquiryData = inquiryRows?.[0];
+
+            if (inquiryError) {
+                console.error("❌ Inquiry fetch error (Detailed):", {
+                    message: inquiryError.message,
+                    code: inquiryError.code,
+                    details: inquiryError.details,
+                    hint: inquiryError.hint,
+                    raw: inquiryError
+                });
+                setError(`Error al verificar acceso: ${inquiryError.message || 'Error desconocido de base de datos'}`);
+                setLoading(false);
+                return;
+            }
 
             if (!inquiryData) {
-                // Check if user was just created (within last 30 seconds)
-                // This gives the API/Background sync time to finish if needed
+                console.log("⚠️ No inquiry found yet...");
                 const isNewUser = (new Date() - new Date(user.created_at)) < 30000;
 
                 if (!isNewUser) {
-                    console.warn("💀 ZOMBIE DETECTED: User exists but Inquiry was deleted/missing.");
+                    console.warn("💀 ZOMBIE DETECTED: Inquiry missing for old user.");
                     setLawyer({ full_name: 'el estudio' });
                     setIsDeleted(true);
                     setTimeout(async () => {
@@ -66,12 +91,24 @@ export default function IntakeFormContent({ id }) {
                     }, 5000);
                     return;
                 } else {
-                    console.log("⏳ New user detected. Waiting for inquiry sync...");
-                    // Try again in 2 seconds
-                    setTimeout(checkAuthAndFetchLawyer, 2000);
-                    return;
+                    // RETRY LOGIC (Max 5 times)
+                    const retries = parseInt(sessionStorage.getItem('intake_retries') || '0');
+                    if (retries < 5) {
+                        console.log(`⏳ Retry ${retries + 1}/5. Waiting for sync...`);
+                        sessionStorage.setItem('intake_retries', (retries + 1).toString());
+                        setTimeout(checkAuthAndFetchLawyer, 3000);
+                        return;
+                    } else {
+                        console.error("❌ TIMEOUT: Inquiry sync failed after 5 retries.");
+                        setError("No pudimos sincronizar tu sesión de consulta. Por favor, intenta entrar de nuevo desde el link enviado.");
+                        setLoading(false);
+                        sessionStorage.removeItem('intake_retries');
+                        return;
+                    }
                 }
             }
+            sessionStorage.removeItem('intake_retries');
+            console.log("✅ Inquiry found:", inquiryData.id);
 
             // 4. REALTIME KILL SWITCH
             // Listen for deletion of MY inquiry
@@ -94,20 +131,20 @@ export default function IntakeFormContent({ id }) {
 
             // 5. FETCH LAWYER PROFILE
             if (!id) return;
-            const { data, error } = await supabase
+            const { data: lawyerData, error: lawyerError } = await supabase
                 .from('profiles')
                 .select('full_name, especialidades, matricula, avatar_url')
                 .eq('id', id)
                 .maybeSingle();
 
-            if (error) {
-                console.warn("⚠️ Error fetching lawyer profile:", error);
-                setError(`Error técnico al cargar el perfil. Código: ${error.code}`);
-            } else if (!data) {
+            if (lawyerError) {
+                console.warn("⚠️ Error fetching lawyer profile:", lawyerError);
+                setError(`Error técnico al cargar el perfil. Código: ${lawyerError.code}`);
+            } else if (!lawyerData) {
                 console.warn("⚠️ Lawyer profile not found for ID:", id);
                 setError("El perfil del profesional no se encuentra disponible. Es posible que el enlace sea antiguo o incorrecto.");
             } else {
-                setLawyer(data);
+                setLawyer(lawyerData);
             }
             setLoading(false);
 
@@ -128,6 +165,12 @@ export default function IntakeFormContent({ id }) {
                     console.warn("💀 POLLING DETECTED ZOMBIE: Inquiry gone.");
                     setIsDeleted(true);
                     clearInterval(zombieInterval);
+
+                    // Force a harder exit
+                    setTimeout(async () => {
+                        await supabase.auth.signOut();
+                        window.location.href = "/";
+                    }, 5000);
                 }
             }, 4000);
 
@@ -255,6 +298,8 @@ export default function IntakeFormContent({ id }) {
                             initialMessage={`Bienvenido. Cuénteme brevemente su situación legal para poder ayudarle.`}
                             clientEmail={clientEmail}
                             clientUserId={clientUserId}
+                            clientName={clientName}
+                            clientPhone={clientPhone}
                             lawyerSpecialties={lawyer?.especialidades || []}
                         />
                     </div>
