@@ -13,12 +13,16 @@ export default function ClientsPage() {
     const [loadingChat, setLoadingChat] = useState(false);
     const [copied, setCopied] = useState(false);
     const [clientToDelete, setClientToDelete] = useState(null);
+    const [conversionSuccess, setConversionSuccess] = useState(false); // New success state
     const [showDetails, setShowDetails] = useState(true); // Toggle sidebar
     const [attachments, setAttachments] = useState([]);
 
     // Agenda Modal State
     const [eventModalOpen, setEventModalOpen] = useState(false);
     const [eventInitialData, setEventInitialData] = useState(null);
+
+    // Case Conversion State
+    const [converting, setConverting] = useState(false);
 
     // 1. INITIAL FETCH & AUTH
     useEffect(() => {
@@ -224,7 +228,42 @@ export default function ClientsPage() {
             console.log("✅ Atomic cleanup successful: Card and Auth are permanently gone.");
         } catch (error) {
             console.error("❌ Error during full client deletion:", error);
-            alert(`Error al eliminar: ${error.message || 'Desconocido'}. El usuario podría seguir activo.`);
+        } finally {
+            setClientToDelete(null);
+            // fetchClients(); // Re-fetch all clients to ensure state is consistent
+        }
+    };
+
+    const convertToCase = async () => {
+        if (!selectedClient || !lawyerId) return;
+
+        setConverting(true);
+        try {
+            console.log("📂 Converting inquiry to official case...", selectedClient.id);
+            const res = await fetch("/api/cases/convert", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    inquiryId: selectedClient.id,
+                    lawyerId: lawyerId
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Error al convertir en expediente.");
+
+            console.log("✅ Conversion successful!", data);
+            // alert("¡Consulta convertida en Expediente con éxito! Podrás gestionarlo en la nueva sección de Expedientes.");
+            setConversionSuccess(true); // Trigger modal
+
+            // Update local state to reflect conversion (optional: we can hide button or show badge)
+            setSelectedClient(prev => ({ ...prev, is_case: true }));
+
+        } catch (error) {
+            console.error("❌ Conversion error:", error);
+            alert(`Error: ${error.message}`);
+        } finally {
+            setConverting(false);
         }
     };
 
@@ -316,6 +355,30 @@ export default function ClientsPage() {
                 </div>
             )}
 
+            {/* SUCCESS CONVERSION MODAL */}
+            {conversionSuccess && (
+                <div className="modal-overlay" onClick={() => setConversionSuccess(false)}>
+                    <div className="modal-content glass-panel" style={{ maxWidth: '450px', height: 'auto', padding: '2.5rem', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.3)' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
+                        <h2 style={{ marginBottom: '1rem', color: '#4ade80' }}>¡Expediente Creado!</h2>
+                        <p style={{ color: '#e2e8f0', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+                            La consulta se ha convertido exitosamente en un <strong>Caso Oficial</strong> del estudio.
+                        </p>
+                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', marginBottom: '2rem', fontSize: '0.9rem', color: 'var(--muted)' }}>
+                            📁 Podrás gestionarlo, ver sus documentos y seguir su estado desde la nueva sección <strong>Expedientes</strong>.
+                        </div>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                            <button onClick={() => setConversionSuccess(false)} className="btn-cancel">
+                                Cerrar
+                            </button>
+                            <Link href="/dashboard/cases" className="btn-confirm-delete" style={{ background: '#10b981', textDecoration: 'none' }}>
+                                Ir a Expedientes →
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* MODAL */}
             {selectedClient && (
                 <div className="modal-overlay" onClick={closeModal}>
@@ -343,6 +406,14 @@ export default function ClientsPage() {
                                 <Link href={`/dashboard/clients/${selectedClient.id}/generate`} className="btn-generate-action" >
                                     ⚡ Generar Escrito
                                 </Link>
+                                <button
+                                    className="btn-convert-action"
+                                    onClick={convertToCase}
+                                    disabled={converting || selectedClient.is_case}
+                                    title="Convertir esta consulta en un expediente formal del estudio"
+                                >
+                                    {converting ? '⏳ Convirtiendo...' : selectedClient.is_case ? '📂 Ya es Expediente' : '📁 Convertir en Expediente'}
+                                </button>
                                 <button className="btn-agenda-action" onClick={openEventModalForClient} title="Agendar Plazo">
                                     📅 Crear Plazo
                                 </button>
@@ -555,6 +626,14 @@ export default function ClientsPage() {
                     display: flex; align-items: center; gap: 0.5rem; transition: 0.2s;
                 }
                 .btn-agenda-action:hover { background: rgba(16, 185, 129, 0.3); color: white; transform: translateY(-2px); }
+
+                .btn-convert-action {
+                    background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4);
+                    padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer;
+                    display: flex; align-items: center; gap: 0.5rem; transition: 0.2s;
+                }
+                .btn-convert-action:hover:not(:disabled) { background: rgba(59, 130, 246, 0.3); color: white; transform: translateY(-2px); }
+                .btn-convert-action:disabled { opacity: 0.6; cursor: default; border-color: rgba(255,255,255,0.1); color: var(--muted); }
 
                 .btn-delete {
                     background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.5);

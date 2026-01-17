@@ -131,6 +131,9 @@ export default function DashboardLayout({ children }) {
           <Link href="/dashboard/clients" className={`nav-item ${pathname.includes('/clients') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <span>👥 Clientes</span>
           </Link>
+          <Link href="/dashboard/cases" className={`nav-item ${pathname.includes('/cases') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+            <span>📁 Expedientes</span>
+          </Link>
           <Link href="/dashboard/agenda" className={`nav-item ${pathname.includes('/agenda') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <span>📅 Plazos</span>
           </Link>
