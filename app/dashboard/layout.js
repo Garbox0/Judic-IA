@@ -140,6 +140,9 @@ export default function DashboardLayout({ children }) {
           <Link href="/dashboard/settings" className={`nav-item ${pathname.includes('/settings') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <span>⚙️ Ajustes</span>
           </Link>
+          <Link href="/dashboard/library" className={`nav-item ${pathname.includes('/library') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+            <span>📚 Biblioteca</span>
+          </Link>
         </nav>
 
         {profile?.plan_tier !== 'professional' && (

@@ -4,8 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request) {
     const apiKey = process.env.OPENROUTER_API_KEY;
-    // FIX: Aceptamos ambas variables de entorno para SerpAPI
-    const serpApiKey = process.env.SERPAPI_API_KEY || process.env.SERPAPI_KEY;
+    // FIX: Ahora solo usamos Brave Search
+    const braveApiKey = process.env.BRAVE_SEARCH_API_KEY;
     const { query, jurisdiction, userId, mode } = await request.json();
 
     const supabase = createClient(
@@ -36,6 +36,13 @@ export async function POST(request) {
             }
         }
 
+        // --- STAGE 0.5: GET USER ORG (For Private Library) ---
+        let userOrgId = null;
+        if (userId) {
+            const { data: orgMember } = await supabase.from('org_members').select('org_id').eq('user_id', userId).single();
+            if (orgMember) userOrgId = orgMember.org_id;
+        }
+
         const openai = new OpenAI({
             apiKey: apiKey,
             baseURL: "https://openrouter.ai/api/v1",
@@ -46,7 +53,8 @@ export async function POST(request) {
         console.log("--- RESEARCH DEBUG ---");
         console.log("MODE:", mode);
         console.log("USER ID:", userId);
-        console.log("HAS SERP KEY:", !!serpApiKey);
+        console.log("USER ID:", userId);
+        console.log("HAS BRAVE KEY:", !!braveApiKey);
         console.log("JURISDICTION:", jurisdiction);
 
         // --- STAGE 1: DORK GENERATION (OPTIMIZED & RELAXED) ---
@@ -86,16 +94,19 @@ export async function POST(request) {
 
         if (cachedCases?.length > 0) {
             console.log("Cache Hit! Using cases from library.");
+            // Add implicit Private Link for cached items if not exists? 
+            // Better to only link what is "found" or "viewed", but for now we treat search results as "found".
             cachedCases.forEach(c => searchResults.push({ title: c.autos, link: c.url, snippet: c.summary, source: c.jurisdiction || 'Biblioteca' }));
         }
 
-        // --- STAGE 2: REAL-TIME SEARCH (HYBRID: SERPAPI + BRAVE) ---
-        const canSearch = mode !== 'demo' && searchResults.length < 5;
+        // --- STAGE 2: REAL-TIME SEARCH (BRAVE EXCLUSIVE) ---
+        // Changed threshold to 10 as requested
+        const canSearch = mode !== 'demo' && searchResults.length < 10;
 
-        if ((serpApiKey || process.env.BRAVE_SEARCH_API_KEY) && queries?.length > 0 && canSearch) {
-            console.log("🚀 Starting Hybrid Search...");
+        // Validamos solo BRAVE y queries
+        if (braveApiKey && queries?.length > 0 && canSearch) {
+            console.log("🚀 Starting Brave Pro Search...");
 
-            const braveApiKey = process.env.BRAVE_SEARCH_API_KEY;
             const searchPromises = [];
 
             // Helper para filtrar (JURISDICTION AWARE)
@@ -124,60 +135,36 @@ export async function POST(request) {
             };
 
             // 1. BRAVE SEARCH (PARALLEL EXECUTION - PRO PLAN 50 REQ/S)
-            if (braveApiKey) {
-                // Execute ALL queries in parallel for maximum speed
-                const bravePromise = Promise.all(queries.map(async (q) => {
-                    try {
-                        const params = new URLSearchParams({ q: q, count: 20, country: "ar", search_lang: "es" });
-                        const res = await fetch(`https://api.search.brave.com/res/v1/web/search?${params.toString()}`, {
-                            headers: { "X-Subscription-Token": braveApiKey }
-                        });
+            // Execute ALL queries in parallel for maximum speed
+            const bravePromise = Promise.all(queries.map(async (q) => {
+                try {
+                    const params = new URLSearchParams({ q: q, count: 20, country: "ar", search_lang: "es" });
+                    const res = await fetch(`https://api.search.brave.com/res/v1/web/search?${params.toString()}`, {
+                        headers: { "X-Subscription-Token": braveApiKey }
+                    });
 
-                        if (!res.ok) {
-                            console.warn(`Brave Error ${res.status} for query: ${q}`);
-                            return [];
-                        }
-
-                        const data = await res.json();
-                        if (data.web?.results) {
-                            return data.web.results.map(r => ({
-                                title: r.title,
-                                link: r.url,
-                                snippet: r.description,
-                                source: new URL(r.url).hostname.replace(/^www\./, "")
-                            })).filter(filterResult);
-                        }
-                        return [];
-                    } catch (e) {
-                        console.error("🦁 Brave Single Query Error:", e.message);
+                    if (!res.ok) {
+                        console.warn(`Brave Error ${res.status} for query: ${q}`);
                         return [];
                     }
-                })).then(results => results.flat());
 
-                searchPromises.push(bravePromise);
-            }
+                    const data = await res.json();
+                    if (data.web?.results) {
+                        return data.web.results.map(r => ({
+                            title: r.title,
+                            link: r.url,
+                            snippet: r.description,
+                            source: new URL(r.url).hostname.replace(/^www\./, "")
+                        })).filter(filterResult);
+                    }
+                    return [];
+                } catch (e) {
+                    console.error("🦁 Brave Single Query Error:", e.message);
+                    return [];
+                }
+            })).then(results => results.flat());
 
-            // 2. SERPAPI (Google Backup - Parallel execution remains as it handles concurrency better)
-            if (serpApiKey) {
-                queries.forEach(q => {
-                    searchPromises.push((async () => {
-                        try {
-                            const params = new URLSearchParams({
-                                q: q, api_key: serpApiKey, engine: "google", gl: "ar", google_domain: "google.com.ar", hl: "es", num: "10"
-                            });
-                            const res = await fetch(`https://serpapi.com/search.json?${params.toString()}`);
-                            const data = await res.json();
-
-                            if (data.organic_results) {
-                                return data.organic_results.map(r => ({
-                                    title: r.title, link: r.link, snippet: r.snippet, source: new URL(r.link).hostname.replace(/^www\./, "")
-                                })).filter(filterResult);
-                            }
-                        } catch (e) { console.error("🔎 SerpAPI Error:", e.message); return []; }
-                        return [];
-                    })());
-                });
-            }
+            searchPromises.push(bravePromise);
 
             // Execute All & Deduplicate
             const resultsArrays = await Promise.all(searchPromises);
@@ -268,8 +255,15 @@ export async function POST(request) {
         if (userId) {
             try {
                 await supabase.from('research_reports').insert({ user_id: userId, query, jurisdiction: jurisdiction || 'Nacional', result_json: result });
+
                 for (const r of searchResults) {
+                    // 1. Global Cache Update
                     await supabase.from('case_library').upsert({ url: r.link, autos: r.title, summary: r.snippet, jurisdiction: jurisdiction || 'Nacional' }, { onConflict: 'url' });
+
+                    // 2. Private Organization Link (Multi-Tenant)
+                    if (userOrgId) {
+                        await supabase.from('organization_library').upsert({ org_id: userOrgId, case_url: r.link }, { onConflict: 'org_id, case_url' });
+                    }
                 }
             } catch (dbErr) { console.error("Database persistence error:", dbErr); }
         }
