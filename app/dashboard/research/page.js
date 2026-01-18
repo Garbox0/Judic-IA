@@ -5,6 +5,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import Link from 'next/link';
 import SafeChatWidget from '../../components/SafeChatWidget';
+import TetrisLoader from '../../components/TetrisLoader';
 
 export default function ResearchPage() {
     const [query, setQuery] = useState('');
@@ -12,6 +13,7 @@ export default function ResearchPage() {
     const [province, setProvince] = useState('Buenos Aires');
     const [results, setResults] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [refreshingCases, setRefreshingCases] = useState({}); // { [index]: true/false }
     const [copySuccess, setCopySuccess] = useState(false);
     const [activeCategory, setActiveCategory] = useState(null);
     const [placeholder, setPlaceholder] = useState("Ej: Despido sin causa con antigüedad de 10 años en CABA...");
@@ -227,14 +229,104 @@ export default function ResearchPage() {
         doc.save(`Informe_JudicIA_${new Date().getTime()}.pdf`);
     };
 
+    const handleRefreshCase = async (index) => {
+        if (!query || refreshingCases[index]) return;
+
+        setRefreshingCases(prev => ({ ...prev, [index]: true }));
+
+        try {
+            // Collect all current URLs to exclude
+            const excludeUrls = results.cases.map(c => c.url).filter(Boolean);
+
+            const res = await fetch('/api/research/refresh', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query, excludeUrls })
+            });
+
+            if (!res.ok) throw new Error("Failed to refresh");
+
+            const newCase = await res.json();
+
+            setResults(prev => {
+                const newCases = [...prev.cases];
+                newCases[index] = newCase;
+                return { ...prev, cases: newCases };
+            });
+
+        } catch (error) {
+            console.error("Refresh error:", error);
+            alert("No se pudo actualizar el fallo. Intente nuevamente.");
+        } finally {
+            setRefreshingCases(prev => ({ ...prev, [index]: false }));
+        }
+    };
+
     const renderContent = (content) => {
         if (!content) return null;
-        if (typeof content === 'string') return content;
-        if (typeof content === 'object') {
-            if (Array.isArray(content)) return content.join('\n');
-            return Object.entries(content).map(([k, v]) => `### ${k}\n${v}`).join('\n\n');
+        let text = "";
+        if (typeof content === 'string') text = content;
+        else if (Array.isArray(content)) text = content.join('\n');
+        else if (typeof content === 'object') text = Object.entries(content).map(([k, v]) => `### ${k}\n${v}`).join('\n\n');
+        else text = String(content);
+
+        // Pre-process: Logic to detect if it's a list (e.g. "1. xxx 2. xxx") and break lines
+        // If we find "1. ", "2. " pattern in the text, we try to split it into a real list.
+        const hasNumberedList = /\s\d+\.\s/.test(text) || /^\d+\.\s/.test(text);
+
+        if (hasNumberedList) {
+            // Split by number pattern but keep the delimiter to reconstruct or map
+            const parts = text.split(/(\d+\.\s+)/).filter(Boolean);
+
+            // If the split actually resulted in meaningful parts, render as list
+            if (parts.length > 1) {
+                return (
+                    <ul style={{ listStyleType: 'none', paddingLeft: 0, margin: 0 }}>
+                        {parts.reduce((acc, part, i) => {
+                            // Check if this part is the number marker ("1. ")
+                            if (/^\d+\.\s+$/.test(part)) {
+                                acc.push({ marker: part.trim(), content: parts[i + 1] || "" });
+                            }
+                            return acc;
+                        }, []).map((item, i) => (
+                            <li key={i} style={{ marginBottom: '0.8rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                                <span style={{ fontWeight: 'bold', color: '#fbbf24', minWidth: '1.5em' }}>{item.marker}</span>
+                                <span style={{ color: '#cbd5e1', lineHeight: '1.6' }}>{item.content}</span>
+                            </li>
+                        ))}
+                    </ul>
+                );
+            }
         }
-        return String(content);
+
+        return text.split('\n').map((line, index) => {
+            // Handle Headers
+            if (line.match(/^#{1,6}\s/)) {
+                const match = line.match(/^#{1,6}\s/);
+                const level = match[0].trim().length;
+                const cleanLine = line.replace(/^#{1,6}\s/, '');
+                const styles = { margin: '1em 0 0.5em', color: '#e2e8f0', fontWeight: 'bold' };
+                if (level === 3) { styles.fontSize = '1.1rem'; styles.color = '#fbbf24'; }
+                if (level === 4) { styles.fontSize = '1rem'; styles.color = '#cbd5e1'; }
+
+                if (level <= 2) return <h3 key={index} style={{ ...styles, fontSize: '1.2rem' }}>{cleanLine}</h3>;
+                if (level === 3) return <h4 key={index} style={styles}>{cleanLine}</h4>;
+                return <h5 key={index} style={{ ...styles, fontSize: '0.9rem' }}>{cleanLine}</h5>;
+            }
+
+            // Bold text
+            const parts = line.split(/(\*\*.*?\*\*)/g);
+            return (
+                <p key={index} style={{ marginBottom: '0.8rem', lineHeight: '1.6', color: '#cbd5e1' }}>
+                    {parts.map((part, i) => {
+                        if (part.startsWith('**') && part.endsWith('**')) {
+                            return <strong key={i} style={{ color: '#e2e8f0' }}>{part.slice(2, -2)}</strong>;
+                        }
+                        return part;
+                    })}
+                </p>
+            );
+        });
     };
 
     const handleSearch = async (e) => {
@@ -437,15 +529,23 @@ export default function ResearchPage() {
                                 onChange={(e) => setQuery(e.target.value)}
                             />
                             <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
-                                {loading ? (
-                                    <>
-                                        <span className="spinner"></span>
-                                        {timeLeft > 0 ? `Analizando... (${timeLeft}s)` : 'Finalizando...'}
-                                    </>
-                                ) : 'Consultar IA Legal'}
+                                {loading ? 'Analizando...' : 'Consultar IA Legal'}
                             </button>
                         </form>
-                        {loading && <p style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--primary)', fontSize: '0.9rem', animation: 'pulse 1.5s infinite' }}>⏳ Realizando búsqueda avanzada, espere...</p>}
+                        {loading && (
+                            <div
+                                className="loader-container"
+                                style={{
+                                    marginTop: '2rem',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    width: '100%',
+                                }}
+                            >
+                                <TetrisLoader />
+                            </div>
+                        )}
                         {results && (
                             <div className="action-buttons">
                                 <div className="copy-container">
@@ -490,10 +590,12 @@ export default function ResearchPage() {
 
                     {results && (
                         <div className="results-area">
-                            <section className="result-card glass-card">
-                                <h3>📚 Normativa Aplicable</h3>
-                                <div className="content" style={{ whiteSpace: 'pre-line' }}>{renderContent(results.laws)}</div>
-                            </section>
+                            {results.laws && results.laws.length > 5 && (
+                                <section className="result-card glass-card">
+                                    <h3>📚 Normativa Aplicable</h3>
+                                    <div className="content">{renderContent(results.laws)}</div>
+                                </section>
+                            )}
 
                             <section className="result-card glass-card">
                                 <h3>⚖️ Jurisprudencia Similares</h3>
@@ -503,8 +605,20 @@ export default function ResearchPage() {
                                             {results.cases.length === 0 && <p style={{ fontStyle: 'italic', color: '#64748b' }}>No se encontraron fallos digitales directos.</p>}
                                             {results.cases.map((c, i) => {
                                                 const safeUrl = (c.url && c.url.startsWith('http')) ? c.url : (c.url ? `https://${c.url}` : null);
+                                                const isRefreshing = refreshingCases[i];
                                                 return (
-                                                    <div key={i} className="case-item-card" style={{ marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
+                                                    <div
+                                                        key={i}
+                                                        className="case-item-card"
+                                                        style={{
+                                                            marginBottom: '1rem',
+                                                            borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                                            paddingBottom: '1rem',
+                                                            opacity: isRefreshing ? 0.5 : 1,
+                                                            transition: 'opacity 0.3s ease',
+                                                            pointerEvents: isRefreshing ? 'none' : 'auto'
+                                                        }}
+                                                    >
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                                 <h4 style={{ margin: '0 0 0.4rem 0', color: '#e2e8f0', fontSize: '1rem' }}>🏛️ {c.title}</h4>
@@ -522,6 +636,14 @@ export default function ResearchPage() {
                                                             </div>
                                                             {safeUrl && (
                                                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                                    <button
+                                                                        className="btn-preview-icon"
+                                                                        title="Buscar nueva alternativa (Refresh)"
+                                                                        onClick={() => handleRefreshCase(i)}
+                                                                        disabled={refreshingCases[i]}
+                                                                    >
+                                                                        <span className={refreshingCases[i] ? "spin-animation" : ""}>🔄</span>
+                                                                    </button>
                                                                     <a
                                                                         href={safeUrl}
                                                                         target="_blank"
@@ -552,24 +674,26 @@ export default function ResearchPage() {
                                 </div>
                             </section>
 
-                            {results.calculation && (
+                            {results.calculation && results.calculation.length > 5 && (
                                 <section className="result-card glass-card calculation">
                                     <h3>💰 Liquidación Estimada</h3>
-                                    <div className="content" style={{ whiteSpace: 'pre-line' }}>{renderContent(results.calculation)}</div>
+                                    <div className="content">{renderContent(results.calculation)}</div>
                                 </section>
                             )}
 
-                            {results.evidence && (
+                            {results.evidence && results.evidence.length > 5 && (
                                 <section className="result-card glass-card evidence">
                                     <h3>🔍 Puntos de Prueba (Sugeridos)</h3>
-                                    <div className="content" style={{ whiteSpace: 'pre-line' }}>{renderContent(results.evidence)}</div>
+                                    <div className="content">{renderContent(results.evidence)}</div>
                                 </section>
                             )}
 
-                            <section className="result-card glass-card strategy">
-                                <h3>💡 Sugerencia de Estrategia</h3>
-                                <div className="content" style={{ whiteSpace: 'pre-line' }}>{renderContent(results.strategy)}</div>
-                            </section>
+                            {results.strategy && results.strategy.length > 5 && (
+                                <section className="result-card glass-card strategy">
+                                    <h3>💡 Sugerencia de Estrategia</h3>
+                                    <div className="content">{renderContent(results.strategy)}</div>
+                                </section>
+                            )}
 
                             {results.links && results.links.length > 0 && (
                                 <section className="result-card links">

@@ -1,5 +1,8 @@
 "use client";
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { Toaster, toast } from 'sonner';
+import { useDropzone } from 'react-dropzone';
+import AvatarEditor from './AvatarEditor';
 import { useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import Link from 'next/link';
@@ -38,7 +41,11 @@ export default function SettingsPage() {
     const [paymentPending, setPaymentPending] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [user, setUser] = useState(null);
-    const fileInputRef = useRef(null);
+    // Editor State
+    const [editorOpen, setEditorOpen] = useState(false);
+    const [tempImageSrc, setTempImageSrc] = useState(null);
+    const [pendingAvatarBlob, setPendingAvatarBlob] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
 
     const [formData, setFormData] = useState({
         full_name: '',
@@ -88,7 +95,7 @@ export default function SettingsPage() {
         // Detect payment success from URL
         const status = searchParams.get('status');
         if (status === 'success') {
-            alert("🎉 ¡Pago acreditado con éxito! Tu cuenta se está actualizando.");
+            toast.success("🎉 ¡Pago acreditado con éxito! Tu cuenta se está actualizando.");
             // Remove the status from URL to prevent multiple alerts
             window.history.replaceState(null, '', '/dashboard/settings?tab=billing');
             fetchProfile(); // Refresh profile to show new plan
@@ -110,54 +117,135 @@ export default function SettingsPage() {
         });
     };
 
-    const handleAvatarUpload = async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setUploading(true);
-        try {
-            const fileExt = file.name.split('.').pop();
-            const filePath = `avatars/${user.id}-${Math.random()}.${fileExt}`;
-            const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
-            if (uploadError) throw uploadError;
-            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
-            await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
-            setFormData(prev => ({ ...prev, avatar_url: publicUrl }));
-            alert("✅ Foto actualizada");
-        } catch (error) {
-            alert("❌ Error al subir imagen");
-        } finally {
-            setUploading(false);
+    // DROPZONE & EDITOR LOGIC
+    const onDrop = useCallback((acceptedFiles) => {
+        const file = acceptedFiles[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                setTempImageSrc(reader.result);
+                setEditorOpen(true);
+            };
+            reader.readAsDataURL(file);
         }
+    }, []);
+
+    const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+        onDrop,
+        accept: { 'image/*': [] },
+        multiple: false,
+        noClick: true
+    });
+
+    const handleEditCurrent = async () => {
+        const src = previewUrl || formData.avatar_url;
+        if (src) {
+            // If it's already a blob URL (local preview), use it directly
+            if (src.startsWith('blob:')) {
+                setTempImageSrc(src);
+                setEditorOpen(true);
+                return;
+            }
+
+            // If it's a remote URL, fetch it first to avoid CORS canvas tainting
+            try {
+                const response = await fetch(src);
+                if (!response.ok) throw new Error(`Status: ${response.status}`);
+
+                const blob = await response.blob();
+                console.log("Avatar Blob loaded:", blob.type, blob.size);
+
+                if (blob.size === 0) throw new Error("Imagen vacía");
+
+                toast.dismiss();
+                toast.success(`Debug: ${blob.type} (${(blob.size / 1024).toFixed(1)}KB)`);
+
+                const objectUrl = URL.createObjectURL(blob);
+                setTempImageSrc(objectUrl);
+                setEditorOpen(true);
+            } catch (error) {
+                console.error("Error downloading image for editing:", error);
+                toast.error(`No se pudo cargar la imagen original (${error.message}). Intenta subir una nueva.`);
+            }
+        }
+    };
+
+    const handleEditorSave = async (croppedBlob) => {
+        setEditorOpen(false);
+        setPendingAvatarBlob(croppedBlob);
+        const localUrl = URL.createObjectURL(croppedBlob);
+        setPreviewUrl(localUrl);
+        toast.info("📷 Foto lista. Guardá el perfil para aplicar.");
     };
 
     const handleSaveProfile = async () => {
         setSaving(true);
         try {
+            let avatarUrlToSave = formData.avatar_url;
+
+            if (pendingAvatarBlob) {
+                const fileExt = 'jpg';
+                const filePath = `avatars/${user.id}-${Math.random()}.${fileExt}`;
+                const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, pendingAvatarBlob);
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+                avatarUrlToSave = publicUrl;
+                if (previewUrl) URL.revokeObjectURL(previewUrl);
+            }
+
             const updates = {
+                avatar_url: avatarUrlToSave,
                 full_name: formData.full_name,
                 biography: formData.biography,
                 jurisdiccion: formData.jurisdiccion,
                 especialidades: formData.especialidades,
-                updated_at: new Date(),
+                // Removed updated_at as it doesn't exist in schema
             };
-            await supabase.from('profiles').update(updates).eq('id', user.id);
-            alert("✅ Perfil guardado");
+
+            console.log("Saving profile for user:", user?.id);
+            console.log("Updates content:", updates);
+
+            const { data: updateData, error: updateError } = await supabase
+                .from('profiles')
+                .update(updates)
+                .eq('id', user.id)
+                .select();
+
+            if (updateError) {
+                console.error("DB Update Error:", JSON.stringify(updateError, null, 2));
+                throw updateError;
+            }
+
+            console.log("DB Update Result:", updateData);
+
+            if (!updateData || updateData.length === 0) {
+                throw new Error("No se pudo actualizar el perfil en la base de datos (0 filas afectadas).");
+            }
+
+            setFormData(prev => ({ ...prev, avatar_url: avatarUrlToSave }));
+            setPendingAvatarBlob(null);
+            setPreviewUrl(null);
+
+            toast.success("✅ Perfil guardado con éxito");
         } catch (error) {
-            alert("❌ Error al guardar");
+            console.error("Full Save Error:", JSON.stringify(error, null, 2), error);
+            const msg = error.message || error.details || "Error al guardar perfil";
+            toast.error("❌ " + msg);
         } finally {
             setSaving(false);
         }
     };
 
+
     const handleSaveSecurity = async () => {
         setSaving(true);
         try {
-            const updates = { phone: formData.phone, updated_at: new Date() };
+            const updates = { phone: formData.phone };
             const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
             if (error) throw error;
-            alert("✅ Datos de seguridad actualizados con éxito.");
+            toast.success("✅ Datos de seguridad actualizados.");
         } catch (error) {
-            alert("❌ Alerta: " + error.message);
+            toast.error("❌ Alerta: " + error.message);
         } finally {
             setSaving(false);
         }
@@ -189,7 +277,7 @@ export default function SettingsPage() {
                         }));
                         setPaymentPending(false);
                         setSaving(false);
-                        alert("🎉 ¡Pago confirmado! Tu suscripción Profesional está activa.");
+                        toast.success("🎉 ¡Pago confirmado! Tu suscripción Profesional está activa.");
                     }
                 }
             )
@@ -239,7 +327,7 @@ export default function SettingsPage() {
 
         } catch (error) {
             console.error("Subscription Error:", error);
-            alert("❌ Error al procesar: " + error.message);
+            toast.error("❌ Error al procesar: " + error.message);
             setSaving(false);
             setPaymentPending(false);
         }
@@ -249,6 +337,14 @@ export default function SettingsPage() {
 
     return (
         <div className="stg-root">
+            <Toaster position="bottom-right" theme="dark" richColors />
+            {editorOpen && tempImageSrc && (
+                <AvatarEditor
+                    imageSrc={tempImageSrc}
+                    onCancel={() => setEditorOpen(false)}
+                    onSave={handleEditorSave}
+                />
+            )}
             <div className="stg-container">
                 <nav className="breadcrumb">
                     <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
@@ -281,27 +377,46 @@ export default function SettingsPage() {
                                 <div className="stg-profile-header">
                                     <div className="stg-photo-col">
                                         <label className="stg-label">Imagen 4x4</label>
-                                        <div className="stg-avatar-box" onClick={() => fileInputRef.current.click()}>
-                                            {formData.avatar_url ? (
-                                                <img src={formData.avatar_url} alt="Profile" />
+
+                                        <div {...getRootProps()} className={`stg-avatar-box ${isDragActive ? 'drag-active' : ''}`}>
+                                            <input {...getInputProps()} />
+                                            {(previewUrl || formData.avatar_url) ? (
+                                                <img src={previewUrl || formData.avatar_url} alt="Profile" />
                                             ) : (
-                                                <div className="stg-placeholder">📷<br />Subir</div>
+                                                <div className="stg-placeholder">
+                                                    {isDragActive ? "Soltar" : <>📷</>}
+                                                </div>
                                             )}
                                             {uploading && <div className="stg-loader-overlay">...</div>}
                                         </div>
-                                        <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleAvatarUpload} />
+
+                                        <div className="stg-avatar-actions">
+                                            <button
+                                                className="stg-mini-btn"
+                                                onClick={handleEditCurrent}
+                                                disabled={!(previewUrl || formData.avatar_url)}
+                                            >
+                                                ✏️ Editar
+                                            </button>
+                                            <button
+                                                className="stg-mini-btn primary"
+                                                onClick={open}
+                                            >
+                                                📷 Subir
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className="stg-fields-col">
                                         <div className="stg-field-row">
                                             <div className="stg-f-group">
                                                 <label className="stg-label">Nombre Completo</label>
-                                                <input name="full_name" className="stg-dark-input" value={formData.full_name} onChange={handleChange} />
+                                                <input name="full_name" className="stg-dark-input readonly" value={formData.full_name} readOnly disabled />
                                             </div>
                                         </div>
                                         <div className="stg-field-row multi">
                                             <div className="stg-f-group flex-2">
                                                 <label className="stg-label">Colegio / Jurisdicción</label>
-                                                <input name="jurisdiccion" className="stg-dark-input" value={formData.jurisdiccion} onChange={handleChange} />
+                                                <input name="jurisdiccion" className="stg-dark-input readonly" value={formData.jurisdiccion} readOnly disabled />
                                             </div>
                                             <div className="stg-f-group flex-1">
                                                 <label className="stg-label">Tomo</label>
@@ -365,7 +480,7 @@ export default function SettingsPage() {
                                         <p className="stg-hint">Solo puede ser restablecida por email oficial.</p>
                                     </div>
                                     <div className="flex-1">
-                                        <button className="stg-outline-btn" style={{ width: '100%' }} onClick={() => alert("Restablecimiento enviado.")}>Restablecer</button>
+                                        <button className="stg-outline-btn" style={{ width: '100%' }} onClick={() => toast.info("Solicitud enviada. Revise su email.")}>Restablecer</button>
                                     </div>
                                 </div>
                                 <div className="stg-actions-footer">
@@ -472,7 +587,9 @@ export default function SettingsPage() {
                                         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
                                         <h3 style={{ margin: 0, color: '#fbbf24' }}>¡Ya eres Profesional!</h3>
                                         <p style={{ color: '#94a3b8' }}>Estás aprovechando al máximo el Gabinete Jurídico.</p>
-                                        <button className="stg-outline-btn" style={{ marginTop: '1rem' }} onClick={() => alert("Próximamente: Panel de gestión de suscripciones externas.")}>Ver Facturas</button>
+                                        <h3 style={{ margin: 0, color: '#fbbf24' }}>¡Ya eres Profesional!</h3>
+                                        <p style={{ color: '#94a3b8' }}>Estás aprovechando al máximo el Gabinete Jurídico.</p>
+                                        <button className="stg-outline-btn" style={{ marginTop: '1rem' }} onClick={() => toast.info("Próximamente: Panel de gestión de suscripciones externas.")}>Ver Facturas</button>
                                     </div>
                                 )}
 
@@ -653,9 +770,31 @@ export default function SettingsPage() {
                     display: flex; align-items: center; justify-content: center;
                     transition: 0.4s;
                 }
-                .stg-avatar-box:hover { border-color: #fbbf24; transform: scale(1.02); }
+                .stg-avatar-box:hover, .stg-avatar-box.drag-active { border-color: #fbbf24; transform: scale(1.02); background: rgba(251,191,36,0.05); }
                 .stg-avatar-box img { width: 100%; height: 100%; object-fit: cover; }
                 .stg-placeholder { text-align: center; color: #334155; font-size: 0.8rem; font-weight: 800; }
+                
+                .stg-avatar-actions {
+                    display: flex; gap: 0.8rem; margin-top: 0.8rem; width: 100%; justify-content: space-between;
+                }
+                .stg-mini-btn {
+                    flex: 1;
+                    padding: 0.4rem 0.6rem;
+                    border-radius: 8px;
+                    border: 1px solid rgba(255,255,255,0.08);
+                    background: transparent;
+                    color: #64748b;
+                    font-size: 0.7rem; font-weight: 700;
+                    text-transform: uppercase; letter-spacing: 0.05em;
+                    cursor: pointer; transition: 0.3s;
+                    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+                }
+                .stg-mini-btn:hover:not(:disabled) { background: rgba(255,255,255,0.03); color: white; border-color: rgba(255,255,255,0.2); }
+                .stg-mini-btn.primary { background: rgba(251, 191, 36, 0.05); color: #fbbf24; border-color: rgba(251, 191, 36, 0.15); }
+                .stg-mini-btn.primary:hover { background: rgba(251, 191, 36, 0.15); border-color: #fbbf24; color: #fbbf24; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.1); }
+                .stg-mini-btn:disabled { opacity: 0.3; cursor: not-allowed; border-color: transparent; }
+
+                /* REMOVED stg-change-photo-btn */
                 .stg-loader-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; color: #fbbf24; }
 
                 .stg-fields-col { flex: 1; }
@@ -677,7 +816,10 @@ export default function SettingsPage() {
                 .stg-dark-input.readonly { opacity: 0.4; cursor: not-allowed; }
                 .stg-dark-input.underline { resize: none; }
 
-                .stg-field-row.multi { display: flex; gap: 1.8rem; }
+                .stg-dark-input.underline { resize: none; }
+
+                .stg-field-row.multi { display: flex; gap: 1.8rem; align-items: flex-end; }
+                .flex-1 { flex: 1; } .flex-2 { flex: 2; }
                 .flex-1 { flex: 1; } .flex-2 { flex: 2; }
 
                 .stg-chips-grid { display: flex; flex-wrap: wrap; gap: 0.6rem; }

@@ -121,3 +121,95 @@ button {
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
+
+/* --- JUDIC-IA PREMIUM LOADER STYLES --- */
+.ji-loaderCopy {
+  text-align: center;
+  padding: 20px 16px 10px;
+}
+
+.ji-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 178, 76, 0.35);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(10px);
+  color: rgba(212, 178, 76, 0.95);
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.ji-title {
+  margin: 14px 0 6px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #f8fafc;
+  text-shadow: 0 0 24px rgba(212, 178, 76, 0.08);
+}
+
+.ji-subtitle {
+  margin: 0;
+  color: rgba(148, 163, 184, 0.95);
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+
+.ji-metaRow {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ji-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(2, 6, 23, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(226, 232, 240, 0.9);
+  font-size: 12px;
+}
+
+.ji-pill strong {
+  color: rgba(212, 178, 76, 0.95);
+  font-weight: 800;
+}
+
+.ji-cta {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(212, 178, 76, 0.35);
+  background: linear-gradient(180deg, rgba(212, 178, 76, 0.16), rgba(212, 178, 76, 0.08));
+  color: #f8fafc;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.ji-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+}
+
+.ji-controlsHint {
+  margin-top: 10px;
+  color: rgba(100, 116, 139, 0.95);
+  font-size: 12px;
+}
+/* Spin Animation for Refresh Icons */
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spin-animation { display: inline-block; animation: spin 1s linear infinite; }

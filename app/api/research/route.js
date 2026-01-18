@@ -62,7 +62,7 @@ export async function POST(request) {
             model: "openai/gpt-4o-mini",
             messages: [{
                 role: "system",
-                content: `Generá un objeto JSON { "queries": [string] } con 20 búsquedas avanzadas para: "${query}".
+                content: `Generá un objeto JSON { "queries": [string] } con 10 búsquedas avanzadas para: "${query}".
                 JURISDICCIÓN: ${jurisdiction || 'Nacional'}.
                 
                 SI LA JURISDICCIÓN ES 'Nacional' o 'Federal':
@@ -101,7 +101,13 @@ export async function POST(request) {
 
         // --- STAGE 2: REAL-TIME SEARCH (BRAVE EXCLUSIVE) ---
         // Changed threshold to 10 as requested
-        const canSearch = mode !== 'demo' && searchResults.length < 10;
+        // DEBUG: Force allow search if keys present
+        const canSearch = (mode !== 'demo' && searchResults.length < 10) || queries.length > 0;
+
+        console.log("--- BRAVE PRE-FLIGHT CHECK ---");
+        console.log("Has Key:", !!braveApiKey);
+        console.log("Query Count:", queries?.length);
+        console.log("Can Search:", canSearch);
 
         // Validamos solo BRAVE y queries
         if (braveApiKey && queries?.length > 0 && canSearch) {
@@ -114,22 +120,9 @@ export async function POST(request) {
                 try {
                     const urlObj = new URL(r.link);
                     const h = urlObj.hostname.replace(/^www\./, "");
-                    const lowerQuery = (jurisdiction || 'nacional').toLowerCase();
-                    const isFederal = lowerQuery.includes('nacional') || lowerQuery.includes('federal');
-
-                    // 1. Filtrado por Fuentes Oficiales / Confiables
-                    const isGov = h.includes("gov.ar") || h.includes("gob.ar") || h.includes("pjn.gov.ar");
-                    const isBar = h.includes("colegioabogados") || h.includes("colproba") || h.includes("org.ar");
-                    const isLegal = h.includes("saij") || h.includes("infojus") || h.includes("derecho") || h.includes("vlex") || h.includes("microjuris");
-
-                    if (!isGov && !isBar && !isLegal) return false;
-
-                    // 2. Filtrado Geográfico (Si es Federal, evitamos provinciales ruidosos)
-                    if (isFederal) {
-                        // Lista negra básica de provinciales si estamos en federal (para no contaminar)
-                        if (h.includes("juscorrientes") || h.includes("jusmendoza") || h.includes("juschubut")) return false;
-                    }
-
+                    // RELAXED FILTER: We accept most results, just excluding obvious junk
+                    const isJunk = h.includes("pinterest") || h.includes("facebook") || h.includes("instagram") || h.includes("twitter") || h.includes("youtube") || h.includes("tiktok");
+                    if (isJunk) return false;
                     return true;
                 } catch (e) { return false; }
             };
@@ -138,7 +131,7 @@ export async function POST(request) {
             // Execute ALL queries in parallel for maximum speed
             const bravePromise = Promise.all(queries.map(async (q) => {
                 try {
-                    const params = new URLSearchParams({ q: q, count: 20, country: "ar", search_lang: "es" });
+                    const params = new URLSearchParams({ q: q, count: 5, country: "ar", search_lang: "es" });
                     const res = await fetch(`https://api.search.brave.com/res/v1/web/search?${params.toString()}`, {
                         headers: { "X-Subscription-Token": braveApiKey }
                     });
@@ -182,10 +175,10 @@ export async function POST(request) {
         const isDemo = mode === 'demo';
         const contextText = searchResults.length > 0
             ? `FALLOS REALES ENCONTRADOS:\n${searchResults.map(r => `- [${r.source.toUpperCase()}] ${r.title}\n  URL: ${r.link}\n  Snippet: ${r.snippet}`).join('\n\n')}`
-            : (isDemo ? "MODO DEMO: Usá leading cases." : "No se hallaron resultados directos.");
+            : (isDemo ? "MODO DEMO: Usá leading cases." : "No se hallaron resultados directos, USÁ TUS CONOCIMIENTOS GENERALES.");
 
         const finalCompletion = await openai.chat.completions.create({
-            model: "openai/gpt-4o",
+            model: "openai/gpt-4o-mini",
             messages: [
                 {
                     role: "system", content: `Sos Judic-IA, un asistente jurídico senior.
@@ -206,6 +199,9 @@ export async function POST(request) {
                 - Si el snippet dice "Índice", "Boletín", "Sumario", "Tabla de contenidos" -> IGNORARLO.
                 - Solo incluí "cases" si estás 90% seguro de que es un FALLO/SENTENCIA real con autos definidos. Prefiero 3 fallos reales que 10 enlaces basura.
 
+                IMPORTANTE: COMPLETAR SIEMPRE TODOS LOS CAMPOS.
+                Aunque no tengas fallos específicos, GENERÁ LA ESTRATEGIA, LA LIQUIDACIÓN Y LA PRUEBA basándote en la teoría general del derecho para la consulta. NO DEJES CAMPOS VACÍOS.
+
                 JSON SCHEMA:
                 - "laws": (Texto detallado con subtítulos y items)
                 - "cases": [
@@ -216,14 +212,13 @@ export async function POST(request) {
                      "source": "FUENTE" 
                    }
                   ]
-                - "strategy": (Estrategia paso a paso con subtítulos. TEXTO STRING MARKDOWN. NO OBJETO.)
-                - "calculation": (Cálculo o liquidación detallada. TEXTO STRING MARKDOWN. NO OBJETO.)
-                - "evidence": (Puntos de prueba listados. TEXTO STRING MARKDOWN. NO OBJETO.)
+                - "strategy": (Estrategia paso a paso con subtítulos. OBLIGATORIO. NO VACÍO.)
+                - "calculation": (Cálculo o liquidación detallada. OBLIGATORIO. NO VACÍO.)
+                - "evidence": (Puntos de prueba listados. OBLIGATORIO. NO VACÍO.)
 
                 NO DEVUELVAS MARKDOWN EN EL JSON EXTERNO, SOLO JSON PLANO.
-                IMPORTANTE: "laws", "strategy", "calculation", "evidence" SON STRINGS. NO LOS HAGAS OBJETOS {"titulo": ...}.
                 Si no hay casos, devuelve array vacío [].
-
+                
                 NO DEVUELVAS MARKDOWN, SOLO JSON PLANO.` },
                 { role: "user", content: `Consulta: "${query}"\nJurisdicción: ${jurisdiction}\n\nCONTEXTO:\n${contextText}` }
             ],

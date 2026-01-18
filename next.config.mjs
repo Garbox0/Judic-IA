@@ -34,7 +34,7 @@ const nextConfig = {
               "script-src 'self' 'unsafe-inline' https://apis.google.com; " +
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
               "font-src 'self' https://fonts.gstatic.com data:; " +
-              "img-src 'self' data: https://*.supabase.co https://lh3.googleusercontent.com; " +
+              "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com; " +
               "connect-src 'self' https://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com; " +
               "frame-src 'none'; " +
               "frame-ancestors 'none'; " +
