@@ -23,6 +23,7 @@ export default function ResearchPage() {
     const [history, setHistory] = useState([]);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
+    const [searchStatus, setSearchStatus] = useState('');
 
 
     useEffect(() => {
@@ -335,12 +336,9 @@ export default function ResearchPage() {
         if (!finalQuery) return;
 
         setLoading(true);
+        setSearchStatus('Iniciando búsqueda avanzada con API Brave Search...');
         setTimeLeft(60); // Extended to 60s for Deep Mode
         setResults(null);
-
-        // ... (existing fetch logic) ...
-        // ...
-
 
         try {
             const res = await fetch('/api/research', {
@@ -350,15 +348,21 @@ export default function ResearchPage() {
                     query: finalQuery,
                     jurisdiction: scope === 'nacional' ? 'Nacional' : province,
                     userId: userProfile?.id,
-                    mode: 'pro' // FORCE PRO FOR DEBUGGING
+                    mode: 'pro'
                 })
             });
+
+            setSearchStatus('Analizando resultados en tiempo real...');
             const data = await res.json();
+            setSearchStatus('Sintetizando informe legal...');
             setResults(data);
         } catch (error) {
             console.error("Search error:", error);
+            setSearchStatus('Error en la investigación.');
+        } finally {
+            setLoading(false);
+            setSearchStatus('');
         }
-        setLoading(false);
     };
 
     const provinces = [
@@ -543,9 +547,21 @@ export default function ResearchPage() {
                                     width: '100%',
                                 }}
                             >
-                                <TetrisLoader />
+                                <div style={{ textAlign: 'center' }}>
+                                    <TetrisLoader />
+                                    <p style={{
+                                        marginTop: '1.5rem',
+                                        color: '#fbbf24',
+                                        fontSize: '0.9rem',
+                                        fontWeight: 600,
+                                        animation: 'pulse 2s infinite'
+                                    }}>
+                                        {searchStatus}
+                                    </p>
+                                </div>
                             </div>
                         )}
+
                         {results && (
                             <div className="action-buttons">
                                 <div className="copy-container">
@@ -590,6 +606,27 @@ export default function ResearchPage() {
 
                     {results && (
                         <div className="results-area">
+                            {results.brave_used && (
+                                <div style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    background: 'rgba(251, 191, 36, 0.15)',
+                                    color: '#fbbf24',
+                                    padding: '0.4rem 0.8rem',
+                                    borderRadius: '99px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 800,
+                                    marginBottom: '1.5rem',
+                                    border: '1px solid rgba(251, 191, 36, 0.3)',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em'
+                                }}>
+                                    <span>🦁 Brave Search Pro Activo</span>
+                                    <span style={{ opacity: 0.6 }}>•</span>
+                                    <span>Resultados en Tiempo Real</span>
+                                </div>
+                            )}
                             {results.laws && results.laws.length > 5 && (
                                 <section className="result-card glass-card">
                                     <h3>📚 Normativa Aplicable</h3>
@@ -1175,16 +1212,10 @@ export default function ResearchPage() {
                 @keyframes spin {
                     to { transform: rotate(360deg); }
                 }
-                .spinner {
-                    width: 16px;
-                    height: 16px;
-                    border: 2px solid rgba(255,255,255,0.3);
-                    border-radius: 50%;
-                    border-top-color: #fff;
-                    animation: spin 1s ease-in-out infinite;
-                }
-                @keyframes spin {
-                    to { transform: rotate(360deg); }
+                @keyframes pulse {
+                    0% { opacity: 0.6; }
+                    50% { opacity: 1; }
+                    100% { opacity: 0.6; }
                 }
             `}</style>
         </div>

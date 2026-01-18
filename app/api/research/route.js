@@ -67,20 +67,26 @@ export async function POST(request) {
                 
                 SI LA JURISDICCIÓN ES 'Nacional' o 'Federal':
                 - PRIORIZÁ: pjn.gov.ar, cij.gov.ar, csjn.gov.ar, saij.gob.ar.
-                - AGREGÁ: "filetype:pdf" para encontrar la sentencia completa.
+                - AGREGÁ: "sentencia completa pdf" o "fallo autos" para encontrar documentos.
                 - EVITÁ: Dominios provinciales salvo relevancia.
                 
                 SI LA JURISDICCIÓN ES PROVINCIAL (ej: Buenos Aires):
                 - PRIORIZÁ: El dominio judicial de esa provincia (ej: scba.gov.ar).
                 
-                IMPORTANTE: El usuario BUSCA FALLOS (Sentencias Judiciales), no guías de trámite.
+                IMPORTANTE: El usuario BUSCA FALLOS (Sentencias Judiciales). 
+                Mezclá búsquedas específicas con "site:..." y búsquedas más abiertas.
                 Usá términos: "sentencia", "fallo completo", "autos", "cámara expediente".
-                AGREGÁ SIEMPRE: "-manual -guía -instructivo -tutorial -formulario" para filtrar ruido administrativo.`
+                AGREGÁ SIEMPRE: "-manual -guía -instructivo -tutorial -formulario" para filtrar ruido administrativo.
+                NO uses "filetype:pdf" en todas las queries, usalo solo en 2 o 3.`
             }],
             response_format: { type: "json_object" }
         });
 
-        const { queries } = JSON.parse(dorkCompletion.choices[0].message.content);
+        const { queries: rawQueries } = JSON.parse(dorkCompletion.choices[0].message.content);
+
+        // --- ADD NATURAL LANGUAGE QUERY ---
+        const queries = [query, ...rawQueries].slice(0, 11);
+
         const searchResults = [];
 
         // --- STAGE 1.5: CACHE CHECK (Cost Optimization) ---
@@ -194,10 +200,11 @@ export async function POST(request) {
                 - "summary": MÁXIMO 30-40 PALABRAS (2-3 líneas). Debe ser un resumen ULTRA-CONCISO del holding.
                 - ESTILO DE TEXTO: Texto plano. NADA DE NEGRITAS (**). NADA DE MARKDOWN en los valores.
 
-                FILTRO DE CALIDAD (CRÍTICO):
-                - Descartá CUALQUIER resultado que sea un índice, un boletín sumario sin desarrollo, o un PDF que solo menciona la palabra clave al pasar.
-                - Si el snippet dice "Índice", "Boletín", "Sumario", "Tabla de contenidos" -> IGNORARLO.
-                - Solo incluí "cases" si estás 90% seguro de que es un FALLO/SENTENCIA real con autos definidos. Prefiero 3 fallos reales que 10 enlaces basura.
+                - Solo incluí "cases" si estás 90% seguro de que es un FALLO/SENTENCIA real con autos definidos.
+                - REGLA DE ORO JURISPRUDENCIA: Los links en 'cases' DEBEN SER PDF OBLIGATORIAMENTE (el 100% de los items en el array 'cases' deben apuntar a un archivo .pdf). No pongas páginas web de noticias en 'cases'.
+                - CATEGORIZACIÓN: Links que no sean PDF pero sean útiles (noticias, dorks de búsqueda de Google, boletines HTML) deben ir EXCLUSIVAMENTE en el array 'links'.
+                - El usuario quiere JURISPRUDENCIA DIRECTA (el fallo para leer).
+
 
                 IMPORTANTE: COMPLETAR SIEMPRE TODOS LOS CAMPOS.
                 Aunque no tengas fallos específicos, GENERÁ LA ESTRATEGIA, LA LIQUIDACIÓN Y LA PRUEBA basándote en la teoría general del derecho para la consulta. NO DEJES CAMPOS VACÍOS.
@@ -211,6 +218,9 @@ export async function POST(request) {
                      "url": "https://...", 
                      "source": "FUENTE" 
                    }
+                  ]
+                - "links": [
+                   { "title": "Título del documento", "url": "https://..." }
                   ]
                 - "strategy": (Estrategia paso a paso con subtítulos. OBLIGATORIO. NO VACÍO.)
                 - "calculation": (Cálculo o liquidación detallada. OBLIGATORIO. NO VACÍO.)
@@ -228,23 +238,32 @@ export async function POST(request) {
 
         const result = JSON.parse(finalCompletion.choices[0].message.content);
 
-        // Fallback Links
-        if ((!result.links || result.links.length === 0) && queries?.length > 0) {
-            result.links = queries.map(q => ({
-                title: `Búsqueda Manual: ${q.substring(0, 30)}...`,
-                url: `https://www.google.com/search?q=${encodeURIComponent(q)}`
-            }));
-        }
-        // Force links from search results into the response links array as well if valid
+        // --- ENRICH LINKS FROM SEARCH RESULTS ---
+        const finalLinks = result.links || [];
         if (searchResults.length > 0) {
-            const existingLinks = result.links || [];
-            searchResults.slice(0, 10).forEach(r => {
-                if (!existingLinks.some(l => l.url === r.link)) {
-                    existingLinks.push({ title: r.title, url: r.link });
+            searchResults.slice(0, 8).forEach(r => {
+                if (!finalLinks.some(l => l.url === r.link)) {
+                    finalLinks.push({ title: r.title, url: r.link });
                 }
             });
-            result.links = existingLinks;
         }
+
+        // --- ALWAYS ADD TOP 2 DORKS AS FALLBACK/EXTRA SEARCHES ---
+        if (queries?.length > 0) {
+            const dorkLinks = [queries[0], queries[1] || queries[0]].map(q => ({
+                title: `Búsqueda adicional: ${q.substring(0, 40)}...`,
+                url: `https://www.google.com/search?q=${encodeURIComponent(q)}`
+            }));
+
+            dorkLinks.forEach(dl => {
+                if (!finalLinks.some(fl => fl.url === dl.url)) {
+                    finalLinks.push(dl);
+                }
+            });
+        }
+
+        result.links = finalLinks;
+
 
         // Save report & Update Library
         if (userId) {
@@ -262,6 +281,8 @@ export async function POST(request) {
                 }
             } catch (dbErr) { console.error("Database persistence error:", dbErr); }
         }
+
+        result.brave_used = !!braveApiKey && queries.length > 0 && canSearch;
 
         return NextResponse.json(result);
 

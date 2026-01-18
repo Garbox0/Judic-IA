@@ -45,32 +45,48 @@ export default function DashboardHome() {
   const tools = [
     {
       id: 'research',
-      title: 'Investigación Legal',
+      title: 'Jurisprudencia',
       desc: 'Consulta normativa, códigos y fallos con IA.',
       icon: '🔍',
       link: '/dashboard/research',
-      color: 'var(--primary)'
+      color: 'var(--gold)'
     },
     {
       id: 'clients',
-      title: 'Mis Clientes',
-      desc: 'Administra tus expedientes y contactos.',
+      title: 'Clientes',
+      desc: 'Administra tus consultas y contactos entrantes.',
       icon: '👥',
       link: '/dashboard/clients',
       color: '#6366f1'
     },
     {
+      id: 'cases',
+      title: 'Expedientes',
+      desc: 'Gestión centralizada de tus casos oficiales.',
+      icon: '📁',
+      link: '/dashboard/cases',
+      color: '#3b82f6'
+    },
+    {
       id: 'agenda',
-      title: 'Agenda Judicial',
-      desc: 'Controla tus plazos y audiencias.',
+      title: 'Plazos',
+      desc: 'Controla tus fechas, plazos y audiencias.',
       icon: '📅',
       link: '/dashboard/agenda',
       color: '#10b981'
     },
     {
+      id: 'library',
+      title: 'Biblioteca',
+      desc: 'Base de conocimiento y precedentes guardados.',
+      icon: '📚',
+      link: '/dashboard/library',
+      color: '#a855f7'
+    },
+    {
       id: 'settings',
-      title: 'Configuración',
-      desc: 'Ajusta tu perfil y firma digital.',
+      title: 'Ajustes',
+      desc: 'Configuración de perfil, firma y facturación.',
       icon: '⚙️',
       link: '/dashboard/settings',
       color: '#94a3b8'

@@ -155,62 +155,64 @@ export default function CasesPage() {
             </div>
 
             {/* CASES LIST */}
-            <div className="cases-list-wrapper glass-panel">
-                <table className="cases-table">
-                    <thead>
-                        <tr>
-                            <th>Título / Cliente</th>
-                            <th>Materia</th>
-                            <th>Estado</th>
-                            <th>Apertura</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            <tr><td colSpan="5" style={{ textAlign: 'center', padding: '3rem' }}>Cargando expedientes...</td></tr>
-                        ) : activeCases.length === 0 ? (
+            <div className="cases-list-container">
+                <div className="cases-list-wrapper glass-panel">
+                    <table className="cases-table">
+                        <thead>
                             <tr>
-                                <td colSpan="5" style={{ textAlign: 'center', padding: '4rem' }}>
-                                    <div className="empty-state">
-                                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🗄️</div>
-                                        <h3>No hay expedientes activos</h3>
-                                        <p>Convierte tus consultas entrantes en expedientes para empezar a gestionarlos aquí.</p>
-                                    </div>
-                                </td>
+                                <th>Título / Cliente</th>
+                                <th>Materia</th>
+                                <th>Estado</th>
+                                <th>Apertura</th>
+                                <th>Acciones</th>
                             </tr>
-                        ) : (
-                            activeCases.map(item => (
-                                <tr key={item.id}>
-                                    <td>
-                                        <div className="case-title-cell">
-                                            <strong>{item.title}</strong>
-                                            <small>{item.inquiry?.contact_email || 'Sin email'}</small>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span className="matter-badge">{item.matter}</span>
-                                    </td>
-                                    <td>
-                                        <span className="status-badge" style={{ backgroundColor: `${getStatusColor(item.status)}20`, color: getStatusColor(item.status), border: `1px solid ${getStatusColor(item.status)}40` }}>
-                                            {getStatusLabel(item.status)}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span className="date-cell">{new Date(item.created_at).toLocaleDateString()}</span>
-                                    </td>
-                                    <td>
-                                        <div className="action-cell">
-                                            <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Abrir Carpeta">📂</Link>
-                                            <Link href={`/dashboard/clients?id=${item.inquiry_id}`} className="btn-chat" title="Ver Chat Original">💬</Link>
-                                            <button onClick={() => setCaseToDelete(item)} className="btn-delete" title="Eliminar Expediente">🗑️</button>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '3rem' }}>Cargando expedientes...</td></tr>
+                            ) : activeCases.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" style={{ textAlign: 'center', padding: '4rem' }}>
+                                        <div className="empty-state">
+                                            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🗄️</div>
+                                            <h3>No hay expedientes activos</h3>
+                                            <p>Convierte tus consultas entrantes en expedientes para empezar a gestionarlos aquí.</p>
                                         </div>
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ) : (
+                                activeCases.map(item => (
+                                    <tr key={item.id}>
+                                        <td>
+                                            <div className="case-title-cell">
+                                                <strong>{item.title}</strong>
+                                                <small>{item.inquiry?.contact_email || 'Sin email'}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span className="matter-badge">{item.matter}</span>
+                                        </td>
+                                        <td>
+                                            <span className="status-badge" style={{ backgroundColor: `${getStatusColor(item.status)}20`, color: getStatusColor(item.status), border: `1px solid ${getStatusColor(item.status)}40` }}>
+                                                {getStatusLabel(item.status)}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span className="date-cell">{new Date(item.created_at).toLocaleDateString()}</span>
+                                        </td>
+                                        <td>
+                                            <div className="action-cell">
+                                                <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Abrir Carpeta">📂</Link>
+                                                <Link href={`/dashboard/clients?id=${item.inquiry_id}`} className="btn-chat" title="Ver Chat Original">💬</Link>
+                                                <button onClick={() => setCaseToDelete(item)} className="btn-delete" title="Eliminar Expediente">🗑️</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {/* VAULT SECTION */}
@@ -281,6 +283,10 @@ export default function CasesPage() {
             <style jsx>{`
                 .cases-container { padding: 0 3rem 3rem; max-width: 1200px; margin: 0 auto; color: white; }
                 
+                @media (max-width: 900px) {
+                    .cases-container { padding: 0 1.5rem 2rem; }
+                }
+                
                 .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; margin-bottom: 2rem; color: var(--muted); }
                 .breadcrumb-item { color: var(--muted); text-decoration: none; transition: 0.2s; }
                 .breadcrumb-item:hover { color: #fbbf24; }
@@ -297,7 +303,8 @@ export default function CasesPage() {
                 .stat-label { font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
                 .stat-value { font-size: 2rem; font-weight: 700; color: white; }
 
-                .cases-list-wrapper { border-radius: 16px; overflow: hidden; background: rgba(15, 23, 42, 0.4); }
+                .cases-list-container { width: 100%; overflow-x: auto; margin-bottom: 2rem; border-radius: 16px; -webkit-overflow-scrolling: touch; }
+                .cases-list-wrapper { border-radius: 16px; overflow: hidden; background: rgba(15, 23, 42, 0.4); min-width: 700px; }
                 .cases-table { width: 100%; border-collapse: collapse; text-align: left; }
                 .cases-table th { padding: 1.2rem 1.5rem; background: rgba(30, 41, 59, 0.5); color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
                 .cases-table td { padding: 1.2rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }

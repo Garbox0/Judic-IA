@@ -520,6 +520,28 @@ export default function AgendaPage() {
                     gap: 2rem;
                 }
 
+                @media (max-width: 1024px) {
+                    .agenda-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    .upcoming-panel {
+                        height: auto;
+                        max-height: 500px;
+                    }
+                }
+
+                @media (max-width: 768px) {
+                    .agenda-container {
+                        padding: 0 1.5rem 2rem;
+                    }
+                    .calendar-day {
+                        min-height: 80px;
+                    }
+                    .calendar-grid :global(.day-number) {
+                        font-size: 1.2rem !important;
+                    }
+                }
+
                 /* CALENDAR */
                 .calendar-panel {
                     padding: 1.5rem;

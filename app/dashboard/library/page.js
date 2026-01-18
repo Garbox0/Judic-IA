@@ -134,6 +134,11 @@ export default function LibraryPage() {
             <style jsx>{`
                 .library-container { padding: 0 3rem 3rem; max-width: 1200px; margin: 0 auto; color: white; }
                 
+                @media (max-width: 900px) {
+                    .library-container { padding: 0 1.5rem 2rem; }
+                    .header-content h1 { font-size: 1.6rem; }
+                }
+
                 .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; margin-bottom: 2rem; color: var(--muted); }
                 .breadcrumb-item { color: var(--muted); text-decoration: none; transition: 0.2s; }
                 .breadcrumb-item:hover { color: #fbbf24; }
