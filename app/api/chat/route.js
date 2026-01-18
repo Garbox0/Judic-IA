@@ -88,6 +88,24 @@ export async function POST(request) {
             lawyerSpecialties
         } = body;
 
+        // [NEW] GLOBAL REVOCATION CHECK (The Kill Switch)
+        if (sessionId) {
+            const { data: isRevoked } = await db
+                .from('revoked_access')
+                .select('id')
+                .eq('id', sessionId)
+                .maybeSingle();
+
+            if (isRevoked) {
+                console.warn(`🚫 BLOCKED ACCESS: Session ${sessionId} is in the REVOKED_ACCESS blacklist.`);
+                return NextResponse.json({
+                    reply: "⛔ **ACCESO PERMANENTEMENTE REVOCADO**\n\nEste enlace de consulta ha sido invalidado por el profesional. Ya no es posible ingresar ni enviar mensajes con este acceso.",
+                    error: "ACCESS_REVOKED_PERMANENTLY",
+                    code: "BANNED_CID"
+                }, { status: 403 });
+            }
+        }
+
         // [STRICT GATEKEEPER] Verify Profile existence for identified users IMMEDIATELY
         if (clientUserId && mode === 'intake') {
             const { data: profileExists } = await db

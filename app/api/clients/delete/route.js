@@ -25,8 +25,26 @@ export async function POST(request) {
         }
 
         console.log(`🧹 ADMIN POWER DELETE: auth=${clientAuthId}, inquiry=${inquiryId}`);
+        const { data: { user: requester } } = await adminClient.auth.getUser(); // Try to get requester if possible, but we might just use the inquiry's lawyer
 
-        // 1. Delete Messages first (to avoid dependency blocks)
+        // 0. RECORD REVOCATION (The Kill Switch)
+        if (inquiryId) {
+            console.log(`   Step 0: Recording revocation for ${inquiryId}`);
+            // Fetch lawyer ID from inquiry if not provided or to be sure
+            const { data: inquiryData } = await adminClient
+                .from('inquiries')
+                .select('assigned_lawyer_id')
+                .eq('id', inquiryId)
+                .single();
+
+            if (inquiryData?.assigned_lawyer_id) {
+                await adminClient.from('revoked_access').upsert({
+                    id: inquiryId,
+                    lawyer_id: inquiryData.assigned_lawyer_id
+                });
+                console.log(`   ✅ Link ${inquiryId} is now officially DEAD.`);
+            }
+        }
         if (inquiryId) {
             console.log(`   Step 1: Cleaning messages for inquiry: ${inquiryId}`);
             await adminClient

@@ -25,10 +25,21 @@ export default function IntakeFormContent({ id }) {
 
             const cid = searchParams.get('cid');
 
-            // 1. CID VALIDATION REMOVED
-            // We allow entry to the gatekeeper (Auth) for any link. 
-            // If the link is truly invalid, it will fail to load profile/chat later.
-            // This prevents "Restricted Access" for valid new links.
+            // 1. CID REVOCATION CHECK (The Kill Switch)
+            if (cid) {
+                const { data: isRevoked } = await supabase
+                    .from('revoked_access')
+                    .select('id')
+                    .eq('id', cid)
+                    .maybeSingle();
+
+                if (isRevoked) {
+                    console.warn("🚫 BLOCKED: This CID is in the blacklist.");
+                    setRestricted(true);
+                    setLoading(false);
+                    return;
+                }
+            }
 
             // 2. AUTH PROTECTION
             console.log("🔍 Checking auth status...");
