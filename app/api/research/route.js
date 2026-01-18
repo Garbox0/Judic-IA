@@ -53,8 +53,12 @@ export async function POST(request) {
         console.log("--- RESEARCH DEBUG ---");
         console.log("MODE:", mode);
         console.log("USER ID:", userId);
-        console.log("USER ID:", userId);
         console.log("HAS BRAVE KEY:", !!braveApiKey);
+        if (braveApiKey) {
+            console.log("BRAVE KEY MASKED:", `${braveApiKey.substring(0, 5)}***${braveApiKey.substring(braveApiKey.length - 4)}`);
+        } else {
+            console.log("BRAVE KEY IS MISSING ❌");
+        }
         console.log("JURISDICTION:", jurisdiction);
 
         // --- STAGE 1: DORK GENERATION (OPTIMIZED & RELAXED) ---
@@ -143,7 +147,8 @@ export async function POST(request) {
                     });
 
                     if (!res.ok) {
-                        console.warn(`Brave Error ${res.status} for query: ${q}`);
+                        const errorBody = await res.text().catch(() => "No body");
+                        console.error(`🦁 Brave API Error | Status: ${res.status} | Query: ${q} | Body: ${errorBody}`);
                         return [];
                     }
 
