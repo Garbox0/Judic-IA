@@ -181,13 +181,27 @@ export default function ClientsPage() {
         setEventModalOpen(true);
     };
 
-    const copySmartLink = () => {
-        const uniqueClientId = self.crypto.randomUUID();
-        const link = `${window.location.origin}/consultas/${lawyerId}?cid=${uniqueClientId}`;
+    const copySmartLink = async () => {
+        try {
+            const res = await fetch("/api/intake/create-link", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ lawyerId: lawyerId })
+            });
 
-        navigator.clipboard.writeText(link);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+            const data = await res.json();
+            if (data.link) {
+                navigator.clipboard.writeText(data.link);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            } else {
+                console.error("Error generating link:", data.error);
+                alert("Error al generar el enlace. Intenta de nuevo.");
+            }
+        } catch (err) {
+            console.error("Link copy failed:", err);
+            alert("Error de conexión al generar el enlace.");
+        }
     };
 
     const deleteClient = (inquiryId, event) => {

@@ -88,6 +88,8 @@ export async function POST(request) {
             lawyerSpecialties
         } = body;
 
+        let effectiveSessionId = sessionId;
+
         // [NEW] GLOBAL REVOCATION CHECK (The Kill Switch)
         if (sessionId) {
             const { data: isRevoked } = await db
@@ -266,12 +268,26 @@ export async function POST(request) {
                 .maybeSingle();
 
             // [ZOMBIE REBIRTH PREVENTION 2.2]
-            // We never recreate a missing inquiry during a "SYSTEM SYNC" message,
-            // UNLESS it's an explicit "New Registration" flow.
             const isSystemSync = message.includes('[SISTEMA:');
             const isNewRegistration = message.includes('SISTEMA: Nuevo cliente registrado');
 
-            if (!currentInquiry && mode === 'intake' && isSystemSync && !isNewRegistration) {
+            // [ANTI-TRIPLICATION 3.0]
+            // If we have both IDs, check if this client ALREADY has an inquiry with this lawyer
+            if (lawyerId && clientUserId) {
+                const { data: duplicate } = await db
+                    .from('inquiries')
+                    .select('id')
+                    .eq('assigned_lawyer_id', lawyerId)
+                    .eq('client_auth_id', clientUserId)
+                    .maybeSingle();
+
+                if (duplicate) {
+                    console.log(`♻️ RECYCLING SESSION: Merging new CID ${sessionId} into existing Inquiry ${duplicate.id}`);
+                    effectiveSessionId = duplicate.id;
+                }
+            }
+
+            if (!currentInquiry && effectiveSessionId === sessionId && mode === 'intake' && isSystemSync && !isNewRegistration) {
                 console.warn(`💀 RESURRECTION BLOCKED: Refusing to recreate deleted inquiry ${sessionId} during sync.`);
                 return NextResponse.json({
                     error: "EXPEDIENTE ELIMINADO",
@@ -280,7 +296,7 @@ export async function POST(request) {
             }
 
             const upsertData = {
-                id: sessionId,
+                id: effectiveSessionId,
                 case_type: caseType,
                 status: 'Nuevo'
             };
@@ -315,9 +331,9 @@ export async function POST(request) {
         }
 
         // 3. SUPABASE: SAVE USER MESSAGE
-        if (sessionId) {
+        if (effectiveSessionId) {
             await db.from('messages').insert({
-                inquiry_id: sessionId,
+                inquiry_id: effectiveSessionId,
                 role: 'user',
                 content: message
             });
@@ -377,7 +393,7 @@ export async function POST(request) {
                 }
 
                 // Update Inquiry Data in Supabase
-                if (extractedData && sessionId) {
+                if (extractedData && effectiveSessionId) {
                     console.log("📝 Attempting to Update Inquiry:", extractedData);
 
                     const updatePayload = {};
@@ -391,7 +407,7 @@ export async function POST(request) {
                         const { error: updateError } = await db
                             .from('inquiries')
                             .update(updatePayload)
-                            .eq('id', sessionId);
+                            .eq('id', effectiveSessionId);
 
                         if (updateError) {
                             console.error("❌ DATABASE UPDATE FAILED:", updateError);
@@ -412,9 +428,9 @@ export async function POST(request) {
 
 
         // 5. SUPABASE: SAVE BOT RESPONSE (Cleaned)
-        if (sessionId) {
+        if (effectiveSessionId) {
             await db.from('messages').insert({
-                inquiry_id: sessionId,
+                inquiry_id: effectiveSessionId,
                 role: 'assistant',
                 content: replyContent
             });
