@@ -153,12 +153,10 @@ export default function SettingsPage() {
                 if (!response.ok) throw new Error(`Status: ${response.status}`);
 
                 const blob = await response.blob();
-                console.log("Avatar Blob loaded:", blob.type, blob.size);
 
                 if (blob.size === 0) throw new Error("Imagen vacía");
 
                 toast.dismiss();
-                toast.success(`Debug: ${blob.type} (${(blob.size / 1024).toFixed(1)}KB)`);
 
                 const objectUrl = URL.createObjectURL(blob);
                 setTempImageSrc(objectUrl);
@@ -188,8 +186,10 @@ export default function SettingsPage() {
                 const filePath = `avatars/${user.id}-${Math.random()}.${fileExt}`;
                 const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, pendingAvatarBlob);
                 if (uploadError) throw uploadError;
+
                 const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
                 avatarUrlToSave = publicUrl;
+
                 if (previewUrl) URL.revokeObjectURL(previewUrl);
             }
 
@@ -202,24 +202,16 @@ export default function SettingsPage() {
                 // Removed updated_at as it doesn't exist in schema
             };
 
-            console.log("Saving profile for user:", user?.id);
-            console.log("Updates content:", updates);
-
             const { data: updateData, error: updateError } = await supabase
                 .from('profiles')
                 .update(updates)
                 .eq('id', user.id)
                 .select();
 
-            if (updateError) {
-                console.error("DB Update Error:", JSON.stringify(updateError, null, 2));
-                throw updateError;
-            }
-
-            console.log("DB Update Result:", updateData);
+            if (updateError) throw updateError;
 
             if (!updateData || updateData.length === 0) {
-                throw new Error("No se pudo actualizar el perfil en la base de datos (0 filas afectadas).");
+                throw new Error("No se pudo actualizar el perfil (ID no encontrado o sin permisos).");
             }
 
             setFormData(prev => ({ ...prev, avatar_url: avatarUrlToSave }));

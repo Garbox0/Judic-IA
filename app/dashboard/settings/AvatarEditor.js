@@ -19,7 +19,6 @@ const AvatarEditor = ({ imageSrc, onCancel, onSave }) => {
             onSave(croppedImage);
         } catch (e) {
             console.error(e);
-            alert("Error: " + e.message);
         } finally {
             setLoading(false);
         }
