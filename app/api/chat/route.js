@@ -284,6 +284,14 @@ export async function POST(request) {
                 if (duplicate) {
                     console.log(`♻️ RECYCLING SESSION: Merging new CID ${sessionId} into existing Inquiry ${duplicate.id}`);
                     effectiveSessionId = duplicate.id;
+
+                    // [ANTI-ZOMBIE 4.0]: Destroy the UNUSED placeholder ID (sessionId)
+                    // If we don't do this, 10 clicks = 10 ghost rows in the DB.
+                    if (effectiveSessionId !== sessionId) {
+                        const { error: ghostErr } = await db.from('inquiries').delete().eq('id', sessionId);
+                        if (ghostErr) console.warn("⚠️ Error creating ghost link:", ghostErr);
+                        else console.log(`👻 GHOST BUSTED: Unused placeholder ${sessionId} deleted.`);
+                    }
                 }
             }
 
