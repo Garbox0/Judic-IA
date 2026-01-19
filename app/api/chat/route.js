@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { cookies } from 'next/headers';
+import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
+import OpenAI from 'openai';
 
-import { supabase } from '../../lib/supabase';
+import { supabase as publicSupabase } from '../../lib/supabase';
 import { routeContactChannel } from '../../lib/contact-router';
 
 // GET: Fetch Chat History for a Session (Persistence)
@@ -15,20 +17,40 @@ export async function GET(request) {
     }
 
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    let db = supabase;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    // Bypass RLS to allow reading history for the public link holder
+    // 🛡️ Identify User (Try both cookie lanes)
+    const cookieStore = await cookies();
+    const createAuthClient = (cookieName) => createServerClient(supabaseUrl, anonKey, {
+        cookies: {
+            getAll() { return cookieStore.getAll() },
+            setAll(cookiesToSet) {
+                cookiesToSet.forEach(({ name, value, options }) =>
+                    cookieStore.set(name, value, options)
+                )
+            },
+        },
+        cookieOptions: { name: cookieName }
+    });
+
+    // Try Admin Client first, then Client Client
+    let { data: { user } } = await createAuthClient('sb-admin-token').auth.getUser();
+    if (!user) {
+        const clientAuth = await createAuthClient('sb-client-token').auth.getUser();
+        user = clientAuth.data.user;
+    }
+
+    let db = publicSupabase;
+
+    // Bypass RLS for internal operations (but we already have the user for auth check)
     if (serviceRoleKey) {
-        db = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL,
-            serviceRoleKey,
-            { auth: { persistSession: false } }
-        );
+        db = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
     }
 
     try {
         // 🛡️ SECURITY: Verify Ownership
-        const { data: { user } } = await db.auth.getUser();
+        // (User identified above)
 
         // 1. Get Inquiry to check assigned lawyer or client link
         const { data: inquiry, error: inqError } = await db
@@ -81,7 +103,7 @@ export async function POST(request) {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     // Use Service Role Key if available to bypass RLS (Crucial for Public Intake)
-    let db = supabase;
+    let db = publicSupabase;
     console.log("🔑 Checking Permissions: Service Role Key is", serviceRoleKey ? "LOADED ✅" : "MISSING ❌");
 
     if (serviceRoleKey) {
@@ -333,7 +355,9 @@ export async function POST(request) {
             };
 
             // Only set names/phones if we have better data or if current is placeholder
-            const nameIsPlaceholder = !currentInquiry?.contact_name || currentInquiry.contact_name === 'Nuevo Cliente';
+            const nameIsPlaceholder = !currentInquiry?.contact_name ||
+                currentInquiry.contact_name === 'Nuevo Cliente' ||
+                currentInquiry.contact_name === 'Enlace Generado';
             if (clientName && nameIsPlaceholder) {
                 upsertData.contact_name = clientName;
             } else if (nameIsPlaceholder) {
@@ -470,7 +494,10 @@ export async function POST(request) {
         return NextResponse.json({ reply: replyContent });
 
     } catch (error) {
-        console.error("❌ SERVER ERROR:", error);
-        return NextResponse.json({ reply: `💥 ERROR TÉCNICO: ${error.message}` });
+        console.error("❌ SERVER ERROR in /api/chat POST:", error);
+        return NextResponse.json(
+            { error: error.message || "Internal Server Error" },
+            { status: 500 }
+        );
     }
 }

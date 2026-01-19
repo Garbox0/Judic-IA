@@ -170,8 +170,16 @@ function LoginContent() {
             }
 
             if (!res.ok) {
-                const errData = await res.json();
-                throw new Error(errData.error || "Error al sincronizar sesión.");
+                let errorMsg = "Error al sincronizar sesión.";
+                try {
+                    const errData = await res.json();
+                    errorMsg = errData.error || errorMsg;
+                } catch (e) {
+                    console.error("❌ Failed to parse error JSON:", e);
+                    const text = await res.text();
+                    console.log("📄 Raw response:", text);
+                }
+                throw new Error(errorMsg);
             }
 
             router.push(`/consultas/${lawyerId}?cid=${currentCid}`);
@@ -260,8 +268,14 @@ function LoginContent() {
             }
 
             if (!syncRes.ok) {
-                const errData = await syncRes.json();
-                throw new Error(errData.error || "Error al preparar la sesión jurídica.");
+                let errorMsg = "Error al preparar la sesión jurídica.";
+                try {
+                    const errData = await syncRes.json();
+                    errorMsg = errData.error || errorMsg;
+                } catch (e) {
+                    console.error("❌ Failed to parse sync error JSON:", e);
+                }
+                throw new Error(errorMsg);
             }
 
             router.push(`/consultas/${lawyerId}?cid=${currentCid}`);

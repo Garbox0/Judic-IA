@@ -1,28 +1,52 @@
-// app/api/clients/delete/route.js
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request) {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!serviceRoleKey) {
         return NextResponse.json({ error: "Configuración de servidor incompleta." }, { status: 500 });
     }
+
+    // 1. Identify Requester
+    const cookieStore = await cookies();
+    const supabase = createServerClient(supabaseUrl, anonKey, {
+        cookies: {
+            getAll() { return cookieStore.getAll() },
+            setAll(cookiesToSet) {
+                cookiesToSet.forEach(({ name, value, options }) =>
+                    cookieStore.set(name, value, options)
+                )
+            },
+        },
+        cookieOptions: { name: 'sb-admin-token' }
+    });
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey, {
         auth: { autoRefreshToken: false, persistSession: false }
     });
 
     try {
-        const { clientAuthId, inquiryId } = await request.json();
+        let body;
+        try {
+            body = await request.json();
+        } catch (e) {
+            console.error("❌ JSON Parse Error in /api/clients/delete:", e);
+            return NextResponse.json({ error: "Invalid or empty JSON body" }, { status: 400 });
+        }
+
+        const { clientAuthId, inquiryId } = body;
 
         if (!clientAuthId && !inquiryId) {
-            return NextResponse.json({ error: "Missing Target ID" }, { status: 400 });
+            return NextResponse.json({ error: "Missing Target ID (clientAuthId or inquiryId)" }, { status: 400 });
         }
 
         // 🛡️ SECURITY: Verify Requester Identity
-        const { data: { user } } = await adminClient.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         // Verify Ownership of the inquiry
@@ -41,17 +65,16 @@ export async function POST(request) {
 
         console.log(`🗑️ ATOMIC DELETE START: Inquiry=${inquiryId} | Auth=${clientAuthId}`);
 
-        // 1. REVOCATION (Kill Switch) - Vital for preventing resurrection
+        // 🛡️ STEP 0: REVOCATION (Kill Switch) - DO THIS FIRST to prevent resurrection
+        // Even if the delete fails later, the access is revoked.
         if (inquiryId) {
-            // First, find who the lawyer is if we don't know
             const { data: inq } = await adminClient.from('inquiries').select('assigned_lawyer_id').eq('id', inquiryId).maybeSingle();
-
             if (inq?.assigned_lawyer_id) {
                 const { error: revError } = await adminClient.from('revoked_access').upsert({
                     id: inquiryId, lawyer_id: inq.assigned_lawyer_id
                 });
-                if (revError) throw new Error(`Revocation Failed: ${revError.message}`);
-                console.log(`   ✅ REVOKED Access for ${inquiryId}`);
+                if (revError) console.error(`⚠️ Revocation warning (non-fatal): ${revError.message}`);
+                else console.log(`   ✅ Access REVOKED for inquiry ${inquiryId}`);
             }
         }
 

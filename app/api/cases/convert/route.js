@@ -1,13 +1,30 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request) {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!serviceRoleKey) {
         return NextResponse.json({ error: "Configuración de servidor incompleta." }, { status: 500 });
     }
+
+    // 1. Identify Requester
+    const cookieStore = await cookies();
+    const supabase = createServerClient(supabaseUrl, anonKey, {
+        cookies: {
+            getAll() { return cookieStore.getAll() },
+            setAll(cookiesToSet) {
+                cookiesToSet.forEach(({ name, value, options }) =>
+                    cookieStore.set(name, value, options)
+                )
+            },
+        },
+        cookieOptions: { name: 'sb-admin-token' }
+    });
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey, {
         auth: { autoRefreshToken: false, persistSession: false }
@@ -21,7 +38,7 @@ export async function POST(request) {
         }
 
         // 🛡️ SECURITY: Verify Identity
-        const { data: { user } } = await adminClient.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
         if (!user || user.id !== lawyerId) {
             return NextResponse.json({ error: "Unauthorized: Identity mismatch" }, { status: 401 });
         }

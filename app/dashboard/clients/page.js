@@ -225,18 +225,30 @@ export default function ClientsPage() {
             // This bypasses RLS issues and ensures messages + inquiry + auth are all gone.
             console.log("🧹 Calling Admin API for Atomic Power Delete...", { inquiryId, authId });
 
+            if (!inquiryId) {
+                console.error("❌ Cannot delete: inquiryId is missing.");
+                return;
+            }
+
             const apiRes = await fetch("/api/clients/delete", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    clientAuthId: authId,
+                    clientAuthId: authId || null,
                     inquiryId: inquiryId
                 })
             });
 
             if (!apiRes.ok) {
-                const errData = await apiRes.json();
-                throw new Error(errData.error || "Error en el servidor de borrado.");
+                const text = await apiRes.text();
+                let errorMsg = "Error en el servidor de borrado.";
+                try {
+                    const errData = JSON.parse(text);
+                    errorMsg = errData.error || errorMsg;
+                } catch (e) {
+                    console.error("❌ Failed to parse delete error JSON:", text);
+                }
+                throw new Error(errorMsg);
             }
 
             console.log("✅ Atomic cleanup successful: Card and Auth are permanently gone.");
