@@ -52,7 +52,7 @@ export async function POST(request) {
                 { role: "system", content: DOC_GEN_SYSTEM_PROMPT },
                 { role: "user", content: userPrompt }
             ],
-            model: "openai/gpt-3.5-turbo", // Or gpt-4 if available for better legal drafting
+            model: "openai/gpt-4o-mini",
         });
 
         const content = completion.choices[0].message.content;

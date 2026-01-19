@@ -419,7 +419,7 @@ export async function POST(request) {
                         ...(history || []),
                         { role: "user", content: message }
                     ],
-                    model: "openai/gpt-3.5-turbo",
+                    model: "openai/gpt-4o-mini",
                 });
                 const rawContent = completion.choices[0].message.content;
 
