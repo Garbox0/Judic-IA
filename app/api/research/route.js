@@ -26,7 +26,7 @@ export async function POST(request) {
         } else if (userId) {
             // SUPERUSER CHECK
             const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userId);
-            const isSuperUser = authUser?.email === 'gbrlescalada@gmail.com';
+            const isSuperUser = authUser?.email === 'gbrlescalada@gmail.com' && authUser?.id === '365cd259-4f1e-4004-a677-1eda06a5147e';
 
             if (!isSuperUser) {
                 const { data: quota } = await supabase.rpc("consume_ai_message", { p_user: userId });

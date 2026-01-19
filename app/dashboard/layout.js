@@ -143,6 +143,11 @@ export default function DashboardLayout({ children }) {
           <Link href="/dashboard/library" className={`nav-item ${pathname.includes('/library') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <span>📚 Biblioteca</span>
           </Link>
+          {user?.email === 'gbrlescalada@gmail.com' && user?.id === '365cd259-4f1e-4004-a677-1eda06a5147e' && (
+            <Link href="/dashboard/admin" className={`nav-item ${pathname.includes('/admin') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+              <span className="text-gold-400">🛡️ Admin Panel</span>
+            </Link>
+          )}
         </nav>
 
         {profile?.plan_tier !== 'professional' && (
