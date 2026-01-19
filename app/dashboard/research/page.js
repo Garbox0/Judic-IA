@@ -21,7 +21,7 @@ export default function ResearchPage() {
     const [currentUser, setCurrentUser] = useState(null);
     const [logoBase64, setLogoBase64] = useState(null);
     const [history, setHistory] = useState([]);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile: false = hidden
     const [timeLeft, setTimeLeft] = useState(0);
     const [searchStatus, setSearchStatus] = useState('');
 
@@ -376,102 +376,81 @@ export default function ResearchPage() {
         <div className="research-container">
             <div className={`research-layout ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
                 {/* HISTORY SIDEBAR */}
-                <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`}>
-                    {sidebarOpen && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', textTransform: 'uppercase' }}>Historial</h4>
-                            <button onClick={() => setSidebarOpen(false)} style={{ background: 'none', border: 'none', color: '#fbbf24', cursor: 'pointer', fontSize: '1.2rem' }}>
-                                ◀
-                            </button>
-                        </div>
-                    )}
+                {/* HISTORY SIDEBAR - Modified for Mobile Overlay */}
+                <>
+                    {/* Mobile Toggle Button (Visible only on small screens via CSS) */}
+                    <button
+                        className="mobile-history-toggle"
+                        onClick={() => setSidebarOpen(true)}
+                    >
+                        <span>🕒 Historial</span>
+                    </button>
 
-                    {!sidebarOpen && (
-                        <div
-                            onClick={() => setSidebarOpen(true)}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '1rem',
-                                transition: 'all 0.3s'
-                            }}
-                            onMouseOver={(e) => {
-                                e.currentTarget.parentElement.style.background = 'rgba(197, 160, 33, 0.08)';
-                                e.currentTarget.parentElement.style.borderColor = 'rgba(197, 160, 33, 0.3)';
-                            }}
-                            onMouseOut={(e) => {
-                                e.currentTarget.parentElement.style.background = '';
-                                e.currentTarget.parentElement.style.borderColor = '';
-                            }}
-                        >
-                            <div style={{
-                                width: '100%',
-                                height: '90%',
-                                border: '1px solid rgba(197, 160, 33, 0.3)',
-                                borderRadius: '99px',
-                                background: 'rgba(197, 160, 33, 0.05)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '1.5rem',
-                                padding: '1rem 0'
-                            }}>
-                                <span style={{ fontSize: '1.4rem' }}>🕒</span>
-                                <span style={{
-                                    writingMode: 'vertical-rl',
-                                    textOrientation: 'mixed',
-                                    transform: 'rotate(180deg)',
-                                    color: '#fbbf24',
-                                    fontSize: '0.9rem',
-                                    letterSpacing: '2px',
-                                    fontWeight: '700',
-                                    textTransform: 'uppercase',
-                                    whiteSpace: 'nowrap'
-                                }}>
-                                    Historial
-                                </span>
-                            </div>
-                        </div>
-                    )}
+                    {/* Overlay Backdrop (only visible when sidebar is open on mobile) */}
+                    <div
+                        className={`sidebar-backdrop ${sidebarOpen ? 'open' : ''}`}
+                        onClick={() => setSidebarOpen(false)}
+                    />
 
-                    {sidebarOpen && (
-                        <div className="history-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                            {history.length === 0 && <p style={{ fontSize: '0.85rem', color: '#64748b', fontStyle: 'italic' }}>Sin investigaciones recientes.</p>}
-                            {history.map(item => (
-                                <div
-                                    key={item.id}
-                                    className="history-item"
-                                    onClick={() => { setQuery(item.query); setResults(item.result_json); }}
-                                    style={{
-                                        padding: '0.8rem',
-                                        background: 'rgba(255,255,255,0.03)',
-                                        borderRadius: '8px',
-                                        cursor: 'pointer',
-                                        border: '1px solid rgba(255,255,255,0.05)',
-                                        transition: '0.2s',
-                                        fontSize: '0.85rem'
-                                    }}
-                                    onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-                                    onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                    <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`}>
+                        {/* Always show header with Close button on Mobile/Expand */}
+                        {(sidebarOpen || true) && (
+                            <div className="sidebar-header-row">
+                                <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', textTransform: 'uppercase' }}>Historial</h4>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setSidebarOpen(!sidebarOpen); }}
+                                    style={{ background: 'none', border: 'none', color: '#fbbf24', cursor: 'pointer', fontSize: '1.5rem', padding: '0.5rem' }}
                                 >
-                                    <div style={{ fontWeight: 600, color: '#e2e8f0', marginBottom: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {item.query}
-                                    </div>
-                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                                        {new Date(item.created_at).toLocaleDateString()} • {item.jurisdiction}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </aside>
+                                    {sidebarOpen ? '✕' : '▶'}
+                                </button>
+                            </div>
+                        )}
 
+                        {/* Collapsed State Icon (Desktop Only) */}
+                        {!sidebarOpen && (
+                            <div
+                                className="collapsed-icon-area"
+                                onClick={() => setSidebarOpen(true)}
+                            >
+                                <div className="vertical-trigger">
+                                    <span className="v-icon">🕒</span>
+                                    <span className="v-label">HISTORIAL</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {sidebarOpen && (
+                            <div className="history-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', overflowY: 'auto', maxHeight: 'calc(100vh - 150px)' }}>
+                                {history.length === 0 && <p style={{ fontSize: '0.85rem', color: '#64748b', fontStyle: 'italic' }}>Sin investigaciones recientes.</p>}
+                                {history.map(item => (
+                                    <div
+                                        key={item.id}
+                                        className="history-item"
+                                        onClick={() => { setQuery(item.query); setResults(item.result_json); }}
+                                        style={{
+                                            padding: '0.8rem',
+                                            background: 'rgba(255,255,255,0.03)',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer',
+                                            border: '1px solid rgba(255,255,255,0.05)',
+                                            transition: '0.2s',
+                                            fontSize: '0.85rem'
+                                        }}
+                                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                                    >
+                                        <div style={{ fontWeight: 600, color: '#e2e8f0', marginBottom: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {item.query}
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                                            {new Date(item.created_at).toLocaleDateString()} • {item.jurisdiction}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </aside>
+                </>
                 <div className="main-content-area">
                     <nav className="research-nav">
                         <div className="breadcrumb">
@@ -798,8 +777,8 @@ export default function ResearchPage() {
 
             <style jsx>{`
                 .research-container {
-                    padding: 0 3rem 2.5rem;
-                    max-width: 1300px;
+                    padding: 0 1.5rem 2.5rem; /* Reduced horizontal padding from 3rem */
+                    max-width: 1600px; /* Increased max-width from 1300px to fill more space */
                     margin: 0 auto;
                     color: var(--foreground);
                     font-family: var(--font-main);
@@ -807,7 +786,7 @@ export default function ResearchPage() {
                 }
                 .research-layout {
                     display: flex;
-                    gap: 2rem;
+                    gap: 1.5rem; /* Reduced gap from 2rem */
                     align-items: flex-start;
                     transition: all 0.3s ease;
                 }
@@ -1175,12 +1154,139 @@ export default function ResearchPage() {
  
                 .empty-state { text-align: center; padding: 4rem 0; color: #475569; font-style: italic; }
 
+                .mobile-history-toggle {
+                    display: none; /* Hidden by default on desktop */
+                    position: fixed;
+                    bottom: 20px;
+                    left: 20px;
+                    z-index: 90;
+                    background: #fbbf24;
+                    color: black;
+                    border: none;
+                    border-radius: 99px;
+                    padding: 0.8rem 1.2rem;
+                    font-weight: 700;
+                    box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+                .sidebar-header-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 1.5rem;
+                }
+                
+                /* Icon when collapsed on desktop */
+                .collapsed-icon-area {
+                    width: 100%;
+                    height: 100%;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .research-sidebar.closed .sidebar-header-row { display: none; } /* Hide header when closed on desktop */
+                
+                .research-sidebar.closed .sidebar-header-row { display: none; } /* Hide header when closed on desktop */
+                
+                /* New Intuitive Trigger */
+                .vertical-trigger {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 1.5rem;
+                    padding: 1rem 0;
+                    height: 100%;
+                    justify-content: center;
+                    transition: all 0.3s;
+                }
+                .v-icon {
+                    font-size: 1.5rem;
+                    filter: grayscale(1);
+                    transition: all 0.3s;
+                }
+                .v-label {
+                    writing-mode: vertical-rl;
+                    transform: rotate(180deg);
+                    font-weight: 700;
+                    font-size: 0.85rem;
+                    letter-spacing: 0.25rem;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    transition: all 0.3s;
+                }
+                .collapsed-icon-area:hover .v-label {
+                    color: var(--primary);
+                    text-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+                }
+                .collapsed-icon-area:hover .v-icon {
+                    filter: grayscale(0);
+                    transform: scale(1.1);
+                }
+
                 /* MOBILE RESPONSIVE */
                 @media (max-width: 1024px) {
-                    .research-container { padding: 0 1.5rem 2rem; }
-                    .research-layout { flex-direction: column; gap: 1.5rem; }
-                    .research-sidebar { width: 100% !important; padding: 1rem !important; }
-                    .research-sidebar.closed { height: 60px; overflow: hidden; }
+                    .research-container { padding: 0 1.5rem 2rem; max-width: 100vw; }
+                    .research-layout { 
+                        position: relative; /* Context for absolute sidebar */
+                        display: block; /* Stack vertically, but sidebar will be absolute */
+                    }
+                    
+                    /* FIXED: Sidebar as Overlay/Drawer on Mobile */
+                    .research-sidebar {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        height: 100vh;
+                        width: 280px !important;
+                        z-index: 100;
+                        background: #0f172a;
+                        /* border-right: 1px solid var(--border); */
+                        box-shadow: 10px 0 50px rgba(0,0,0,0.5);
+                        transform: translateX(-100%); /* Hidden by default */
+                        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                        padding: 1.5rem !important;
+                    }
+                    .research-sidebar.open {
+                        transform: translateX(0); /* Slide in */
+                    }
+                    /* "Closed" state on mobile is completely hidden off-canvas */
+                    .research-sidebar.closed {
+                        width: 280px; 
+                        transform: translateX(-100%);
+                        padding: 1.5rem;
+                        height: 100vh;
+                    }
+
+                    /* BACKDROP ONLY FOR MOBILE */
+                    .sidebar-backdrop {
+                        display: block;
+                        position: fixed;
+                        inset: 0;
+                        background: rgba(0,0,0,0.6);
+                        backdrop-filter: blur(2px);
+                        z-index: 99;
+                        opacity: 0;
+                        pointer-events: none;
+                        transition: opacity 0.3s;
+                    }
+                    .sidebar-backdrop.open { 
+                        opacity: 1; 
+                        pointer-events: auto;
+                    }
+
+                    /* Show Toggle Button on Mobile */
+                    .mobile-history-toggle {
+                        display: flex; 
+                    }
+                    .collapsed-icon-area { display: none; }
+                    
+                    /* Main Content full width */
+                    .main-content-area {
+                        width: 100%;
+                    }
+
                     .header-flex { flex-direction: column; text-align: center; gap: 1rem; }
                     .logo-main { width: 60px; height: 60px; }
                     .header-text { text-align: center; }
@@ -1189,16 +1295,20 @@ export default function ResearchPage() {
 
                 @media (max-width: 768px) {
                     .search-box { flex-direction: column; }
-                    .search-box button { width: 100%; max-width: none; min-width: 0; height: 55px; }
-                    .jurisdiction-selector { justify-content: center; }
+                    .search-box button { width: 100%; max-width: none; min-width: 0; height: 50px; }
+                    .jurisdiction-selector { justify-content: center; flex-direction: column; width: 100%; }
+                    .radio-btn { width: 100%; justify-content: center; }
+                    .province-select { width: 100%; text-align: center; }
+                    
                     .action-buttons { flex-direction: column; }
                     .btn-action { width: 100%; justify-content: center; }
-                    .copy-toast { right: 50%; transform: translateX(50%); bottom: -2rem; }
+                    .copy-toast { right: 50%; transform: translateX(50%); bottom: -3rem; }
                 }
                 
                 @media (max-width: 480px) {
                     .categories-grid { grid-template-columns: 1fr; }
                     .dashboard-page-title { font-size: 1.5rem; }
+                    .research-container { padding: 0 1rem 4rem; } /* More bottom padding */
                 }
 
                 .spinner {

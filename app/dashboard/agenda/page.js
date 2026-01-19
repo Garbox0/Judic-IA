@@ -598,6 +598,9 @@ export default function AgendaPage() {
                     min-height: 100px;
                     z-index: 1;
                 }
+                @media (max-width: 500px) {
+                    .calendar-grid :global(.calendar-day) { min-height: 80px; padding: 4px; }
+                }
 
                 /* Usamos :global para asegurar que estilice los elementos generados */
                 .calendar-grid :global(.day-number) {
@@ -743,22 +746,34 @@ export default function AgendaPage() {
                     font-size: 0.75rem;
                     color: #e2e8f0;
                     border: 1px solid rgba(255,255,255,0.08);
-                    padding: 0.25rem 0.5rem;
+                    padding: 0.25rem 0.6rem;
                     border-radius: 999px;
                     background: rgba(255,255,255,0.03);
+                    white-space: nowrap; /* Prevent breaking */
+                    display: inline-block;
                 }
+                /* ADJUST FILTERS FOR MOBILE stacking */
                 .upcoming-filters {
                     display: grid;
                     grid-template-columns: 1fr;
-                    gap: 0.6rem;
+                    gap: 0.8rem;
                     margin-top: 0.8rem;
                 }
+                
+                @media (max-width: 600px) {
+                     /* Stack the internal bits of filters if they get too squeezed */
+                    .segmented { width: 100%; }
+                    .select { width: 100%; }
+                }
+
                 .segmented {
                     display: flex;
                     gap: 0.4rem;
+                    flex-wrap: wrap; 
                 }
                 .segmented button {
                     flex: 1;
+                    min-width: 60px;
                     background: rgba(255,255,255,0.03);
                     border: 1px solid rgba(255,255,255,0.08);
                     color: #e2e8f0;
@@ -790,6 +805,7 @@ export default function AgendaPage() {
                     align-items: center;
                     color: #94a3b8;
                     font-size: 0.85rem;
+                    padding: 0.5rem 0; /* Easier to touch on mobile */
                 }
                 .upcoming-scroll {
                     overflow: auto;

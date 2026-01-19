@@ -172,7 +172,7 @@ export default function CasesPage() {
                                 <tr><td colSpan="5" style={{ textAlign: 'center', padding: '3rem' }}>Cargando expedientes...</td></tr>
                             ) : activeCases.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" style={{ textAlign: 'center', padding: '4rem' }}>
+                                    <td colSpan="5" style={{ textAlign: 'center', padding: '4rem 1rem' }}>
                                         <div className="empty-state">
                                             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🗄️</div>
                                             <h3>No hay expedientes activos</h3>
@@ -372,8 +372,23 @@ export default function CasesPage() {
 
                 @media (max-width: 768px) {
                     .stats-grid { grid-template-columns: 1fr; }
-                    .cases-table th:nth-child(2), .cases-table td:nth-child(2) { display: none; }
-                    .cases-table th:nth-child(4), .cases-table td:nth-child(4) { display: none; }
+                    
+                    /* Hide less relevant columns on small screens */
+                    .cases-table th:nth-child(2), .cases-table td:nth-child(2) { display: none; } /* Materia */
+                    .cases-table th:nth-child(4), .cases-table td:nth-child(4) { display: none; } /* Apertura */
+                    
+                    /* Adjust table layout */
+                    .cases-table th, .cases-table td { padding: 1rem 0.8rem; }
+                    .status-badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
+                    
+                    .cases-list-wrapper { min-width: 100%; } /* Allow wrapper to shrink */
+                    .cases-table { min-width: 100%; }
+                    
+                    /* Cases list container should scroll if it really has to, but we try to fit content first */
+                    .cases-list-container { overflow-x: auto; }
+                    
+                    .header-flex { flex-direction: column; text-align: center; gap: 1rem; }
+                    .header-icon-box { margin: 0 auto; }
                 }
             `}</style>
         </div>
