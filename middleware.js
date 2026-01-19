@@ -90,11 +90,25 @@ export async function middleware(request) {
         }
     }
 
+    // C. 🛡️ PROTECCIÓN DE APIs (Evitar acceso anónimo en rutas privadas)
+    if (pathname.startsWith('/api/') &&
+        !pathname.includes('/api/auth') &&
+        !pathname.includes('/api/mp/webhook') &&
+        !pathname.includes('/api/webhook/whatsapp') &&
+        !pathname.includes('/api/demo') &&
+        !pathname.includes('/api/chat') &&
+        !pathname.includes('/api/intake')
+    ) {
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 })
+        }
+    }
+
     return response
 }
 
 export const config = {
     matcher: [
-        '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 }

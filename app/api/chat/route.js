@@ -27,6 +27,29 @@ export async function GET(request) {
     }
 
     try {
+        // 🛡️ SECURITY: Verify Ownership
+        const { data: { user } } = await db.auth.getUser();
+
+        // 1. Get Inquiry to check assigned lawyer or client link
+        const { data: inquiry, error: inqError } = await db
+            .from('inquiries')
+            .select('assigned_lawyer_id, client_auth_id')
+            .eq('id', sessionId)
+            .single();
+
+        if (inqError || !inquiry) {
+            return NextResponse.json({ error: "Expediente no encontrado" }, { status: 404 });
+        }
+
+        // 2. Authorization Guard
+        // Allow if: User is the assigned lawyer OR user is the linked client
+        const isOwner = user && (user.id === inquiry.assigned_lawyer_id || user.id === inquiry.client_auth_id);
+
+        if (!isOwner) {
+            console.warn(`🚫 UNAUTHORIZED HISTORY ATTEMPT: User ${user?.id} tried to read session ${sessionId}`);
+            return NextResponse.json({ error: "No tienes permiso para ver este historial." }, { status: 403 });
+        }
+
         const { data: messages, error } = await db
             .from('messages')
             .select('*')

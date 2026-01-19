@@ -21,6 +21,24 @@ export async function POST(request) {
             return NextResponse.json({ error: "Missing Target ID" }, { status: 400 });
         }
 
+        // 🛡️ SECURITY: Verify Requester Identity
+        const { data: { user } } = await adminClient.auth.getUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        // Verify Ownership of the inquiry
+        if (inquiryId) {
+            const { data: inq } = await adminClient
+                .from('inquiries')
+                .select('assigned_lawyer_id')
+                .eq('id', inquiryId)
+                .maybeSingle();
+
+            if (!inq || inq.assigned_lawyer_id !== user.id) {
+                console.warn(`🚫 UNAUTHORIZED DELETE ATTEMPT: User ${user.id} tried to delete inquiry ${inquiryId}`);
+                return NextResponse.json({ error: "Forbidden: No eres el dueño de este expediente." }, { status: 403 });
+            }
+        }
+
         console.log(`🗑️ ATOMIC DELETE START: Inquiry=${inquiryId} | Auth=${clientAuthId}`);
 
         // 1. REVOCATION (Kill Switch) - Vital for preventing resurrection

@@ -20,6 +20,13 @@ export async function POST(request) {
             return NextResponse.json({ error: "Missing lawyerId" }, { status: 400 });
         }
 
+        // 🛡️ SECURITY: Verify Identity
+        const { data: { user } } = await adminClient.auth.getUser();
+        if (!user || user.id !== lawyerId) {
+            console.warn(`🚫 UNAUTHORIZED LINK ATTEMPT: User ${user?.id} tried to create link for lawyer ${lawyerId}`);
+            return NextResponse.json({ error: "Unauthorized: Identity mismatch" }, { status: 401 });
+        }
+
         // Generate a persistent TOKEN for this specific potential inquiry
         const intakeToken = crypto.randomUUID();
 

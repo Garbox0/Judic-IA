@@ -20,6 +20,23 @@ export async function POST(request) {
             return NextResponse.json({ error: "Faltan parámetros: inquiryId o lawyerId" }, { status: 400 });
         }
 
+        // 🛡️ SECURITY: Verify Identity
+        const { data: { user } } = await adminClient.auth.getUser();
+        if (!user || user.id !== lawyerId) {
+            return NextResponse.json({ error: "Unauthorized: Identity mismatch" }, { status: 401 });
+        }
+
+        // Verify Inquiry Ownership
+        const { data: inqCheck } = await adminClient
+            .from('inquiries')
+            .select('assigned_lawyer_id')
+            .eq('id', inquiryId)
+            .single();
+
+        if (!inqCheck || inqCheck.assigned_lawyer_id !== user.id) {
+            return NextResponse.json({ error: "Forbidden: No eres el dueño de esta consulta." }, { status: 403 });
+        }
+
         console.log(`📂 CASE CONVERSION START: inquiry=${inquiryId}, lawyer=${lawyerId}`);
 
         // 1. Get Lawyer Profile to check for existing org_id
