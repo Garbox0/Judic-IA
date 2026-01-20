@@ -3,6 +3,8 @@ import SafeChatWidget from "../components/SafeChatWidget";
 import Link from "next/link";
 import styles from "./demo.module.css";
 
+import { Gavel } from "lucide-react";
+
 export default function DemoPage() {
     return (
         <main className={styles.main}>
@@ -13,7 +15,7 @@ export default function DemoPage() {
                     </div>
                     <div className={styles.navActions}>
                         <Link href="/demo/dashboard" className={styles.dashboardBtnNav}>
-                            👨‍⚖️ Panel Abogado
+                            <Gavel size={18} style={{ marginRight: '8px' }} /> Panel Abogado
                         </Link>
                         <Link href="/" className={styles.backBtn}>
                             <span>←</span> Volver al inicio

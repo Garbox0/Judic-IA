@@ -179,7 +179,7 @@ export default function Home() {
           <div className="foot-brand">
             <div className="nav-logo" style={{ width: '34px', borderRadius: '12px', display: 'grid', placeItems: 'center', background: 'rgba(255,255,255,0.1)' }}>⚖️</div>
             <div>
-              <div style={{ fontWeight: 900, color: '#e2e8f0' }}>Judic-IA</div>
+              <div style={{ fontWeight: 900, color: '#e2e8f0', fontFamily: "'Playfair Display', serif" }}>Judic-IA</div>
               <div className="foot-note">© 2026 — LegalTech Argentina</div>
             </div>
           </div>

@@ -2,6 +2,14 @@
 import React from 'react';
 import Link from 'next/link';
 
+import {
+    Search,
+    Users,
+    Calendar,
+    Settings,
+    Lock
+} from 'lucide-react';
+
 export default function DemoDashboardHome() {
     // Hardcoded Demo Stats
     const stats = { clients: 12, deadlines: 3 };
@@ -12,7 +20,7 @@ export default function DemoDashboardHome() {
             id: 'research',
             title: 'Investigación Legal',
             desc: 'Consulta normativa, códigos y fallos con IA. (Funcional)',
-            icon: '🔍',
+            icon: <Search size={22} />,
             link: '/demo/dashboard/research', // Redirects to Demo Research
             color: 'var(--primary)',
             active: true
@@ -21,7 +29,7 @@ export default function DemoDashboardHome() {
             id: 'clients',
             title: 'Mis Clientes',
             desc: 'Administra tus expedientes y contactos.',
-            icon: '👥',
+            icon: <Users size={22} />,
             link: '#',
             color: '#6366f1',
             active: false
@@ -30,7 +38,7 @@ export default function DemoDashboardHome() {
             id: 'agenda',
             title: 'Agenda Judicial',
             desc: 'Controla tus plazos y audiencias.',
-            icon: '📅',
+            icon: <Calendar size={22} />,
             link: '#',
             color: '#10b981',
             active: false
@@ -39,7 +47,7 @@ export default function DemoDashboardHome() {
             id: 'settings',
             title: 'Configuración',
             desc: 'Ajusta tu perfil y firma digital.',
-            icon: '⚙️',
+            icon: <Settings size={22} />,
             link: '#',
             color: '#94a3b8',
             active: false
@@ -65,9 +73,9 @@ export default function DemoDashboardHome() {
                     Bienvenido, Dr. {user?.user_metadata?.first_name}
                 </h1>
                 <div className="daily-brief">
-                    <span className="brief-item">📅 <b>{stats.deadlines}</b> Vencimientos hoy</span>
+                    <span className="brief-item"><Calendar size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }} /> <b>{stats.deadlines}</b> Vencimientos hoy</span>
                     <span className="brief-divider">·</span>
-                    <span className="brief-item">📩 <b>{stats.clients}</b> Clientes activos</span>
+                    <span className="brief-item"><Users size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }} /> <b>{stats.clients}</b> Clientes activos</span>
                 </div>
             </header>
 
@@ -90,7 +98,7 @@ export default function DemoDashboardHome() {
                             <div className="card-body">
                                 <h3>
                                     {tool.title}
-                                    {!tool.active && <span className="lock-icon">🔒</span>}
+                                    {!tool.active && <Lock size={14} className="lock-icon" />}
                                 </h3>
                                 <p>{tool.desc}</p>
                             </div>

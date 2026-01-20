@@ -79,6 +79,7 @@ body {
 }
 
 .nav-title {
+    font-family: 'Playfair Display', serif;
     font-size: 1.4rem;
     font-weight: 800;
     color: var(--gold);

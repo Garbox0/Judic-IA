@@ -3,8 +3,17 @@ import { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import Link from 'next/link';
+import {
+    Briefcase,
+    Gavel,
+    Home,
+    Building2,
+    FileText,
+    ClipboardCopy
+} from 'lucide-react';
 
 export default function DemoResearchPage() {
+    // ... existing state ...
     const [query, setQuery] = useState('');
     const [scope, setScope] = useState('nacional'); // 'nacional' or 'provincial'
     const [province, setProvince] = useState('Buenos Aires');
@@ -286,12 +295,12 @@ export default function DemoResearchPage() {
                                     setTimeout(() => setCopySuccess(false), 2000);
                                 }}
                             >
-                                📋 Copiar Texto
+                                <ClipboardCopy size={18} style={{ marginRight: '8px' }} /> Copiar Texto
                             </button>
                             {copySuccess && <span className="copy-toast">✨ ¡Copiado!</span>}
                         </div>
                         <button className="btn-action btn-pdf" onClick={handleDownloadPDF}>
-                            📄 Descargar PDF
+                            <FileText size={18} style={{ marginRight: '8px' }} /> Descargar PDF
                         </button>
                     </div>
                 )}
@@ -349,25 +358,25 @@ export default function DemoResearchPage() {
                     <div className="categories-grid">
                         <div className={`category-card glass-card ${activeCategory === 'laboral' ? 'active' : ''}`}
                             onClick={() => { setPlaceholder('Jurisprudencia sobre despidos con justa causa en CABA'); setQuery(''); setActiveCategory('laboral'); }}>
-                            <span className="icon">💼</span>
+                            <span className="icon"><Briefcase size={32} /></span>
                             <h4>Laboral</h4>
                             <p>Despidos, accidentes, trabajo en negro.</p>
                         </div>
                         <div className={`category-card glass-card ${activeCategory === 'penal' ? 'active' : ''}`}
                             onClick={() => { setPlaceholder('Jurisprudencia sobre robo con arma de guerra y abuso de autoridad'); setQuery(''); setActiveCategory('penal'); }}>
-                            <span className="icon">⚖️</span>
+                            <span className="icon"><Gavel size={32} /></span>
                             <h4>Penal</h4>
                             <p>Robo con armas, abusos, delitos complejos.</p>
                         </div>
                         <div className={`category-card glass-card ${activeCategory === 'civil' ? 'active' : ''}`}
                             onClick={() => { setPlaceholder('Sucesión con herederos forzosos y bienes en varias provincias'); setQuery(''); setActiveCategory('civil'); }}>
-                            <span className="icon">🏠</span>
+                            <span className="icon"><Home size={32} /></span>
                             <h4>Civil & Familia</h4>
                             <p>Sucesiones, divorcios, medianería.</p>
                         </div>
                         <div className={`category-card glass-card ${activeCategory === 'propiedad' ? 'active' : ''}`}
                             onClick={() => { setPlaceholder('Jurisprudencia sobre mediación y medianería en edificios'); setQuery(''); setActiveCategory('propiedad'); }}>
-                            <span className="icon">🏙️</span>
+                            <span className="icon"><Building2 size={32} /></span>
                             <h4>Propiedad</h4>
                             <p>Medianería, consorcios, desalojos.</p>
                         </div>
@@ -566,7 +575,8 @@ export default function DemoResearchPage() {
                 }
                 .search-box input::placeholder { color: #475569; font-style: italic; }
                 .search-box button {
-                    padding: 0 2rem;
+                    padding: 1.2rem 2rem;
+                    min-height: 100%;
                     background: var(--primary);
                     color: #020617;
                     border-radius: 12px;

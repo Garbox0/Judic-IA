@@ -413,7 +413,7 @@ export default function IntakeFormContent({ id }) {
             }
             .nav-brand { display: flex; align-items: center; gap: 0.8rem; }
             .nav-logo { width: 35px; }
-            .nav-title { font-weight: 800; font-size: 1.2rem; color: white; }
+            .nav-title { font-family: 'Playfair Display', serif; font-weight: 800; font-size: 1.2rem; color: white; }
 
             /* User Session Footer */
             .user-session {

@@ -3,7 +3,20 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LogOut, User } from 'lucide-react';
+import {
+  LogOut,
+  User,
+  Scale,
+  Users,
+  FolderOpen,
+  CalendarClock,
+  Settings,
+  BookOpen,
+  ShieldCheck,
+  Menu,
+  Crown,
+  Sparkles
+} from 'lucide-react';
 import SafeChatWidget from '../components/SafeChatWidget';
 
 import './dashboard.css';
@@ -108,8 +121,9 @@ export default function DashboardLayout({ children }) {
         <button
           className="mobile-toggle-btn"
           onClick={() => setMobileSidebarOpen(true)}
+          aria-label="Abrir menú"
         >
-          ☰
+          <Menu size={20} />
         </button>
         <span className="mobile-brand">Judic-IA</span>
       </div>
@@ -121,32 +135,43 @@ export default function DashboardLayout({ children }) {
             <h1>Judic-IA</h1>
           </Link>
           <div className="plan-badge">
-            {profile?.plan_tier === 'professional' ? '👑 PRO SUITE' : '⚖️ PLAN STARTER'}
+            {profile?.plan_tier === 'professional' ? (
+              <span className="plan-inline"><Crown size={14} /> PRO SUITE</span>
+            ) : (
+              <span className="plan-inline"><Scale size={14} /> PLAN STARTER</span>
+            )}
           </div>
         </div>
 
         <nav className="nav-links">
           <Link href="/dashboard/research" className={`nav-item ${pathname.includes('/research') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
-            <span>⚖️ Jurisprudencia</span>
+            <Scale size={18} className="nav-icon" />
+            <span>Jurisprudencia</span>
           </Link>
           <Link href="/dashboard/clients" className={`nav-item ${pathname.includes('/clients') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
-            <span>👥 Clientes</span>
+            <Users size={18} className="nav-icon" />
+            <span>Clientes</span>
           </Link>
           <Link href="/dashboard/cases" className={`nav-item ${pathname.includes('/cases') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
-            <span>📁 Expedientes</span>
+            <FolderOpen size={18} className="nav-icon" />
+            <span>Expedientes</span>
           </Link>
           <Link href="/dashboard/agenda" className={`nav-item ${pathname.includes('/agenda') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
-            <span>📅 Plazos</span>
+            <CalendarClock size={18} className="nav-icon" />
+            <span>Plazos</span>
           </Link>
           <Link href="/dashboard/settings" className={`nav-item ${pathname.includes('/settings') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
-            <span>⚙️ Ajustes</span>
+            <Settings size={18} className="nav-icon" />
+            <span>Ajustes</span>
           </Link>
           <Link href="/dashboard/library" className={`nav-item ${pathname.includes('/library') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
-            <span>📚 Biblioteca</span>
+            <BookOpen size={18} className="nav-icon" />
+            <span>Biblioteca</span>
           </Link>
           {user?.email === 'gbrlescalada@gmail.com' && user?.id === '365cd259-4f1e-4004-a677-1eda06a5147e' && (
             <Link href="/dashboard/admin" className={`nav-item ${pathname.includes('/admin') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
-              <span className="text-gold-400">🛡️ Admin Panel</span>
+              <ShieldCheck size={18} className="nav-icon" />
+              <span className="text-gold-400">Admin Panel</span>
             </Link>
           )}
         </nav>
@@ -158,7 +183,7 @@ export default function DashboardLayout({ children }) {
           >
             <div className="upgrade-glow"></div>
             <div className="upgrade-content">
-              <span className="spark-icon">✨</span>
+              <Sparkles size={16} className="spark-icon" />
               <span className="elite-text">Oferta Elite</span>
               <span className="arrow-icon">→</span>
             </div>

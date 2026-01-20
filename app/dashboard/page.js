@@ -3,6 +3,15 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import Link from 'next/link';
 
+import {
+  Search,
+  Users,
+  FolderOpen,
+  Calendar,
+  BookOpen,
+  Settings
+} from 'lucide-react';
+
 export default function DashboardHome() {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({ clients: 0, deadlines: 0 });
@@ -47,7 +56,7 @@ export default function DashboardHome() {
       id: 'research',
       title: 'Jurisprudencia',
       desc: 'Consulta normativa, códigos y fallos con IA.',
-      icon: '🔍',
+      icon: <Search size={24} />,
       link: '/dashboard/research',
       color: 'var(--gold)'
     },
@@ -55,7 +64,7 @@ export default function DashboardHome() {
       id: 'clients',
       title: 'Clientes',
       desc: 'Administra tus consultas y contactos entrantes.',
-      icon: '👥',
+      icon: <Users size={24} />,
       link: '/dashboard/clients',
       color: '#6366f1'
     },
@@ -63,7 +72,7 @@ export default function DashboardHome() {
       id: 'cases',
       title: 'Expedientes',
       desc: 'Gestión centralizada de tus casos oficiales.',
-      icon: '📁',
+      icon: <FolderOpen size={24} />,
       link: '/dashboard/cases',
       color: '#3b82f6'
     },
@@ -71,7 +80,7 @@ export default function DashboardHome() {
       id: 'agenda',
       title: 'Plazos',
       desc: 'Controla tus fechas, plazos y audiencias.',
-      icon: '📅',
+      icon: <Calendar size={24} />,
       link: '/dashboard/agenda',
       color: '#10b981'
     },
@@ -79,7 +88,7 @@ export default function DashboardHome() {
       id: 'library',
       title: 'Biblioteca',
       desc: 'Base de conocimiento y precedentes guardados.',
-      icon: '📚',
+      icon: <BookOpen size={24} />,
       link: '/dashboard/library',
       color: '#a855f7'
     },
@@ -87,7 +96,7 @@ export default function DashboardHome() {
       id: 'settings',
       title: 'Ajustes',
       desc: 'Configuración de perfil, firma y facturación.',
-      icon: '⚙️',
+      icon: <Settings size={24} />,
       link: '/dashboard/settings',
       color: '#94a3b8'
     }

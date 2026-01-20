@@ -6,6 +6,19 @@ import 'jspdf-autotable';
 import Link from 'next/link';
 import SafeChatWidget from '../../components/SafeChatWidget';
 import TetrisLoader from '../../components/TetrisLoader';
+import {
+    Briefcase,
+    Gavel,
+    Home,
+    Building2,
+    Search,
+    Zap,
+    RefreshCw,
+    ExternalLink,
+    Eye,
+    FileText,
+    ClipboardCopy
+} from 'lucide-react';
 
 export default function ResearchPage() {
     const [query, setQuery] = useState('');
@@ -315,7 +328,7 @@ export default function ResearchPage() {
                             return acc;
                         }, []).map((item, i) => (
                             <li key={i} style={{ marginBottom: '0.8rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                                <span style={{ fontWeight: 'bold', color: '#fbbf24', minWidth: '1.5em' }}>{item.marker}</span>
+                                <span style={{ fontWeight: 'bold', color: '#fbbf24', minWidth: '1.5em', display: 'flex', alignItems: 'center', height: '1.5rem' }}>{item.marker}</span>
                                 <span style={{ color: '#cbd5e1', lineHeight: '1.6' }}>{item.content}</span>
                             </li>
                         ))}
@@ -556,6 +569,7 @@ export default function ResearchPage() {
                                 onChange={(e) => setQuery(e.target.value)}
                             />
                             <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                                {loading ? <Zap size={18} className="spin-animation" /> : <Search size={18} />}
                                 {loading ? 'Procesando Inteligencia...' : 'Generar Estrategia IA'}
                             </button>
                         </form>
@@ -591,6 +605,7 @@ export default function ResearchPage() {
                                     <button
                                         className="btn-action"
                                         onClick={() => {
+                                            // ... copy logic same ...
                                             const parts = [
                                                 "🏦 ESTUDIO LEGAL - INVESTIGACIÓN DE IA (JUDIC-IA)",
                                                 "",
@@ -598,9 +613,7 @@ export default function ResearchPage() {
                                                 results.laws,
                                                 "",
                                                 "⚖️ JURISPRUDENCIA & FALLOS:",
-                                                Array.isArray(results.cases)
-                                                    ? results.cases.map(c => `🔹 ${c.title}\n   ${c.summary}\n   Fuente: ${c.source}`).join('\n\n')
-                                                    : results.cases,
+                                                results.cases.map(c => `🔹 ${c.title}\n   ${c.summary}\n   Fuente: ${c.source}`).join('\n\n'),
                                                 "",
                                                 results.calculation ? `💰 LIQUIDACIÓN ESTIMAD@:\n${results.calculation}\n` : null,
                                                 results.evidence ? `🔍 PUNTOS DE PRUEBA:\n${results.evidence}\n` : null,
@@ -616,12 +629,14 @@ export default function ResearchPage() {
                                             setTimeout(() => setCopySuccess(false), 2000);
                                         }}
                                     >
-                                        📋 Copiar Texto
+                                        <ClipboardCopy size={16} />
+                                        <span>Copiar Texto</span>
                                     </button>
                                     {copySuccess && <span className="copy-toast">✨ ¡Copiado!</span>}
                                 </div>
                                 <button className="btn-action btn-pdf" onClick={handleDownloadPDF}>
-                                    📄 Exportar Informe de Estrategia
+                                    <FileText size={16} />
+                                    <span>Exportar Informe de Estrategia</span>
                                 </button>
                             </div>
                         )}
@@ -692,7 +707,10 @@ export default function ResearchPage() {
                                                     >
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                                                             <div style={{ flex: 1, minWidth: 0 }}>
-                                                                <h4 style={{ margin: '0 0 0.4rem 0', color: '#e2e8f0', fontSize: '1rem' }}>🏛️ {c.title}</h4>
+                                                                <h4 style={{ margin: '0 0 0.4rem 0', color: '#e2e8f0', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                                    <Gavel size={16} style={{ color: '#fbbf24' }} />
+                                                                    {c.title}
+                                                                </h4>
                                                                 <div className="case-summary-scroll" style={{
                                                                     maxHeight: '4.5em', // Approx 3 lines
                                                                     overflowY: 'auto',
@@ -713,7 +731,7 @@ export default function ResearchPage() {
                                                                         onClick={() => handleRefreshCase(i)}
                                                                         disabled={refreshingCases[i]}
                                                                     >
-                                                                        <span className={refreshingCases[i] ? "spin-animation" : ""}>🔄</span>
+                                                                        <RefreshCw size={16} className={refreshingCases[i] ? "spin-animation" : ""} />
                                                                     </button>
                                                                     <a
                                                                         href={safeUrl}
@@ -722,14 +740,14 @@ export default function ResearchPage() {
                                                                         className="btn-link-icon"
                                                                         title="Abrir Fuente"
                                                                     >
-                                                                        🔗
+                                                                        <ExternalLink size={16} />
                                                                     </a>
                                                                     <button
                                                                         className="btn-preview-icon"
                                                                         title="Visualizar en Pestaña"
                                                                         onClick={() => window.open(`/api/proxy-pdf?url=${encodeURIComponent(safeUrl)}`, '_blank')}
                                                                     >
-                                                                        👁️
+                                                                        <Eye size={16} />
                                                                     </button>
                                                                 </div>
                                                             )}
@@ -795,25 +813,25 @@ export default function ResearchPage() {
                             <div className="categories-grid">
                                 <div className={`category-card glass-card ${activeCategory === 'laboral' ? 'active' : ''}`}
                                     onClick={() => { setPlaceholder('Jurisprudencia sobre despidos con justa causa en CABA'); setQuery(''); setActiveCategory('laboral'); }}>
-                                    <span className="icon">💼</span>
+                                    <span className="icon"><Briefcase size={24} /></span>
                                     <h4>Laboral</h4>
                                     <p>Despidos, accidentes, trabajo en negro.</p>
                                 </div>
                                 <div className={`category-card glass-card ${activeCategory === 'penal' ? 'active' : ''}`}
                                     onClick={() => { setPlaceholder('Jurisprudencia sobre robo con arma de guerra y abuso de autoridad'); setQuery(''); setActiveCategory('penal'); }}>
-                                    <span className="icon">⚖️</span>
+                                    <span className="icon"><Gavel size={24} /></span>
                                     <h4>Penal</h4>
                                     <p>Robo con armas, abusos, delitos complejos.</p>
                                 </div>
                                 <div className={`category-card glass-card ${activeCategory === 'civil' ? 'active' : ''}`}
                                     onClick={() => { setPlaceholder('Sucesión con herederos forzosos y bienes en varias provincias'); setQuery(''); setActiveCategory('civil'); }}>
-                                    <span className="icon">🏠</span>
+                                    <span className="icon"><Home size={24} /></span>
                                     <h4>Civil & Familia</h4>
                                     <p>Sucesiones, divorcios, medianería.</p>
                                 </div>
                                 <div className={`category-card glass-card ${activeCategory === 'propiedad' ? 'active' : ''}`}
                                     onClick={() => { setPlaceholder('Jurisprudencia sobre mediación y medianería en edificios'); setQuery(''); setActiveCategory('propiedad'); }}>
-                                    <span className="icon">🏙️</span>
+                                    <span className="icon"><Building2 size={24} /></span>
                                     <h4>Propiedad</h4>
                                     <p>Medianería, consorcios, desalojos.</p>
                                 </div>
@@ -1008,7 +1026,7 @@ export default function ResearchPage() {
                     flex: 1;
                     min-width: 180px;
                     max-width: 250px;
-                    padding: 0 1.5rem;
+                    padding: 1.2rem 1.5rem;
                     background: var(--primary);
                     color: #020617;
                     border-radius: 12px;

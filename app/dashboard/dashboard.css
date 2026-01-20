@@ -40,11 +40,12 @@
 }
 
 .logo-section h1 {
-    font-size: 1.4rem;
-    font-weight: 900;
+    font-family: var(--font-playfair);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
     margin: 0;
-    color: white;
-    text-decoration: none;
+    letter-spacing: -0.02em;
 }
 
 .logo-link {
@@ -59,6 +60,12 @@
     margin-top: 0.3rem;
     text-transform: uppercase;
     display: block;
+}
+
+.plan-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
 }
 
 .nav-links {
@@ -78,6 +85,11 @@
     display: flex;
     align-items: center;
     gap: 0.8rem;
+}
+
+.nav-icon {
+    flex-shrink: 0;
+    opacity: 0.95;
 }
 
 .nav-item:hover {
@@ -182,6 +194,14 @@
     margin: 0 auto;
 }
 
+.mobile-brand {
+    font-family: var(--font-playfair);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.01em;
+}
+
 /* GLOBAL PAGE TITLE */
 .dashboard-page-title {
     color: var(--primary);
@@ -233,9 +253,11 @@
 }
 
 .dashboard-header h2 {
-    font-size: 2.6rem;
-    font-weight: 800;
-    margin-bottom: 1rem;
+    font-family: var(--font-playfair);
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 0.5rem;
     margin-top: 0;
 }
 

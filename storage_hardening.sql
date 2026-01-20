@@ -28,11 +28,8 @@ TO public
 WITH CHECK (
   bucket_id = 'inquiry-attachments' AND
   (storage.extension(name) = 'pdf' OR storage.extension(name) = 'jpg' OR storage.extension(name) = 'jpeg' OR storage.extension(name) = 'png') AND
-  (CASE 
-    WHEN (metadata->>'size')::int <= 5242880 THEN true 
-    ELSE false 
-  END) AND
-  (mimetype = 'application/pdf' OR mimetype = 'image/jpeg' OR mimetype = 'image/png')
+  (metadata->>'size')::int <= 5242880 AND
+  (metadata->>'mimetype' = 'application/pdf' OR metadata->>'mimetype' = 'image/jpeg' OR metadata->>'mimetype' = 'image/png')
 );
 
 -- 5. Hardening adicional: Prevenir borrado por parte de terceros
@@ -40,4 +37,4 @@ DROP POLICY IF EXISTS "No Delete for Clients" ON storage.objects;
 CREATE POLICY "No Delete for Clients"
 ON storage.objects FOR DELETE
 TO public
-USING (false); -- Nadie borra archivos vía API pública
+USING (bucket_id = 'inquiry-attachments' AND false); -- Nadie borra archivos en este bucket
