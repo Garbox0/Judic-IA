@@ -89,6 +89,41 @@ const adminStyles = `
   .action-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); color: white; }
   .action-btn.active-pro { color: var(--gold); border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.05); }
   .loading-container { height: 100vh; display: flex; flex-direction: column; items-center; justify-center; gap: 1rem; color: #94a3b8; }
+
+  /* Premium Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(15px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem; animation: fadeIn 0.3s ease;
+  }
+  .premium-modal {
+    width: 100%; max-width: 480px;
+    background: #0f172a; border: 1px solid var(--stroke);
+    border-radius: 28px; overflow: hidden;
+    box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.7);
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .modal-header-strip { height: 4px; background: linear-gradient(to right, var(--gold), #f59e0b); }
+  
+  /* Toasts */
+  .toast-container {
+    position: fixed; bottom: 2rem; right: 2rem;
+    display: flex; flex-direction: column; gap: 0.75rem; z-index: 200;
+  }
+  .premium-toast {
+    padding: 1rem 1.5rem; border-radius: 20px;
+    background: #1e293b; border: 1px solid var(--stroke);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    display: flex; align-items: center; gap: 1rem;
+    animation: slideLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    min-width: 320px;
+  }
+  
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(20px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+  @keyframes slideLeft { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 `;
 
 export default function AdminDashboard() {
@@ -101,6 +136,10 @@ export default function AdminDashboard() {
     const [currentUser, setCurrentUser] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [error, setError] = useState(null);
+
+    // Premium UI State
+    const [notifications, setNotifications] = useState([]);
+    const [activeModal, setActiveModal] = useState(null); // { title: string, message: string, onConfirm: fn }
 
     // 1. ABSOLUTE GUARD (INVISIBLE REDIRECT)
     useEffect(() => {
@@ -178,16 +217,45 @@ export default function AdminDashboard() {
 
     if (!isAdmin) return null; // Invisible while checking
 
-    const handleAction = async (targetId, action, payload = {}) => {
-        if (!confirm(`¿Confirmar acción: ${action}?`)) return;
-        try {
-            const res = await fetch('/api/admin/users/action', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ adminId: currentUser.id, targetUserId: targetId, action, payload })
+    const addNotification = (title, type = 'success') => {
+        const id = Date.now();
+        setNotifications(prev => [...prev, { id, title, type }]);
+        setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 5000);
+    };
+
+    const handleAction = async (targetId, action, payload = {}, skipConfirm = false) => {
+        const confirmRequest = (onConfirm) => {
+            if (skipConfirm) {
+                onConfirm();
+                return;
+            }
+            setActiveModal({
+                title: 'Confirmar Acción',
+                message: `¿Estás seguro que deseas ejecutar "${action}" en este usuario?`,
+                onConfirm
             });
-            if (res.ok) initialFetch(currentUser.id);
-        } catch (err) { alert('Error: ' + err.message); }
+        };
+
+        const exec = async () => {
+            try {
+                const res = await fetch('/api/admin/users/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminId: currentUser.id, targetUserId: targetId, action, payload })
+                });
+                if (res.ok) {
+                    addNotification(`Acción "${action}" ejecutada con éxito`);
+                    initialFetch(currentUser.id);
+                } else {
+                    const data = await res.json();
+                    addNotification(data.error || 'Error en la petición', 'error');
+                }
+            } catch (err) {
+                addNotification(err.message, 'error');
+            }
+        };
+
+        confirmRequest(exec);
     };
 
     const filteredUsers = users.filter(u =>
@@ -327,15 +395,20 @@ export default function AdminDashboard() {
                                             <Crown size={15} />
                                         </button>
                                         <button onClick={() => {
-                                            const q = prompt("Nueva cuota total:", user.ai_message_quota);
-                                            if (q) handleAction(user.id, 'update-credits', { quota: q });
+                                            setActiveModal({
+                                                title: 'Ajustar Cuota',
+                                                message: `Ingresar nueva cuota de mensajes para ${user.full_name || user.email}:`,
+                                                userInput: true,
+                                                defaultValue: user.ai_message_quota,
+                                                onConfirm: (val) => handleAction(user.id, 'update-credits', { quota: val }, true)
+                                            });
                                         }} className="action-btn" title="Ajustar Cuota">
                                             <Edit3 size={15} />
                                         </button>
                                         <button onClick={() => handleAction(user.id, 'reset-usage')} className="action-btn" title="Limpiar Uso Mensual">
                                             <RefreshCw size={14} />
                                         </button>
-                                        <button className="action-btn text-red-500/20 hover:text-red-500 hover:bg-red-500/10" title="Revocar Acceso">
+                                        <button onClick={() => handleAction(user.id, 'revoke-access')} className="action-btn text-red-500/20 hover:text-red-500 hover:bg-red-500/10" title="Revocar Acceso">
                                             <Power size={14} />
                                         </button>
                                     </div>
@@ -344,6 +417,76 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* --- PREMIUM MODAL OVERLAY --- */}
+            {activeModal && (
+                <div className="modal-overlay" onClick={() => setActiveModal(null)}>
+                    <div className="premium-modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header-strip" />
+                        <div className="p-8 space-y-6">
+                            <div className="flex items-center gap-4 text-gold">
+                                <ShieldCheck size={24} />
+                                <h3 className="text-xl font-black tracking-tight">{activeModal.title}</h3>
+                            </div>
+                            <p className="text-slate-400 text-sm leading-relaxed font-medium">
+                                {activeModal.message}
+                            </p>
+
+                            {activeModal.userInput && (
+                                <input
+                                    type="number"
+                                    id="modal-input"
+                                    defaultValue={activeModal.defaultValue}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold/50 font-bold"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            const val = e.target.value;
+                                            activeModal.onConfirm(val);
+                                            setActiveModal(null);
+                                        }
+                                    }}
+                                />
+                            )}
+
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    onClick={() => setActiveModal(null)}
+                                    className="flex-1 py-4 rounded-2xl border border-white/5 bg-white/5 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        const val = document.getElementById('modal-input')?.value;
+                                        activeModal.onConfirm(activeModal.userInput ? val : null);
+                                        setActiveModal(null);
+                                    }}
+                                    className="flex-1 py-4 rounded-2xl bg-gold text-black text-[10px] font-black uppercase tracking-widest hover:bg-amber-400 transition-all shadow-[0_10px_20px_rgba(251,191,36,0.2)]"
+                                >
+                                    Confirmar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- TOAST CONTAINER --- */}
+            <div className="toast-container">
+                {notifications.map(n => (
+                    <div key={n.id} className="premium-toast">
+                        <div className={`w-2 h-2 rounded-full ${n.type === 'error' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+                        <div className="flex-1">
+                            <p className="text-xs font-black uppercase tracking-widest text-slate-500 mb-1">{n.type === 'error' ? 'Error' : 'Éxito'}</p>
+                            <p className="text-white text-[13px] font-bold tracking-tight">{n.title}</p>
+                        </div>
+                        <button onClick={() => setNotifications(prev => prev.filter(x => x.id !== n.id))} className="text-white/20 hover:text-white">
+                            <XCircle size={16} />
+                        </button>
+                    </div>
+                ))}
             </div>
         </div>
     );

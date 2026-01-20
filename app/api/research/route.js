@@ -4,7 +4,6 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request) {
     const apiKey = process.env.OPENROUTER_API_KEY;
-    // FIX: Ahora solo usamos Brave Search
     const braveApiKey = process.env.BRAVE_SEARCH_API_KEY;
     const { query, jurisdiction, userId, mode } = await request.json();
 
@@ -49,53 +48,30 @@ export async function POST(request) {
             defaultHeaders: { "HTTP-Referer": "http://localhost:3000", "X-Title": "Judic-IA" }
         });
 
-        // --- STAGE 0: DEBUG LOGS ---
-        console.log("--- RESEARCH DEBUG ---");
-        console.log("MODE:", mode);
-        console.log("USER ID:", userId);
-        console.log("HAS BRAVE KEY:", !!braveApiKey);
-        if (braveApiKey) {
-            console.log("BRAVE KEY MASKED:", `${braveApiKey.substring(0, 5)}***${braveApiKey.substring(braveApiKey.length - 4)}`);
-        } else {
-            console.log("BRAVE KEY IS MISSING ❌");
-        }
-        console.log("JURISDICTION:", jurisdiction);
-
-        // --- STAGE 1: DORK GENERATION (OPTIMIZED & RELAXED) ---
+        // --- STAGE 1: DORK GENERATION (TERMINAL INTEL PROTOCOL) ---
         const dorkCompletion = await openai.chat.completions.create({
             model: "openai/gpt-4o-mini",
             messages: [{
                 role: "system",
-                content: `Generá un objeto JSON { "queries": [string] } con 10 búsquedas avanzadas para: "${query}".
+                content: `Generá un objeto JSON { "queries": [string] } con 15 búsquedas jurídicas de ALTA PRECISIÓN para: "${query}".
                 JURISDICCIÓN: ${jurisdiction || 'Nacional'}.
                 
-                SI LA JURISDICCIÓN ES 'Nacional' o 'Federal':
-                - PRIORIZÁ: pjn.gov.ar, cij.gov.ar, csjn.gov.ar, saij.gob.ar.
-                - AGREGÁ: "sentencia completa pdf" o "fallo autos" para encontrar documentos.
-                - EVITÁ: Dominios provinciales salvo relevancia.
-                
-                SI LA JURISDICCIÓN ES PROVINCIAL (ej: Buenos Aires):
-                - PRIORIZÁ: El dominio judicial de esa provincia (ej: scba.gov.ar).
-                
-                IMPORTANTE: El usuario BUSCA FALLOS (Sentencias Judiciales). 
-                Mezclá búsquedas específicas con "site:..." y búsquedas más abiertas.
-                Usá términos: "sentencia", "fallo completo", "autos", "cámara expediente".
-                AGREGÁ SIEMPRE: "-manual -guía -instructivo -tutorial -formulario" para filtrar ruido administrativo.
-                NO uses "filetype:pdf" en todas las queries, usalo solo en 2 o 3.`
+                PROTOCOLO DE BÚSQUEDA "TERMINAL DE INTELIGENCIA":
+                - SI ES NACIONAL/FEDERAL: Priorizá dominios (.gov.ar) de CSJN, PJN, SAIJ, CIJ.
+                - SI ES PROVINCIAL: Priorizá el portal de jurisprudencia provincial (ej: scba, jusmisiones, jussantafe).
+                - OBJETIVO: Buscamos SENTENCIAS definitivas y leading cases. 
+                - OPERADORES: Usá "autos", "expediente", "s/ daños", "sentencia", "visto y considerando", "filetype:pdf".
+                - DIVERSIFICACIÓN: Realizá búsquedas variadas (procesal, fondo, cuantificación, doctrina).`
             }],
             response_format: { type: "json_object" }
         });
 
         const { queries: rawQueries } = JSON.parse(dorkCompletion.choices[0].message.content);
-
-        // --- ADD NATURAL LANGUAGE QUERY ---
-        const queries = [query, ...rawQueries].slice(0, 11);
-
+        const queries = [query, ...rawQueries].slice(0, 16);
         const searchResults = [];
 
-        // --- STAGE 1.5: CACHE CHECK (Cost Optimization) ---
+        // --- STAGE 1.5: CACHE CHECK ---
         const cleanQueries = queries.map(q => q.replace(/site:[^\s]+/g, '').trim()).filter(q => q.length > 5);
-
         const { data: cachedCases } = await supabase
             .from('case_library')
             .select('*')
@@ -103,86 +79,88 @@ export async function POST(request) {
             .limit(10);
 
         if (cachedCases?.length > 0) {
-            console.log("Cache Hit! Using cases from library.");
-            // Add implicit Private Link for cached items if not exists? 
-            // Better to only link what is "found" or "viewed", but for now we treat search results as "found".
-            cachedCases.forEach(c => searchResults.push({ title: c.autos, link: c.url, snippet: c.summary, source: c.jurisdiction || 'Biblioteca' }));
+            cachedCases.forEach(c => searchResults.push({ title: c.autos, link: c.url, snippet: c.summary, source: c.jurisdiction || 'Biblioteca', score: 100 }));
         }
 
-        // --- STAGE 2: REAL-TIME SEARCH (BRAVE EXCLUSIVE) ---
-        // Changed threshold to 10 as requested
-        // DEBUG: Force allow search if keys present
-        const canSearch = (mode !== 'demo' && searchResults.length < 10) || queries.length > 0;
-
-        console.log("--- BRAVE PRE-FLIGHT CHECK ---");
-        console.log("Has Key:", !!braveApiKey);
-        console.log("Query Count:", queries?.length);
-        console.log("Can Search:", canSearch);
-
-        // Validamos solo BRAVE y queries
+        // --- STAGE 2: MASSIVE PARALLEL SEARCH (BRAVE PRO) ---
+        const canSearch = (mode !== 'demo' && searchResults.length < 15) || queries.length > 0;
         if (braveApiKey && queries?.length > 0 && canSearch) {
-            console.log("🚀 Starting Brave Pro Search...");
+            const legalWhiteList = [
+                'pjn.gov.ar', 'cij.gov.ar', 'saij.gob.ar', 'csjn.gov.ar',
+                'scba.gov.ar', 'mpba.gov.ar', 'justiciacordoba.gob.ar',
+                'jusmisiones.gov.ar', 'jussantafe.gov.ar', 'jus.mendoza.gov.ar',
+                'infojus.gob.ar', 'boletinoficial.gob.ar', 'buenosaires.gob.ar'
+            ];
 
-            const searchPromises = [];
+            const calculateLegalScore = (r) => {
+                let score = 0;
+                const text = (r.title + " " + r.snippet).toLowerCase();
+                const url = r.link.toLowerCase();
 
-            // Helper para filtrar (JURISDICTION AWARE)
-            const filterResult = (r) => {
-                try {
-                    const urlObj = new URL(r.link);
-                    const h = urlObj.hostname.replace(/^www\./, "");
-                    // RELAXED FILTER: We accept most results, just excluding obvious junk
-                    const isJunk = h.includes("pinterest") || h.includes("facebook") || h.includes("instagram") || h.includes("twitter") || h.includes("youtube") || h.includes("tiktok");
-                    if (isJunk) return false;
-                    return true;
-                } catch (e) { return false; }
+                // High priority: Official Domains
+                if (legalWhiteList.some(d => url.includes(d))) score += 50;
+                if (url.includes('.gov.ar') || url.includes('.gob.ar')) score += 30;
+
+                // Technical Keywords
+                if (text.includes('autos:') || text.includes('expediente')) score += 40;
+                if (text.includes('visto y considerando')) score += 30;
+                if (text.includes('fallo completo') || text.includes('sentencia definitiva')) score += 25;
+                if (text.includes('jurisprudencia') || text.includes('doctrina')) score += 15;
+
+                // Negative keywords
+                if (text.includes('plano') || text.includes('diseño') || text.includes('arquitectura')) {
+                    if (!legalWhiteList.some(d => url.includes(d))) score -= 60;
+                }
+                if (url.includes('pinterest') || url.includes('facebook') || url.includes('instagram')) score -= 100;
+
+                return score;
             };
 
-            // 1. BRAVE SEARCH (PARALLEL EXECUTION - PRO PLAN 50 REQ/S)
-            // Execute ALL queries in parallel for maximum speed
-            const bravePromise = Promise.all(queries.map(async (q) => {
+            const braveResults = await Promise.all(queries.map(async (q) => {
                 try {
-                    const params = new URLSearchParams({ q: q, count: 5, country: "ar", search_lang: "es" });
+                    // Using Pro features: extra snippets, clusters
+                    const params = new URLSearchParams({
+                        q: q,
+                        count: 10,
+                        country: "ar",
+                        search_lang: "es",
+                        extra_snippets: "1"
+                    });
                     const res = await fetch(`https://api.search.brave.com/res/v1/web/search?${params.toString()}`, {
                         headers: { "X-Subscription-Token": braveApiKey }
                     });
-
-                    if (!res.ok) {
-                        const errorBody = await res.text().catch(() => "No body");
-                        console.error(`🦁 Brave API Error | Status: ${res.status} | Query: ${q} | Body: ${errorBody}`);
-                        return [];
-                    }
-
+                    if (!res.ok) return [];
                     const data = await res.json();
-                    if (data.web?.results) {
-                        return data.web.results.map(r => ({
-                            title: r.title,
-                            link: r.url,
-                            snippet: r.description,
-                            source: new URL(r.url).hostname.replace(/^www\./, "")
-                        })).filter(filterResult);
-                    }
-                    return [];
-                } catch (e) {
-                    console.error("🦁 Brave Single Query Error:", e.message);
-                    return [];
-                }
-            })).then(results => results.flat());
 
-            searchPromises.push(bravePromise);
+                    const results = (data.web?.results || []).map(r => ({
+                        title: r.title,
+                        link: r.url,
+                        snippet: r.description,
+                        source: new URL(r.url).hostname.replace(/^www\./, ""),
+                        score: 0
+                    }));
 
-            // Execute All & Deduplicate
-            const resultsArrays = await Promise.all(searchPromises);
+                    return results;
+                } catch (e) { return []; }
+            })).then(res => res.flat());
+
             const seenUrls = new Set(searchResults.map(r => r.link));
-
-            resultsArrays.flat().forEach(r => {
-                if (r && !seenUrls.has(r.link)) {
-                    seenUrls.add(r.link);
-                    searchResults.push(r);
-                }
-            });
+            braveResults
+                .map(r => {
+                    r.score = calculateLegalScore(r);
+                    return r;
+                })
+                .filter(r => r.score > 15) // High relevance only
+                .sort((a, b) => b.score - a.score)
+                .forEach(r => {
+                    if (r && !seenUrls.has(r.link) && seenUrls.size < 30) {
+                        seenUrls.add(r.link);
+                        searchResults.push(r);
+                    }
+                });
         }
 
-        // --- STAGE 3: VERIFIED SYNTHESIS (USER FOCUSED OUTPUT) ---
+        // --- STAGE 3: STRATEGIC SYNTHESIS ---
         const isDemo = mode === 'demo';
         const contextText = searchResults.length > 0
             ? `FALLOS REALES ENCONTRADOS:\n${searchResults.map(r => `- [${r.source.toUpperCase()}] ${r.title}\n  URL: ${r.link}\n  Snippet: ${r.snippet}`).join('\n\n')}`
@@ -192,49 +170,48 @@ export async function POST(request) {
             model: "openai/gpt-4o-mini",
             messages: [
                 {
-                    role: "system", content: `Sos Judic-IA, un asistente jurídico senior.
+                    role: "system",
+                    content: `Sos Judic-IA, una Terminal de Inteligencia Legal de élite para abogados senior.
                 
-                CAMBIO DE FORMATO "JURISPRUDENCIA":
-                El abogado QUIERE CANTIDAD (5 a 10 fallos).
-                NO TE LIMITES A 3. SI ENCONTRÁS 10, DAME 10.
+                TU MISIÓN: No sos un buscador, sos un estratega técnico. Procesa la información y entrega un Reporte de Estrategia Jurídica Blindada EXHAUSTIVO.
                 
-                OUTPUT 'cases':
-                Debe ser un ARRAY DE OBJETOS.
-                
-                FORMATO OBLIGATORIO:
-                - "summary": MÁXIMO 30-40 PALABRAS (2-3 líneas). Debe ser un resumen ULTRA-CONCISO del holding.
-                - ESTILO DE TEXTO: Texto plano. NADA DE NEGRITAS (**). NADA DE MARKDOWN en los valores.
+                REGLAS DE ORO JURÍDICAS:
+                1. 'verified_jurisprudence' (cases): Buscamos la "Ratio Decidendi" (la razón central del fallo).
+                   - 'summary': No narres los hechos. Explicá la DOCTRINA sentada por el juez y cómo se aplica al caso del usuario. Mínimo 20 palabras, máximo 50.
+                2. 'trazabilidad' (CRÍTICO): USÁ ÚNICAMENTE LAS URLs PROPORCIONADAS EN EL CONTEXTO. 
+                   - **ESTÁ TOTALMENTE PROHIBIDO INVENTAR, MODIFICAR O PREDECIR URLs.**
+                   - NO AGREGUES ".pdf" AL FINAL DE UNA URL SI EL CONTEXTO NO LO TIENE.
+                   - Si un link oficial en el contexto no es PDF, USALO IGUAL (es mejor un link HTML real que un PDF inventado).
+                3. 'strategy': Debe ser PROFILÁCTICA y de ALTO NIVEL. Separá en:
+                   - Táctica Ofensiva (Línea argumental principal).
+                   - Táctica Defensiva (Respuestas a posibles excepciones de la contraparte).
+                   - Gestión de Riesgos (Costas, plazos, debilidades).
+                4. 'laws' (Normativa): No listes solo la ley. Explicá la INTERPRETACIÓN del artículo en el contexto de la consulta. Incluí doctrina relevante si aplica.
+                5. 'calculation': Evitá lo genérico. Proveé parámetros técnicos de cuantificación (tasas de interés aplicables, rubros indemnizatorios específicos, fórmulas si existen).
 
-                - Solo incluí "cases" si estás 90% seguro de que es un FALLO/SENTENCIA real con autos definidos.
-                - REGLA DE ORO JURISPRUDENCIA: Los links en 'cases' DEBEN SER PDF OBLIGATORIAMENTE (el 100% de los items en el array 'cases' deben apuntar a un archivo .pdf). No pongas páginas web de noticias en 'cases'.
-                - CATEGORIZACIÓN: Links que no sean PDF pero sean útiles (noticias, dorks de búsqueda de Google, boletines HTML) deben ir EXCLUSIVAMENTE en el array 'links'.
-                - El usuario quiere JURISPRUDENCIA DIRECTA (el fallo para leer).
-
-
-                IMPORTANTE: COMPLETAR SIEMPRE TODOS LOS CAMPOS.
-                Aunque no tengas fallos específicos, GENERÁ LA ESTRATEGIA, LA LIQUIDACIÓN Y LA PRUEBA basándote en la teoría general del derecho para la consulta. NO DEJES CAMPOS VACÍOS.
+                OUTPUT FORMAT:
+                - ENTREGÁ ENTRE 5 Y 10 RESULTADOS EN 'cases'.
+                - ESTILO: Formal, imperativo, jurídico-técnico. NADA DE MARKDOWN (**).
 
                 JSON SCHEMA:
-                - "laws": (Texto detallado con subtítulos y items)
-                - "cases": [
-                   { 
-                     "title": "NOMBRE DEL FALLO", 
-                     "summary": "Holding puntual (1-2 líneas).", 
-                     "url": "https://...", 
-                     "source": "FUENTE" 
-                   }
-                  ]
-                - "links": [
-                   { "title": "Título del documento", "url": "https://..." }
-                  ]
-                - "strategy": (Estrategia paso a paso con subtítulos. OBLIGATORIO. NO VACÍO.)
-                - "calculation": (Cálculo o liquidación detallada. OBLIGATORIO. NO VACÍO.)
-                - "evidence": (Puntos de prueba listados. OBLIGATORIO. NO VACÍO.)
+                {
+                  "laws": "Análisis dogmático y normativo detallado (mínimo 150 palabras).",
+                  "cases": [
+                    { 
+                      "title": "Autos: 'Apellido c/ Apellido s/ Materia'", 
+                      "summary": "Ratio Decidendi y aplicación táctica.", 
+                      "url": "URL DIRECTA", 
+                      "source": "PJN / SCBA / SAIJ / CSJN" 
+                    }
+                  ],
+                  "strategy": "Estrategia integral (Ofensiva + Defensiva + Riesgos). Detallada y accionable.",
+                  "calculation": "Parámetros técnicos de liquidación y cuantificación.",
+                  "evidence": "Plan probatorio: Periciales específicas, testigos clave y documental necesaria.",
+                  "links": [ { "title": "Portal Oficial", "url": "..." } ]
+                }
 
-                NO DEVUELVAS MARKDOWN EN EL JSON EXTERNO, SOLO JSON PLANO.
-                Si no hay casos, devuelve array vacío [].
-                
-                NO DEVUELVAS MARKDOWN, SOLO JSON PLANO.` },
+                IMPORTANTE: Si no hay fallos, compensá con una ESTRATEGIA Y NORMATIVA aún más profunda basada en la teoría general del derecho. NO DEVUELVAS MARKDOWN, SOLO JSON PLANO.`
+                },
                 { role: "user", content: `Consulta: "${query}"\nJurisdicción: ${jurisdiction}\n\nCONTEXTO:\n${contextText}` }
             ],
             response_format: { type: "json_object" },
@@ -243,7 +220,7 @@ export async function POST(request) {
 
         const result = JSON.parse(finalCompletion.choices[0].message.content);
 
-        // --- ENRICH LINKS FROM SEARCH RESULTS ---
+        // --- ENRICH LINKS ---
         const finalLinks = result.links || [];
         if (searchResults.length > 0) {
             searchResults.slice(0, 8).forEach(r => {
@@ -252,43 +229,34 @@ export async function POST(request) {
                 }
             });
         }
-
-        // --- ALWAYS ADD TOP 2 DORKS AS FALLBACK/EXTRA SEARCHES ---
         if (queries?.length > 0) {
             const dorkLinks = [queries[0], queries[1] || queries[0]].map(q => ({
                 title: `Búsqueda adicional: ${q.substring(0, 40)}...`,
                 url: `https://www.google.com/search?q=${encodeURIComponent(q)}`
             }));
-
             dorkLinks.forEach(dl => {
-                if (!finalLinks.some(fl => fl.url === dl.url)) {
-                    finalLinks.push(dl);
-                }
+                if (!finalLinks.some(fl => fl.url === dl.url)) finalLinks.push(dl);
             });
         }
-
         result.links = finalLinks;
 
-
-        // Save report & Update Library
+        // --- PERSISTENCE ---
         if (userId) {
             try {
                 await supabase.from('research_reports').insert({ user_id: userId, query, jurisdiction: jurisdiction || 'Nacional', result_json: result });
-
                 for (const r of searchResults) {
-                    // 1. Global Cache Update
-                    await supabase.from('case_library').upsert({ url: r.link, autos: r.title, summary: r.snippet, jurisdiction: jurisdiction || 'Nacional' }, { onConflict: 'url' });
-
-                    // 2. Private Organization Link (Multi-Tenant)
-                    if (userOrgId) {
-                        await supabase.from('organization_library').upsert({ org_id: userOrgId, case_url: r.link }, { onConflict: 'org_id, case_url' });
+                    // GOLD STANDARD: Only persist to shared libraries if level of legal relevance is high
+                    if (r.score >= 50) {
+                        await supabase.from('case_library').upsert({ url: r.link, autos: r.title, summary: r.snippet, jurisdiction: jurisdiction || 'Nacional' }, { onConflict: 'url' });
+                        if (userOrgId) {
+                            await supabase.from('organization_library').upsert({ org_id: userOrgId, case_url: r.link }, { onConflict: 'org_id, case_url' });
+                        }
                     }
                 }
             } catch (dbErr) { console.error("Database persistence error:", dbErr); }
         }
 
         result.brave_used = !!braveApiKey && queries.length > 0 && canSearch;
-
         return NextResponse.json(result);
 
     } catch (error) {

@@ -336,9 +336,28 @@ export default function ResearchPage() {
         if (!finalQuery) return;
 
         setLoading(true);
-        setSearchStatus('Iniciando búsqueda avanzada con API Brave Search...');
-        setTimeLeft(60); // Extended to 60s for Deep Mode
         setResults(null);
+        setTimeLeft(60);
+
+        const analysisSteps = [
+            'Iniciando ráfaga masiva de búsqueda (Brave Pro)...',
+            'Escaneando depósitos de la CSJN y PJN...',
+            'Consultando nodos de jurisprudencia provincial...',
+            'Filtrando resultados por relevancia jurídica "Surgical"...',
+            'Analizando doctrina y fallos de fuentes oficiales...',
+            'Extrayendo Ratio Decidendi de 20+ fuentes...',
+            'Detectando parámetros de liquidación técnica...',
+            'Blindando estrategia procesal (Ofensiva/Defensiva)...',
+            'Finalizando síntesis de inteligencia legal...'
+        ];
+
+        let stepIndex = 0;
+        setSearchStatus(analysisSteps[0]);
+
+        const statusInterval = setInterval(() => {
+            stepIndex = (stepIndex + 1) % analysisSteps.length;
+            setSearchStatus(analysisSteps[stepIndex]);
+        }, 3500);
 
         try {
             const res = await fetch('/api/research', {
@@ -352,14 +371,14 @@ export default function ResearchPage() {
                 })
             });
 
-            setSearchStatus('Analizando resultados en tiempo real...');
+            if (!res.ok) throw new Error("Search failed");
             const data = await res.json();
-            setSearchStatus('Sintetizando informe legal...');
             setResults(data);
         } catch (error) {
             console.error("Search error:", error);
-            setSearchStatus('Error en la investigación.');
+            setSearchStatus('Error en la investigación avanzada.');
         } finally {
+            clearInterval(statusInterval);
             setLoading(false);
             setSearchStatus('');
         }
@@ -456,7 +475,7 @@ export default function ResearchPage() {
                         <div className="breadcrumb">
                             <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
                             <span className="breadcrumb-separator">/</span>
-                            <span className="breadcrumb-current">Investigación y Jurisprudencia</span>
+                            <span className="breadcrumb-current">Terminal de Estrategia</span>
                         </div>
                     </nav>
 
@@ -464,8 +483,8 @@ export default function ResearchPage() {
                         <div className="header-flex">
                             <img src="/logo.png" alt="Judic-IA Logo" className="logo-main" />
                             <div className="header-text">
-                                <h1 className="dashboard-page-title">Investigación y Jurisprudencia</h1>
-                                <p>Consulta normativa, códigos y fallos similares para tus casos con tecnología IA.</p>
+                                <h1 className="dashboard-page-title">Terminal de Estrategia Jurídica</h1>
+                                <p>Investigación avanzada, Ratio Decidendi y generación de estrategia blindada.</p>
                             </div>
                         </div>
                     </header>
@@ -512,7 +531,7 @@ export default function ResearchPage() {
                                 onChange={(e) => setQuery(e.target.value)}
                             />
                             <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
-                                {loading ? 'Analizando...' : 'Consultar IA Legal'}
+                                {loading ? 'Procesando Inteligencia...' : 'Generar Estrategia IA'}
                             </button>
                         </form>
                         {loading && (
@@ -577,7 +596,7 @@ export default function ResearchPage() {
                                     {copySuccess && <span className="copy-toast">✨ ¡Copiado!</span>}
                                 </div>
                                 <button className="btn-action btn-pdf" onClick={handleDownloadPDF}>
-                                    📄 Descargar PDF
+                                    📄 Exportar Informe de Estrategia
                                 </button>
                             </div>
                         )}

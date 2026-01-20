@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { LogOut, User } from 'lucide-react';
 import SafeChatWidget from '../components/SafeChatWidget';
 
 import './dashboard.css';
@@ -126,7 +127,7 @@ export default function DashboardLayout({ children }) {
 
         <nav className="nav-links">
           <Link href="/dashboard/research" className={`nav-item ${pathname.includes('/research') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
-            <span>🔍 Jurisprudencia</span>
+            <span>⚖️ Jurisprudencia</span>
           </Link>
           <Link href="/dashboard/clients" className={`nav-item ${pathname.includes('/clients') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <span>👥 Clientes</span>
@@ -165,15 +166,19 @@ export default function DashboardLayout({ children }) {
         )}
 
         <div className="user-profile">
+          <div className="user-avatar">
+            {getInitials()}
+          </div>
           <div className="profile-info">
-            <strong>{getDisplayName()}</strong>
-            <small>{user?.email}</small>
+            <span className="user-name">{getDisplayName()}</span>
+            <span className="user-email">{user?.email}</span>
           </div>
           <button
             className="btn-logout"
+            title="Cerrar Sesión"
             onClick={() => supabase.auth.signOut().then(() => router.push('/login'))}
           >
-            SALIR
+            <LogOut size={18} />
           </button>
         </div>
       </aside>
