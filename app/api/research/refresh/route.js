@@ -2,7 +2,13 @@ import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
 export async function POST(request) {
-    const { query, excludeUrls } = await request.json();
+    const { query, excludeUrls, mode, userId } = await request.json();
+
+    // 🔒 REFRESH GOVERNANCE: Disable for Demo
+    if (mode === 'demo') {
+        return NextResponse.json({ error: "El refresco de resultados no está disponible en modo Demo." }, { status: 403 });
+    }
+
     const braveApiKey = process.env.BRAVE_SEARCH_API_KEY;
 
     if (!braveApiKey) {

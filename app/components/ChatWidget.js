@@ -264,78 +264,99 @@ export default function ChatWidget({
                         display: "flex", gap: "0.8rem", alignItems: 'flex-end',
                         background: embedded ? 'transparent' : 'inherit'
                     }}>
-                        <label style={{ cursor: 'pointer', padding: '0.5rem', color: 'var(--muted)', transition: '0.2s', paddingBottom: '0.8rem' }} className="hover-icon">
-                            <input type="file" style={{ display: 'none' }} onChange={async (e) => {
-                                if (e.target.files?.[0]) {
-                                    const file = e.target.files[0];
-                                    if (!sessionId) {
-                                        alert("Error: No hay sesión activa. Intenta recargar la página.");
-                                        return;
-                                    }
+                        {/* 🔒 SECURITY: Only allow attachments in 'intake' mode to reduce attack surface */}
+                        {(mode === 'intake' || mode === 'client') && (
+                            <label style={{ cursor: 'pointer', padding: '0.5rem', color: 'var(--muted)', transition: '0.2s', paddingBottom: '0.8rem' }} className="hover-icon">
+                                <input type="file" style={{ display: 'none' }} onChange={async (e) => {
+                                    if (e.target.files?.[0]) {
+                                        const file = e.target.files[0];
 
-                                    // 1. Optimistic UI
-                                    setMessages(prev => [...prev, { role: "user", content: `📎 Subiendo archivo: ${file.name}...` }]);
-
-                                    try {
-                                        // 2. Upload to Supabase Storage
-                                        const fileExt = file.name.split('.').pop();
-                                        const fileName = `${sessionId}/${Math.random()}.${fileExt}`;
-                                        const { data: uploadData, error: uploadError } = await supabase.storage
-                                            .from('inquiry-attachments')
-                                            .upload(fileName, file);
-
-                                        if (uploadError) throw uploadError;
-
-                                        // 3. Get Public URL
-                                        const { data: { publicUrl } } = supabase.storage
-                                            .from('inquiry-attachments')
-                                            .getPublicUrl(fileName);
-
-                                        // 4. CALL API FIRST (Ensures Inquiry exists in DB via Service Role Upsert)
-                                        // We send a system message about the upload
-                                        const apiRes = await fetch("/api/chat", {
-                                            method: "POST",
-                                            headers: { "Content-Type": "application/json" },
-                                            body: JSON.stringify({
-                                                message: `[SYSTEM: El usuario subió un archivo real: ${file.name} (${publicUrl}). Confirma la recepción.]`,
-                                                history: messages,
-                                                mode,
-                                                sessionId,
-                                                lawyerId,
-                                                clientUserId: userIdToSend,
-                                                clientEmail: emailToSend,
-                                                clientName,
-                                                clientPhone
-                                            }),
-                                        });
-                                        const apiData = await apiRes.json();
-
-                                        // 5. Save Metadata to DB (attachments table)
-                                        // Now it's safe because API call guaranteed the inquiry row exists
-                                        const { error: dbError } = await supabase.from('attachments').insert({
-                                            inquiry_id: sessionId,
-                                            file_name: file.name,
-                                            file_url: publicUrl,
-                                            file_type: file.type,
-                                            file_size: file.size
-                                        });
-
-                                        if (dbError) console.error("Attachment DB Error:", dbError);
-
-                                        // 6. Notify UI
-                                        setMessages(prev => [...prev, { role: "assistant", content: "✅ Archivo recibido correctamente." }]);
-                                        if (apiData.reply) {
-                                            setMessages(prev => [...prev, { role: "assistant", content: apiData.reply }]);
+                                        // 🔒 FRONTE-END SECURITY SHIELD 1: Type Validation
+                                        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+                                        if (!allowedTypes.includes(file.type)) {
+                                            alert("❌ Formato no permitido. Solo se aceptan PDF, JPG o PNG.");
+                                            return;
                                         }
 
-                                    } catch (err) {
-                                        console.error("Upload Error:", err);
-                                        setMessages(prev => [...prev, { role: "assistant", content: "❌ Hubo un error al subir el archivo. Intenta de nuevo." }]);
+                                        // 🔒 FRONTE-END SECURITY SHIELD 2: Size Validation (5MB Limit)
+                                        const maxSize = 5 * 1024 * 1024; // 5MB
+                                        if (file.size > maxSize) {
+                                            alert("❌ El archivo es demasiado grande. El límite es de 5MB.");
+                                            return;
+                                        }
+
+                                        if (!sessionId) {
+                                            alert("Error: No hay sesión activa. Intenta recargar la página.");
+                                            return;
+                                        }
+
+                                        // 1. Optimistic UI
+                                        setMessages(prev => [...prev, { role: "user", content: `📎 Subiendo archivo: ${file.name}...` }]);
+
+                                        try {
+                                            // 2. Upload to Supabase Storage
+                                            const fileExt = file.name.split('.').pop();
+                                            // 🔒 SECURITY SHIELD 3: Filename Sanitization
+                                            const cleanName = file.name.replace(/[^a-zA-Z0-9.]/g, '_').toLowerCase();
+                                            const fileName = `${sessionId}/${Math.random().toString(36).substring(7)}_${cleanName}`;
+
+                                            const { data: uploadData, error: uploadError } = await supabase.storage
+                                                .from('inquiry-attachments')
+                                                .upload(fileName, file);
+
+                                            if (uploadError) throw uploadError;
+
+                                            // 3. Get Public URL
+                                            const { data: { publicUrl } } = supabase.storage
+                                                .from('inquiry-attachments')
+                                                .getPublicUrl(fileName);
+
+                                            // 4. CALL API FIRST (Ensures Inquiry exists in DB via Service Role Upsert)
+                                            // We send a system message about the upload
+                                            const apiRes = await fetch("/api/chat", {
+                                                method: "POST",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({
+                                                    message: `[SISTEMA: El usuario subió un archivo real: ${file.name} (${publicUrl}). Confirma la recepción.]`,
+                                                    history: messages,
+                                                    mode,
+                                                    sessionId,
+                                                    lawyerId,
+                                                    clientUserId: userIdToSend,
+                                                    clientEmail: emailToSend,
+                                                    clientName,
+                                                    clientPhone
+                                                }),
+                                            });
+                                            const apiData = await apiRes.json();
+
+                                            // 5. Save Metadata to DB (attachments table)
+                                            // Now it's safe because API call guaranteed the inquiry row exists
+                                            const { error: dbError } = await supabase.from('attachments').insert({
+                                                inquiry_id: sessionId,
+                                                file_name: file.name,
+                                                file_url: publicUrl,
+                                                file_type: file.type,
+                                                file_size: file.size
+                                            });
+
+                                            if (dbError) console.error("Attachment DB Error:", dbError);
+
+                                            // 6. Notify UI
+                                            setMessages(prev => [...prev, { role: "assistant", content: "✅ Archivo recibido correctamente." }]);
+                                            if (apiData.reply) {
+                                                setMessages(prev => [...prev, { role: "assistant", content: apiData.reply }]);
+                                            }
+
+                                        } catch (err) {
+                                            console.error("Upload Error:", err);
+                                            setMessages(prev => [...prev, { role: "assistant", content: "❌ Hubo un error al subir el archivo. Intenta de nuevo." }]);
+                                        }
                                     }
-                                }
-                            }} accept=".pdf,.jpg,.png,.jpeg,.doc,.docx" />
-                            📎
-                        </label>
+                                }} accept=".pdf,.jpg,.png,.jpeg" />
+                                📎
+                            </label>
+                        )}
                         <div style={{ flex: 1, position: 'relative' }}>
                             <textarea
                                 value={input}

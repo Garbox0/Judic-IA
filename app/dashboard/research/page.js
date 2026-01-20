@@ -24,6 +24,7 @@ export default function ResearchPage() {
     const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile: false = hidden
     const [timeLeft, setTimeLeft] = useState(0);
     const [searchStatus, setSearchStatus] = useState('');
+    const [refreshQuota, setRefreshQuota] = useState(5);
 
 
     useEffect(() => {
@@ -233,6 +234,18 @@ export default function ResearchPage() {
     const handleRefreshCase = async (index) => {
         if (!query || refreshingCases[index]) return;
 
+        // 🔒 REFRESH GOVERNANCE: Front-end blocks
+        const isDemo = !currentUser || userProfile?.subscription_status === 'demo';
+        if (isDemo) {
+            alert("🔒 Función disponible solo para usuarios Profesionales.");
+            return;
+        }
+
+        if (refreshQuota <= 0) {
+            alert("⚠️ Has alcanzado el límite de 5 refrescos por investigación. Genera una nueva consulta para continuar.");
+            return;
+        }
+
         setRefreshingCases(prev => ({ ...prev, [index]: true }));
 
         try {
@@ -242,10 +255,18 @@ export default function ResearchPage() {
             const res = await fetch('/api/research/refresh', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query, excludeUrls })
+                body: JSON.stringify({
+                    query,
+                    excludeUrls,
+                    mode: isDemo ? 'demo' : 'pro',
+                    userId: currentUser?.id
+                })
             });
 
-            if (!res.ok) throw new Error("Failed to refresh");
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || "Failed to refresh");
+            }
 
             const newCase = await res.json();
 
@@ -255,9 +276,12 @@ export default function ResearchPage() {
                 return { ...prev, cases: newCases };
             });
 
+            // Consume Quota
+            setRefreshQuota(prev => prev - 1);
+
         } catch (error) {
             console.error("Refresh error:", error);
-            alert("No se pudo actualizar el fallo. Intente nuevamente.");
+            alert(`No se pudo actualizar el fallo: ${error.message}`);
         } finally {
             setRefreshingCases(prev => ({ ...prev, [index]: false }));
         }
@@ -381,6 +405,7 @@ export default function ResearchPage() {
             clearInterval(statusInterval);
             setLoading(false);
             setSearchStatus('');
+            setRefreshQuota(5); // Reset quota for new search
         }
     };
 
@@ -623,6 +648,17 @@ export default function ResearchPage() {
                                     <span>🦁 Brave Search Pro Activo</span>
                                     <span style={{ opacity: 0.6 }}>•</span>
                                     <span>Resultados en Tiempo Real</span>
+                                    {(!currentUser || userProfile?.subscription_status === 'demo') ? (
+                                        <>
+                                            <span style={{ opacity: 0.6 }}>•</span>
+                                            <span style={{ color: '#ef4444' }}>Refrescos Desactivados (Demo)</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span style={{ opacity: 0.6 }}>•</span>
+                                            <span>Refrescos Restantes: {refreshQuota}/5</span>
+                                        </>
+                                    )}
                                 </div>
                             )}
                             {results.laws && results.laws.length > 5 && (
