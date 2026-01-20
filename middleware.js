@@ -2,6 +2,25 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 
 export async function middleware(request) {
+    // 🛡️ 0. GENERAR NONCE PARA SEGURIDAD (CSP A+)
+    const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+    const cspHeader = `
+        default-src 'self';
+        script-src 'self' 'nonce-${nonce}' https://apis.google.com https://accounts.google.com https://sdk.mercadopago.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com;
+        font-src 'self' https://fonts.gstatic.com data:;
+        connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com;
+        frame-src 'self' https://accounts.google.com https://*.mercadopago.com;
+        object-src 'none';
+        base-uri 'self';
+        frame-ancestors 'none';
+        upgrade-insecure-requests;
+    `.replace(/\s{2,}/g, ' ').trim()
+
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-nonce', nonce)
+
     // 🛡️ 1. SEGURIDAD BÁSICA (Sanitización)
     const { pathname } = request.nextUrl
     if (pathname.includes('..') || pathname.includes('//')) {
@@ -9,8 +28,11 @@ export async function middleware(request) {
     }
 
     let response = NextResponse.next({
-        request: { headers: request.headers },
+        request: { headers: requestHeaders },
     })
+
+    // Aplicar CSP a la respuesta (Modo Enforced para Fase B - A+ Score)
+    response.headers.set('Content-Security-Policy', cspHeader)
 
     // 🔍 2. IDENTIFICAR ENTORNO
     const isClientZone = pathname.startsWith('/consultas')
