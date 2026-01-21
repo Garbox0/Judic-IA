@@ -7,47 +7,30 @@ if (!supabaseUrl || !supabaseAnonKey) {
     console.warn("⚠️ Advertencia: Variables de Supabase no configuradas.");
 }
 
-// 🛡️ STABLE CACHED INSTANCES
-let adminClient = null;
-let clientClient = null;
+// 🛡️ UNIFIED AUTH COOKIE
+// Must match middleware.js and generic API routes
+const AUTH_COOKIE = 'sb-judicia-auth';
 
-const getSupabaseInstance = () => {
-    // 🛡️ UNIFICACIÓN DE COOKIE PARA ESTABILIDAD EN PRODUCCIÓN
-    const AUTH_COOKIE = 'sb-judicia-auth';
+// 🛡️ SINGLETON PATTERN
+// Create a single instance for the browser context. 
+// @supabase/ssr handles the cookies automatically.
+let supabaseInstance = null;
 
+const getSupabase = () => {
     if (typeof window === 'undefined') {
+        // Server-side (during generic SSR): Creates a temporary instance
         return createBrowserClient(supabaseUrl, supabaseAnonKey, {
             cookieOptions: { name: AUTH_COOKIE }
         });
     }
 
-    const isClientZone = window.location.pathname.startsWith('/consultas');
-    if (isClientZone) {
-        if (!clientClient) {
-            clientClient = createBrowserClient(supabaseUrl, supabaseAnonKey, {
-                cookieOptions: { name: AUTH_COOKIE }
-            });
-        }
-        return clientClient;
-    } else {
-        if (!adminClient) {
-            adminClient = createBrowserClient(supabaseUrl, supabaseAnonKey, {
-                cookieOptions: { name: AUTH_COOKIE }
-            });
-        }
-        return adminClient;
+    if (!supabaseInstance) {
+        supabaseInstance = createBrowserClient(supabaseUrl, supabaseAnonKey, {
+            cookieOptions: { name: AUTH_COOKIE }
+        });
     }
+    return supabaseInstance;
 };
 
-// 🛡️ DYNAMIC PROXY: Routes property access to the correct stable instance
-export const supabase = new Proxy({}, {
-    get(target, prop) {
-        const instance = getSupabaseInstance();
-        const value = instance[prop];
-
-        if (typeof value === 'function') {
-            return value.bind(instance);
-        }
-        return value;
-    }
-});
+// Export the singleton directly
+export const supabase = getSupabase();
