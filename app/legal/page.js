@@ -5,7 +5,7 @@ import Link from 'next/link';
 export default function LegalPage() {
   return (
     <main>
-      <Link href="/" className="back">← Volver al inicio</Link>
+      <Link href="/home" className="back">← Volver al inicio</Link>
 
       <header>
         <h1>Información Legal y Seguridad</h1>
