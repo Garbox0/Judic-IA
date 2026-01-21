@@ -1,6 +1,16 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 
+/**
+ * Helper to ensure cookies persist when we need to generate a new response (like a redirect)
+ */
+function applyCookies(srcResponse, destResponse) {
+    srcResponse.cookies.getAll().forEach((cookie) => {
+        destResponse.cookies.set(cookie.name, cookie.value, cookie.options)
+    })
+    return destResponse
+}
+
 export async function middleware(request) {
     // 🛡️ 0. CONFIGURACIÓN DE SEGURIDAD (CSP A+)
     const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
@@ -18,17 +28,17 @@ export async function middleware(request) {
         upgrade-insecure-requests;
     `.replace(/\s{2,}/g, ' ').trim()
 
-    // Preparar headers de petición con el nonce
+    // Preparar headers de petición con el nonce para el App Router
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-nonce', nonce)
 
-    // 🛡️ 1. SEGURIDAD BÁSICA (Sanitización)
+    // 🛡️ 1. SEGURIDAD BÁSICA (Sanitización de PATH)
     const { pathname } = request.nextUrl
     if (pathname.includes('..') || pathname.includes('//')) {
         return new NextResponse(null, { status: 400 })
     }
 
-    // Inicializar respuesta base
+    // Inicializar respuesta base (Mutable a través de Supabase)
     let response = NextResponse.next({
         request: { headers: requestHeaders },
     })
@@ -52,13 +62,8 @@ export async function middleware(request) {
             cookies: {
                 getAll() { return request.cookies.getAll() },
                 setAll(cookiesToSet) {
-                    // Actualizar cookies en el request para que los siguientes pasos las vean
                     cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-                    // IMPORTANTE: Regenerar response pero preservando los headers de request que tienen el nonce
-                    response = NextResponse.next({
-                        request: { headers: requestHeaders },
-                    })
-                    // Setear cookies en la nueva respuesta
+                    response = NextResponse.next({ request: { headers: requestHeaders } })
                     cookiesToSet.forEach(({ name, value, options }) =>
                         response.cookies.set(name, value, options)
                     )
@@ -67,40 +72,42 @@ export async function middleware(request) {
         }
     )
 
-    // 👤 4. OBTENER USUARIO Y ROL (Solo si es necesario para el ruteo)
+    // 👤 4. OBTENER USUARIO (Trigger de session sync)
     const { data: { user } } = await supabase.auth.getUser()
+
+    // Obtener Rol solo si hay sesión activa
     let role = null
-    if (user && (isDashboardPath || isHomePath || isClientZone)) {
+    if (user) {
         const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
         role = profile?.role
     }
 
-    // 🏁 5. LÓGICA DE REDIRECCIÓN Y RESPUESTA FINAL
+    // 🏁 5. LÓGICA DE REDIRECCIÓN (Dispatcher)
     let finalResponse = response
 
     // A. Protección de Zona Cliente
     if (isClientZone && pathname.includes('/auth') && !hasClientContext && !user) {
-        finalResponse = NextResponse.redirect(new URL('/', request.url))
+        finalResponse = applyCookies(response, NextResponse.redirect(new URL('/', request.url)))
     }
-    // B. Dashboard / Home Redirects
+    // B. Lógica Dashboard / Login
     else if (isHomePath) {
         if (hasClientContext) {
             const consultasUrl = new URL('/consultas/auth', request.url)
             sp.forEach((value, key) => consultasUrl.searchParams.set(key, value))
-            finalResponse = NextResponse.redirect(consultasUrl)
+            finalResponse = applyCookies(response, NextResponse.redirect(consultasUrl))
         } else if (user && role === 'lawyer') {
-            finalResponse = NextResponse.redirect(new URL('/dashboard', request.url))
+            finalResponse = applyCookies(response, NextResponse.redirect(new URL('/dashboard', request.url)))
         } else if (user && role === 'client') {
-            finalResponse = NextResponse.redirect(new URL('/consultas/auth', request.url))
+            finalResponse = applyCookies(response, NextResponse.redirect(new URL('/consultas/auth', request.url)))
         }
     }
     else if (isDashboardPath) {
         if (!user) {
-            finalResponse = NextResponse.redirect(new URL('/login', request.url))
+            finalResponse = applyCookies(response, NextResponse.redirect(new URL('/login', request.url)))
         } else if (role === 'client') {
             const loginUrl = new URL('/consultas/auth/login', request.url)
             loginUrl.searchParams.set('error', 'access_denied')
-            finalResponse = NextResponse.redirect(loginUrl)
+            finalResponse = applyCookies(response, NextResponse.redirect(loginUrl))
         }
     }
     // C. Protección de APIs
@@ -113,11 +120,11 @@ export async function middleware(request) {
         !pathname.includes('/api/intake')
     ) {
         if (!user) {
-            finalResponse = NextResponse.json({ error: 'Unauthenticated' }, { status: 401 })
+            finalResponse = applyCookies(response, NextResponse.json({ error: 'Unauthenticated' }, { status: 401 }))
         }
     }
 
-    // 🛡️ APLICAR CABECERAS DE SEGURIDAD AL FINAL (A+ Score Garantizado)
+    // 🛡️ APLICAR CABECERAS DE SEGURIDAD (Siempre al final sobre el objeto definitivo)
     finalResponse.headers.set('Content-Security-Policy', cspHeader)
     finalResponse.headers.set('x-nonce', nonce)
 
