@@ -8,19 +8,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // 🛡️ UNIFIED AUTH COOKIE
-// Must match middleware.js and generic API routes
 const AUTH_COOKIE = 'sb-judicia-auth';
 
-// 🛡️ SINGLETON PATTERN
-// Create a single instance for the browser context. 
-// @supabase/ssr handles the cookies automatically.
 let supabaseInstance = null;
 
-const getSupabase = () => {
+export const supabase = (() => {
     if (typeof window === 'undefined') {
-        // Server-side (during generic SSR): Creates a temporary instance
-        return createBrowserClient(supabaseUrl, supabaseAnonKey, {
-            cookieOptions: { name: AUTH_COOKIE }
+        // En servidor NO debemos usar createBrowserClient singleton
+        // Retornamos un proxy seguro o null para evitar uso accidental
+        return new Proxy({}, {
+            get: () => {
+                console.warn("⚠️ INTENTO DE USO DE CLIENTE BROWSER EN SERVIDOR. Usa createServerClient.");
+                return undefined;
+            }
         });
     }
 
@@ -30,7 +30,4 @@ const getSupabase = () => {
         });
     }
     return supabaseInstance;
-};
-
-// Export the singleton directly
-export const supabase = getSupabase();
+})();
