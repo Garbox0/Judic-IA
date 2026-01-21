@@ -1,6 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false, // Hide "X-Powered-By: Next.js"
+  async rewrites() {
+    return [
+      {
+        source: '/home',
+        destination: '/?public=1',
+      },
+    ];
+  },
   async headers() {
     return [
       {
