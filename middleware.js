@@ -127,8 +127,11 @@ export async function middleware(request) {
     }
 
     // 🛡️ 5. APLICACIÓN FINAL DE CABECERAS
-    finalResponse.headers.set('Content-Security-Policy', cspHeader)
-    finalResponse.headers.set('x-nonce', nonce)
+    // No aplicar CSP en rutas de API para evitar bloqueos innecesarios
+    if (!pathname.startsWith('/api/')) {
+        finalResponse.headers.set('Content-Security-Policy', cspHeader)
+        finalResponse.headers.set('x-nonce', nonce)
+    }
 
     return finalResponse
 }
