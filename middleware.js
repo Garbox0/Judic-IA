@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 
 export async function middleware(request) {
-    // 🛡️ 0. GENERAR NONCE PARA SEGURIDAD (CSP A+)
+    // 🛡️ 0. CONFIGURACIÓN DE SEGURIDAD (CSP A+)
     const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
     const cspHeader = `
         default-src 'self';
@@ -18,6 +18,7 @@ export async function middleware(request) {
         upgrade-insecure-requests;
     `.replace(/\s{2,}/g, ' ').trim()
 
+    // Preparar headers de petición con el nonce
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-nonce', nonce)
 
@@ -27,12 +28,10 @@ export async function middleware(request) {
         return new NextResponse(null, { status: 400 })
     }
 
+    // Inicializar respuesta base
     let response = NextResponse.next({
         request: { headers: requestHeaders },
     })
-
-    // Aplicar CSP a la respuesta (Modo Enforced para Fase B - A+ Score)
-    response.headers.set('Content-Security-Policy', cspHeader)
 
     // 🔍 2. IDENTIFICAR ENTORNO
     const isClientZone = pathname.startsWith('/consultas')
@@ -43,7 +42,7 @@ export async function middleware(request) {
     const hasClientContext = sp.has('lawyerId') || sp.has('lawyer') || sp.has('cid') ||
         sp.has('code') || sp.has('token_hash')
 
-    // 🔗 3. SELECCIONAR CORREDOR DE SESIÓN (Aislamiento de Cookies)
+    // 🔗 3. CONFIGURAR SUPABASE (Aislamiento de Cookies)
     const cookieName = isClientZone ? 'sb-client-token' : 'sb-admin-token'
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -53,67 +52,59 @@ export async function middleware(request) {
             cookies: {
                 getAll() { return request.cookies.getAll() },
                 setAll(cookiesToSet) {
+                    // Actualizar cookies en el request para que los siguientes pasos las vean
                     cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-                    response = NextResponse.next({ request: { headers: request.headers } })
-                    cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+                    // IMPORTANTE: Regenerar response pero preservando los headers de request que tienen el nonce
+                    response = NextResponse.next({
+                        request: { headers: requestHeaders },
+                    })
+                    // Setear cookies en la nueva respuesta
+                    cookiesToSet.forEach(({ name, value, options }) =>
+                        response.cookies.set(name, value, options)
+                    )
                 },
             },
         }
     )
 
-    // 👤 4. OBTENER USUARIO Y ROL
+    // 👤 4. OBTENER USUARIO Y ROL (Solo si es necesario para el ruteo)
     const { data: { user } } = await supabase.auth.getUser()
     let role = null
-    if (user) {
+    if (user && (isDashboardPath || isHomePath || isClientZone)) {
         const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
         role = profile?.role
     }
 
-    // 🛡️ 5. PROTECCIÓN DE ZONA DE CLIENTES (No entrar sin invitación o sesión)
+    // 🏁 5. LÓGICA DE REDIRECCIÓN Y RESPUESTA FINAL
+    let finalResponse = response
+
+    // A. Protección de Zona Cliente
     if (isClientZone && pathname.includes('/auth') && !hasClientContext && !user) {
-        console.warn(`[SECURITY] Desvío por falta de contexto en zona cliente: ${pathname}`)
-        return NextResponse.redirect(new URL('/', request.url))
+        finalResponse = NextResponse.redirect(new URL('/', request.url))
     }
-
-    // 🚩 6. LÓGICA DE REDIRECCIÓN (DISPATCHER)
-
-    // A. Si estamos en el HOME
-    if (isHomePath) {
-        // Prioridad 1: Link de cliente compartido (Contexto explícito)
+    // B. Dashboard / Home Redirects
+    else if (isHomePath) {
         if (hasClientContext) {
             const consultasUrl = new URL('/consultas/auth', request.url)
             sp.forEach((value, key) => consultasUrl.searchParams.set(key, value))
-            return NextResponse.redirect(consultasUrl)
+            finalResponse = NextResponse.redirect(consultasUrl)
+        } else if (user && role === 'lawyer') {
+            finalResponse = NextResponse.redirect(new URL('/dashboard', request.url))
+        } else if (user && role === 'client') {
+            finalResponse = NextResponse.redirect(new URL('/consultas/auth', request.url))
         }
-
-        // Prioridad 2: Si es Abogado logueado, al Dashboard
-        if (user && role === 'lawyer') {
-            return NextResponse.redirect(new URL('/dashboard', request.url))
-        }
-
-        // Prioridad 3: Si es Cliente logueado, a Consultas
-        if (user && role === 'client') {
-            return NextResponse.redirect(new URL('/consultas/auth', request.url))
-        }
-
-        // Si no hay nada, dejarlo en la landing
-        return response
     }
-
-    // B. Si estamos en el DASHBOARD
-    if (isDashboardPath) {
-        if (!user) return NextResponse.redirect(new URL('/login', request.url))
-
-        // Bloquear si el rol es de cliente (seguridad cruzada)
-        if (role === 'client') {
+    else if (isDashboardPath) {
+        if (!user) {
+            finalResponse = NextResponse.redirect(new URL('/login', request.url))
+        } else if (role === 'client') {
             const loginUrl = new URL('/consultas/auth/login', request.url)
             loginUrl.searchParams.set('error', 'access_denied')
-            return NextResponse.redirect(loginUrl)
+            finalResponse = NextResponse.redirect(loginUrl)
         }
     }
-
-    // C. 🛡️ PROTECCIÓN DE APIs (Evitar acceso anónimo en rutas privadas)
-    if (pathname.startsWith('/api/') &&
+    // C. Protección de APIs
+    else if (pathname.startsWith('/api/') &&
         !pathname.includes('/api/auth') &&
         !pathname.includes('/api/mp/webhook') &&
         !pathname.includes('/api/webhook/whatsapp') &&
@@ -122,11 +113,15 @@ export async function middleware(request) {
         !pathname.includes('/api/intake')
     ) {
         if (!user) {
-            return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 })
+            finalResponse = NextResponse.json({ error: 'Unauthenticated' }, { status: 401 })
         }
     }
 
-    return response
+    // 🛡️ APLICAR CABECERAS DE SEGURIDAD AL FINAL (A+ Score Garantizado)
+    finalResponse.headers.set('Content-Security-Policy', cspHeader)
+    finalResponse.headers.set('x-nonce', nonce)
+
+    return finalResponse
 }
 
 export const config = {
