@@ -28,7 +28,11 @@ export const viewport = {
   maximumScale: 1,
 };
 
-export default function RootLayout({ children }) {
+import { headers } from "next/headers";
+
+export default async function RootLayout({ children }) {
+  const nonce = (await headers()).get("x-nonce") || undefined;
+
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${outfit.variable} ${playfair.variable}`} suppressHydrationWarning>
