@@ -2,7 +2,8 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 
 /**
- * Helper to ensure cookies persist when we need to generate a new response (like a redirect)
+ * 🛡️ Helper para propagación manual de cookies en redirecciones. 
+ * Vital para evitar el bucle de login en Vercel/Producción.
  */
 function applyCookies(srcResponse, destResponse) {
     srcResponse.cookies.getAll().forEach((cookie) => {
@@ -12,7 +13,7 @@ function applyCookies(srcResponse, destResponse) {
 }
 
 export async function middleware(request) {
-    // 🛡️ 0. CONFIGURACIÓN DE SEGURIDAD (CSP A+)
+    // 🛡️ 0. SEGURIDAD (CSP A+)
     const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
     const cspHeader = `
         default-src 'self';
@@ -28,37 +29,30 @@ export async function middleware(request) {
         upgrade-insecure-requests;
     `.replace(/\s{2,}/g, ' ').trim()
 
-    // Preparar headers de petición con el nonce para el App Router
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-nonce', nonce)
 
-    // 🛡️ 1. SEGURIDAD BÁSICA (Sanitización de PATH)
     const { pathname } = request.nextUrl
+
+    // 🛡️ 1. Sanitización
     if (pathname.includes('..') || pathname.includes('//')) {
         return new NextResponse(null, { status: 400 })
     }
 
-    // Inicializar respuesta base (Mutable a través de Supabase)
+    // Respuesta base
     let response = NextResponse.next({
         request: { headers: requestHeaders },
     })
 
-    // 🔍 2. IDENTIFICAR ENTORNO
-    const isClientZone = pathname.startsWith('/consultas')
-    const isDashboardPath = pathname.startsWith('/dashboard')
-    const isHomePath = pathname === '/'
+    // 🔗 2. CONFIGURAR SUPABASE (Unificado para estabilidad)
+    // El nombre de la cookie DEBE coincidir con lib/supabase.js
+    const AUTH_COOKIE = 'sb-judicia-auth'
 
-    const sp = request.nextUrl.searchParams
-    const hasClientContext = sp.has('lawyerId') || sp.has('lawyer') || sp.has('cid') ||
-        sp.has('code') || sp.has('token_hash')
-
-    // 🔗 3. CONFIGURAR SUPABASE (Aislamiento de Cookies)
-    const cookieName = isClientZone ? 'sb-client-token' : 'sb-admin-token'
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
         {
-            cookieOptions: { name: cookieName },
+            cookieOptions: { name: AUTH_COOKIE },
             cookies: {
                 getAll() { return request.cookies.getAll() },
                 setAll(cookiesToSet) {
@@ -72,24 +66,30 @@ export async function middleware(request) {
         }
     )
 
-    // 👤 4. OBTENER USUARIO (Trigger de session sync)
+    // 👤 3. IDENTIFICAR USUARIO & ROL
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Obtener Rol solo si hay sesión activa
     let role = null
     if (user) {
         const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
         role = profile?.role
     }
 
-    // 🏁 5. LÓGICA DE REDIRECCIÓN (Dispatcher)
+    // 🔍 Contextos de ruteo
+    const isClientZone = pathname.startsWith('/consultas')
+    const isDashboardPath = pathname.startsWith('/dashboard')
+    const isHomePath = pathname === '/'
+    const sp = request.nextUrl.searchParams
+    const hasClientContext = sp.has('lawyerId') || sp.has('lawyer') || sp.has('cid') || sp.has('code') || sp.has('token_hash')
+
+    // 🏁 4. DISPATCHER DE REDIRECCIONES
     let finalResponse = response
 
-    // A. Protección de Zona Cliente
+    // A. Zona Cliente (Intake)
     if (isClientZone && pathname.includes('/auth') && !hasClientContext && !user) {
         finalResponse = applyCookies(response, NextResponse.redirect(new URL('/', request.url)))
     }
-    // B. Lógica Dashboard / Login
+    // B. Dashboard / Home / Login Loop Prevention
     else if (isHomePath) {
         if (hasClientContext) {
             const consultasUrl = new URL('/consultas/auth', request.url)
@@ -110,7 +110,7 @@ export async function middleware(request) {
             finalResponse = applyCookies(response, NextResponse.redirect(loginUrl))
         }
     }
-    // C. Protección de APIs
+    // C. APIs Privadas
     else if (pathname.startsWith('/api/') &&
         !pathname.includes('/api/auth') &&
         !pathname.includes('/api/mp/webhook') &&
@@ -124,7 +124,7 @@ export async function middleware(request) {
         }
     }
 
-    // 🛡️ APLICAR CABECERAS DE SEGURIDAD (Siempre al final sobre el objeto definitivo)
+    // 🛡️ 5. APLICACIÓN FINAL DE CABECERAS
     finalResponse.headers.set('Content-Security-Policy', cspHeader)
     finalResponse.headers.set('x-nonce', nonce)
 

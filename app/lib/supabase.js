@@ -12,17 +12,28 @@ let adminClient = null;
 let clientClient = null;
 
 const getSupabaseInstance = () => {
-    if (typeof window === 'undefined') return createBrowserClient(supabaseUrl, supabaseAnonKey, { cookieOptions: { name: 'sb-admin-token' } });
+    // 🛡️ UNIFICACIÓN DE COOKIE PARA ESTABILIDAD EN PRODUCCIÓN
+    const AUTH_COOKIE = 'sb-judicia-auth';
+
+    if (typeof window === 'undefined') {
+        return createBrowserClient(supabaseUrl, supabaseAnonKey, {
+            cookieOptions: { name: AUTH_COOKIE }
+        });
+    }
 
     const isClientZone = window.location.pathname.startsWith('/consultas');
     if (isClientZone) {
         if (!clientClient) {
-            clientClient = createBrowserClient(supabaseUrl, supabaseAnonKey, { cookieOptions: { name: 'sb-client-token' } });
+            clientClient = createBrowserClient(supabaseUrl, supabaseAnonKey, {
+                cookieOptions: { name: AUTH_COOKIE }
+            });
         }
         return clientClient;
     } else {
         if (!adminClient) {
-            adminClient = createBrowserClient(supabaseUrl, supabaseAnonKey, { cookieOptions: { name: 'sb-admin-token' } });
+            adminClient = createBrowserClient(supabaseUrl, supabaseAnonKey, {
+                cookieOptions: { name: AUTH_COOKIE }
+            });
         }
         return adminClient;
     }

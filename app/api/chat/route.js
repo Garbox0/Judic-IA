@@ -20,9 +20,10 @@ export async function GET(request) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    // 🛡️ Identify User (Try both cookie lanes)
+    // 🛡️ Identify User (Unified Cookie Lane for Stability)
+    const AUTH_COOKIE = 'sb-judicia-auth';
     const cookieStore = await cookies();
-    const createAuthClient = (cookieName) => createServerClient(supabaseUrl, anonKey, {
+    const authClient = createServerClient(supabaseUrl, anonKey, {
         cookies: {
             getAll() { return cookieStore.getAll() },
             setAll(cookiesToSet) {
@@ -31,15 +32,10 @@ export async function GET(request) {
                 )
             },
         },
-        cookieOptions: { name: cookieName }
+        cookieOptions: { name: AUTH_COOKIE }
     });
 
-    // Try Admin Client first, then Client Client
-    let { data: { user } } = await createAuthClient('sb-admin-token').auth.getUser();
-    if (!user) {
-        const clientAuth = await createAuthClient('sb-client-token').auth.getUser();
-        user = clientAuth.data.user;
-    }
+    const { data: { user } } = await authClient.auth.getUser();
 
     let db = publicSupabase;
 
