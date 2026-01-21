@@ -98,7 +98,10 @@ export async function middleware(request) {
             sp.forEach((value, key) => consultasUrl.searchParams.set(key, value))
             finalResponse = applyCookies(response, NextResponse.redirect(consultasUrl))
         } else if (user && role === 'lawyer') {
-            finalResponse = applyCookies(response, NextResponse.redirect(new URL('/dashboard', request.url)))
+            const wantsPublicHome = sp.has('public') || sp.get('view') === 'public'
+            if (!wantsPublicHome) {
+                finalResponse = applyCookies(response, NextResponse.redirect(new URL('/dashboard', request.url)))
+            }
         } else if (user && role === 'client') {
             finalResponse = applyCookies(response, NextResponse.redirect(new URL('/consultas/auth', request.url)))
         }

@@ -38,7 +38,7 @@
     position: absolute;
     top: 2rem;
     left: 2rem;
-    z-index: 10;
+    z-index: 100;
 }
 
 .back {

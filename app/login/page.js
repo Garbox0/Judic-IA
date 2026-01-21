@@ -93,7 +93,7 @@ export default function LoginPage() {
   return (
     <main className="auth-body">
       <div className="back-wrapper">
-        <Link href="/" className="back">← Volver al inicio</Link>
+        <Link href="/?public=1" className="back">← Volver al inicio</Link>
       </div>
 
       <div className="login-card fade-in">
