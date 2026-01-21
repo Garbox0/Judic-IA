@@ -6,15 +6,18 @@ import { NextResponse } from 'next/server'
  * Vital para evitar el bucle de login en Vercel/Producción.
  */
 function applyCookies(srcResponse, destResponse) {
-    srcResponse.cookies.getAll().forEach((cookie) => {
+    const cookies = srcResponse.cookies.getAll()
+    cookies.forEach((cookie) => {
         destResponse.cookies.set(cookie.name, cookie.value, cookie.options)
     })
     return destResponse
 }
 
 export async function middleware(request) {
-    // 🛡️ 0. SEGURIDAD (CSP A+)
-    const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+    // 🛡️ 0. SEGURIDAD (CSP A+) - Usando crypto nativo para Edge
+    const nonce = crypto.randomUUID()
+
+    // Generar CSP sin saltos de línea excesivos
     const cspHeader = `
         default-src 'self';
         script-src 'self' 'nonce-${nonce}' https://apis.google.com https://accounts.google.com https://sdk.mercadopago.com;
@@ -45,7 +48,6 @@ export async function middleware(request) {
     })
 
     // 🔗 2. CONFIGURAR SUPABASE (Unificado para estabilidad)
-    // El nombre de la cookie DEBE coincidir con lib/supabase.js
     const AUTH_COOKIE = 'sb-judicia-auth'
 
     const supabase = createServerClient(
@@ -56,17 +58,17 @@ export async function middleware(request) {
             cookies: {
                 getAll() { return request.cookies.getAll() },
                 setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-                    response = NextResponse.next({ request: { headers: requestHeaders } })
-                    cookiesToSet.forEach(({ name, value, options }) =>
+                    // En Edge Middleware, solo seteamos en la respuesta
+                    cookiesToSet.forEach(({ name, value, options }) => {
                         response.cookies.set(name, value, options)
-                    )
+                    })
                 },
             },
         }
     )
 
     // 👤 3. IDENTIFICAR USUARIO & ROL
+    // IMPORTANTE: Esto mutará 'response' si hay refresco de token, gracias al setAll de arriba
     const { data: { user } } = await supabase.auth.getUser()
 
     let role = null

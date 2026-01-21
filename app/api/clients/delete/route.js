@@ -23,7 +23,7 @@ export async function POST(request) {
                 )
             },
         },
-        cookieOptions: { name: 'sb-admin-token' }
+        cookieOptions: { name: 'sb-judicia-auth' }
     });
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey, {
