@@ -81,9 +81,19 @@ export default function ChatWidget({
 
                 // FETCH HISTORY FROM API (Persistence)
                 // Only if sessionId is UUID (avoid fetching for mock 'auth-' ids which cause 500 errors)
-                if (activeSessionId.length > 20 && !activeSessionId.startsWith('auth-')) {
+                // AND not 'demo' mode (which is ephemeral/non-persistent start)
+                if (activeSessionId.length > 20 && !activeSessionId.startsWith('auth-') && mode !== 'demo') {
                     try {
                         const res = await fetch(`/api/chat?sessionId=${activeSessionId}`);
+                        if (res.status === 404) {
+                            // Session expired or new. Clean up if needed.
+                            if (mode !== 'demo') {
+                                console.log("Session not found (fresh start).");
+                            }
+                            return;
+                        }
+                        if (!res.ok) throw new Error(`API Error: ${res.status}`);
+
                         const data = await res.json();
                         if (data.history && data.history.length > 0) {
                             setMessages(data.history.map(msg => ({
