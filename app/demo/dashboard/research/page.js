@@ -531,7 +531,7 @@ export default function DemoResearchPage() {
 
                 /* MOBILE RESPONSIVE */
                 @media (max-width: 1024px) {
-                    .research-container { padding: 0 1.5rem 2rem; max-width: 100vw; }
+                    .research-container { padding: 0 1rem 2rem; max-width: 100vw; }
                     .research-layout { position: relative; display: block; }
                     
                     /* FIXED Sidebar */
@@ -609,8 +609,9 @@ export default function DemoResearchPage() {
                     display: flex;
                     justify-content: space-between;
                     align-items: flex-start;
-                    gap: 1rem;
+                    gap: 0.75rem;
                     height: 100%;
+                    flex-wrap: wrap; /* Allow wrapping on very tight screens */
                 }
 
                 .case-info {
@@ -690,8 +691,14 @@ export default function DemoResearchPage() {
                         gap: 1rem;
                     }
                     .case-item-card {
-                        padding: 1rem;
+                        padding: 0.85rem;
                     }
+                }
+
+                @media (max-width: 400px) {
+                    .research-container { padding: 0 0.5rem 2rem; }
+                    .case-item-card { padding: 0.75rem; }
+                    .case-content-wrapper { gap: 0.5rem; }
                 }
             `}</style>
         </div>
