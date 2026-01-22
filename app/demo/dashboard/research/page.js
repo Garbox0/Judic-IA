@@ -203,24 +203,80 @@ export default function DemoResearchPage() {
     return (
         <div className="research-container">
             <div className={`research-layout ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-                {/* HISTORY SIDEBAR */}
-                <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`}>
-                    <div className="sidebar-header-row">
-                        <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', textTransform: 'uppercase' }}>Historial (Demo)</h4>
-                        <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', color: '#fbbf24', cursor: 'pointer', fontSize: '1.5rem' }}>
-                            {sidebarOpen ? '✕' : '▶'}
-                        </button>
-                    </div>
-                    {sidebarOpen && (
-                        <div className="history-list">
-                            {history.map(item => (
-                                <div key={item.id} className="history-item" onClick={() => { setQuery(item.query); setResults(item.result_json); }} style={{ padding: '0.8rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', cursor: 'pointer', marginBottom: '0.5rem' }}>
-                                    <div style={{ fontWeight: 600, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.query}</div>
+                {/* HISTORY SIDEBAR - Overlay Pattern */}
+                <>
+                    {/* Mobile Toggle Button (Visible on mobile/desktop as configured) */}
+                    <button
+                        className="mobile-history-toggle"
+                        onClick={() => setSidebarOpen(true)}
+                    >
+                        <span>🕒 Historial</span>
+                    </button>
+
+                    {/* Overlay Backdrop */}
+                    <div
+                        className={`sidebar-backdrop ${sidebarOpen ? 'open' : ''}`}
+                        onClick={() => setSidebarOpen(false)}
+                    />
+
+                    <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`}>
+                        {/* Always show header with Close button */}
+                        {(sidebarOpen || true) && (
+                            <div className="sidebar-header-row">
+                                <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', textTransform: 'uppercase' }}>Historial (Demo)</h4>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setSidebarOpen(!sidebarOpen); }}
+                                    style={{ background: 'none', border: 'none', color: '#fbbf24', cursor: 'pointer', fontSize: '1.5rem', padding: '0.5rem' }}
+                                >
+                                    {sidebarOpen ? '✕' : '▶'}
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Collapsed State Icon (Desktop Only) */}
+                        {!sidebarOpen && (
+                            <div
+                                className="collapsed-icon-area"
+                                onClick={() => setSidebarOpen(true)}
+                            >
+                                <div className="vertical-trigger">
+                                    <span className="v-icon">🕒</span>
+                                    <span className="v-label">HISTORIAL</span>
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                </aside>
+                            </div>
+                        )}
+
+                        {sidebarOpen && (
+                            <div className="history-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', overflowY: 'auto', maxHeight: 'calc(100vh - 150px)' }}>
+                                {history.map(item => (
+                                    <div
+                                        key={item.id}
+                                        className="history-item"
+                                        onClick={() => { setQuery(item.query); setResults(item.result_json); }}
+                                        style={{
+                                            padding: '0.8rem',
+                                            background: 'rgba(255,255,255,0.03)',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer',
+                                            border: '1px solid rgba(255,255,255,0.05)',
+                                            transition: '0.2s',
+                                            fontSize: '0.85rem'
+                                        }}
+                                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                                    >
+                                        <div style={{ fontWeight: 600, color: '#e2e8f0', marginBottom: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {item.query}
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                                            Simulado • {item.jurisdiction || 'Nacional'}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </aside>
+                </>
 
                 <div className="main-content-area">
                     <nav className="research-nav">
@@ -288,7 +344,7 @@ export default function DemoResearchPage() {
 
                     {results && (
                         <div className="results-area">
-                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(251, 191, 36, 0.15)', color: '#fbbf24', padding: '0.4rem 0.8rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.5rem' }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(251, 191, 36, 0.15)', color: '#fbbf24', padding: '0.4rem 0.8rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.5rem', border: '1px solid rgba(251, 191, 36, 0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                 <span>🦁 Brave Search Pro Activo (Simulado)</span>
                             </div>
 
@@ -304,11 +360,15 @@ export default function DemoResearchPage() {
                                 <div className="content">
                                     {Array.isArray(results.cases) ? (
                                         <div className="cases-grid">
+                                            {results.cases.length === 0 && <p style={{ fontStyle: 'italic', color: '#64748b' }}>No se encontraron fallos digitales directos.</p>}
                                             {results.cases.map((c, i) => (
-                                                <div key={i} className="case-item-card" style={{ marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
-                                                    <h4 style={{ margin: '0 0 0.4rem 0', color: '#e2e8f0' }}>{c.title}</h4>
-                                                    <p style={{ fontSize: '0.9rem', color: '#94a3b8' }}>{c.summary}</p>
-                                                    <span style={{ fontSize: '0.8rem', color: '#fbbf24' }}>Fuente: {c.source}</span>
+                                                <div key={i} className="case-item-card" style={{ marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem', paddingRight: '1rem' }}>
+                                                    <h4 style={{ margin: '0 0 0.4rem 0', color: '#e2e8f0', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <Gavel size={16} style={{ color: '#fbbf24' }} />
+                                                        {c.title}
+                                                    </h4>
+                                                    <p style={{ fontSize: '0.9rem', color: '#94a3b8', lineHeight: '1.5' }}>{c.summary}</p>
+                                                    <span style={{ fontSize: '0.8rem', color: '#fbbf24', marginTop: '0.5rem', display: 'block' }}>Fuente: {c.source}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -348,33 +408,178 @@ export default function DemoResearchPage() {
             </div>
 
             <style jsx>{`
+                /* CORE LAYOUT */
                 .research-container { padding: 0 1.5rem 2.5rem; max-width: 1600px; margin: 0 auto; color: white; }
-                .research-layout { display: flex; gap: 1.5rem; }
-                .research-sidebar { width: 300px; padding: 1.5rem; transition: 0.3s; }
-                .research-sidebar.closed { width: 70px; padding: 0.5rem; overflow: hidden; }
-                .main-content-area { flex: 1; min-width: 0; }
+                .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; transition: transform 0.2s, box-shadow 0.2s; }
+                .glass-panel { background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.05); }
+
+                /* OVERLAY HISTORY SIDEBAR (GLOBAL) */
+                .research-layout {
+                    position: relative;
+                    display: block;
+                    width: 100%;
+                }
+
+                .research-sidebar {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    height: 100vh;
+                    width: 320px !important;
+                    z-index: 1000;
+                    background: #0f172a;
+                    box-shadow: 10px 0 50px rgba(0,0,0,0.5);
+                    transform: translateX(-100%);
+                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    padding: 1.5rem !important;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .research-sidebar.open {
+                    transform: translateX(0);
+                }
+
+                .sidebar-backdrop {
+                    display: block;
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0,0,0,0.6);
+                    backdrop-filter: blur(2px);
+                    z-index: 999;
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: opacity 0.3s;
+                }
+
+                .sidebar-backdrop.open { 
+                    opacity: 1; 
+                    pointer-events: auto;
+                }
+
+                /* Toggle Button - Fixed Bottom Left */
+                .mobile-history-toggle {
+                    display: flex !important;
+                    position: fixed;
+                    bottom: 2rem;
+                    left: 300px;
+                    z-index: 900;
+                    background: #fbbf24;
+                    color: #000;
+                    border: none;
+                    border-radius: 99px;
+                    padding: 0.8rem 1.2rem;
+                    font-weight: 700;
+                    box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
+                    align-items: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                .mobile-history-toggle:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 6px 25px rgba(251, 191, 36, 0.6);
+                }
+
+                @media (max-width: 1024px) {
+                    .mobile-history-toggle {
+                        left: 20px;
+                    }
+                }
+
+                .sidebar-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+                .collapsed-icon-area { display: none !important; }
+
+                /* CONTENT */
+                .main-content-area { width: 100%; max-width: 100%; margin: 0 auto; }
                 .research-header { margin-bottom: 3.5rem; }
                 .header-flex { display: flex; gap: 2rem; align-items: center; }
                 .logo-main { width: 85px; height: 85px; object-fit: contain; }
+                .header-text h1 { font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+                .header-text p { color: #94a3b8; font-size: 1.1rem; }
+
                 .search-box-container { padding: 2rem; margin-bottom: 3.5rem; display: flex; flex-direction: column; gap: 1.5rem; border-radius: 20px; }
                 .search-box { display: flex; gap: 1rem; }
-                .search-box input { flex: 3; padding: 1.2rem; background: rgba(15,23,42,0.5); border: 1px solid var(--border); border-radius: 12px; color: white; }
-                .search-box button { flex: 1; padding: 1.2rem; background: var(--primary); color: #020617; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-                .search-box button:hover { transform: translateY(-2px); box-shadow: 0 0 20px var(--primary-glow); }
+                .search-box input { flex: 3; padding: 1.2rem; background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; transition: 0.2s; }
+                .search-box input:focus { border-color: #fbbf24; outline: none; box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1); }
+                .search-box button { flex: 1; padding: 1.2rem; background: #fbbf24; color: #020617; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; border: none; }
+                .search-box button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px rgba(251, 191, 36, 0.3); }
+
+                .jurisdiction-selector { display: flex; gap: 1rem; flex-wrap: wrap; }
+                .radio-btn { display: flex; alignItems: center; gap: 0.5rem; padding: 0.6rem 1rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.9rem; color: #cbd5e1; }
+                .radio-btn.active { background: rgba(251, 191, 36, 0.1); border-color: #fbbf24; color: #fbbf24; }
+                .radio-btn input { display: none; }
+                .province-select { padding: 0.6rem 1rem; background: #0f172a; color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; outline: none; }
+
                 .action-buttons { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem; }
-                .btn-action { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.7rem 1.4rem; border-radius: 10px; cursor: pointer; display: flex; gap: 0.6rem; align-items: center; }
-                .btn-action:hover { border-color: var(--primary); color: white; }
-                .result-card { padding: 2.2rem; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; margin-bottom: 2rem; }
-                .result-card h3 { color: var(--primary); margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(197, 160, 33, 0.2); }
-                .strategy { border: 1px solid rgba(197, 160, 33, 0.3); background: rgba(197, 160, 33, 0.05); }
+                .btn-action { background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #94a3b8; padding: 0.7rem 1.4rem; border-radius: 10px; cursor: pointer; display: flex; gap: 0.6rem; align-items: center; font-weight: 500; transition: 0.2s; }
+                .btn-action:hover { border-color: #fbbf24; color: #fbbf24; background: rgba(251, 191, 36, 0.05); }
+                .btn-pdf:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.05); }
+
+                .result-card { padding: 2.2rem; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; margin-bottom: 2rem; position: relative; overflow: hidden; }
+                .result-card h3 { color: #fbbf24; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(251, 191, 36, 0.2); font-size: 1.3rem; letter-spacing: -0.01em; }
+                .strategy { border: 1px solid rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.05); }
+                
                 .categories-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
-                .category-card { padding: 2.2rem; text-align: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; transition: 0.3s; }
-                .category-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-5px); }
-                .sidebar-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+                .category-card { padding: 2.2rem; text-align: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; transition: 0.3s; background: rgba(255,255,255,0.02); }
+                .category-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-5px); border-color: rgba(255,255,255,0.2); }
+                .category-card .icon { display: block; margin-bottom: 1rem; color: #fbbf24; transition: transform 0.3s ease; }
+                .category-card:hover .icon { transform: scale(1.15); }
+                
+                .copy-toast { position: absolute; bottom: -2rem; right: 0; background: #10b981; color: white; padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: bold; animation: fadeUp 0.3s ease; }
+                @keyframes fadeUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+                /* MOBILE RESPONSIVE */
                 @media (max-width: 1024px) {
-                    .research-layout { display: block; }
-                    .research-sidebar { position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; background: #0f172a; transform: translateX(-100%); }
+                    .research-container { padding: 0 1.5rem 2rem; max-width: 100vw; }
+                    .research-layout { position: relative; display: block; }
+                    
+                    /* FIXED Sidebar */
+                    .research-sidebar {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        height: 100vh;
+                        width: 280px !important;
+                        z-index: 100;
+                        transform: translateX(-100%);
+                        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                        padding: 1.5rem !important;
+                    }
                     .research-sidebar.open { transform: translateX(0); }
+                    .research-sidebar.closed { width: 280px; transform: translateX(-100%); }
+
+                    /* Backdrop */
+                    .sidebar-backdrop { z-index: 99; }
+
+                    /* Toggle */
+                    .mobile-history-toggle { display: flex; left: 20px; }
+                    
+                    /* Main Content */
+                    .main-content-area { width: 100%; }
+
+                    .header-flex { flex-direction: column; text-align: center; gap: 1rem; }
+                    .logo-main { width: 60px; height: 60px; }
+                    .header-text { text-align: center; }
+                    .categories-grid { grid-template-columns: repeat(2, 1fr); }
+                }
+
+                @media (max-width: 768px) {
+                    .search-box { flex-direction: column; }
+                    .search-box button { width: 100%; height: 50px; }
+                    .jurisdiction-selector { justify-content: center; flex-direction: column; width: 100%; }
+                    .radio-btn { width: 100%; justify-content: center; }
+                    .province-select { width: 100%; text-align: center; }
+                    
+                    .action-buttons { flex-direction: column; }
+                    .btn-action { width: 100%; justify-content: center; }
+                    .copy-toast { right: 50%; transform: translateX(50%); bottom: -3rem; }
+                }
+                
+                @media (max-width: 480px) {
+                    .categories-grid { grid-template-columns: 1fr; }
+                    .dashboard-page-title { font-size: 1.5rem; }
+                    .research-container { padding: 0 1rem 4rem; } 
                 }
             `}</style>
         </div>
