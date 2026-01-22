@@ -581,6 +581,118 @@ export default function DemoResearchPage() {
                     .dashboard-page-title { font-size: 1.5rem; }
                     .research-container { padding: 0 1rem 4rem; } 
                 }
+                /* --- JURISPRUDENCE CARDS & RESPONSIVE GRID --- */
+                .cases-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                    gap: 1.25rem;
+                }
+
+                .case-item-card {
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 12px;
+                    padding: 1.25rem;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    display: flex;
+                    flex-direction: column;
+                    position: relative;
+                }
+                .case-item-card:hover {
+                    background: rgba(255, 255, 255, 0.06);
+                    transform: translateY(-2px);
+                    border-color: rgba(251, 191, 36, 0.3);
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+                }
+
+                .case-content-wrapper {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    gap: 1rem;
+                    height: 100%;
+                }
+
+                .case-info {
+                    flex: 1;
+                    min-width: 0;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+
+                .case-title {
+                    margin: 0;
+                    color: #e2e8f0;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    line-height: 1.4;
+                }
+
+                .case-summary-scroll {
+                    max-height: 4.8em;
+                    overflow-y: auto;
+                    padding-right: 4px;
+                }
+                .case-summary-scroll::-webkit-scrollbar { width: 3px; }
+                .case-summary-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+                .case-summary-text {
+                    margin: 0;
+                    font-size: 0.9rem;
+                    color: #94a3b8;
+                    line-height: 1.5;
+                }
+
+                .case-source {
+                    font-size: 0.75rem;
+                    color: #fbbf24;
+                    opacity: 0.9;
+                    margin-top: auto;
+                    display: block;
+                    padding-top: 0.5rem;
+                }
+
+                .case-actions {
+                    display: flex;
+                    flex-direction: row;
+                    gap: 0.5rem;
+                    flex-shrink: 0;
+                }
+
+                .btn-preview-icon, .btn-link-icon {
+                    background: rgba(255,255,255,0.05);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    color: #cbd5e1;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    padding: 0;
+                }
+                .btn-preview-icon:hover, .btn-link-icon:hover {
+                    background: rgba(251, 191, 36, 0.1);
+                    color: #fbbf24;
+                    border-color: #fbbf24;
+                }
+
+                /* RESPONSIVE TWEAKS FOR CARDS */
+                @media (max-width: 768px) {
+                    .cases-grid {
+                        grid-template-columns: 1fr; /* Full width stack on mobile */
+                        gap: 1rem;
+                    }
+                    .case-item-card {
+                        padding: 1rem;
+                    }
+                }
             `}</style>
         </div>
     );
