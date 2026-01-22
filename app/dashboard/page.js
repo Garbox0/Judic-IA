@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import Link from 'next/link';
+import { demoStats, demoProfile } from '../lib/demoData'; // [NEW] Mock
 
 import {
   Search,
@@ -12,11 +13,13 @@ import {
   Settings
 } from 'lucide-react';
 
-export default function DashboardHome() {
-  const [user, setUser] = useState(null);
-  const [stats, setStats] = useState({ clients: 0, deadlines: 0 });
+export default function DashboardHome({ isDemo = false, basePath = '/dashboard' }) {
+  const [user, setUser] = useState(isDemo ? { user_metadata: { first_name: 'Dr. Martínez' } } : null);
+  const [stats, setStats] = useState(isDemo ? demoStats : { clients: 0, deadlines: 0 });
 
   useEffect(() => {
+    if (isDemo) return;
+
     const getData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
@@ -49,7 +52,12 @@ export default function DashboardHome() {
       }
     };
     getData();
-  }, []);
+  }, [isDemo]);
+
+  // Helper to adjust links
+  const getLink = (path) => {
+    return isDemo ? path.replace('/dashboard', basePath) : path;
+  };
 
   const tools = [
     {
@@ -103,7 +111,7 @@ export default function DashboardHome() {
   ];
 
   return (
-    <div className="dashboard-container">
+    <div className={`dashboard-container ${isDemo ? 'demo-mode' : ''}`}>
 
       <div className="breadcrumb">
         <span className="breadcrumb-current">Gabinete de {user?.user_metadata?.first_name || 'Legal'}</span>
@@ -119,7 +127,7 @@ export default function DashboardHome() {
 
       <section className="dashboard-grid">
         {tools.map((tool, index) => (
-          <Link href={tool.link} key={tool.id} className="dashboard-card-link">
+          <Link href={getLink(tool.link)} key={tool.id} className="dashboard-card-link">
             <div className={`dashboard-card ${index === 0 ? 'primary' : ''}`}>
               <div className="card-icon">
                 {tool.icon}

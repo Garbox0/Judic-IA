@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import Link from 'next/link';
+import { demoResearchHistory, demoFullResearchResult } from '../../lib/demoData'; // [NEW] Mock Data
 import SafeChatWidget from '../../components/SafeChatWidget';
 import TetrisLoader from '../../components/TetrisLoader';
 import {
@@ -20,7 +21,7 @@ import {
     ClipboardCopy
 } from 'lucide-react';
 
-export default function ResearchPage() {
+export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const [query, setQuery] = useState('');
     const [scope, setScope] = useState('nacional'); // 'nacional' or 'provincial'
     const [province, setProvince] = useState('Buenos Aires');
@@ -52,6 +53,14 @@ export default function ResearchPage() {
 
     useEffect(() => {
         const fetchUserAndHistory = async () => {
+            if (isDemoProp) {
+                // DEMO MODE SETUP
+                setHistory(demoResearchHistory);
+                // Mock user profile for PDF generation
+                setUserProfile({ full_name: "Usuario Demo", matricula: "Tº 100 Fº 1" });
+                return;
+            }
+
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setCurrentUser(user);
@@ -248,7 +257,7 @@ export default function ResearchPage() {
         if (!query || refreshingCases[index]) return;
 
         // 🔒 REFRESH GOVERNANCE: Front-end blocks
-        const isDemo = !currentUser || userProfile?.subscription_status === 'demo';
+        const isDemo = isDemoProp || !currentUser || userProfile?.subscription_status === 'demo';
         if (isDemo) {
             alert("🔒 Función disponible solo para usuarios Profesionales.");
             return;
@@ -375,6 +384,34 @@ export default function ResearchPage() {
         setLoading(true);
         setResults(null);
         setTimeLeft(60);
+
+        if (isDemoProp) {
+            // SIMULATE SEARCH IN DEMO
+            const analysisSteps = [
+                'Iniciando ráfaga masiva de búsqueda (Brave Pro)...',
+                'Escaneando depósitos de la CSJN y PJN...',
+                'Filtrando resultados por relevancia jurídica "Surgical"...',
+                'Detectando parámetros de liquidación técnica...',
+                'Finalizando síntesis de inteligencia legal...'
+            ];
+            let stepIndex = 0;
+            setSearchStatus(analysisSteps[0]);
+
+            const statusInterval = setInterval(() => {
+                stepIndex = (stepIndex + 1);
+                if (stepIndex < analysisSteps.length) {
+                    setSearchStatus(analysisSteps[stepIndex]);
+                }
+            }, 800);
+
+            setTimeout(() => {
+                clearInterval(statusInterval);
+                setResults(demoFullResearchResult);
+                setLoading(false);
+                setSearchStatus('');
+            }, 4500);
+            return;
+        }
 
         const analysisSteps = [
             'Iniciando ráfaga masiva de búsqueda (Brave Pro)...',
@@ -561,6 +598,49 @@ export default function ResearchPage() {
                             )}
                         </div>
 
+                        {/* 💡 SEARCH TIPS */}
+                        <details className="search-tips-details" style={{ marginBottom: '1rem', width: '100%' }}>
+                            <summary style={{
+                                color: '#fbbf24',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                userSelect: 'none'
+                            }}>
+                                <Zap size={14} fill="#fbbf24" />
+                                <span>Tips para búsquedas de Alta Precisión</span>
+                            </summary>
+                            <div className="tips-content" style={{
+                                marginTop: '0.8rem',
+                                padding: '1rem',
+                                background: 'rgba(251, 191, 36, 0.05)',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(251, 191, 36, 0.1)',
+                                fontSize: '0.85rem',
+                                color: '#cbd5e1',
+                                lineHeight: '1.6'
+                            }}>
+                                <p style={{ margin: '0 0 0.5rem 0' }}>Para obtener los mejores resultados, utilizá estos patrones:</p>
+                                <ul style={{ margin: 0, paddingLeft: '1.2rem', color: '#e2e8f0' }}>
+                                    <li style={{ marginBottom: '0.3rem' }}>
+                                        <strong>Tema + "fallo" o "sentencia":</strong> <span style={{ opacity: 0.7 }}>Ej: "despido sin causa fallo", "cuota alimentaria sentencia"</span>
+                                    </li>
+                                    <li style={{ marginBottom: '0.3rem' }}>
+                                        <strong>Frase exacta entre comillas:</strong> <span style={{ opacity: 0.7 }}>Ej: "daño moral" accidente tránsito</span>
+                                    </li>
+                                    <li style={{ marginBottom: '0.3rem' }}>
+                                        <strong>Jurisdicción específica:</strong> <span style={{ opacity: 0.7 }}>Ej: "mala praxis médica cordoba camara"</span>
+                                    </li>
+                                    <li>
+                                        <strong>Autos (si conocés):</strong> <span style={{ opacity: 0.7 }}>Ej: "autos garcia c/ perez s/ daños"</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </details>
+
                         <form onSubmit={handleSearch} className="search-box">
                             <input
                                 type="text"
@@ -700,6 +780,7 @@ export default function ResearchPage() {
                                                             marginBottom: '1rem',
                                                             borderBottom: '1px solid rgba(255,255,255,0.05)',
                                                             paddingBottom: '1rem',
+                                                            paddingRight: '1rem', // Fix: Prevent buttons cut-off
                                                             opacity: isRefreshing ? 0.5 : 1,
                                                             transition: 'opacity 0.3s ease',
                                                             pointerEvents: isRefreshing ? 'none' : 'auto'
@@ -1227,14 +1308,59 @@ export default function ResearchPage() {
  
                 .empty-state { text-align: center; padding: 4rem 0; color: #475569; font-style: italic; }
 
-                .mobile-history-toggle {
-                    display: none; /* Hidden by default on desktop */
+                /* OVERLAY HISTORY SIDEBAR (GLOBAL) */
+                .research-layout {
+                    position: relative;
+                    display: block;
+                    width: 100%;
+                }
+
+                .research-sidebar {
                     position: fixed;
-                    bottom: 20px;
-                    left: 20px;
-                    z-index: 90;
+                    top: 0;
+                    left: 0;
+                    height: 100vh;
+                    width: 320px !important;
+                    z-index: 1000;
+                    background: #0f172a;
+                    box-shadow: 10px 0 50px rgba(0,0,0,0.5);
+                    transform: translateX(-100%);
+                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    padding: 1.5rem !important;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .research-sidebar.open {
+                    transform: translateX(0);
+                }
+
+                .sidebar-backdrop {
+                    display: block;
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0,0,0,0.6);
+                    backdrop-filter: blur(2px);
+                    z-index: 999;
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: opacity 0.3s;
+                }
+
+                .sidebar-backdrop.open { 
+                    opacity: 1; 
+                    pointer-events: auto;
+                }
+
+                /* Toggle Button - Fixed Bottom Left (Offset for Sidebar on Desktop) */
+                .mobile-history-toggle {
+                    display: flex !important;
+                    position: fixed;
+                    bottom: 2rem;
+                    left: 300px; /* 280px Sidebar + 20px Padding */
+                    z-index: 900;
                     background: #fbbf24;
-                    color: black;
+                    color: #000;
                     border: none;
                     border-radius: 99px;
                     padding: 0.8rem 1.2rem;
@@ -1242,60 +1368,37 @@ export default function ResearchPage() {
                     box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
                     align-items: center;
                     gap: 0.5rem;
+                    cursor: pointer;
+                    transition: all 0.2s;
                 }
+
+                @media (max-width: 1024px) {
+                    .mobile-history-toggle {
+                        left: 20px; /* Reset for mobile */
+                    }
+                }
+
+                .mobile-history-toggle:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 6px 25px rgba(251, 191, 36, 0.6);
+                }
+
                 .sidebar-header-row {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     margin-bottom: 1.5rem;
                 }
-                
-                /* Icon when collapsed on desktop */
-                .collapsed-icon-area {
+
+                /* Hide old desktop triggers */
+                .collapsed-icon-area, .vertical-trigger, .v-icon, .v-label {
+                    display: none !important;
+                }
+
+                .main-content-area {
                     width: 100%;
-                    height: 100%;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                .research-sidebar.closed .sidebar-header-row { display: none; } /* Hide header when closed on desktop */
-                
-                .research-sidebar.closed .sidebar-header-row { display: none; } /* Hide header when closed on desktop */
-                
-                /* New Intuitive Trigger */
-                .vertical-trigger {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 1.5rem;
-                    padding: 1rem 0;
-                    height: 100%;
-                    justify-content: center;
-                    transition: all 0.3s;
-                }
-                .v-icon {
-                    font-size: 1.5rem;
-                    filter: grayscale(1);
-                    transition: all 0.3s;
-                }
-                .v-label {
-                    writing-mode: vertical-rl;
-                    transform: rotate(180deg);
-                    font-weight: 700;
-                    font-size: 0.85rem;
-                    letter-spacing: 0.25rem;
-                    color: #64748b;
-                    text-transform: uppercase;
-                    transition: all 0.3s;
-                }
-                .collapsed-icon-area:hover .v-label {
-                    color: var(--primary);
-                    text-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
-                }
-                .collapsed-icon-area:hover .v-icon {
-                    filter: grayscale(0);
-                    transform: scale(1.1);
+                    max-width: 100%;
+                    margin: 0 auto;
                 }
 
                 /* MOBILE RESPONSIVE */
@@ -1401,6 +1504,6 @@ export default function ResearchPage() {
                     100% { opacity: 0.6; }
                 }
             `}</style>
-        </div>
+        </div >
     );
 }

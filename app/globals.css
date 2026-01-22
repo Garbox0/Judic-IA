@@ -210,6 +210,93 @@ button {
   color: rgba(100, 116, 139, 0.95);
   font-size: 12px;
 }
+
 /* Spin Animation for Refresh Icons */
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.spin-animation { display: inline-block; animation: spin 1s linear infinite; }
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-animation {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+
+/* --- CHAT WIDGET RESPONSIVE STYLES --- */
+.chat-widget-container {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  font-family: var(--font-main);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.chat-toggle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.chat-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(15, 23, 42, 0.4);
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.chat-window {
+  width: 350px;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  z-index: 2000;
+  border-radius: 16px;
+  /* Glass effect handled by utility or inherited */
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .chat-widget-container {
+    bottom: 1rem;
+    right: 1rem;
+  }
+
+  .chat-toggle {
+    gap: 0;
+  }
+
+  .chat-label {
+    display: none;
+    /* Hide label on mobile */
+  }
+
+  .chat-window {
+    width: calc(100vw - 2rem);
+    /* Full width minus margins */
+    height: 70vh;
+    /* Taller on mobile or adjust as needed */
+    position: fixed;
+    bottom: 5.5rem;
+    /* Above the toggle button */
+    right: 1rem;
+    border-radius: 16px;
+  }
+}

@@ -3,8 +3,9 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 import EventModal from '../../components/dashboard/EventModal';
+import { demoClients } from '../../lib/demoData'; // [NEW] Mock Data
 
-export default function ClientsPage() {
+export default function ClientsPage({ isDemo = false, basePath = '/dashboard' }) {
     const [clients, setClients] = useState([]);
     const [loading, setLoading] = useState(true);
     const [lawyerId, setLawyerId] = useState(null);
@@ -27,26 +28,34 @@ export default function ClientsPage() {
     // 1. INITIAL FETCH & AUTH
     useEffect(() => {
         const init = async () => {
+            if (isDemo) {
+                // DEMO MODE INITIALIZATION
+                setLawyerId('demo-lawyer-id');
+                setClients(demoClients);
+                setLoading(false);
+                return;
+            }
+
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setLawyerId(user.id);
                 const { data, error } = await supabase
                     .from('inquiries')
                     .select('*')
-                    .eq('assigned_lawyer_id', user.id) // FIXED: Filter by lawyer
+                    .eq('assigned_lawyer_id', user.id)
                     .neq('status', 'link_generated')
                     .order('created_at', { ascending: false });
 
-                if (!error) setClients(data);
+                if (!error) setClients(data || []);
             }
             setLoading(false);
         };
         init();
-    }, []);
+    }, [isDemo]);
 
     // 2. REALTIME SUBSCRIPTION: CLIENTS LIST (Global)
     useEffect(() => {
-        if (!lawyerId) return;
+        if (!lawyerId || isDemo) return; // Disable Realtime in Demo
 
         console.log("🟢 Subscribing to Inquiries for Lawyer:", lawyerId);
         const channel = supabase.channel('realtime-clients')
@@ -54,21 +63,18 @@ export default function ClientsPage() {
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'inquiries', filter: `assigned_lawyer_id=eq.${lawyerId}` },
                 (payload) => {
-                    console.log("⚡ Realtime Inquiry Update:", payload);
                     if (payload.eventType === 'INSERT') {
                         if (payload.new.status !== 'link_generated') {
                             setClients(prev => [payload.new, ...prev]);
                         }
                     } else if (payload.eventType === 'UPDATE') {
                         if (payload.new.status === 'link_generated') {
-                            // If it was visible but now is hidden (unlikely but safe)
                             setClients(prev => prev.filter(c => c.id !== payload.new.id));
                         } else {
-                            // Normal update or "first appearance" after confirmation
                             setClients(prev => {
                                 const exists = prev.find(c => c.id === payload.new.id);
                                 if (exists) return prev.map(c => c.id === payload.new.id ? payload.new : c);
-                                return [payload.new, ...prev]; // First time appearing in list
+                                return [payload.new, ...prev];
                             });
                         }
                         setSelectedClient(prev => (prev && prev.id === payload.new.id) ? payload.new : prev);
@@ -83,11 +89,11 @@ export default function ClientsPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [lawyerId]);
+    }, [lawyerId, isDemo]);
 
     // 3. REALTIME SUBSCRIPTION: CHAT & ATTACHMENTS (Active Modal)
     useEffect(() => {
-        if (!selectedClient) return;
+        if (!selectedClient || isDemo) return; // Disable Realtime in Demo
 
         console.log("🔵 Subscribing to Chat/Attachments for Client:", selectedClient.id);
         const channel = supabase.channel(`realtime-chat-${selectedClient.id}`)
@@ -95,7 +101,6 @@ export default function ClientsPage() {
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'messages', filter: `inquiry_id=eq.${selectedClient.id}` },
                 (payload) => {
-                    // Prevent duplicates
                     setChatHistory(prev => {
                         if (prev.find(m => m.id === payload.new.id)) return prev;
                         return [...prev, payload.new];
@@ -106,7 +111,6 @@ export default function ClientsPage() {
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'attachments', filter: `inquiry_id=eq.${selectedClient.id}` },
                 (payload) => {
-                    // Newest attachments first
                     setAttachments(prev => {
                         if (prev.find(a => a.id === payload.new.id)) return prev;
                         return [payload.new, ...prev];
@@ -118,10 +122,26 @@ export default function ClientsPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [selectedClient?.id]); // Only re-subscribe if client ID changes
+    }, [selectedClient?.id, isDemo]);
 
     const fetchChatHistory = async (inquiryId) => {
         setLoadingChat(true);
+
+        if (isDemo) {
+            // MOCK CHAT HISTORY
+            setTimeout(() => {
+                setChatHistory([
+                    { id: 1, role: 'assistant', content: 'Hola, soy el asistente virtual del Dr. Martínez. ¿En qué puedo ayudarte hoy?', created_at: new Date(Date.now() - 1000000).toISOString() },
+                    { id: 2, role: 'user', content: 'Hola, necesito consultar por un despido.', created_at: new Date(Date.now() - 900000).toISOString() },
+                    { id: 3, role: 'assistant', content: 'Entiendo. ¿Podrías decirme hace cuánto ocurrió y si trabajabas registrado?', created_at: new Date(Date.now() - 800000).toISOString() },
+                    { id: 4, role: 'user', content: 'Fue hace dos semanas. Sí, estaba en blanco desde 2018.', created_at: new Date(Date.now() - 700000).toISOString() },
+                    { id: 5, role: 'assistant', content: 'Gracias por la información. Esto es muy útil para análisis preliminar. ¿Tenés la carta documento?', created_at: new Date(Date.now() - 600000).toISOString() }
+                ]);
+                setAttachments([]); // No attachments in demo for now
+                setLoadingChat(false);
+            }, 600);
+            return;
+        }
 
         // Fetch Messages
         const { data: msgs, error: msgError } = await supabase
@@ -158,16 +178,18 @@ export default function ClientsPage() {
 
     const openEventModalForClient = () => {
         if (!selectedClient) return;
+        if (isDemo) {
+            alert("🔒 Funcionalidad restringida en DEMO.\n\nAquí podrías agendar audiencias o vencimientos vinculados a este cliente.");
+            return;
+        }
 
         // Smart Parsing: Try to find dates in AI summary
         const summary = selectedClient.ai_summary || '';
         const title = `Vencimiento: ${selectedClient.contact_name || 'Nuevo Cliente'}`;
         let date = new Date().toISOString().split('T')[0];
 
-        // Simple Regex for dates like DD/MM/YYYY (common in AI summaries)
         const dateMatch = summary.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
         if (dateMatch) {
-            // Convert DD/MM/YYYY to YYYY-MM-DD
             date = `${dateMatch[3]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}`;
         }
 
@@ -182,6 +204,13 @@ export default function ClientsPage() {
     };
 
     const copySmartLink = async () => {
+        if (isDemo) {
+            navigator.clipboard.writeText("https://judic-ia.com/consultas/dr-martinez/link-demo");
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+            return;
+        }
+
         try {
             const res = await fetch("/api/intake/create-link", {
                 method: "POST",
@@ -206,11 +235,22 @@ export default function ClientsPage() {
 
     const deleteClient = (inquiryId, event) => {
         if (event) event.stopPropagation();
+        if (isDemo) {
+            alert("🔒 Funcionalidad restringida en DEMO.\n\nEsta acción eliminaría permanentemente el expediente y bloquearía el acceso al cliente.");
+            return;
+        }
         setClientToDelete(inquiryId);
     };
 
     const confirmDelete = async () => {
         if (!clientToDelete) return;
+
+        // Safety check again just in case
+        if (isDemo) {
+            setClientToDelete(null);
+            return;
+        }
+
         const inquiryId = clientToDelete;
         const clientObj = clients.find(c => c.id === inquiryId);
         const authId = clientObj?.client_auth_id;
@@ -221,15 +261,6 @@ export default function ClientsPage() {
         setClientToDelete(null);
 
         try {
-            // 🚀 POWER DELETE: We delegate EVERYTHING to the Admin API
-            // This bypasses RLS issues and ensures messages + inquiry + auth are all gone.
-            console.log("🧹 Calling Admin API for Atomic Power Delete...", { inquiryId, authId });
-
-            if (!inquiryId) {
-                console.error("❌ Cannot delete: inquiryId is missing.");
-                return;
-            }
-
             const apiRes = await fetch("/api/clients/delete", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -240,32 +271,26 @@ export default function ClientsPage() {
             });
 
             if (!apiRes.ok) {
-                const text = await apiRes.text();
-                let errorMsg = "Error en el servidor de borrado.";
-                try {
-                    const errData = JSON.parse(text);
-                    errorMsg = errData.error || errorMsg;
-                } catch (e) {
-                    console.error("❌ Failed to parse delete error JSON:", text);
-                }
-                throw new Error(errorMsg);
+                throw new Error("Error en el servidor de borrado.");
             }
-
-            console.log("✅ Atomic cleanup successful: Card and Auth are permanently gone.");
+            console.log("✅ Atomic cleanup successful.");
         } catch (error) {
             console.error("❌ Error during full client deletion:", error);
         } finally {
             setClientToDelete(null);
-            // fetchClients(); // Re-fetch all clients to ensure state is consistent
         }
     };
 
     const convertToCase = async () => {
         if (!selectedClient || !lawyerId) return;
 
+        if (isDemo) {
+            alert("🔒 Funcionalidad restringida en DEMO.\n\nEsto convertiría la consulta en una 'Causa Oficial' (Expediente) con seguimiento judicial.");
+            return;
+        }
+
         setConverting(true);
         try {
-            console.log("📂 Converting inquiry to official case...", selectedClient.id);
             const res = await fetch("/api/cases/convert", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -278,11 +303,7 @@ export default function ClientsPage() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Error al convertir en expediente.");
 
-            console.log("✅ Conversion successful!", data);
-            // alert("¡Consulta convertida en Expediente con éxito! Podrás gestionarlo en la nueva sección de Expedientes.");
-            setConversionSuccess(true); // Trigger modal
-
-            // Update local state to reflect conversion (optional: we can hide button or show badge)
+            setConversionSuccess(true);
             setSelectedClient(prev => ({ ...prev, is_case: true }));
 
         } catch (error) {
@@ -293,11 +314,15 @@ export default function ClientsPage() {
         }
     };
 
+    const getLink = (path) => {
+        return isDemo ? path.replace('/dashboard', basePath) : path;
+    };
+
     return (
         <div className="clients-container">
             <nav className="clients-nav">
                 <div className="breadcrumb">
-                    <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
+                    <Link href={isDemo ? basePath : "/dashboard"} className="breadcrumb-item">Gabinete</Link>
                     <span className="breadcrumb-separator">/</span>
                     <span className="breadcrumb-current">Gestión de Clientes</span>
                 </div>
@@ -367,7 +392,7 @@ export default function ClientsPage() {
                         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
                         <h2 style={{ marginBottom: '1rem' }}>¿Eliminar Expediente?</h2>
                         <p style={{ color: 'var(--muted)', marginBottom: '2rem' }}>
-                            Esta acción borrará el chat, los archivos adjuntos y <strong>la cuenta de acceso del cliente</strong> de forma permanente. El cliente no podrá volver a ingresar.
+                            Esta acción borrará el chat, los archivos adjuntos y <strong>la cuenta de acceso del cliente</strong> de forma permanente.
                         </p>
                         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                             <button onClick={() => setClientToDelete(null)} className="btn-cancel">
@@ -429,7 +454,21 @@ export default function ClientsPage() {
                                 <button className="btn-delete" onClick={(e) => deleteClient(selectedClient.id, e)} title="Eliminar Expediente">
                                     🗑️
                                 </button>
-                                <Link href={`/dashboard/clients/${selectedClient.id}/generate`} className="btn-generate-action" >
+                                {/* Generate Document: Disabled in Demo? Or mocked? Let's leave it, but handled by the target page. 
+                                    Ideally we pass isDemo in query param or route. 
+                                    For now the link goes to /dashboard/clients/... which is PROD. 
+                                    We should fix this link to respect basePath.
+                                */}
+                                <Link
+                                    href={isDemo ? "#" : `/dashboard/clients/${selectedClient.id}/generate`}
+                                    className="btn-generate-action"
+                                    onClick={(e) => {
+                                        if (isDemo) {
+                                            e.preventDefault();
+                                            alert("🔒 Generación de escritos deshabilitada en DEMO.");
+                                        }
+                                    }}
+                                >
                                     ⚡ Generar Escrito
                                 </Link>
                                 <button
@@ -467,7 +506,7 @@ export default function ClientsPage() {
                                 </div>
                             </div>
 
-                            {/* DETAILS SIDEBAR (RIGHT) - COLLAPSIBLE */}
+                            {/* DETAILS SIDEBAR (RIGHT) */}
                             <div className={`details-sidebar ${showDetails ? 'open' : 'closed'}`}>
                                 <div className="details-inner-wrapper">
                                     <h4 style={{ marginBottom: '1rem', color: '#e2e8f0', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Expediente</h4>
@@ -535,8 +574,6 @@ export default function ClientsPage() {
 
             <style jsx>{`
                 .clients-container { padding: 0 3rem 3rem; max-width: 1200px; margin: 0 auto; color: white; }
-
-
                 .clients-header { margin-bottom: 2rem; }
                 .header-flex { display: flex; align-items: center; gap: 2rem; }
                 .header-icon-box { width: 80px; height: 80px; background: rgba(197, 160, 33, 0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #fbbf24; }
@@ -606,7 +643,7 @@ export default function ClientsPage() {
                 .details-sidebar.open { width: 320px; opacity: 1; }
                 .details-sidebar.closed { width: 0px; opacity: 0; padding: 0; border-left: none; }
                 
-                .details-inner-wrapper { padding: 1.5rem; width: 320px; } /* Ensures content doesn't squash during transition */
+                .details-inner-wrapper { padding: 1.5rem; width: 320px; }
 
                 .details-card {
                     background: rgba(255, 255, 255, 0.03); border-radius: 12px; 
@@ -703,13 +740,11 @@ export default function ClientsPage() {
                         width: 100%;
                         height: 100%;
                         z-index: 50;
-                        background: #0f172a; /* Full opaque on mobile */
+                        background: #0f172a;
                     }
                     .details-inner-wrapper { width: 100%; }
                     
-                    /* Hide chat when sidebar is open? No, sidebar covers it with z-index */
-                    
-                    .btn-toggle-details span { display: none; } /* Hide text, keep icon if needed, or just keep text */
+                    .btn-toggle-details span { display: none; }
                 }
             `}</style>
         </div >

@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { demoProfile } from '../lib/demoData'; // [NEW] Mock Data
 import {
   LogOut,
-  User,
   Scale,
   Users,
   FolderOpen,
@@ -21,16 +21,17 @@ import SafeChatWidget from '../components/SafeChatWidget';
 
 import './dashboard.css';
 
-export default function DashboardLayout({ children }) {
+export default function DashboardLayout({ children, isDemo = false, basePath = '/dashboard', mockProfile = null }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(!isDemo); // If demo, not loading initial auth
+  const [user, setUser] = useState(isDemo ? { email: 'demo@judicia.com', id: 'demo' } : null);
+  const [profile, setProfile] = useState(isDemo ? (mockProfile || demoProfile) : null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // ... logic same ...
+    if (isDemo) return; // Skip Auth Check in Demo Mode
+
     const checkSession = async () => {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error || !user) {
@@ -82,7 +83,7 @@ export default function DashboardLayout({ children }) {
       setLoading(false);
     };
     checkSession();
-  }, [router]);
+  }, [router, isDemo]);
 
   if (loading) return (
     <div className="loading-container">
@@ -103,11 +104,16 @@ export default function DashboardLayout({ children }) {
   const getInitials = () => {
     const name = getDisplayName();
     if (name === 'Usuario' && user?.email) return user.email[0].toUpperCase();
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    return name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  };
+
+  // Helper for links
+  const getLink = (path) => {
+    return path === '/dashboard' ? basePath : `${basePath}/${path.replace('/dashboard/', '')}`;
   };
 
   return (
-    <div className="dashboard-layout">
+    <div className={`dashboard-layout ${isDemo ? 'demo-mode' : ''}`}>
       {/* MOBILE OVERLAY */}
       {mobileSidebarOpen && (
         <div
@@ -125,15 +131,23 @@ export default function DashboardLayout({ children }) {
         >
           <Menu size={20} />
         </button>
-        <span className="mobile-brand">Judic-IA</span>
+        <span className="mobile-brand">Judic-IA {isDemo && <span className="demo-badge">DEMO</span>}</span>
       </div>
 
       {/* SIDEBAR */}
       <aside className={`sidebar ${mobileSidebarOpen ? 'open' : ''}`}>
         <div className="logo-section">
-          <Link href="/dashboard" className="logo-link">
-            <h1>Judic-IA</h1>
-          </Link>
+          {isDemo ? (
+            <div className="logo-link" style={{ cursor: 'default' }}>
+              <h1>Judic-IA</h1>
+              <span className="demo-tag">Modo Demo</span>
+            </div>
+          ) : (
+            <Link href="/dashboard" className="logo-link">
+              <h1>Judic-IA</h1>
+            </Link>
+          )}
+
           <div className="plan-badge">
             {profile?.plan_tier === 'professional' ? (
               <span className="plan-inline"><Crown size={14} /> PRO SUITE</span>
@@ -144,31 +158,32 @@ export default function DashboardLayout({ children }) {
         </div>
 
         <nav className="nav-links">
-          <Link href="/dashboard/research" className={`nav-item ${pathname.includes('/research') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+          {/* We mapped these manually, so we just update the Hrefs */}
+          <Link href={isDemo ? `${basePath}/research` : '/dashboard/research'} className={`nav-item ${pathname.includes('/research') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <Scale size={18} className="nav-icon" />
             <span>Jurisprudencia</span>
           </Link>
-          <Link href="/dashboard/clients" className={`nav-item ${pathname.includes('/clients') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+          <Link href={isDemo ? `${basePath}/clients` : '/dashboard/clients'} className={`nav-item ${pathname.includes('/clients') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <Users size={18} className="nav-icon" />
             <span>Clientes</span>
           </Link>
-          <Link href="/dashboard/cases" className={`nav-item ${pathname.includes('/cases') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+          <Link href={isDemo ? `${basePath}/cases` : '/dashboard/cases'} className={`nav-item ${pathname.includes('/cases') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <FolderOpen size={18} className="nav-icon" />
             <span>Expedientes</span>
           </Link>
-          <Link href="/dashboard/agenda" className={`nav-item ${pathname.includes('/agenda') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+          <Link href={isDemo ? `${basePath}/agenda` : '/dashboard/agenda'} className={`nav-item ${pathname.includes('/agenda') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <CalendarClock size={18} className="nav-icon" />
             <span>Plazos</span>
           </Link>
-          <Link href="/dashboard/settings" className={`nav-item ${pathname.includes('/settings') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+          <Link href={isDemo ? `${basePath}/settings` : '/dashboard/settings'} className={`nav-item ${pathname.includes('/settings') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <Settings size={18} className="nav-icon" />
             <span>Ajustes</span>
           </Link>
-          <Link href="/dashboard/library" className={`nav-item ${pathname.includes('/library') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+          <Link href={isDemo ? `${basePath}/library` : '/dashboard/library'} className={`nav-item ${pathname.includes('/library') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <BookOpen size={18} className="nav-icon" />
             <span>Biblioteca</span>
           </Link>
-          {user?.email === 'gbrlescalada@gmail.com' && user?.id === '365cd259-4f1e-4004-a677-1eda06a5147e' && (
+          {!isDemo && user?.email === 'gbrlescalada@gmail.com' && user?.id === '365cd259-4f1e-4004-a677-1eda06a5147e' && (
             <Link href="/dashboard/admin" className={`nav-item ${pathname.includes('/admin') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
               <ShieldCheck size={18} className="nav-icon" />
               <span className="text-gold-400">Admin Panel</span>
@@ -176,7 +191,7 @@ export default function DashboardLayout({ children }) {
           )}
         </nav>
 
-        {profile?.plan_tier !== 'professional' && (
+        {!isDemo && profile?.plan_tier !== 'professional' && (
           <div
             className="upgrade-card"
             onClick={() => router.push('/dashboard/settings?tab=billing')}
@@ -190,6 +205,14 @@ export default function DashboardLayout({ children }) {
           </div>
         )}
 
+        {isDemo && (
+          <div style={{ padding: '1rem', marginTop: 'auto' }}>
+            <Link href="/" className="btn-primary" style={{ display: 'block', textAlign: 'center', fontSize: '0.8rem', padding: '0.5rem' }}>
+              Salir de Demo
+            </Link>
+          </div>
+        )}
+
         <div className="user-profile">
           <div className="user-avatar">
             {getInitials()}
@@ -198,13 +221,15 @@ export default function DashboardLayout({ children }) {
             <span className="user-name">{getDisplayName()}</span>
             <span className="user-email">{user?.email}</span>
           </div>
-          <button
-            className="btn-logout"
-            title="Cerrar Sesión"
-            onClick={() => supabase.auth.signOut().then(() => router.push('/login'))}
-          >
-            <LogOut size={18} />
-          </button>
+          {!isDemo && (
+            <button
+              className="btn-logout"
+              title="Cerrar Sesión"
+              onClick={() => supabase.auth.signOut().then(() => router.push('/login'))}
+            >
+              <LogOut size={18} />
+            </button>
+          )}
         </div>
       </aside>
 
@@ -213,10 +238,13 @@ export default function DashboardLayout({ children }) {
         {children}
       </main>
 
-      <SafeChatWidget
-        mode="internal"
-        initialMessage="Hola. Soy tu asistente de soporte técnico. ¿En qué puedo ayudarte?"
-      />
+      {/* Only show support widget if NOT in Demo Mode */}
+      {!isDemo && (
+        <SafeChatWidget
+          mode="internal"
+          initialMessage="Hola. Soy tu asistente de soporte técnico. ¿En qué puedo ayudarte?"
+        />
+      )}
     </div>
   );
 }

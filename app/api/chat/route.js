@@ -62,12 +62,12 @@ export async function GET(request) {
         // 2. Authorization Guard
         // Allow if: 
         // A) User is the assigned lawyer OR user is the linked client
-        // B) The inquiry is ANONYMOUS (Support/Login chats with no owners assigned) - SessionUUID acts as Bearer Token
-        const isAnonymous = !inquiry.assigned_lawyer_id && !inquiry.client_auth_id;
-        const isOwner = (user && (user.id === inquiry.assigned_lawyer_id || user.id === inquiry.client_auth_id)) || isAnonymous;
+        // B) The inquiry is UNCLAIMED (No client_auth_id yet) - SessionUUID acts as Bearer Token for the guest client.
+        const isUnclaimed = !inquiry.client_auth_id;
+        const isOwner = (user && (user.id === inquiry.assigned_lawyer_id || user.id === inquiry.client_auth_id)) || isUnclaimed;
 
         if (!isOwner) {
-            console.warn(`🚫 UNAUTHORIZED HISTORY ATTEMPT: User ${user?.id} tried to read session ${sessionId} (Anon: ${isAnonymous})`);
+            console.warn(`🚫 UNAUTHORIZED HISTORY ATTEMPT: User ${user?.id} tried to read session ${sessionId} (Unclaimed: ${isUnclaimed})`);
             return NextResponse.json({ error: "No tienes permiso para ver este historial." }, { status: 403 });
         }
 

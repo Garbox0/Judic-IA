@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 
 export default function TetrisLoader() {
+    const gameControls = useRef({});
     const canvasRef = useRef(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isGameOver, setIsGameOver] = useState(false);
@@ -140,9 +141,7 @@ export default function TetrisLoader() {
                     }
                 }
             }
-
-            if (min === Infinity) return { min: 0, max: matrix[0].length - 1 };
-            return { min, max };
+            return min === Infinity ? { min: 0, max: matrix[0].length - 1 } : { min, max };
         }
 
         function getHorizontalOriginLimits(matrix, row, startCol) {
@@ -273,34 +272,52 @@ export default function TetrisLoader() {
             }
         }
 
+        // --- CONTROLS LOGIC EXPOSED ---
+        const move = (dir) => {
+            if (!tetromino) return;
+            const col = dir === 'left' ? tetromino.col - 1 : tetromino.col + 1;
+            if (isValidMove(tetromino.matrix, tetromino.row, col))
+                tetromino.col = col;
+        };
+
+        const doRotate = () => {
+            if (!tetromino) return;
+            const matrix = rotate(tetromino.matrix);
+            if (isValidMove(matrix, tetromino.row, tetromino.col))
+                tetromino.matrix = matrix;
+        };
+
+        const drop = () => {
+            if (!tetromino) return;
+            const row = tetromino.row + 1;
+            if (!isValidMove(tetromino.matrix, row, tetromino.col)) {
+                tetromino.row = row - 1;
+                placeTetromino();
+                return;
+            }
+            tetromino.row = row;
+        }
+
+        // Expose to ref for UI buttons
+        gameControls.current = {
+            left: () => move('left'),
+            right: () => move('right'),
+            rotate: doRotate,
+            drop: drop
+        };
+
         // Input Handling
         const handleKeydown = (e) => {
-            // Prevent scrolling for game keys
             if ([37, 38, 39, 40].includes(e.which)) {
                 e.preventDefault();
             }
 
             if (isGameOver || !isPlaying) return;
 
-            if (e.which === 37 || e.which === 39) {
-                const col = e.which === 37 ? tetromino.col - 1 : tetromino.col + 1;
-                if (isValidMove(tetromino.matrix, tetromino.row, col))
-                    tetromino.col = col;
-            }
-            if (e.which === 38) {
-                const matrix = rotate(tetromino.matrix);
-                if (isValidMove(matrix, tetromino.row, tetromino.col))
-                    tetromino.matrix = matrix;
-            }
-            if (e.which === 40) {
-                const row = tetromino.row + 1;
-                if (!isValidMove(tetromino.matrix, row, tetromino.col)) {
-                    tetromino.row = row - 1;
-                    placeTetromino();
-                    return;
-                }
-                tetromino.row = row;
-            }
+            if (e.which === 37) move('left');
+            if (e.which === 39) move('right');
+            if (e.which === 38) doRotate();
+            if (e.which === 40) drop();
         };
 
         document.addEventListener("keydown", handleKeydown);
@@ -384,9 +401,9 @@ export default function TetrisLoader() {
                                 <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-[5] bg-[length:100%_2px,3px_100%]"></div>
                             </div>
 
-                            {/* Controles: centrados bajo el juego (mismo ancho) */}
+                            {/* Controles para Desktop */}
                             <div
-                                className={`ji-controlsHint ${gameW} flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-center mt-3 text-xs sm:text-sm`}
+                                className={`ji-controlsHint ${gameW} hidden md:flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-center mt-3 text-xs sm:text-sm`}
                             >
                                 <span>← → mover</span>
                                 <span className="text-slate-600">•</span>
@@ -394,6 +411,42 @@ export default function TetrisLoader() {
                                 <span className="text-slate-600">•</span>
                                 <span>↓ acelerar</span>
                             </div>
+
+                            {/* TOUCH CONTROLS FOR MOBILE (Visible only on md or smaller) */}
+                            {isPlaying && !isGameOver && (
+                                <div className={`${gameW} md:hidden flex flex-col gap-2 mt-4`}>
+                                    <div className="flex justify-center gap-4">
+                                        <button
+                                            className="w-16 h-14 bg-slate-800 rounded-lg border border-slate-700 active:bg-yellow-500/20 active:border-yellow-500 transition-colors flex items-center justify-center text-xl"
+                                            onClick={() => gameControls.current.left && gameControls.current.left()}
+                                        >
+                                            ⬅️
+                                        </button>
+
+                                        <div className="flex flex-col gap-2">
+                                            <button
+                                                className="w-16 h-14 bg-slate-800 rounded-lg border border-slate-700 active:bg-yellow-500/20 active:border-yellow-500 transition-colors flex items-center justify-center text-xl"
+                                                onClick={() => gameControls.current.rotate && gameControls.current.rotate()}
+                                            >
+                                                🔄
+                                            </button>
+                                            <button
+                                                className="w-16 h-14 bg-slate-800 rounded-lg border border-slate-700 active:bg-yellow-500/20 active:border-yellow-500 transition-colors flex items-center justify-center text-xl"
+                                                onClick={() => gameControls.current.drop && gameControls.current.drop()}
+                                            >
+                                                ⬇️
+                                            </button>
+                                        </div>
+
+                                        <button
+                                            className="w-16 h-14 bg-slate-800 rounded-lg border border-slate-700 active:bg-yellow-500/20 active:border-yellow-500 transition-colors flex items-center justify-center text-xl"
+                                            onClick={() => gameControls.current.right && gameControls.current.right()}
+                                        >
+                                            ➡️
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </>
                     );
                 })()}
@@ -401,3 +454,6 @@ export default function TetrisLoader() {
         </div>
     );
 }
+
+
+

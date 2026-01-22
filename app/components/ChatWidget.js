@@ -178,27 +178,15 @@ export default function ChatWidget({
 
     const botConfig = getBotConfig();
 
-    // Embedded vs Floating Styles
-    const containerStyle = embedded ? {
-        position: "relative", width: "100%", maxWidth: "450px", height: "100%", margin: "0 auto",
-        display: "flex", flexDirection: "column", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "12px",
-        overflow: "hidden", fontFamily: 'var(--font-outfit)'
-    } : {
-        position: "fixed", bottom: "2rem", right: "2rem", zIndex: 1000, fontFamily: 'var(--font-outfit)'
-    };
-
     return (
-        <div style={containerStyle}>
+        <div className={embedded ? "" : "chat-widget-container"} style={embedded ? {
+            position: "relative", width: "100%", maxWidth: "450px", height: "100%", margin: "0 auto",
+            display: "flex", flexDirection: "column", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "12px",
+            overflow: "hidden", fontFamily: 'var(--font-outfit)'
+        } : {}}>
             {!isOpen && !embedded && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer' }} onClick={() => setIsOpen(true)}>
-                    <span style={{
-                        color: 'var(--muted)', fontSize: '0.8rem', fontWeight: 600,
-                        background: 'rgba(15, 23, 42, 0.4)', padding: '0.4rem 0.8rem',
-                        borderRadius: '20px', border: '1px solid var(--border)',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                        transition: 'all 0.3s ease',
-                        whiteSpace: 'nowrap'
-                    }}>
+                <div className="chat-toggle" onClick={() => setIsOpen(true)}>
+                    <span className="chat-label">
                         Asistente IA
                     </span>
                     <button
@@ -222,14 +210,13 @@ export default function ChatWidget({
             )}
 
             {(isOpen || embedded) && (
-                <div className={embedded ? "embedded-chat" : "glass-panel"} style={embedded ? {
+                <div className={embedded ? "embedded-chat" : "glass-panel chat-window"} style={embedded ? {
                     display: 'flex', flexDirection: 'column', height: '100%',
                     background: 'transparent',
                     fontFamily: 'var(--font-outfit)'
                 } : {
-                    width: "350px", height: "500px", display: "flex", flexDirection: "column",
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.3)", overflow: "hidden",
-                    zIndex: 2000 // Higher than navbar
+                    // Removed fixed width/height/shadow here because CSS class handles it
+                    // But keep display logic just in case override needed? No, CSS handles flex column.
                 }}>
                     {/* Header - Hidden in embedded intake to avoid redundancy, OR simplified */}
                     {!embedded && (
