@@ -412,44 +412,43 @@ export default function TetrisLoader() {
                                 <span>↓ acelerar</span>
                             </div>
 
-                            {/* TOUCH CONTROLS FOR MOBILE (Visible only on md or smaller) */}
+                            {/* TOUCH CONTROLS FOR MOBILE (Visible only on lg or smaller) */}
                             {isPlaying && !isGameOver && (
-                                <div className={`${gameW} md:hidden mt-6 pb-2`}>
-                                    <div className="relative h-32 w-full max-w-[240px] mx-auto">
-                                        {/* D-PAD BACKGROUND VISUAL (Optional, kept minimal) */}
+                                <div className={`${gameW} lg:hidden mt-8 pb-8 relative z-50`}>
+                                    <div className="relative h-40 w-full max-w-[280px] mx-auto">
 
                                         {/* LEFT */}
                                         <button
-                                            className="absolute left-0 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-slate-800/80 backdrop-blur-md border border-white/10 shadow-lg active:scale-95 active:bg-yellow-500/20 active:border-yellow-500/50 transition-all flex items-center justify-center group"
-                                            onClick={() => gameControls.current.left && gameControls.current.left()}
+                                            className="absolute left-0 top-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-slate-800/90 backdrop-blur-xl border-2 border-slate-600/50 shadow-xl active:scale-90 active:bg-yellow-500/20 active:border-yellow-400 transition-all flex items-center justify-center group touch-none"
+                                            onClick={(e) => { e.preventDefault(); gameControls.current.left && gameControls.current.left(); }}
                                         >
-                                            <div className="w-0 h-0 border-t-[8px] border-t-transparent border-r-[12px] border-r-slate-300 border-b-[8px] border-b-transparent group-active:border-r-yellow-400"></div>
+                                            <div className="w-0 h-0 border-t-[10px] border-t-transparent border-r-[14px] border-r-slate-200 border-b-[10px] border-b-transparent group-active:border-r-yellow-400 filter drop-shadow-sm"></div>
                                         </button>
 
                                         {/* RIGHT */}
                                         <button
-                                            className="absolute right-0 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-slate-800/80 backdrop-blur-md border border-white/10 shadow-lg active:scale-95 active:bg-yellow-500/20 active:border-yellow-500/50 transition-all flex items-center justify-center group"
-                                            onClick={() => gameControls.current.right && gameControls.current.right()}
+                                            className="absolute right-0 top-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-slate-800/90 backdrop-blur-xl border-2 border-slate-600/50 shadow-xl active:scale-90 active:bg-yellow-500/20 active:border-yellow-400 transition-all flex items-center justify-center group touch-none"
+                                            onClick={(e) => { e.preventDefault(); gameControls.current.right && gameControls.current.right(); }}
                                         >
-                                            <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[12px] border-l-slate-300 border-b-[8px] border-b-transparent group-active:border-l-yellow-400"></div>
+                                            <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[14px] border-l-slate-200 border-b-[10px] border-b-transparent group-active:border-l-yellow-400 filter drop-shadow-sm"></div>
                                         </button>
 
                                         {/* CENTER COLUMN: ROTATE & DOWN */}
-                                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-8">
-                                            {/* ROTATE (TOP) */}
+                                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-10">
+                                            {/* ROTATE (TOP - Main Action) */}
                                             <button
-                                                className="w-16 h-16 rounded-full bg-yellow-500/10 backdrop-blur-md border border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.2)] active:scale-95 active:bg-yellow-500/30 active:shadow-[0_0_25px_rgba(234,179,8,0.4)] transition-all flex items-center justify-center"
-                                                onClick={() => gameControls.current.rotate && gameControls.current.rotate()}
+                                                className="w-20 h-20 rounded-full bg-yellow-500/10 backdrop-blur-xl border-2 border-yellow-500/40 shadow-[0_0_20px_rgba(234,179,8,0.2)] active:scale-90 active:bg-yellow-500/30 active:shadow-[0_0_30px_rgba(234,179,8,0.5)] transition-all flex items-center justify-center touch-none"
+                                                onClick={(e) => { e.preventDefault(); gameControls.current.rotate && gameControls.current.rotate(); }}
                                             >
-                                                <span className="text-2xl pt-1">↻</span>
+                                                <span className="text-3xl pt-1 font-bold text-yellow-400">↻</span>
                                             </button>
 
-                                            {/* DROP (BOTTOM - smaller) */}
+                                            {/* DROP (BOTTOM) */}
                                             <button
-                                                className="w-12 h-12 mx-auto rounded-full bg-slate-800/80 backdrop-blur-md border border-white/10 shadow-lg active:scale-95 active:bg-red-500/20 active:border-red-500/50 transition-all flex items-center justify-center group"
-                                                onClick={() => gameControls.current.drop && gameControls.current.drop()}
+                                                className="w-14 h-14 mx-auto rounded-full bg-slate-800/90 backdrop-blur-xl border-2 border-slate-600/50 shadow-xl active:scale-90 active:bg-red-500/20 active:border-red-500/50 transition-all flex items-center justify-center group touch-none"
+                                                onClick={(e) => { e.preventDefault(); gameControls.current.drop && gameControls.current.drop(); }}
                                             >
-                                                <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[10px] border-t-slate-400 group-active:border-t-red-400"></div>
+                                                <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-slate-300 group-active:border-t-red-400 filter drop-shadow-sm"></div>
                                             </button>
                                         </div>
                                     </div>

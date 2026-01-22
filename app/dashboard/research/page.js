@@ -775,37 +775,23 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                 return (
                                                     <div
                                                         key={i}
-                                                        className="case-item-card"
-                                                        style={{
-                                                            marginBottom: '1rem',
-                                                            borderBottom: '1px solid rgba(255,255,255,0.05)',
-                                                            paddingBottom: '1rem',
-                                                            paddingRight: '1rem', // Fix: Prevent buttons cut-off
-                                                            opacity: isRefreshing ? 0.5 : 1,
-                                                            transition: 'opacity 0.3s ease',
-                                                            pointerEvents: isRefreshing ? 'none' : 'auto'
-                                                        }}
+                                                        className={`case-item-card ${isRefreshing ? 'refreshing' : ''}`}
                                                     >
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                                                <h4 style={{ margin: '0 0 0.4rem 0', color: '#e2e8f0', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                                    <Gavel size={16} style={{ color: '#fbbf24' }} />
+                                                        <div className="case-content-wrapper">
+                                                            <div className="case-info">
+                                                                <h4 className="case-title">
+                                                                    <Gavel size={16} className="text-amber-400" />
                                                                     {c.title}
                                                                 </h4>
-                                                                <div className="case-summary-scroll" style={{
-                                                                    maxHeight: '4.5em', // Approx 3 lines
-                                                                    overflowY: 'auto',
-                                                                    paddingRight: '5px',
-                                                                    marginBottom: '0.4rem'
-                                                                }}>
-                                                                    <p style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.5 }}>
+                                                                <div className="case-summary-scroll">
+                                                                    <p className="case-summary-text">
                                                                         {c.summary}
                                                                     </p>
                                                                 </div>
-                                                                <span style={{ fontSize: '0.8rem', color: '#fbbf24', opacity: 0.8 }}>Fuente: {c.source || 'Referencia Legal'}</span>
+                                                                <span className="case-source">Fuente: {c.source || 'Referencia Legal'}</span>
                                                             </div>
                                                             {safeUrl && (
-                                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                                <div className="case-actions">
                                                                     <button
                                                                         className="btn-preview-icon"
                                                                         title="Buscar nueva alternativa (Refresh)"
@@ -1487,6 +1473,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                     .research-container { padding: 0 1rem 4rem; } /* More bottom padding */
                 }
 
+                /* SPINNER */
                 .spinner {
                     width: 16px;
                     height: 16px;
@@ -1502,6 +1489,129 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                     0% { opacity: 0.6; }
                     50% { opacity: 1; }
                     100% { opacity: 0.6; }
+                }
+
+                /* --- JURISPRUDENCE CARDS & RESPONSIVE GRID --- */
+                .cases-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                    gap: 1.25rem;
+                }
+
+                .case-item-card {
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 12px;
+                    padding: 1.25rem;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    display: flex;
+                    flex-direction: column;
+                    position: relative;
+                }
+                .case-item-card:hover {
+                    background: rgba(255, 255, 255, 0.06);
+                    transform: translateY(-2px);
+                    border-color: rgba(251, 191, 36, 0.3);
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+                }
+                .case-item-card.refreshing {
+                    opacity: 0.5;
+                    pointer-events: none;
+                }
+
+                .case-content-wrapper {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    gap: 1rem;
+                    height: 100%;
+                }
+
+                .case-info {
+                    flex: 1;
+                    min-width: 0;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+
+                .case-title {
+                    margin: 0;
+                    color: #e2e8f0;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    line-height: 1.4;
+                }
+
+                .case-summary-scroll {
+                    max-height: 4.8em; /* Approx 3-4 lines */
+                    overflow-y: auto;
+                    padding-right: 4px;
+                }
+                /* Custom Scrollbar for summary */
+                .case-summary-scroll::-webkit-scrollbar { width: 3px; }
+                .case-summary-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+                .case-summary-text {
+                    margin: 0;
+                    font-size: 0.9rem;
+                    color: #94a3b8;
+                    line-height: 1.5;
+                }
+
+                .case-source {
+                    font-size: 0.75rem;
+                    color: #fbbf24;
+                    opacity: 0.9;
+                    margin-top: auto; /* Push to bottom if flex column */
+                    display: block;
+                    padding-top: 0.5rem;
+                }
+
+                /* Actions Column */
+                .case-actions {
+                    display: flex;
+                    flex-direction: column; /* Stack icons vertically on desktop for cleaner look? Or row? */
+                    gap: 0.5rem;
+                    flex-shrink: 0;
+                }
+                /* Keep actions in row for now to match old design, or adapt */
+                .case-actions { flex-direction: row; }
+
+                .btn-preview-icon, .btn-link-icon {
+                    background: rgba(255,255,255,0.05);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    color: #cbd5e1;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    padding: 0;
+                }
+                .btn-preview-icon:hover, .btn-link-icon:hover {
+                    background: rgba(251, 191, 36, 0.1);
+                    color: #fbbf24;
+                    border-color: #fbbf24;
+                }
+                .spin-animation { animation: spin 1s linear infinite; }
+
+                /* RESPONSIVE TWEAKS FOR CARDS */
+                @media (max-width: 768px) {
+                    .cases-grid {
+                        grid-template-columns: 1fr; /* Full width stack on mobile */
+                        gap: 1rem;
+                    }
+                    .case-item-card {
+                        padding: 1rem;
+                    }
+                    /* On mobile, maybe allow actions to wrap or stay row? Row is fine */
                 }
             `}</style>
         </div >
