@@ -923,6 +923,17 @@ export default function SettingsPage() {
                     .stg-field-row.multi { flex-direction: column; gap: 0; }
                     .stg-root { padding: 2rem; }
                     .stg-plan-list { grid-template-columns: 1fr; }
+                    
+                    /* BILLING & SUPPORT FIXES */
+                    .stg-plan-card { padding: 2rem; } /* Reduce padding */
+                    .stg-plan-name { font-size: 2.2rem; }
+                    .stg-plan-footer { flex-direction: column; gap: 1.5rem; text-align: center; }
+                    .stg-support-grid { grid-template-columns: 1fr; } /* Stack support cards */
+                    .stg-val { font-size: 2rem; }
+
+                     /* STATUS CARD FIX (Tu Plan Actual) */
+                    .stg-current-status-card { flex-direction: column; gap: 1rem; text-align: center; }
+                    .stg-status-info { flex-direction: column; gap: 0.5rem; }
                 }
 
                 @media (max-width: 600px) {

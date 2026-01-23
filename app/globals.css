@@ -277,6 +277,63 @@ button {
   .chat-widget-container {
     bottom: 1rem;
     right: 1rem;
+    align-items: flex-end;
+    /* Ensure alignment to right */
+  }
+
+  .chat-toggle-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  /* Hide Button (Small X above bubble) */
+  .chat-hide-btn {
+    width: 24px;
+    height: 24px;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justifyContent: center;
+    position: absolute;
+    top: -10px;
+    right: 0;
+    z-index: 10;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    opacity: 0.8;
+  }
+
+  .chat-hide-btn:hover {
+    background: #f43f5e;
+    border-color: #f43f5e;
+    opacity: 1;
+  }
+
+  /* Minimized Side Tab */
+  .chat-minimized-tab {
+    position: fixed;
+    bottom: 20vh;
+    /* Floating mid-screen height */
+    right: 0;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+    padding: 0.8rem 0.6rem;
+    cursor: pointer;
+    box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    transition: transform 0.2s;
+    z-index: 999;
+  }
+
+  .chat-minimized-tab:active {
+    transform: translateX(5px);
   }
 
   .chat-toggle {

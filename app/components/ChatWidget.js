@@ -178,6 +178,18 @@ export default function ChatWidget({
 
     const botConfig = getBotConfig();
 
+    const [isBubbleHidden, setIsBubbleHidden] = useState(false);
+
+    // Auto-hide bubble on mobile by default
+    useEffect(() => {
+        const checkMobile = () => {
+            if (window.innerWidth <= 768 && !embedded) {
+                setIsBubbleHidden(true);
+            }
+        };
+        checkMobile();
+    }, [embedded]);
+
     return (
         <div className={embedded ? "" : "chat-widget-container"} style={embedded ? {
             position: "relative", width: "100%", maxWidth: "450px", height: "100%", margin: "0 auto",
@@ -185,28 +197,77 @@ export default function ChatWidget({
             overflow: "hidden", fontFamily: 'var(--font-outfit)'
         } : {}}>
             {!isOpen && !embedded && (
-                <div className="chat-toggle" onClick={() => setIsOpen(true)}>
-                    <span className="chat-label">
-                        Asistente IA
-                    </span>
-                    <button
-                        className="btn-primary"
-                        style={{
-                            width: "60px", height: "60px",
-                            borderRadius: "50%",
-                            boxShadow: `0 8px 24px -4px ${botConfig.color}44`,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            background: '#0f172a', // Dark background to prevent "cutout" look
-                            border: `2px solid ${botConfig.color}`,
-                            cursor: 'pointer',
-                            padding: 0,
-                            overflow: 'hidden',
-                            position: 'relative'
-                        }}
-                    >
-                        <img src={lawyerAvatar || "/bot-icon.png"} alt="Bot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </button>
-                </div>
+                <>
+                    {/* STANDARD BUBBLE (Visible) */}
+                    {!isBubbleHidden && (
+                        <div className="chat-toggle-wrapper">
+                            {/* Hide Button (Integrated Badge) */}
+                            <button
+                                className="chat-hide-btn"
+                                onClick={(e) => { e.stopPropagation(); setIsBubbleHidden(true); }}
+                                title="Ocultar temporalmente"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+
+                            <div className="chat-toggle" onClick={() => setIsOpen(true)}>
+                                {/* Label is hidden on mobile by CSS, visible on desktop */}
+                                <span className="chat-label">Asistente IA</span>
+                                <button
+                                    className="btn-primary"
+                                    style={{
+                                        width: "60px", height: "60px",
+                                        borderRadius: "50%",
+                                        boxShadow: `0 8px 32px rgba(212, 178, 76, 0.25)`, // Premium Gold Glow
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        background: '#0f172a',
+                                        border: `2px solid ${botConfig.color}`,
+                                        cursor: 'pointer',
+                                        padding: 0,
+                                        overflow: 'hidden',
+                                        position: 'relative',
+                                        transition: 'transform 0.2s'
+                                    }}
+                                >
+                                    <img src={lawyerAvatar || "/bot-icon.png"} alt="Bot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* HIDDEN TAB (When minimized) - With IA Label */}
+                    {isBubbleHidden && (
+                        <button
+                            className="chat-minimized-tab"
+                            onClick={() => { setIsBubbleHidden(false); setIsOpen(true); }}
+                            style={{
+                                borderLeft: `3px solid ${botConfig.color}`,
+                                background: 'rgba(2, 6, 23, 0.95)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '10px 8px'
+                            }}
+                        >
+                            {/* Robot/AI Icon */}
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={botConfig.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                                <circle cx="12" cy="5" r="2"></circle>
+                                <path d="M12 7v4"></path>
+                                <line x1="8" y1="16" x2="8" y2="16"></line>
+                                <line x1="16" y1="16" x2="16" y2="16"></line>
+                            </svg>
+                            {/* IA Label */}
+                            <span style={{
+                                fontSize: '9px',
+                                fontWeight: '900',
+                                color: botConfig.color,
+                                letterSpacing: '0.5px'
+                            }}>IA</span>
+                        </button>
+                    )}
+                </>
             )}
 
             {(isOpen || embedded) && (
@@ -233,7 +294,11 @@ export default function ChatWidget({
                                 </div>
                                 <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{botConfig.name}</span>
                             </div>
-                            <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: '1.2rem', cursor: 'pointer' }}>×</button>
+                            <button onClick={() => {
+                                setIsOpen(false);
+                                // On mobile, go directly back to minimized tab
+                                if (window.innerWidth <= 768) setIsBubbleHidden(true);
+                            }} style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: '1.2rem', cursor: 'pointer' }}>×</button>
                         </div>
                     )}
 
