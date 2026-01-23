@@ -186,6 +186,13 @@ export default function Home() {
           <div className="foot-note">
             <Link href="/legal#security">Seguridad</Link> · <Link href="/legal#privacy">Privacidad</Link> · <Link href="/legal#terms">Términos</Link> · <a href="mailto:hola@judic-ia.com">Ventas</a> · <a href="mailto:soporte@judic-ia.com">Soporte</a>
           </div>
+
+          <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', opacity: 0.5 }}>
+            <a href="https://www.cloudflare.com/" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none', color: '#e2e8f0', fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '20px', transition: '0.2s' }} className="cf-badge">
+              <svg viewBox="0 0 24 24" fill="#F48120" style={{ width: '14px', height: '14px' }}><path d="M19.32 7.78a5.96 5.96 0 0 0-5.83-1.63 3.93 3.93 0 0 0-6.86-1.57A4.6 4.6 0 0 0 0 9.77a4.6 4.6 0 0 0 4.6 4.6h14.72a4.6 4.6 0 0 0 0-9.2 4.6 4.6 0 0 0 0 9.2z" fill="#F48120" /><path d="M19.32 7.78a5.96 5.96 0 0 0-5.83-1.63 3.93 3.93 0 0 0-6.86-1.57A4.6 4.6 0 0 0 0 9.77a4.6 4.6 0 0 0 4.6 4.6h14.72a4.6 4.6 0 0 0 0-9.2z" fill="currentColor" /></svg>
+              <span>Protected by <strong>Cloudflare</strong></span>
+            </a>
+          </div>
         </div>
       </footer>
 
