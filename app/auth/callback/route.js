@@ -54,26 +54,18 @@ export async function GET(request) {
             return NextResponse.redirect(`${origin}/dashboard`);
         } else {
             console.error('Auth Code Exchange Error:', error);
-            // If client params exist, redirect to client login with error
-            if (lawyerId || cid) {
-                const clientUrl = new URL(clientLoginBase);
-                if (lawyerId) clientUrl.searchParams.set('lawyerId', lawyerId);
-                if (cid) clientUrl.searchParams.set('cid', cid);
-                clientUrl.searchParams.set('error', 'link_expired');
-                return NextResponse.redirect(clientUrl);
-            }
+            // KICK-OUT: If auth fails (e.g. user deleted), redirect to main landing page
+            // We don't want them to see the login screen at all.
+            return NextResponse.redirect('https://judic-ia.com');
         }
     }
 
     // If no code or error, check if this is a client flow
     if (lawyerId || cid) {
-        const clientUrl = new URL(clientLoginBase);
-        if (lawyerId) clientUrl.searchParams.set('lawyerId', lawyerId);
-        if (cid) clientUrl.searchParams.set('cid', cid);
-        clientUrl.searchParams.set('error', 'auth_error');
-        return NextResponse.redirect(clientUrl);
+        // Also redirect to landing page on generic errors
+        return NextResponse.redirect('https://judic-ia.com');
     }
 
-    // Default: lawyer login
+    // Default: lawyer login failure
     return NextResponse.redirect(`${origin}/login?error=auth_confirmation_error`);
 }
