@@ -245,7 +245,8 @@ export default function IntakeFormContent({ id }) {
 
     async function handleLogout() {
         await supabase.auth.signOut();
-        window.location.reload();
+        // Redirect explicitly to login to avoid potential loops or wrong redirects
+        window.location.href = '/auth/login';
     }
 
     return (

@@ -319,7 +319,7 @@ function RegisterContent() {
 
     return (
         <div className="auth-card glass-premium fade-in">
-            <Link href="/" className="btn-back-premium">← Volver al Inicio</Link>
+            <a href="https://judic-ia.com" className="btn-back-premium">← Volver al Inicio</a>
 
             {isConfirmed ? (
                 <div className="confirmed-ui fade-in">
