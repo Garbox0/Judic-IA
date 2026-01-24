@@ -288,7 +288,7 @@ button {
     align-items: flex-end;
   }
 
-  /* Hide Button (Small X above bubble) */
+  /* Hide Button (Small X above bubble) - ONLY ON MOBILE */
   .chat-hide-btn {
     width: 24px;
     height: 24px;
@@ -296,9 +296,10 @@ button {
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     color: white;
-    display: flex;
+    display: none;
+    /* Hidden by default (desktop) */
     align-items: center;
-    justifyContent: center;
+    justify-content: center;
     position: absolute;
     top: -10px;
     right: 0;
@@ -312,6 +313,13 @@ button {
     background: #f43f5e;
     border-color: #f43f5e;
     opacity: 1;
+  }
+
+  /* Show hide button only on mobile */
+  @media (max-width: 768px) {
+    .chat-hide-btn {
+      display: flex;
+    }
   }
 
   /* Minimized Side Tab */
