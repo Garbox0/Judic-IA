@@ -42,4 +42,5 @@ next-env.d.ts
 
 #txt
 supabase_access.txt
+rollback_rls.sql
 
