@@ -56,7 +56,11 @@ export async function POST(request) {
 
         if (error) throw error;
 
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+        // Get the correct site URL from the request headers (works in both dev and prod)
+        const host = request.headers.get('host');
+        const protocol = request.headers.get('x-forwarded-proto') || 'https';
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`;
+
         const link = `${siteUrl}/consultas/${lawyerId}?cid=${intakeToken}`;
 
         return NextResponse.json({ link, cid: intakeToken });
