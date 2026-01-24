@@ -135,6 +135,14 @@ export default function AuthFormContent() {
             if (event === 'SIGNED_IN' && session) {
                 console.log("⚡ Auth Event: SIGNED_IN", session.user.email);
 
+                // Safeguard: Check if this is a lawyer
+                const userRole = session.user?.user_metadata?.role;
+                if (userRole === 'lawyer') {
+                    console.log('🔄 Abogado detectado en flujo de cliente. Redirigiendo al dashboard...');
+                    router.push('/dashboard');
+                    return;
+                }
+
                 // STRICT: Enforce Email Confirmation
                 if (!session.user.email_confirmed_at) {
                     console.warn("🔒 Acceso bloqueado: Email no confirmado.");

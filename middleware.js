@@ -87,12 +87,13 @@ export async function middleware(request) {
     // 🏁 4. DISPATCHER DE REDIRECCIONES
     let finalResponse = response
 
-    // A. Zona Cliente (Intake)
-    if (isClientZone && pathname.includes('/auth') && !hasClientContext && !user) {
-        finalResponse = applyCookies(response, NextResponse.redirect(new URL('/', request.url)))
-    }
+    // DEBUG: Trace routing logic (disabled for prod)
+    // console.log(`[Middleware] Path: ${pathname}, ClientZone: ${isClientZone}, Context: ${hasClientContext}, User: ${!!user}`);
+
+    // A. Zona Cliente (Intake) - COMENTADO PARA EVITAR REDIRECTS AL HOME
+
     // B. Dashboard / Home / Login Loop Prevention
-    else if (isHomePath) {
+    if (isHomePath) {
         if (hasClientContext) {
             const consultasUrl = new URL('/consultas/auth', request.url)
             sp.forEach((value, key) => consultasUrl.searchParams.set(key, value))

@@ -1,34 +1,28 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '../../../lib/supabase-server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 
 export async function POST(request) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!serviceRoleKey) {
         return NextResponse.json({ error: "Missing Service Role Key" }, { status: 500 });
     }
 
-    // 1. Identify Requester via Session Client
-    const cookieStore = await cookies();
-    const supabase = createServerClient(supabaseUrl, anonKey, {
-        cookies: {
-            getAll() { return cookieStore.getAll() },
-            setAll(cookiesToSet) {
-                cookiesToSet.forEach(({ name, value, options }) =>
-                    cookieStore.set(name, value, options)
-                )
-            },
-        },
-        cookieOptions: { name: 'sb-judicia-auth' }
-    });
+    // DEBUG: Check cookies (disabled for prod)
+    // const cookieStore = await cookies();
+    // const allCookies = cookieStore.getAll().map(c => c.name);
+    // console.log("🍪 Cookies present in request:", allCookies);
 
-    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+    // 1. Identify Requester via Session Client using Unified Helper
+    // This helper now correctly uses 'sb-judicia-auth' and await cookies()
+    const supabase = await createClient();
+
+    const adminClient = createAdminClient(supabaseUrl, serviceRoleKey, {
         auth: { persistSession: false }
     });
+
 
     try {
         const { lawyerId } = await request.json();

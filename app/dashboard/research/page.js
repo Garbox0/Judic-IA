@@ -1493,8 +1493,8 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
                 /* --- JURISPRUDENCE CARDS & RESPONSIVE GRID --- */
                 .cases-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                    display: flex;
+                    flex-direction: column;
                     gap: 1.25rem;
                 }
 

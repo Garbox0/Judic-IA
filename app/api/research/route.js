@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
+import {
+    generateAllSourceQueries,
+    isValidCaseUrl,
+    enhanceWithSourceInfo,
+    identifySource
+} from '@/lib/directSources';
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // 🏛️ JUDIC-IA RESEARCH ENGINE v4.0 - "TERMINAL DE INTELIGENCIA JURÍDICA"
@@ -147,56 +154,139 @@ export async function POST(request) {
             defaultHeaders: { "HTTP-Referer": "https://judic-ia.com", "X-Title": "Judic-IA" }
         });
 
-        // --- STAGE 1: DORK GENERATION (ENHANCED with explicit site: operators) ---
+        // --- STAGE 0.5: QUERY OPTIMIZER (Para Abogados) ---
+        // Analiza la consulta profesional y extrae conceptos legales implícitos
+        console.log(`🔬 Analyzing query: "${query}"`);
+
+        const queryAnalysis = await openai.chat.completions.create({
+            model: "openai/gpt-4o-mini",
+            messages: [{
+                role: "system",
+                content: `Sos un asistente de búsqueda jurídica para abogados litigantes argentinos.
+
+Analizá la consulta profesional y devolvé JSON:
+{
+  "intent": "fallos" | "doctrina" | "legislacion" | "mixto",
+  "cleanQuery": "versión limpia y optimizada de la consulta",
+  "legalConcepts": ["concepto jurídico 1", "concepto 2"], 
+  "relatedTerms": ["sinónimo1", "término relacionado"],
+  "suggestedQueries": ["query búsqueda 1", "query 2", "query 3"]
+}
+
+EJEMPLOS:
+- "MEDIANERIA CASA PARTICULAR FALLO" → { "intent": "fallos", "cleanQuery": "medianería inmueble particular", "legalConcepts": ["pared medianera", "condominio de muros", "art 2006 CCCN"], "relatedTerms": ["lindero", "cerramiento forzoso"], "suggestedQueries": ["medianería fallo cámara civil", "pared medianera sentencia", "condominio muro divisorio jurisprudencia"] }
+
+- "juicio de alimentos Fallos" → { "intent": "fallos", "cleanQuery": "alimentos jurisprudencia", "legalConcepts": ["obligación alimentaria", "cuota alimentaria", "art 658 CCCN"], "relatedTerms": ["prestación alimentaria", "deber alimentario"], "suggestedQueries": ["cuota alimentaria fallo", "alimentos hijo menor jurisprudencia", "obligación alimentaria cámara"] }
+
+- "despido embarazada" → { "intent": "fallos", "cleanQuery": "despido discriminatorio embarazo", "legalConcepts": ["estabilidad laboral", "despido discriminatorio", "art 178 LCT"], "relatedTerms": ["maternidad", "protección especial"], "suggestedQueries": ["despido embarazo indemnización agravada", "estabilidad maternidad fallo", "discriminación embarazada sentencia laboral"] }
+
+REGLAS:
+- NO incluyas operadores de búsqueda (site:, filetype:, intitle:) en suggestedQueries
+- Mantené queries cortas (3-5 palabras máximo)
+- Extraé artículos de ley relacionados si los conocés
+- Incluí sinónimos legales que un abogado usaría`
+            }, {
+                role: "user",
+                content: query
+            }],
+            response_format: { type: "json_object" }
+        });
+
+        let analysis;
+        try {
+            analysis = JSON.parse(queryAnalysis.choices[0].message.content);
+            console.log(`✅ Query Analysis:`, analysis);
+        } catch (e) {
+            console.warn("⚠️ Query analysis failed, using fallback");
+            analysis = {
+                intent: "mixto",
+                cleanQuery: query,
+                legalConcepts: [],
+                relatedTerms: [],
+                suggestedQueries: [query]
+            };
+        }
+
+        // --- STAGE 1: SMART DORK GENERATION ---
         const jurisdictionSites = jurisdiction?.toLowerCase().includes('buenos aires')
-            ? 'site:scba.gov.ar OR site:juba.scba.gov.ar'
+            ? ['scba.gov.ar', 'juba.scba.gov.ar']
             : jurisdiction?.toLowerCase().includes('córdoba') || jurisdiction?.toLowerCase().includes('cordoba')
-                ? 'site:justiciacordoba.gob.ar OR site:tsjcordoba.gob.ar'
+                ? ['justiciacordoba.gob.ar', 'tsjcordoba.gob.ar']
                 : jurisdiction?.toLowerCase().includes('federal') || jurisdiction?.toLowerCase().includes('nacional')
-                    ? 'site:csjn.gov.ar OR site:pjn.gov.ar OR site:saij.gob.ar'
-                    : 'site:pjn.gov.ar OR site:saij.gob.ar'; // Default Nacional
+                    ? ['csjn.gov.ar', 'pjn.gov.ar', 'saij.gob.ar']
+                    : ['pjn.gov.ar', 'saij.gob.ar', 'csjn.gov.ar'];
 
         const dorkCompletion = await openai.chat.completions.create({
             model: "openai/gpt-4o-mini",
             messages: [{
                 role: "system",
-                content: `Generá un objeto JSON { "queries": [string] } con 10 búsquedas jurídicas para: "${query}".
-                JURISDICCIÓN: ${jurisdiction || 'Nacional'}.
-                
-                🎯 REGLAS PARA BRAVE SEARCH API:
-                
-                1. OPERADORES SOPORTADOS (USÁ ESTOS):
-                   - site: (ejemplo: site:scba.gov.ar)
-                   - Comillas para frase exacta: "cuota alimentaria"
-                   - filetype:pdf (para sentencias en PDF)
-                   - intitle: (ejemplo: intitle:sentencia)
-                   - Exclusión simple: -formulario
-                
-                2. REGLAS CRÍTICAS:
-                   - NUNCA uses "..." o puntos suspensivos
-                   - NO abuses de comillas (máx 1 frase exacta por query)
-                   - Mantené queries cortas y limpias
-                
-                3. ESTRUCTURA DE QUERIES:
-                   - 2 queries con site:scba.gov.ar
-                   - 2 queries con site:pjn.gov.ar
-                   - 2 queries con site:saij.gob.ar  
-                   - 2 queries con intitle:sentencia o intitle:fallo
-                   - 2 queries generales (sin operadores complejos)
-                
-                4. PLANTILLAS OPTIMIZADAS:
-                   - "visto y considerando" [tema] site:pjn.gov.ar
-                   - [tema] fallo cámara filetype:pdf
-                   - intitle:sentencia [tema] site:scba.gov.ar
-                   - "autos y vistos" [tema]
-                
-                DEVOLVÉ SOLO EL JSON, SIN "..." NI TEXTO EXTRA.`
+                content: `Generá un objeto JSON { "queries": [string] } con 12 búsquedas jurídicas optimizadas.
+
+CONTEXTO DE LA CONSULTA:
+- Query original: "${query}"
+- Query limpia: "${analysis.cleanQuery}"
+- Intención: ${analysis.intent}
+- Conceptos legales: ${analysis.legalConcepts.join(', ') || 'ninguno detectado'}
+- Términos relacionados: ${analysis.relatedTerms.join(', ') || 'ninguno'}
+- Jurisdicción: ${jurisdiction || 'Nacional'}
+- Dominios prioritarios: ${jurisdictionSites.join(', ')}
+
+🎯 ESTRATEGIA DE BÚSQUEDA:
+
+${analysis.intent === 'fallos' ? `
+MODO JURISPRUDENCIA:
+- 4 queries con site: de los dominios prioritarios + términos de la consulta
+- 3 queries con "fallo" o "sentencia" + conceptos legales
+- 3 queries con formato "c/ s/" (autos)
+- 2 queries simples con términos relacionados
+` : analysis.intent === 'legislacion' ? `
+MODO LEGISLACIÓN:
+- 3 queries con número de artículo + código
+- 3 queries con site:infoleg.gob.ar o site:saij.gob.ar
+- 3 queries con "ley" + número o tema
+- 3 queries con doctrina + interpretación
+` : `
+MODO MIXTO:
+- 3 queries con site: de dominios prioritarios
+- 3 queries con "fallo" o "sentencia"
+- 3 queries simples con conceptos legales
+- 3 queries con términos relacionados
+`}
+
+🔒 REGLAS TÉCNICAS BRAVE API:
+- site:dominio.gov.ar (SIN "OR", uno por query)
+- Comillas solo para frases exactas de 2-3 palabras
+- NUNCA uses "..." ni puntos suspensivos
+- filetype:pdf solo si buscás PDFs específicamente
+- Máximo 6 palabras por query
+
+DEVOLVÉ SOLO EL JSON válido.`
             }],
             response_format: { type: "json_object" }
         });
 
         const { queries: rawQueries } = JSON.parse(dorkCompletion.choices[0].message.content);
-        const queries = [query, ...rawQueries].slice(0, 14);
+
+        // Generate targeted queries for official sources (SAIJ, CSJN, PJN, etc.)
+        const officialSourceQueries = generateAllSourceQueries(
+            analysis.cleanQuery || query,
+            analysis.legalConcepts || []
+        );
+        console.log(`📍 Official source queries:`, officialSourceQueries.slice(0, 3), '...');
+
+        // Combine: Original query + Analysis suggestions + Generated dorks + Official Sources
+        const allQueries = [
+            query,                                          // Original
+            analysis.cleanQuery,                            // Cleaned version
+            ...analysis.suggestedQueries,                   // AI-suggested variations
+            ...rawQueries,                                  // Generated dorks with operators
+            ...officialSourceQueries                        // NEW: Targeted official source queries
+        ];
+
+        // Dedupe and limit (increased to 20 to accommodate official sources)
+        const queries = [...new Set(allQueries)].filter(q => q && q.length > 2).slice(0, 20);
+        console.log(`🔍 Final query pool (${queries.length}):`, queries.slice(0, 5), '...');
+
         const searchResults = [];
 
         // --- STAGE 1.5: CACHE CHECK ---
@@ -262,8 +352,42 @@ export async function POST(request) {
                 if (text.includes('jurisprudencia') || text.includes('doctrina')) score += 10;
                 if (text.includes('resolución') || text.includes('resolucion')) score += 10;
 
+                // ══════════════════════════════════════════════════
+                // 🏆 TIER 2.3: ACTUAL CASE CONTENT MARKERS (+20 to +50) (NEW)
+                // ══════════════════════════════════════════════════
+                // Strong indicators this is an actual ruling, not an index
+                if (/fallos?\s*[:.]?\s*\d{3}:\d+/i.test(text)) score += 45; // "Fallos: 340:1234" citation format
+                if (/expediente\s*(n[°º]?|nro\.?|número)?\s*\d+/i.test(text)) score += 35; // "Expediente Nro 12345"
+                if (text.includes('por ello') || text.includes('se resuelve:')) score += 30; // Dispositive section
+                if (text.includes('el tribunal resuelve') || text.includes('se declara')) score += 25;
+                if (/\d{1,2}\/\d{1,2}\/\d{2,4}/.test(text)) score += 15; // Has a date (dd/mm/yyyy)
+
+                // URL patterns that indicate specific case (not index)
+                if (url.includes('/fallo/') || url.includes('/documento/') || url.includes('/sentencia/')) score += 30;
+                if (url.includes('id_protocolo=') || url.includes('biblionumber=') || url.includes('?id=')) score += 20;
+                if (/\d{4,}\.pdf$/i.test(url)) score += 25; // PDF with case number in filename
+
                 // PDF bonus (when from official source)
                 if (url.endsWith('.pdf') && score >= 40) score += 15;
+
+                // ══════════════════════════════════════════════════
+                // 🎯 TIER 2.5: QUERY CONCEPT MATCH BONUS (+10 to +30)
+                // ══════════════════════════════════════════════════
+                // Boost results that contain the legal concepts we detected
+                if (analysis.legalConcepts?.length > 0) {
+                    const conceptMatches = analysis.legalConcepts.filter(concept =>
+                        text.includes(concept.toLowerCase())
+                    ).length;
+                    score += conceptMatches * 15; // +15 per matched concept
+                }
+
+                // Boost for related terms match
+                if (analysis.relatedTerms?.length > 0) {
+                    const termMatches = analysis.relatedTerms.filter(term =>
+                        text.includes(term.toLowerCase())
+                    ).length;
+                    score += termMatches * 8; // +8 per matched related term
+                }
 
                 // ══════════════════════════════════════════════════
                 // 🚫 TIER 3: PENALTIES (-30 to -100)
@@ -278,6 +402,30 @@ export async function POST(request) {
                     score -= 100;
                 }
 
+                // ══════════════════════════════════════════════════
+                // 🚫 TIER 3.5: CATALOG/INDEX PENALTIES (NEW)
+                // ══════════════════════════════════════════════════
+                // Library catalog systems (NOT actual fallos, just metadata)
+                if (url.includes('/koha/') || url.includes('opac-') || url.includes('biblioteca.') || url.includes('/cgi-bin/')) {
+                    score -= 60; // Library catalog, not the actual ruling
+                }
+
+                // Index/Collection pages (list of tomos, not specific cases)
+                const textLower = text.toLowerCase();
+                if (textLower.includes('tomos de fallos') || textLower.includes('tomo de fallos') ||
+                    textLower.includes('colección de fallos') || textLower.includes('coleccion fallos') ||
+                    textLower.includes('índice de') || textLower.includes('indice de') ||
+                    textLower.includes('acceso a fallos completos') || textLower.includes('acceso a los tomos') ||
+                    textLower.includes('fallos completos -') || // "Tomos de Fallos completos - CSJN"
+                    (textLower.includes('secretaría') && textLower.includes('jurisprudencia') && !textLower.includes('c/'))) {
+                    score -= 70; // Index page, not actual case content
+                }
+
+                // Generic landing pages
+                if (url.includes('/jurisprudencia') && !url.includes('?') && !url.includes('id=')) {
+                    score -= 40; // Probably a landing page, not a specific case
+                }
+
                 // Non-legal content indicators (when NOT from official source)
                 const isOfficial = ALL_JUDICIAL_DOMAINS.some(d => url.includes(d));
                 if (!isOfficial) {
@@ -289,6 +437,36 @@ export async function POST(request) {
                 // Blog/article indicators (less reliable than official)
                 if (url.includes('blog') || url.includes('articulo') || url.includes('noticias')) {
                     if (!isOfficial) score -= 20;
+                }
+
+                // ══════════════════════════════════════════════════
+                // 🚫 TIER 4: TERM CONFUSION PENALTIES (Critical)
+                // ══════════════════════════════════════════════════
+                // Penalize results with similar-sounding but DIFFERENT legal terms
+                const queryLower = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+                // Medianería vs Mediación confusion (VERY common)
+                if (queryLower.includes('medianeria') || queryLower.includes('muro medianero') || queryLower.includes('pared medianera')) {
+                    if (textLower.includes('mediacion') && !textLower.includes('medianeria') && !textLower.includes('muro') && !textLower.includes('pared')) {
+                        score -= 80; // Wrong topic entirely
+                    }
+                    if (textLower.includes('ley 26.589') || textLower.includes('ley de mediacion')) {
+                        score -= 90; // Definitely about mediation law, not party walls
+                    }
+                }
+
+                // Alimentos (child support) vs Alimentación (food/nutrition) confusion
+                if (queryLower.includes('alimento') && queryLower.includes('cuota')) {
+                    if (textLower.includes('alimenticio') && !textLower.includes('cuota') && !textLower.includes('obligacion')) {
+                        score -= 60;
+                    }
+                }
+
+                // Generic irrelevant results (decomiso, secuestro when searching civil matters)
+                if (!queryLower.includes('penal') && !queryLower.includes('decomiso') && !queryLower.includes('secuestro')) {
+                    if (textLower.includes('decomisados') || textLower.includes('bienes secuestrados') || textLower.includes('causas penales')) {
+                        score -= 50;
+                    }
                 }
 
                 return score;
@@ -361,30 +539,147 @@ export async function POST(request) {
 
             // Score, filter, dedupe, and sort
             const seenUrls = new Set(searchResults.map(r => r.link));
-            braveResults
-                .map(r => {
-                    r.score = calculateLegalScore(r);
-                    return r;
-                })
-                .filter(r => r.score >= 25) // Higher threshold for quality
+            const scoredResults = braveResults.map(r => {
+                r.score = calculateLegalScore(r);
+
+                // Apply source validation bonus/penalty
+                const source = identifySource(r.link);
+                if (source) {
+                    // Check if it's a valid case URL (not a landing page)
+                    const isValid = isValidCaseUrl(r.link);
+                    if (!isValid) {
+                        r.score -= 40; // Penalize landing pages from official sources
+                        r._isLandingPage = true;
+                    } else {
+                        r._isValidCase = true;
+                    }
+                }
+
+                return r;
+            });
+
+            // Log score distribution for debugging
+            const scoreDistribution = {
+                'gold (>80)': scoredResults.filter(r => r.score >= 80).length,
+                'good (50-79)': scoredResults.filter(r => r.score >= 50 && r.score < 80).length,
+                'acceptable (35-49)': scoredResults.filter(r => r.score >= 35 && r.score < 50).length,
+                'rejected (<35)': scoredResults.filter(r => r.score < 35).length,
+                'landing_pages': scoredResults.filter(r => r._isLandingPage).length,
+                'valid_cases': scoredResults.filter(r => r._isValidCase).length
+            };
+            console.log('📊 Score distribution:', scoreDistribution);
+
+            scoredResults
+                .filter(r => r.score >= 35 && !r._isLandingPage) // Filter out landing pages
                 .sort((a, b) => b.score - a.score)
                 .forEach(r => {
-                    if (r && !seenUrls.has(r.link) && seenUrls.size < 35) {
+                    if (r && !seenUrls.has(r.link) && seenUrls.size < 25) { // Reduced max from 35 to 25 (quality over quantity)
                         seenUrls.add(r.link);
                         searchResults.push(r);
                     }
                 });
 
-            console.log(`🔍 Brave Search: ${braveResults.length} raw → ${searchResults.filter(r => !r.fromCache).length} filtered (${searchResults.filter(r => r.fromCache).length} from cache)`);
+            console.log(`🔍 Brave Search Round 1: ${braveResults.length} raw → ${searchResults.filter(r => !r.fromCache).length} filtered (${searchResults.filter(r => r.fromCache).length} from cache)`);
+
+            // ══════════════════════════════════════════════════
+            // 🔁 DEEP DIVE MODE: Second round if few gold results
+            // ══════════════════════════════════════════════════
+            const goldResults = searchResults.filter(r => r.score >= 80);
+            if (goldResults.length < 5 && searchResults.length > 0) {
+                console.log(`🔁 Deep Dive Mode: Only ${goldResults.length} gold results, starting round 2...`);
+
+                // Extract patterns from best results to generate more specific queries
+                const topResults = searchResults.slice(0, 5);
+                const extractedTerms = topResults
+                    .map(r => {
+                        const text = (r.title + ' ' + (r.snippet || '')).toLowerCase();
+                        // Extract case patterns like "c/ ... s/"
+                        const caseMatch = text.match(/(\w+)\s*c\/\s*(\w+)\s*s\//);
+                        if (caseMatch) return `"${caseMatch[0]}"`;
+                        // Extract legal terms
+                        const terms = text.match(/(art(?:ículo)?\.?\s*\d+|ley\s*\d+|fallos?\s*\d+:\d+)/gi);
+                        return terms ? terms[0] : null;
+                    })
+                    .filter(Boolean)
+                    .slice(0, 3);
+
+                if (extractedTerms.length > 0) {
+                    // Generate refined queries
+                    const refineQueries = [
+                        ...extractedTerms.map(t => `${t} site:pjn.gov.ar`),
+                        ...extractedTerms.map(t => `${t} fallo cámara`),
+                        `${analysis.cleanQuery} "visto y considerando"`,
+                        `${analysis.cleanQuery} "se resuelve"`
+                    ].slice(0, 6);
+
+                    console.log(`🔍 Deep Dive queries:`, refineQueries);
+
+                    // Execute round 2
+                    const round2Results = await Promise.all(refineQueries.map(async (q) => {
+                        try {
+                            const sanitizedQuery = sanitizeQueryForBrave(q);
+                            const params = new URLSearchParams({
+                                q: sanitizedQuery,
+                                count: '10',
+                                country: "ar",
+                                search_lang: "es",
+                                extra_snippets: "true"
+                            });
+                            const braveUrl = `https://api.search.brave.com/res/v1/web/search?${params.toString()}`;
+                            const res = await fetch(braveUrl, {
+                                headers: {
+                                    "Accept": "application/json",
+                                    "X-Subscription-Token": braveApiKey
+                                }
+                            });
+                            if (!res.ok) return [];
+                            const data = await res.json();
+                            return (data.web?.results || []).map(r => ({
+                                title: r.title,
+                                link: r.url,
+                                snippet: r.description || r.extra_snippets?.join(' ') || '',
+                                source: new URL(r.url).hostname.replace(/^www\./, ""),
+                                score: 0
+                            }));
+                        } catch (e) {
+                            return [];
+                        }
+                    })).then(res => res.flat());
+
+                    // Score and add round 2 results
+                    let addedRound2 = 0;
+                    round2Results
+                        .map(r => { r.score = calculateLegalScore(r); return r; })
+                        .filter(r => r.score >= 50) // Higher threshold for round 2
+                        .sort((a, b) => b.score - a.score)
+                        .forEach(r => {
+                            if (r && !seenUrls.has(r.link) && addedRound2 < 10) {
+                                seenUrls.add(r.link);
+                                searchResults.push(r);
+                                addedRound2++;
+                            }
+                        });
+
+                    console.log(`🔁 Deep Dive Round 2: Added ${addedRound2} more results`);
+                }
+            }
         }
 
         // --- STAGE 3: STRATEGIC SYNTHESIS (Enhanced Prompt) ---
         const isDemo = mode === 'demo';
         const hasRealResults = searchResults.length > 0;
 
+        // Build enriched context with query analysis
+        const analysisContext = `
+ANÁLISIS DE LA CONSULTA:
+- Intención detectada: ${analysis.intent}
+- Conceptos legales clave: ${analysis.legalConcepts?.join(', ') || 'No detectados'}
+- Términos relacionados: ${analysis.relatedTerms?.join(', ') || 'No detectados'}
+`;
+
         const contextText = hasRealResults
-            ? `FALLOS Y FUENTES VERIFICADAS (${searchResults.length} resultados):\n${searchResults.slice(0, 20).map(r => `- [SCORE: ${r.score}] [${r.source.toUpperCase()}] ${r.title}\n  URL: ${r.link}\n  Snippet: ${r.snippet}`).join('\n\n')}`
-            : `⚠️ ALERTA: LA BÚSQUEDA NO DEVOLVIÓ RESULTADOS VERIFICABLES.\n\nINSTRUCCIONES CRÍTICAS:\n- NO INVENTES URLs bajo ningún concepto.\n- Para 'cases': dejá el array VACÍO [] o usá source: "Doctrina General" SIN url.\n- Compensá con análisis normativo y estratégico más profundo.\n- Podés mencionar leading cases conocidos (ej: "Aquino", "Vizzoti") pero SIN inventar URLs.`;
+            ? `${analysisContext}\nFALLOS Y FUENTES VERIFICADAS (${searchResults.length} resultados):\n${searchResults.slice(0, 20).map(r => `- [SCORE: ${r.score}] [${r.source.toUpperCase()}] ${r.title}\n  URL: ${r.link}\n  Snippet: ${r.snippet}`).join('\n\n')}`
+            : `${analysisContext}\n⚠️ ALERTA: LA BÚSQUEDA NO DEVOLVIÓ RESULTADOS VERIFICABLES.\n\nINSTRUCCIONES CRÍTICAS:\n- NO INVENTES URLs bajo ningún concepto.\n- Para 'cases': dejá el array VACÍO [] o usá source: "Doctrina General" SIN url.\n- Compensá con análisis normativo y estratégico más profundo.\n- Podés mencionar leading cases conocidos (ej: "Aquino", "Vizzoti") pero SIN inventar URLs.`;
 
         const finalCompletion = await openai.chat.completions.create({
             model: "openai/gpt-4o-mini",
@@ -399,26 +694,31 @@ export async function POST(request) {
 📜 REGLAS DE ORO PARA 'cases' (JURISPRUDENCIA):
 ═══════════════════════════════════════════════════════════════════════════════
 
-1. RATIO DECIDENDI (Lo más importante):
-   - El 'summary' debe explicar la DOCTRINA CENTRAL del fallo, NO los hechos.
-   - Formato: "El tribunal estableció que [doctrina]. Esto significa para el caso que [aplicación práctica]."
-   - EXTENSIÓN OBLIGATORIA: Entre 60 y 100 palabras. Menos es insuficiente.
-   - Si el snippet contiene una cita textual del fallo, INCLUILÁ entre comillas.
+⛔⛔⛔ PROHIBICIÓN ABSOLUTA ⛔⛔⛔
+- NO INVENTES nombres de partes (Pérez, García, etc.)
+- NO INVENTES tribunales o fechas
+- NO INVENTES URLs bajo NINGÚN concepto
+- SOLO usá información TEXTUAL del contexto proporcionado
 
-2. CITA PERFECTA:
-   - 'title' debe seguir formato: "Autos: 'Apellido, N. c/ Apellido, M. s/ Materia' (Tribunal, Fecha si disponible)"
-   - Ejemplo: "Autos: 'García, J. c/ Pérez, M. s/ Alimentos' (Cám. Civ. Sala II, 2023)"
+1. REGLA DE ORO - SOLO CONTEXTO:
+   - Cada case DEBE tener un 'url' EXACTO del contexto proporcionado
+   - Si el contexto dice: "URL: https://fallos.gov.ar/123" → usá ESA url exacta
+   - Si NO hay URL en el contexto para un tema → NO incluyas ese case
+   - Preferí 2 cases REALES a 10 inventados
 
-3. TRAZABILIDAD (CRÍTICO):
-   - 'url' DEBE ser una URL EXACTA del contexto proporcionado.
-   - ⛔ ESTÁ PROHIBIDO inventar, modificar o "predecir" URLs.
-   - ⛔ NO agregues ".pdf" si el contexto no lo tiene.
-   - ✅ Si el link es HTML (no PDF), usalo igual. Un link real HTML > un PDF inventado.
-   - Si no hay URL en el contexto para un fallo, MARCÁ source como "Doctrina General" y NO inventes URL.
+2. FORMATO DE TITLE:
+   - USA EL TÍTULO EXACTO del contexto, ej: "[SCORE: 95] [SAIJ.GOB.AR] Muro medianero..."
+   - Transformalo a formato legal: "Autos: [nombre exacto del snippet]"
+   - Si no hay nombre de partes en el snippet, usá el título tal cual
 
-4. PRIORIZACIÓN:
-   - Priorizá resultados con SCORE alto en el contexto (son fuentes oficiales verificadas).
-   - Resultados de scba.gov.ar, pjn.gov.ar, saij.gob.ar, csjn.gov.ar son ORO.
+3. SUMMARY (Ratio Decidendi):
+   - Extraé la doctrina del SNIPPET proporcionado
+   - Entre 60-100 palabras
+   - Incluí citas textuales si el snippet las tiene
+
+4. VERIFICACIÓN:
+   - Antes de agregar un case, verificá que su URL exista en el contexto
+   - Si no podés verificar la URL → no lo incluyas
 
 ═══════════════════════════════════════════════════════════════════════════════
 ⚖️ REGLAS PARA OTRAS SECCIONES:
@@ -450,7 +750,7 @@ export async function POST(request) {
 📤 OUTPUT FORMAT:
 ═══════════════════════════════════════════════════════════════════════════════
 
-- SI HAY RESULTADOS EN EL CONTEXTO: Devolvé entre 5 y 10 casos.
+- SI HAY RESULTADOS EN EL CONTEXTO: Devolvé entre 3 y 8 casos CON URLs verificables.
 - SI NO HAY RESULTADOS: Devolvé "cases": [] (array vacío) y compensá con análisis normativo más profundo.
 - ESTILO: Formal, imperativo, jurídico-técnico. SIN Markdown (**, ##, etc.).
 - SOLO JSON válido, sin texto antes ni después.
@@ -460,10 +760,10 @@ export async function POST(request) {
   "laws": "Análisis normativo exhaustivo con interpretación jurisprudencial...",
   "cases": [
     { 
-      "title": "Autos: 'Apellido c/ Apellido s/ Materia' (Tribunal, Año)", 
+      "title": "Autos: [Título EXACTO del contexto]", 
       "summary": "Ratio decidendi extendida de 60-100 palabras...", 
-      "url": "SOLO si existe en el contexto, sino omitir este campo", 
-      "source": "PJN / SCBA / SAIJ / CSJN / Doctrina General" 
+      "url": "URL EXACTA del contexto - OBLIGATORIO", 
+      "source": "PJN / SCBA / SAIJ / CSJN" 
     }
   ],
   "strategy": "Estrategia integral tripartita...",
@@ -472,7 +772,7 @@ export async function POST(request) {
   "links": []
 }`
                 },
-                { role: "user", content: `CONSULTA LEGAL: "${query}"\nJURISDICCIÓN: ${jurisdiction || 'Nacional'}\n\n${contextText}` }
+                { role: "user", content: `CONSULTA LEGAL: "${query}"\nJURISDICCIÓN: ${jurisdiction || 'Nacional'} \n\n${contextText} ` }
             ],
             response_format: { type: "json_object" },
             max_tokens: 10000

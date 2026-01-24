@@ -117,12 +117,20 @@ function RegisterContent() {
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session) {
+                // Safeguard: Check if this is a lawyer landing here by mistake
+                const userRole = session.user?.user_metadata?.role;
+                if (userRole === 'lawyer') {
+                    console.log('🔄 Abogado detectado en página de cliente. Redirigiendo al dashboard...');
+                    router.push('/dashboard');
+                    return;
+                }
+
                 setIsConfirmed(true);
                 setConfirmedSession(session);
             }
         });
         return () => subscription.unsubscribe();
-    }, []);
+    }, [router]);
 
     // Countdown Logic
     useEffect(() => {
