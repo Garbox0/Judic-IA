@@ -333,7 +333,12 @@ export default function AuthFormContent() {
                 const redirectParams = new URLSearchParams();
                 if (lawyerId) redirectParams.set('lawyerId', lawyerId);
                 if (cid) redirectParams.set('cid', cid);
-                const fullRedirectUrl = `${window.location.origin}/auth/callback?${redirectParams.toString()}`;
+
+                // 🔒 FORCE SUBDOMAIN REDIRECT
+                // Ensure the email link always brings them back to the CLIENT subdomain, not the main domain.
+                const isDev = window.location.hostname.includes('localhost');
+                const baseUrl = isDev ? window.location.origin : 'https://consultas.judic-ia.com';
+                const fullRedirectUrl = `${baseUrl}/auth/callback?${redirectParams.toString()}`;
 
                 const { data, error: signUpError } = await supabase.auth.signUp({
                     email,
