@@ -300,12 +300,11 @@ export default function AuthFormContent() {
                 if (password !== confirmPassword) throw new Error("Las contraseñas no coinciden.");
                 if (password.length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres.");
 
-                const redirectBase = `${window.location.origin}/consultas/auth`;
+                // Use unified callback that detects role and redirects
                 const redirectParams = new URLSearchParams();
                 if (lawyerId) redirectParams.set('lawyerId', lawyerId);
                 if (cid) redirectParams.set('cid', cid);
-                redirectParams.set('view', 'login'); // Force login view on return
-                const fullRedirectUrl = `${redirectBase}?${redirectParams.toString()}`;
+                const fullRedirectUrl = `${window.location.origin}/auth/callback?${redirectParams.toString()}`;
 
                 const { data, error: signUpError } = await supabase.auth.signUp({
                     email,

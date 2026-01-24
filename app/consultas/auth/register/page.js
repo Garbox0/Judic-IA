@@ -182,11 +182,11 @@ function RegisterContent() {
             if (!passwordsMatch) throw new Error("Las contraseñas no coinciden.");
             if (email.toLowerCase() !== confirmEmail.toLowerCase()) throw new Error("Los correos electrónicos no coinciden.");
 
-            const redirectBase = `${window.location.origin}/consultas/auth/login`;
+            // Use unified callback page that detects role and redirects appropriately
             const redirectParams = new URLSearchParams();
             if (lawyerId) redirectParams.set('lawyerId', lawyerId);
             if (cid) redirectParams.set('cid', cid);
-            const fullRedirectUrl = `${redirectBase}?${redirectParams.toString()}`;
+            const fullRedirectUrl = `${window.location.origin}/auth/callback?${redirectParams.toString()}`;
 
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email,
