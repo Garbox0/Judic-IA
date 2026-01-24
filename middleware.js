@@ -59,7 +59,13 @@ export async function middleware(request) {
     }
 
     // B. Client subdomain: Rewrite /* to /consultas/* internally
-    if (isClientSubdomain && !pathname.startsWith('/consultas') && !pathname.startsWith('/api') && !pathname.startsWith('/_next')) {
+    // EXCEPTION: /auth/callback must NOT be rewritten, as it resides in app/auth/callback, not app/consultas/auth/callback
+    if (isClientSubdomain &&
+        !pathname.startsWith('/consultas') &&
+        !pathname.startsWith('/api') &&
+        !pathname.startsWith('/_next') &&
+        !pathname.startsWith('/auth/callback')
+    ) {
         const rewriteUrl = request.nextUrl.clone()
         rewriteUrl.pathname = `/consultas${pathname}`
         console.log(`📝 Rewriting ${pathname} to ${rewriteUrl.pathname}`)
