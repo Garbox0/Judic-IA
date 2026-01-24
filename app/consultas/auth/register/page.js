@@ -190,6 +190,20 @@ function RegisterContent() {
             if (!passwordsMatch) throw new Error("Las contraseñas no coinciden.");
             if (email.toLowerCase() !== confirmEmail.toLowerCase()) throw new Error("Los correos electrónicos no coinciden.");
 
+            // 🔐 NEW: Check if CID is already claimed by a DIFFERENT email
+            if (cid) {
+                const { data: inquiry } = await supabase
+                    .from('inquiries')
+                    .select('claimed_by_email')
+                    .eq('id', cid)
+                    .maybeSingle();
+
+                if (inquiry?.claimed_by_email && inquiry.claimed_by_email !== email.toLowerCase()) {
+                    console.warn("🚫 CID already claimed by:", inquiry.claimed_by_email);
+                    throw new Error("Este enlace ya fue utilizado por otro usuario. Contacte a su abogado para obtener un nuevo enlace.");
+                }
+            }
+
             // Use unified callback page that detects role and redirects appropriately
             const redirectParams = new URLSearchParams();
             if (lawyerId) redirectParams.set('lawyerId', lawyerId);
@@ -218,6 +232,19 @@ function RegisterContent() {
                     throw new Error("⚠️ El sistema de correos está saturado. Por favor, avisa a tu abogado o intenta iniciar sesión directo si ya te registraste.");
                 }
                 throw signUpError;
+            }
+
+            // 🔐 NEW: Claim the CID immediately after successful signup
+            if (cid) {
+                await supabase
+                    .from('inquiries')
+                    .update({
+                        claimed_by_email: email.toLowerCase(),
+                        claimed_at: new Date().toISOString()
+                    })
+                    .eq('id', cid)
+                    .is('claimed_by_email', null); // Only claim if not already claimed
+                console.log("✅ CID claimed by:", email);
             }
 
             // SUCCESS FLOW

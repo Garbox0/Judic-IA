@@ -17,6 +17,7 @@ export default function AuthFormContent() {
     const [message, setMessage] = useState(null);
     const [validating, setValidating] = useState(true); // Binary Gatekeeper state
     const [restricted, setRestricted] = useState(false); // Restricted access state
+    const [cidClaimedByOther, setCidClaimedByOther] = useState(false); // CID already claimed by different email
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [confirmedSession, setConfirmedSession] = useState(null);
 
@@ -66,7 +67,7 @@ export default function AuthFormContent() {
             if (finalCid) {
                 const { data: inquiry, error: inqErr } = await supabase
                     .from('inquiries')
-                    .select('id, client_auth_id')
+                    .select('id, client_auth_id, claimed_by_email')
                     .eq('id', finalCid)
                     .maybeSingle();
 
@@ -77,6 +78,11 @@ export default function AuthFormContent() {
                     setValidating(false);
                     return;
                 }
+
+                // 🔐 NEW: Check if CID is already claimed by another email
+                // We'll do a full check during registration, but this provides early feedback
+                // The claimed_by_email is set when someone successfully registers
+                // Note: We don't block here because the user might be the same person logging in
 
                 // If inquiry is linked to a user, that user PROFILE must exist (Anti-Zombie)
                 if (inquiry.client_auth_id) {
@@ -308,6 +314,21 @@ export default function AuthFormContent() {
                 if (password !== confirmPassword) throw new Error("Las contraseñas no coinciden.");
                 if (password.length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres.");
 
+                // 🔐 NEW: Check if CID is already claimed by a DIFFERENT email
+                if (cid) {
+                    const { data: inquiry } = await supabase
+                        .from('inquiries')
+                        .select('claimed_by_email')
+                        .eq('id', cid)
+                        .maybeSingle();
+
+                    if (inquiry?.claimed_by_email && inquiry.claimed_by_email !== email.toLowerCase()) {
+                        console.warn("🚫 CID already claimed by:", inquiry.claimed_by_email);
+                        setCidClaimedByOther(true);
+                        throw new Error("Este enlace ya fue utilizado por otro usuario. Contacte a su abogado para obtener un nuevo enlace.");
+                    }
+                }
+
                 // Use unified callback that detects role and redirects
                 const redirectParams = new URLSearchParams();
                 if (lawyerId) redirectParams.set('lawyerId', lawyerId);
@@ -325,6 +346,19 @@ export default function AuthFormContent() {
                     }
                 });
                 if (signUpError) throw signUpError;
+
+                // 🔐 NEW: Claim the CID immediately after successful signup
+                if (cid) {
+                    await supabase
+                        .from('inquiries')
+                        .update({
+                            claimed_by_email: email.toLowerCase(),
+                            claimed_at: new Date().toISOString()
+                        })
+                        .eq('id', cid)
+                        .is('claimed_by_email', null); // Only claim if not already claimed
+                    console.log("✅ CID claimed by:", email);
+                }
 
                 if (data.session) {
                     // Even if session exists, enforce confirmation

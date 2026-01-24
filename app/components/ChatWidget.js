@@ -57,8 +57,9 @@ export default function ChatWidget({
                 }
             } else {
                 // Public Intake: Check for Unique Client ID (cid)
+                // SKIP for client_help mode - it should have its own session, not use the inquiry CID
                 const cid = searchParams.get('cid');
-                if (cid) {
+                if (cid && mode !== 'client_help') {
                     activeSessionId = cid;
                 } else if (mode === 'demo') {
                     // Demo Mode: Always Fresh Session (No Persistence)
