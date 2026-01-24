@@ -541,12 +541,23 @@ export default function AuthFormContent() {
                         </form>
 
                         <div className="auth-footer">
-                            <p>
-                                {isLogin ? '¿No tienes clave aún?' : '¿Ya tienes una clave?'}
-                                <button type="button" onClick={() => setIsLogin(!isLogin)} className="link-btn">
-                                    {isLogin ? 'Crear clave nueva' : 'Ingresar'}
-                                </button>
-                            </p>
+                            {!isLogin ? (
+                                <p>
+                                    ¿Ya tienes una clave?
+                                    <button type="button" onClick={() => setIsLogin(true)} className="link-btn">
+                                        Ingresar
+                                    </button>
+                                </p>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    <p style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                                        ¿Olvidaste tu clave?
+                                    </p>
+                                    <p style={{ fontSize: '0.75rem', color: '#475569', fontStyle: 'italic' }}>
+                                        Aún no tienes una clave? <span style={{ color: '#fbbf24' }}>Solicita el enlace a tu abogado.</span>
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </>
                 )}
