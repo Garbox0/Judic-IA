@@ -50,16 +50,29 @@ export async function POST(request) {
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         // Verify Ownership of the inquiry
+        // Verify Ownership of the inquiry & Get client_auth_id
+        let targetClientAuthId = clientAuthId;
+
         if (inquiryId) {
             const { data: inq } = await adminClient
                 .from('inquiries')
-                .select('assigned_lawyer_id')
+                .select('assigned_lawyer_id, client_auth_id')
                 .eq('id', inquiryId)
                 .maybeSingle();
 
-            if (!inq || inq.assigned_lawyer_id !== user.id) {
+            if (!inq) {
+                return NextResponse.json({ error: "Expediente no encontrado." }, { status: 404 });
+            }
+
+            if (inq.assigned_lawyer_id !== user.id) {
                 console.warn(`🚫 UNAUTHORIZED DELETE ATTEMPT: User ${user.id} tried to delete inquiry ${inquiryId}`);
                 return NextResponse.json({ error: "Forbidden: No eres el dueño de este expediente." }, { status: 403 });
+            }
+
+            // AUTO-RESOLVE: If we have an inquiry but no clientAuthId was passed, use the one from the DB
+            if (!targetClientAuthId && inq.client_auth_id) {
+                targetClientAuthId = inq.client_auth_id;
+                console.log(`🔗 Linked inquiry ${inquiryId} to client user ${targetClientAuthId} for cascading delete.`);
             }
         }
 
@@ -90,14 +103,14 @@ export async function POST(request) {
         }
 
         // 4. DELETE USER DATA & AUTH
-        if (clientAuthId) {
+        if (targetClientAuthId) {
             // Clean orphan inquiries
-            await adminClient.from('inquiries').delete().eq('client_auth_id', clientAuthId);
+            await adminClient.from('inquiries').delete().eq('client_auth_id', targetClientAuthId);
             // Delete Profile
-            await adminClient.from('profiles').delete().eq('id', clientAuthId);
+            await adminClient.from('profiles').delete().eq('id', targetClientAuthId);
 
             // Delete Auth User
-            const { error: authErr } = await adminClient.auth.admin.deleteUser(clientAuthId);
+            const { error: authErr } = await adminClient.auth.admin.deleteUser(targetClientAuthId);
             if (authErr && !authErr.message.includes("User not found")) {
                 throw new Error(`Auth Delete Failed: ${authErr.message}`);
             }

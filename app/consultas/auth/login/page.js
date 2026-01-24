@@ -51,6 +51,7 @@ const AuthStyles = () => (
         .divider-premium span { position: relative; background: #0c1222; padding: 0 1rem; color: #475569; font-size: 0.8rem; } 
 
         .error-premium { background: rgba(239, 68, 68, 0.1); color: #fca5a5; padding: 1rem; border-radius: 12px; font-size: 0.9rem; text-align: center; border: 1px solid rgba(239, 68, 68, 0.2); margin-bottom: 1.5rem; }
+        .success-premium { background: rgba(34, 197, 94, 0.1); color: #86efac; padding: 1rem; border-radius: 12px; font-size: 0.9rem; text-align: center; border: 1px solid rgba(34, 197, 94, 0.2); margin-bottom: 1rem; }
         
         .btn-back-premium { position: absolute; top: 2rem; left: 2rem; color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: 0.3s; }
         .btn-back-premium:hover { color: #fbbf24; }
@@ -90,8 +91,45 @@ function LoginContent() {
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [confirmedSession, setConfirmedSession] = useState(null);
 
-    const lawyerId = searchParams.get('lawyerId') || searchParams.get('lawyer');
-    const cid = searchParams.get('cid');
+    // Get lawyerId and cid from URL or localStorage fallback
+    const [lawyerId, setLawyerId] = useState(null);
+    const [cid, setCid] = useState(null);
+    const [confirmationMessage, setConfirmationMessage] = useState(null);
+
+    useEffect(() => {
+        const urlLawyer = searchParams.get('lawyerId') || searchParams.get('lawyer');
+        const urlCid = searchParams.get('cid');
+        const justConfirmed = searchParams.get('confirmed') === 'true';
+        const urlError = searchParams.get('error');
+
+        // Show confirmation success message
+        if (justConfirmed) {
+            setConfirmationMessage("✅ ¡Email confirmado! Ahora ingresa con tu email y contraseña.");
+        }
+
+        // Handle error params from callback
+        if (urlError === 'link_expired') {
+            setError("⚠️ El enlace de confirmación expiró o ya fue utilizado. Ingresa tus credenciales para continuar.");
+        } else if (urlError === 'auth_error') {
+            setError("⚠️ Error de autenticación. Ingresa tus credenciales para continuar.");
+        }
+
+        // Fallback to localStorage if URL params are missing
+        const storedLawyer = localStorage.getItem('judic_ia_lawyer_id');
+        const storedCid = localStorage.getItem('judic_ia_cid');
+
+        const finalLawyer = urlLawyer || storedLawyer;
+        const finalCid = urlCid || storedCid;
+
+        if (finalLawyer) {
+            setLawyerId(finalLawyer);
+            localStorage.setItem('judic_ia_lawyer_id', finalLawyer);
+        }
+        if (finalCid) {
+            setCid(finalCid);
+            localStorage.setItem('judic_ia_cid', finalCid);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -136,7 +174,8 @@ function LoginContent() {
                     clientUserId: confirmedSession.user.id,
                     clientEmail: confirmedSession.user.email,
                     clientName: confirmedSession.user.user_metadata?.full_name,
-                    clientPhone: confirmedSession.user.user_metadata?.phone
+                    clientPhone: confirmedSession.user.user_metadata?.phone,
+                    syncOnly: true // Don't generate AI response, just sync session
                 }),
             });
 
@@ -159,7 +198,8 @@ function LoginContent() {
                         clientUserId: confirmedSession.user.id,
                         clientEmail: confirmedSession.user.email,
                         clientName: confirmedSession.user.user_metadata?.full_name,
-                        clientPhone: confirmedSession.user.user_metadata?.phone
+                        clientPhone: confirmedSession.user.user_metadata?.phone,
+                        syncOnly: true
                     }),
                 });
 
@@ -235,7 +275,8 @@ function LoginContent() {
                     clientUserId: data.user.id,
                     clientEmail: data.user.email,
                     clientName: data.user.user_metadata?.full_name,
-                    clientPhone: data.user.user_metadata?.phone
+                    clientPhone: data.user.user_metadata?.phone,
+                    syncOnly: true
                 }),
             });
 
@@ -257,7 +298,8 @@ function LoginContent() {
                         clientUserId: data.user.id,
                         clientEmail: data.user.email,
                         clientName: data.user.user_metadata?.full_name,
-                        clientPhone: data.user.user_metadata?.phone
+                        clientPhone: data.user.user_metadata?.phone,
+                        syncOnly: true
                     }),
                 });
 
@@ -341,6 +383,7 @@ function LoginContent() {
                             </div>
                         </div>
 
+                        {confirmationMessage && <div className="success-premium">✅ {confirmationMessage}</div>}
                         {error && <div className="error-premium">⚠️ {error}</div>}
 
                         <button type="submit" className="btn-gold-action" disabled={loading}>

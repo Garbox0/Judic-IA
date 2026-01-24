@@ -36,10 +36,39 @@ export async function middleware(request) {
     requestHeaders.set('x-nonce', nonce)
 
     const { pathname } = request.nextUrl
+    const hostname = request.headers.get('host') || ''
+
+    // 🌐 SUBDOMAIN ROUTING
+    const isClientSubdomain = hostname.startsWith('consultas.')
+    const isMainDomain = hostname === 'judic-ia.com' || hostname === 'www.judic-ia.com' || hostname.includes('localhost')
 
     // 🛡️ 1. Sanitización
     if (pathname.includes('..') || pathname.includes('//')) {
         return new NextResponse(null, { status: 400 })
+    }
+
+    // 🔀 SUBDOMAIN REDIRECT LOGIC
+    // A. Main domain accessing /consultas/* → Redirect to client subdomain
+    if (isMainDomain && pathname.startsWith('/consultas')) {
+        const clientUrl = new URL(pathname.replace('/consultas', ''), 'https://consultas.judic-ia.com')
+        request.nextUrl.searchParams.forEach((value, key) => {
+            clientUrl.searchParams.set(key, value)
+        })
+        console.log(`🔀 Redirecting to client subdomain: ${clientUrl.toString()}`)
+        return NextResponse.redirect(clientUrl)
+    }
+
+    // B. Client subdomain: Rewrite /* to /consultas/* internally
+    if (isClientSubdomain && !pathname.startsWith('/consultas') && !pathname.startsWith('/api') && !pathname.startsWith('/_next')) {
+        const rewriteUrl = request.nextUrl.clone()
+        rewriteUrl.pathname = `/consultas${pathname}`
+        console.log(`📝 Rewriting ${pathname} to ${rewriteUrl.pathname}`)
+        return NextResponse.rewrite(rewriteUrl)
+    }
+
+    // C. Client subdomain trying to access lawyer routes → Block
+    if (isClientSubdomain && (pathname.startsWith('/dashboard') || pathname === '/login' || pathname === '/register')) {
+        return NextResponse.redirect(new URL('/auth', 'https://consultas.judic-ia.com'))
     }
 
     // Respuesta base
@@ -48,7 +77,7 @@ export async function middleware(request) {
     })
 
     // 🔗 2. CONFIGURAR SUPABASE (Unificado para estabilidad)
-    const AUTH_COOKIE = 'sb-judicia-auth'
+    const AUTH_COOKIE = isClientSubdomain ? 'sb-judicia-client' : 'sb-judicia-auth';
 
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,

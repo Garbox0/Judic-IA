@@ -25,8 +25,15 @@ export const supabase = (() => {
     }
 
     if (!supabaseInstance) {
+        // 🛡️ DYNAMIC COOKIE BASED ON SUBDOMAIN
+        const hostname = window.location.hostname;
+        const isClientSubdomain = hostname.startsWith('consultas.');
+        const cookieName = isClientSubdomain ? 'sb-judicia-client' : 'sb-judicia-auth';
+
+        console.log(`🍪 Initializing Supabase Client. Zone: ${isClientSubdomain ? 'CLIENT' : 'LAWYER'}, Cookie: ${cookieName}`);
+
         supabaseInstance = createBrowserClient(supabaseUrl, supabaseAnonKey, {
-            cookieOptions: { name: AUTH_COOKIE }
+            cookieOptions: { name: cookieName }
         });
     }
     return supabaseInstance;

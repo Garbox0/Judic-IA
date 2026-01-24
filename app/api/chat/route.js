@@ -129,7 +129,7 @@ export async function POST(request) {
         const {
             message, history, mode, sessionId, lawyerId,
             clientUserId, clientEmail, clientName, clientPhone,
-            lawyerSpecialties
+            lawyerSpecialties, syncOnly // NEW: Skip AI response if just syncing
         } = body;
 
         let effectiveSessionId = sessionId;
@@ -381,6 +381,16 @@ export async function POST(request) {
             if (upsertError) {
                 console.error("❌ Supabase Upsert Error:", upsertError);
                 return NextResponse.json({ error: "Error al registrar la sesión de consulta." }, { status: 500 });
+            }
+
+            // SYNC ONLY MODE: Return immediately without AI response (saves tokens)
+            if (syncOnly) {
+                console.log("✅ Sync-only mode: Session linked, skipping AI response");
+                return NextResponse.json({
+                    reply: null,
+                    synced: true,
+                    sessionId: effectiveSessionId
+                });
             }
         }
 

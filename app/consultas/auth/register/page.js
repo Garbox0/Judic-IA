@@ -125,12 +125,45 @@ function RegisterContent() {
                     return;
                 }
 
+                // SECURITY: Client is already logged in - redirect to login page
+                // They should not be on the register page if they already have an account
+                if (userRole === 'client') {
+                    console.log('🔄 Cliente ya autenticado. Redirigiendo al login...');
+                    const loginUrl = new URL('/consultas/auth/login', window.location.origin);
+                    if (lawyerId) loginUrl.searchParams.set('lawyerId', lawyerId);
+                    if (cid) loginUrl.searchParams.set('cid', cid);
+                    router.push(loginUrl.toString());
+                    return;
+                }
+
                 setIsConfirmed(true);
                 setConfirmedSession(session);
             }
         });
         return () => subscription.unsubscribe();
-    }, [router]);
+    }, [router, lawyerId, cid]);
+
+    // SECURITY: Check if CID is already claimed - redirect to login if so
+    useEffect(() => {
+        const checkCidClaimed = async () => {
+            if (!cid) return;
+
+            const { data: inquiry } = await supabase
+                .from('inquiries')
+                .select('claimed_by_email')
+                .eq('id', cid)
+                .maybeSingle();
+
+            if (inquiry?.claimed_by_email) {
+                console.log('🔒 CID already claimed. Redirecting to login...');
+                const loginUrl = new URL('/consultas/auth/login', window.location.origin);
+                if (lawyerId) loginUrl.searchParams.set('lawyerId', lawyerId);
+                if (cid) loginUrl.searchParams.set('cid', cid);
+                router.push(loginUrl.toString());
+            }
+        };
+        checkCidClaimed();
+    }, [cid, lawyerId, router]);
 
     // Countdown Logic
     useEffect(() => {

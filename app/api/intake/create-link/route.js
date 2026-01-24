@@ -56,12 +56,21 @@ export async function POST(request) {
 
         if (error) throw error;
 
-        // Get the correct site URL from the request headers (works in both dev and prod)
-        const host = request.headers.get('host');
-        const protocol = request.headers.get('x-forwarded-proto') || 'https';
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`;
+        // Generate link using client subdomain
+        // In production: consultas.judic-ia.com
+        // In development: localhost:3000/consultas (no subdomain locally)
+        const host = request.headers.get('host') || '';
+        const isDev = host.includes('localhost');
 
-        const link = `${siteUrl}/consultas/${lawyerId}?cid=${intakeToken}`;
+        let clientBaseUrl;
+        if (isDev) {
+            const protocol = request.headers.get('x-forwarded-proto') || 'http';
+            clientBaseUrl = `${protocol}://${host}/consultas`;
+        } else {
+            clientBaseUrl = 'https://consultas.judic-ia.com';
+        }
+
+        const link = `${clientBaseUrl}/${lawyerId}?cid=${intakeToken}`;
 
         return NextResponse.json({ link, cid: intakeToken });
 
