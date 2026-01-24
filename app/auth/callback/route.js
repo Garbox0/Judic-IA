@@ -26,7 +26,20 @@ export async function GET(request) {
         if (!error) {
             // Get user to check role
             const { data: { user } } = await supabase.auth.getUser();
-            const role = user?.user_metadata?.role;
+            let role = user?.user_metadata?.role;
+
+            // 🛡️ ROBUST ARCHITECTURE: Check DB if metadata fails
+            if (!role) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user?.id)
+                    .maybeSingle();
+                if (profile?.role) role = profile.role;
+            }
+
+            // fail-safe context check
+            if (!role && (lawyerId || cid)) role = 'client';
 
             console.log(`✅ Auth confirmed for ${user?.email} - Role: ${role}`);
 
