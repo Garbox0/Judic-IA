@@ -24,8 +24,33 @@ export default function ClientUpdatePasswordPage() {
             // Check if we have a hash with tokens (Supabase sends #access_token=...)
             const hasAuthHash = window.location.hash && window.location.hash.includes('access_token');
 
-            // If there's a hash, Supabase needs time to process it. We wait longer.
-            const timeoutDuration = hasAuthHash ? 6000 : 3000;
+            if (hasAuthHash) {
+                try {
+                    // Manually parse hash to force session
+                    const hashPart = window.location.hash.substring(1); // Remove the #
+                    const params = new URLSearchParams(hashPart);
+                    const access_token = params.get('access_token');
+                    const refresh_token = params.get('refresh_token');
+
+                    if (access_token && refresh_token) {
+                        console.log("🔓 Detected tokens in URL, manually setting session...", access_token.substring(0, 10));
+                        const { data, error } = await supabase.auth.setSession({
+                            access_token,
+                            refresh_token
+                        });
+
+                        if (!error && data.session) {
+                            console.log("✅ Session established manually via hash!");
+                            setVerifyingSession(false);
+                            return;
+                        } else {
+                            console.error("❌ Failed to set session from hash:", error);
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error parsing hash:", e);
+                }
+            }
 
             const { data: { session }, error } = await supabase.auth.getSession();
 
@@ -50,7 +75,7 @@ export default function ClientUpdatePasswordPage() {
                 } else {
                     setVerifyingSession(false);
                 }
-            }, timeoutDuration);
+            }, 6000); // Increased timeout significantly
 
             return () => subscription.unsubscribe();
         };
