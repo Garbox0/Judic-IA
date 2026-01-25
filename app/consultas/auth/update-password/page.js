@@ -142,14 +142,19 @@ export default function ClientUpdatePasswordPage() {
             const { error } = await supabase.auth.updateUser({ password: password });
             if (error) throw error;
 
-            // Get user email to send notification
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user && user.email) {
-                await fetch('/api/auth/notify-password-change', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: user.email })
-                });
+            // Get user email to send notification (Safe Non-Blocking)
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user && user.email) {
+                    await fetch('/api/auth/notify-password-change', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: user.email })
+                    });
+                }
+            } catch (notifyError) {
+                console.error("⚠️ Failed to send password change notification:", notifyError);
+                // We do NOT block the success flow if the email fails
             }
 
             setSuccess(true);
