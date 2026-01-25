@@ -44,3 +44,10 @@ next-env.d.ts
 supabase_access.txt
 rollback_rls.sql
 
+
+# scripts mantenimiento
+check_schema*.js
+manage_admin.js
+test_db.js
+*.sql
+*.txt

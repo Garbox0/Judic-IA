@@ -6,6 +6,15 @@ import Link from 'next/link';
 import SafeChatWidget from '../components/SafeChatWidget';
 import './register.css';
 
+/* Inline styles for CUIT row, typically would be in CSS but adding here for quick execution */
+const cuitStyles = `
+.cuit-inputs-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+`;
+
 export default function RegisterPage() {
     const router = useRouter();
 
@@ -16,7 +25,9 @@ export default function RegisterPage() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
-    const [cuit, setCuit] = useState('');
+    const [cuitPrefix, setCuitPrefix] = useState('');
+    const [cuitDni, setCuitDni] = useState('');
+    const [cuitSuffix, setCuitSuffix] = useState('');
     const [tomo, setTomo] = useState('');
     const [folio, setFolio] = useState('');
     const [jurisdiccion, setJurisdiccion] = useState('');
@@ -131,7 +142,7 @@ export default function RegisterPage() {
                     first_name: firstName,
                     last_name: lastName,
                     full_name: `${firstName} ${lastName}`,
-                    cuit: cuit,
+                    cuit: `${cuitPrefix}-${cuitDni}-${cuitSuffix}`,
                     role: 'lawyer',
                     matricula: finalMatricula,
                     jurisdiccion: finalJurisdiccion,
@@ -183,7 +194,46 @@ export default function RegisterPage() {
 
                             <div className="register-field full-width">
                                 <label>CUIT / CUIL</label>
-                                <input type="text" placeholder="20-12345678-9" value={cuit} onChange={e => setCuit(e.target.value)} required />
+                                <div className="cuit-inputs-row">
+                                    <input
+                                        type="text"
+                                        placeholder="20"
+                                        value={cuitPrefix}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (val.length <= 2 && /^\d*$/.test(val)) setCuitPrefix(val);
+                                        }}
+                                        required
+                                        maxLength={2}
+                                        style={{ width: '65px', textAlign: 'center' }}
+                                    />
+                                    <span style={{ color: '#64748b', fontSize: '1.2rem' }}>-</span>
+                                    <input
+                                        type="text"
+                                        placeholder="12345678"
+                                        value={cuitDni}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (val.length <= 8 && /^\d*$/.test(val)) setCuitDni(val);
+                                        }}
+                                        required
+                                        maxLength={8}
+                                        style={{ flex: 1, textAlign: 'center' }}
+                                    />
+                                    <span style={{ color: '#64748b', fontSize: '1.2rem' }}>-</span>
+                                    <input
+                                        type="text"
+                                        placeholder="6"
+                                        value={cuitSuffix}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (val.length <= 1 && /^\d*$/.test(val)) setCuitSuffix(val);
+                                        }}
+                                        required
+                                        maxLength={1}
+                                        style={{ width: '50px', textAlign: 'center' }}
+                                    />
+                                </div>
                             </div>
 
                             <div className="register-field-row">

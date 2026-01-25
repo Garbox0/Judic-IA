@@ -6,7 +6,9 @@ import { supabase } from '../../lib/supabase';
 export default function AuthFormContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [isLogin, setIsLogin] = useState(searchParams.get('view') === 'login'); // Default to Register for new clients unless param set
+    // Default to Login unless a valid lawyerId/cid is present AND view is not explicitly login
+    const initialViewIsLogin = searchParams.get('view') === 'login' || (!searchParams.get('lawyerId') && !searchParams.get('cid'));
+    const [isLogin, setIsLogin] = useState(initialViewIsLogin);
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [confirmEmail, setConfirmEmail] = useState('');
@@ -79,12 +81,13 @@ export default function AuthFormContent() {
                     return;
                 }
 
-                // 🔐 NEW: Check if CID is already claimed by another email
-                // We'll do a full check during registration, but this provides early feedback
-                // The claimed_by_email is set when someone successfully registers
-                // Note: We don't block here because the user might be the same person logging in
+                // 🔐 NEW: Check if CID is already claimed. If so, force login.
+                if (inquiry.claimed_by_email) {
+                    console.log("📝 CID already claimed by:", inquiry.claimed_by_email);
+                    setIsLogin(true);
+                }
 
-                // If inquiry is linked to a user, that user PROFILE must exist (Anti-Zombie)
+                // If inquiry is linked to a user...
                 if (inquiry.client_auth_id) {
                     const { data: profile } = await supabase
                         .from('profiles')
@@ -435,7 +438,9 @@ export default function AuthFormContent() {
         return (
             <div className="auth-container">
                 <div className="auth-card glass-panel restricted-card">
-                    <div className="logo-icon">🔒</div>
+                    <div className="logo-icon-premium error">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    </div>
                     <h1>Acceso Restringido</h1>
                     <p>Este enlace de consulta ya no es válido, ha expirado o el acceso ha sido revocado por el profesional.</p>
                     <div className="redirect-hint">
@@ -457,20 +462,30 @@ export default function AuthFormContent() {
         <div className="auth-container">
             <div className="auth-card glass-panel">
                 {isConfirmed ? (
-                    <div className="confirmed-ui" style={{ textAlign: 'center', py: '2rem' }}>
-                        <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>✅</div>
-                        <h1 style={{ color: '#86efac', marginBottom: '1rem' }}>¡Email Confirmado!</h1>
-                        <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6' }}>
-                            Tu cuenta ha sido verificada correctamente. Ya puedes acceder a la consulta con el asistente IA del estudio.
+                    <div className="confirmed-ui" style={{ textAlign: 'center', padding: '1rem 0' }}>
+                        <div className="success-icon-premium">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <h1 style={{
+                            fontSize: '2.2rem',
+                            color: '#fbbf24',
+                            marginBottom: '1rem',
+                            fontFamily: "'Playfair Display', serif",
+                            fontWeight: '800'
+                        }}>¡Bienvenido!</h1>
+                        <p style={{ color: '#cbd5e1', marginBottom: '2.5rem', lineHeight: '1.6', fontSize: '1.05rem' }}>
+                            Tu sesión jurídica está <span style={{ color: '#fbbf24', fontWeight: '600' }}>activa y verificada</span>.
                         </p>
-                        <button onClick={enterIntake} className="btn-primary" disabled={loading}>
-                            {loading ? 'Preparando Chat...' : 'Ingresar al Chat Ahora'}
+                        <button onClick={enterIntake} className="btn-primary" disabled={loading} style={{ padding: '1.2rem' }}>
+                            {loading ? 'Preparando Consulta...' : 'Continuar a Consulta'}
                         </button>
                     </div>
                 ) : (
                     <>
                         <div className="auth-header">
-                            <div className="logo-icon">⚖️</div>
+                            <div className="logo-icon-premium">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 16c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v11z"></path><path d="M21 7l-5 3v4l5 3V7z"></path></svg>
+                            </div>
                             <h1>{isLogin ? 'Ingresar a Consulta' : 'Proteger Consulta'}</h1>
                             <p>
                                 {isLogin
@@ -549,12 +564,13 @@ export default function AuthFormContent() {
                                     </button>
                                 </p>
                             ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                                     <p style={{ fontSize: '0.85rem', color: '#64748b' }}>
                                         ¿Olvidaste tu clave?
                                     </p>
-                                    <p style={{ fontSize: '0.75rem', color: '#475569', fontStyle: 'italic' }}>
-                                        Aún no tienes una clave? <span style={{ color: '#fbbf24' }}>Solicita el enlace a tu abogado.</span>
+
+                                    <p style={{ fontSize: '0.75rem', color: '#475569', fontStyle: 'italic', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.8rem' }}>
+                                        ¿Aún no tienes una clave? <span style={{ color: '#fbbf24' }}>Solicita el enlace de acceso a tu abogado profesional.</span>
                                     </p>
                                 </div>
                             )}
@@ -611,6 +627,28 @@ export default function AuthFormContent() {
                 .auth-footer { margin-top: 2rem; text-align: center; font-size: 0.9rem; color: #94a3b8; }
                 .link-btn { background: none; border: none; color: #fbbf24; font-weight: 600; cursor: pointer; margin-left: 0.5rem; text-decoration: underline; }
                 .link-btn:hover { color: #f59e0b; }
+
+                /* Premium Success & Error Icons */
+                .success-icon-premium, .logo-icon-premium {
+                    width: 70px; height: 70px;
+                    background: #22c55e;
+                    color: white;
+                    border-radius: 20px;
+                    display: flex; align-items: center; justify-content: center;
+                    margin: 0 auto 1.5rem;
+                    box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
+                }
+                .logo-icon-premium {
+                    background: rgba(251, 191, 36, 0.1);
+                    color: #fbbf24;
+                    border: 1px solid rgba(251, 191, 36, 0.3);
+                    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+                }
+                .logo-icon-premium.error {
+                    background: rgba(239, 68, 68, 0.1);
+                    color: #fca5a5;
+                    border-color: rgba(239, 68, 68, 0.3);
+                }
             `}</style>
         </div>
     );

@@ -69,10 +69,39 @@
 }
 
 .nav-links {
-    margin-top: 3rem;
+    margin-top: 2rem;
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    margin-bottom: 1rem;
+    padding-right: 4px;
+    /* avoid scrollbar overlapping content */
+}
+
+/* Custom Scrollbar for Nav */
+.nav-links::-webkit-scrollbar {
+    width: 8px;
+    /* Wider for better visibility */
+}
+
+.nav-links::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+}
+
+.nav-links::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    /* CLEARER default visibility */
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.nav-links::-webkit-scrollbar-thumb:hover {
+    background: rgba(251, 191, 36, 0.4);
+    /* Gold hint on interaction */
 }
 
 .nav-item {

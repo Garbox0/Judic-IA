@@ -15,7 +15,9 @@ import {
   ShieldCheck,
   Menu,
   Crown,
-  Sparkles
+  Sparkles,
+  Book,
+  Calculator
 } from 'lucide-react';
 import SafeChatWidget from '../components/SafeChatWidget';
 
@@ -182,6 +184,14 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
           <Link href={isDemo ? `${basePath}/library` : '/dashboard/library'} className={`nav-item ${pathname.includes('/library') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <BookOpen size={18} className="nav-icon" />
             <span>Biblioteca</span>
+          </Link>
+          <Link href={isDemo ? `${basePath}/legislation` : '/dashboard/legislation'} className={`nav-item ${pathname.includes('/legislation') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+            <Book size={18} className="nav-icon" />
+            <span>Legislación</span>
+          </Link>
+          <Link href={isDemo ? `${basePath}/tools` : '/dashboard/tools'} className={`nav-item ${pathname.includes('/tools') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+            <Calculator size={18} className="nav-icon" />
+            <span>Herramientas</span>
           </Link>
           {!isDemo && user?.email === 'gbrlescalada@gmail.com' && user?.id === '365cd259-4f1e-4004-a677-1eda06a5147e' && (
             <Link href="/dashboard/admin" className={`nav-item ${pathname.includes('/admin') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>

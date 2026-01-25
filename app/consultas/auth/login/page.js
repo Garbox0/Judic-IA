@@ -391,18 +391,14 @@ function LoginContent() {
                         </button>
                     </form>
 
-                    <div className="divider-premium"><span>o</span></div>
-
                     <footer className="auth-nav-footer">
-                        <p style={{ marginBottom: '0.8rem' }}>
+                        <p style={{ marginBottom: '1.2rem' }}>
                             <Link href="/forgot-password" className="link-gold" style={{ fontSize: '0.85rem', fontWeight: 500, opacity: 0.8 }}>
                                 ¿Olvidaste tu clave?
                             </Link>
                         </p>
-                        <p>¿Aún no tienes una clave?
-                            <button type="button" className="btn-text-gold" onClick={() => router.push(`/consultas/auth/register?${searchParams.toString()}`)}>
-                                Crear Nueva Clave
-                            </button>
+                        <p style={{ opacity: 0.8, fontStyle: 'italic', fontSize: '0.8rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.2rem' }}>
+                            ¿Aún no tienes una clave? <span style={{ color: '#fbbf24' }}>Solicita el enlace de acceso a tu abogado profesional.</span>
                         </p>
                     </footer>
                 </>

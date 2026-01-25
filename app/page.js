@@ -1,206 +1,289 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from "./page.module.css";
 import Link from "next/link";
 import SafeChatWidget from "./components/SafeChatWidget";
+import "./landing.css"; // Version 3.0 Styles
 
 export default function Home() {
   const router = useRouter();
-
-  // Landing page is public. No auto-redirect here to allow viewing services/pricing.
-  useEffect(() => {
-    // Optional: add some logic here if needed, but not for redirection
-  }, []);
-
+  const [authError, setAuthError] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // 🛡️ REVEAL ANIMATION (Intersection Observer)
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+        }
+      });
+    }, observerOptions);
+
+    const revealElements = document.querySelectorAll('.reveal');
+    revealElements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Detect if the user lands here due to an expired email link
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash && (hash.includes('otp_expired') || hash.includes('access_denied'))) {
+        setAuthError(true);
+      }
+    }
+  }, []);
 
   return (
-    <main className={styles.main}>
-      {/* Navbar */}
-      <nav className="glass-navbar fade-in">
+    <main className="landing-v3">
+      <div className="bg-mesh"></div>
+
+      {/* 💎 NAVIGATION 3.0 */}
+      <nav className="glass-navbar">
         <div className="nav-container">
-          <div className="nav-brand">
-            <img src="/logo.png" alt="Logo" className="nav-logo" width="38" height="38" />
-            <span className="nav-title text-glow">Judic-IA <span className="justice-emoji">⚖️</span></span>
+          <div className="nav-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <img src="/logo.png" alt="Judic-IA Logo" className="nav-logo" />
+            <span className="nav-title text-glow">Judic-IA</span>
           </div>
+
           <div className="landing-nav-links">
             <Link href="#features" className="link-item">Servicios</Link>
             <Link href="#pricing" className="link-item">Precios</Link>
-            <Link href="/login" className="btn-login-premium">Login Abogado</Link>
+            <Link href="https://consultas.judic-ia.com" className="btn-login-premium">Acceso Clientes</Link>
+            <Link href="/login" className="btn-login-premium">Acceso Abogados</Link>
           </div>
 
-          <button
-            className="mobile-menu-btn"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Menú"
-          >
+          <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(true)}>
             ☰
           </button>
         </div>
-
-        {/* Mobile Menu Overlay */}
-        {mobileMenuOpen && (
-          <div className="mobile-menu-overlay fade-in">
-            <Link href="#features" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Servicios</Link>
-            <Link href="#pricing" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Precios</Link>
-            <Link href="/login" className="btn-login-mobile" onClick={() => setMobileMenuOpen(false)}>Login Abogado</Link>
-          </div>
-        )}
       </nav>
 
-      {/* Hero Section */}
+      {/* 📱 MOBILE OVERLAY 3.0 */}
+      {mobileMenuOpen && (
+        <div className="mobile-menu-overlay">
+          <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(false)} style={{ position: 'absolute', top: '2rem', right: '2rem' }}>
+            ✕
+          </button>
+
+          <Link href="#features" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Servicios</Link>
+          <Link href="#pricing" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Precios</Link>
+
+          <div className="mobile-access-row">
+            <Link href="https://consultas.judic-ia.com" className="btn-login-mobile primary" onClick={() => setMobileMenuOpen(false)}>
+              Acceso Clientes
+            </Link>
+            <Link href="/login" className="btn-login-mobile" onClick={() => setMobileMenuOpen(false)}>
+              Acceso Abogados
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* 🚀 HERO SECTION 3.0 */}
       <section className="hero-section">
         <div className="hero-grid">
-          <div className="hero-content">
-            <div className="badge-new slide-up">✨ Versión 2.0 • IA Legal de Élite</div>
-            <h1 className="hero-title slide-up-delayed">
-              Tu Estudio Jurídico, <br />
-              <span className="gradient-text italic-serif">Potenciado por IA.</span>
+          <div className="hero-content reveal">
+            <div className="badge-new">✨ Judic-IA v3.0 • Elite Intelligence</div>
+            <h1 className="hero-title">
+              La Evolución <br />
+              <span className="gradient-text italic-serif">de tu Estudio.</span>
             </h1>
-            <p className="hero-subtitle slide-up-extra-delayed">
-              Automatizá la atención de consultas, investigá jurisprudencia en segundos y gestioná tus expedientes en una sola plataforma segura de alto rendimiento.
+            <p className="hero-subtitle">
+              Automatiza la atención de consultas, investiga jurisprudencia en segundos y gestiona tu consultoría legal con tecnología de élite diseñada para abogados de alto rendimiento.
             </p>
-            <div className="hero-actions slide-up-extra-delayed">
-              <Link href="/demo" className="btn-primary-glow">
-                Probar Demo Cliente ↘️
+            <div className="hero-actions">
+              <Link href="/register" className="btn-primary-v3">
+                Comenzar Ahora <span>→</span>
               </Link>
-              <Link href="#pricing" className="btn-secondary-outline">
-                Ver Planes y Precios
+              <Link href="#features" className="btn-secondary-v3">
+                Explorar Soluciones
               </Link>
+            </div>
+
+            <div className="stats-grid">
+              <div className="stat-item">
+                <span className="stat-value">24/7</span>
+                <span className="stat-label">Atención Permanente</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-value">+10h</span>
+                <span className="stat-label">Ahorro Semanal</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-value">100%</span>
+                <span className="stat-label">Seguridad Cifrada</span>
+              </div>
             </div>
           </div>
 
-          {/* Hero Card (Static Mockup per user request) */}
-          <div className="hero-card slide-up-extra-delayed">
-            <div className="mini">
-              <div className="mini-head">
-                <div className="mini-title">Dr. Martínez <small>Abogado · Derecho Laboral · CABA</small></div>
-                <div className="pill">Demo en vivo</div>
-              </div>
-              <div className="bubble">👋 Hola, soy el asistente virtual del Dr. Martínez. ¿En qué puedo ayudarte hoy?</div>
-              <div className="chips">
-                <div className="chip">Despido</div>
-                <div className="chip">Trabajo en negro</div>
-                <div className="chip">Liquidación</div>
-                <div className="chip">Art / Riesgos</div>
-              </div>
-              <div className="input-mock">
-                <span>Escribí tu consulta...</span>
-                <div className="send-mock">▶</div>
+          <div className="hero-mockup-wrapper reveal">
+            <div className="hero-card-v3">
+              <div className="mock-window">
+                <div className="mock-header">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div className="mock-avatar"></div>
+                    <div style={{ lineHeight: 1 }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 800 }}>Dr. Martínez</div>
+                      <div style={{ fontSize: '0.6rem', color: '#94a3b8' }}>En línea</div>
+                    </div>
+                  </div>
+                  <div style={{ opacity: 0.3 }}>•••</div>
+                </div>
+                <div className="mock-content">
+                  <div className="mock-bubble">
+                    Hola, soy el asistente virtual del estudio. ¿Cómo puedo ayudarte hoy con tu consulta legal?
+                  </div>
+                  <div className="mock-options">
+                    <span className="mock-chip">Accidentes Tránsito</span>
+                    <span className="mock-chip">Derecho Laboral</span>
+                    <span className="mock-chip">Sucesiones</span>
+                  </div>
+                  <div className="mock-input">
+                    <span>Escribí tu consulta...</span>
+                    <div className="mock-send"></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Services Grid (Single line 4 cols) */}
+      {/* 🛠️ FEATURES SECTION 3.0 */}
       <section id="features" className="section-container">
-        <div className="section-header">
-          <h2 className="section-title">Soluciones de Próxima Generación</h2>
-          <p className="section-subtitle">Lo mejor de la tecnología legal, diseñado para abogados exigentes. Menos fricción, más velocidad, más cierres.</p>
+        <div className="section-header reveal">
+          <h2 className="section-title">Tecnología de <span className="gradient-text italic-serif">Nueva Generación</span></h2>
+          <p className="section-subtitle">Diseñamos herramientas que no solo ahorran tiempo, sino que elevan el estándar de profesionalismo de tu práctica legal.</p>
         </div>
+
         <div className="grid4">
-          <div className="card">
-            <div className="ic">🤖</div>
-            <h3>Asistente Virtual 24/7</h3>
-            <p>Filtra casos viables, responde FAQs y deriva a agenda cuando corresponde.</p>
-          </div>
-          <div className="card">
-            <div className="ic">⚖️</div>
-            <h3>Investigación Avanzada</h3>
-            <p>Encuentra fallos y doctrina relevante con enfoque práctico y citación clara.</p>
-          </div>
-          <div className="card">
-            <div className="ic">📂</div>
-            <h3>CRM Legal</h3>
-            <p>Casos, clientes y documentación en un panel simple, rápido y auditado.</p>
-          </div>
-          <div className="card">
-            <div className="ic">📅</div>
-            <h3>Agenda Judicial</h3>
-            <p>Recordatorios inteligentes de plazos, audiencias y tareas críticas.</p>
-          </div>
+          {[
+            { title: "IA Jurídica Avanzada", desc: "Consultas analizadas con modelos entrenados en normativa legal actualizada.", icon: "⚖️" },
+            { title: "Gestión de Expedientes", desc: "Organiza casos, plazos y documentos en un entorno centralizado y seguro.", icon: "📁" },
+            { title: "Agenda Inteligente", desc: "Programación de citas y recordatorios automáticos vía WhatsApp y email.", icon: "📅" },
+            { title: "Panel de Análisis", desc: "Métricas de rendimiento de tu estudio y comportamiento de tus clientes.", icon: "📈" }
+          ].map((feat, i) => (
+            <div key={i} className="card-v3 reveal" style={{ transitionDelay: `${i * 0.1}s` }}>
+              <i>{feat.icon}</i>
+              <h3>{feat.title}</h3>
+              <p>{feat.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Pricing (Side by Side 2 cols) */}
-      <section id="pricing" className="section-container pricing-section">
-        <div className="section-header">
-          <h2 className="section-title">Excelencia a tu Alcance</h2>
-          <p className="section-subtitle">Precios claros. Beneficio rápido. Sin humo.</p>
+      {/* 🏷️ PRICING SECTION 3.0 */}
+      <section id="pricing" className="section-container" style={{ background: 'rgba(251, 191, 36, 0.02)' }}>
+        <div className="section-header reveal">
+          <h2 className="section-title">Planes a <span className="gradient-text italic-serif">tu Medida</span></h2>
+          <p className="section-subtitle">Elige el motor que impulsará el crecimiento de tu estudio jurídico.</p>
         </div>
+
         <div className="grid2">
-          <div className="price">
-            <h3>Starter</h3>
-            <div className="money">Gratis <small>/ 14 días</small></div>
-            <ul className="list">
-              <li><span className="tick">✓</span> Asistente IA básico</li>
-              <li><span className="tick">✓</span> Hasta 5 consultas diarias</li>
-              <li><span className="tick">✓</span> Búsqueda de jurisprudencia (2/día)</li>
-              <li><span className="tick">✓</span> Soporte limitado</li>
+          {/* PLAN STARTER */}
+          <div className="price-card-v3 reveal">
+            <h3 style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '1rem', color: '#94a3b8' }}>Starter</h3>
+            <div className="price-amount">
+              Gratis<small className="price-period" style={{ marginLeft: '10px', fontSize: '1.2rem' }}>/ 14 días</small>
+            </div>
+            <ul className="price-features">
+              <li>Asistente IA básico</li>
+              <li>Hasta 5 consultas diarias</li>
+              <li>Búsqueda de jurisprudencia (2/día)</li>
+              <li>Soporte limitado</li>
             </ul>
-            <Link href="/register" className="btn-secondary-outline" style={{ display: 'block', textAlign: 'center', marginTop: '20px' }}>Comenzar Gratis</Link>
+            <Link href="/register" className="btn-secondary-v3" style={{ width: '100%', textAlign: 'center', marginTop: '2rem' }}>
+              Comenzar Gratis
+            </Link>
           </div>
 
-          <div className="price featured">
-            <div className="ribbon">MÁS ELEGIDO</div>
-            <h3>Profesional</h3>
-            <div className="money">$25.000 <small>/ mes</small></div>
-            <ul className="list">
-              <li><span className="tick">✓</span> <strong>Asistente IA ilimitado</strong></li>
-              <li><span className="tick">✓</span> <strong>Gestión completa de clientes</strong></li>
-              <li><span className="tick">✓</span> Alertas de plazos y vencimientos</li>
-              <li><span className="tick">✓</span> Soporte VIP 24/7</li>
+          {/* PLAN PROFESIONAL */}
+          <div className="price-card-v3 featured reveal" style={{ transitionDelay: '0.2s' }}>
+            <span className="price-badge">MÁS ELEGIDO</span>
+            <h3 style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '1rem', color: '#fbbf24' }}>Profesional</h3>
+            <div className="price-amount">
+              <span className="price-currency">$</span>25.000<small className="price-period" style={{ marginLeft: '10px', fontSize: '1.2rem' }}>/ mes</small>
+            </div>
+            <ul className="price-features">
+              <li className="premium-check">Asistente IA ilimitado</li>
+              <li className="premium-check">Gestión completa de clientes</li>
+              <li className="premium-check">Alertas de plazos y vencimientos</li>
+              <li className="premium-check">Soporte VIP 24/7</li>
             </ul>
-            <Link href="/register" className="btn-primary-glow" style={{ display: 'block', textAlign: 'center', marginTop: '20px' }}>Suscribirse Ahora</Link>
+            <Link href="/register" className="btn-primary-v3" style={{ width: '100%', justifyContent: 'center', marginTop: '2rem' }}>
+              Suscribirse Ahora
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Final CTA Banner */}
-      <section className="cta-section">
-        <div className="section-container">
-          <div className="cta-card">
-            <h2 className="section-title" style={{ marginBottom: '8px' }}>¿Listo para transformar tu práctica legal?</h2>
-            <p className="section-subtitle" style={{ marginBottom: '26px' }}>Unite a los estudios que ya automatizan, responden más rápido y convierten mejor.</p>
-            <div className="hero-actions" style={{ justifyContent: 'center' }}>
-              <Link href="/register" className="btn-primary-glow">Empezar Ahora</Link>
-              <Link href="#features" className="btn-secondary-outline">Ver servicios ↗</Link>
-            </div>
-          </div>
+      {/* 📞 CTA SECTION 3.0 */}
+      <section className="reveal">
+        <div className="cta-v3">
+          <h2 className="section-title">¿Listo para el <span className="gradient-text italic-serif">Siguiente Nivel?</span></h2>
+          <p className="section-subtitle" style={{ marginBottom: '3rem' }}>
+            Únete a los profesionales que ya están liderando la transformación digital en el ámbito legal.
+          </p>
+          <Link href="/register" className="btn-primary-v3">
+            Crear mi Estudio Digital
+          </Link>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="footer-premium-v2">
-        <div className="foot">
-          <div className="foot-brand">
-            <div className="nav-logo" style={{ width: '34px', borderRadius: '12px', display: 'grid', placeItems: 'center', background: 'rgba(255,255,255,0.1)' }}>⚖️</div>
-            <div>
-              <div style={{ fontWeight: 900, color: '#e2e8f0', fontFamily: "'Playfair Display', serif" }}>Judic-IA</div>
-              <div className="foot-note">© 2026 — LegalTech Argentina</div>
+      {/* 🛡️ AUTH ERROR RECOVERY BANNER (From v2.0) */}
+      {authError && (
+        <div className="auth-recovery-banner">
+          <div className="banner-content">
+            <span className="banner-icon">🔐</span>
+            <div className="banner-text">
+              <strong>El enlace de invitación ha expirado.</strong>
+              <p>Si ya creaste tu clave, puedes ingresar directamente a continuación.</p>
+            </div>
+            <Link href="https://consultas.judic-ia.com/auth/login" className="btn-banner-action">
+              Ir al Acceso Clientes
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* 📱 CHAT WIDGET */}
+      <SafeChatWidget mode="sales" startOpen={false} />
+
+      {/* 🏛️ FOOTER 3.0 */}
+      <footer className="footer-premium-v3">
+        <div className="footer-nav-container">
+          <div className="footer-brand-side">
+            <img src="/logo.png" alt="Judic-IA Logo" className="footer-logo" />
+            <div className="footer-info">
+              <strong>Judic-IA</strong>
+              <span>© 2026 — LegalTech Argentina</span>
             </div>
           </div>
-          <div className="foot-note">
-            <Link href="/legal#security">Seguridad</Link> · <Link href="/legal#privacy">Privacidad</Link> · <Link href="/legal#terms">Términos</Link> · <a href="mailto:hola@judic-ia.com">Ventas</a> · <a href="mailto:soporte@judic-ia.com">Soporte</a>
+
+          <div className="footer-links">
+            <Link href="/legal?tab=seguridad">Seguridad</Link>
+            <Link href="/legal?tab=privacidad">Privacidad</Link>
+            <Link href="/legal?tab=terminos">Términos</Link>
+            <a href="mailto:Billing@judic-ia.com">Ventas</a>
+            <a href="mailto:Soporte@judic-ia.com">Soporte</a>
           </div>
 
-          <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', opacity: 0.5 }}>
-            <a href="https://www.cloudflare.com/" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none', color: '#e2e8f0', fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '20px', transition: '0.2s' }} className="cf-badge">
-              <svg viewBox="0 0 24 24" fill="#F48120" style={{ width: '14px', height: '14px' }}><path d="M19.32 7.78a5.96 5.96 0 0 0-5.83-1.63 3.93 3.93 0 0 0-6.86-1.57A4.6 4.6 0 0 0 0 9.77a4.6 4.6 0 0 0 4.6 4.6h14.72a4.6 4.6 0 0 0 0-9.2 4.6 4.6 0 0 0 0 9.2z" fill="#F48120" /><path d="M19.32 7.78a5.96 5.96 0 0 0-5.83-1.63 3.93 3.93 0 0 0-6.86-1.57A4.6 4.6 0 0 0 0 9.77a4.6 4.6 0 0 0 4.6 4.6h14.72a4.6 4.6 0 0 0 0-9.2z" fill="currentColor" /></svg>
-              <span>Protected by <strong>Cloudflare</strong></span>
-            </a>
-          </div>
+          <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer" className="cloudflare-badge">
+            <svg className="cf-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M23.53 13.1c-.26-1.55-1.42-2.73-2.92-3a5.5 5.5 0 00-10.42-2c-1.8.1-3.32 1.4-3.7 3.14a4 4 0 00-2.43 7.33A4 4 0 008 22h11a5 5 0 004.53-8.9zM19 20H8a2 2 0 01-1-3.74v-.01a2 2 0 011-3.75 3.5 3.5 0 016.71-1.25l.13.43.45-.06a3.5 3.5 0 013.71 3.49v.14a3 3 0 010 5.75z" />
+            </svg>
+            Protected by <strong>Cloudflare</strong>
+          </a>
         </div>
       </footer>
-
-      {/* Sales Bot */}
-      <SafeChatWidget
-        mode="sales"
-        initialMessage="¡Hola! 👋 Soy el asistente de ventas de Judic-IA. ¿Tienes preguntas sobre cómo automatizar tu estudio?"
-      />
-    </main >
+    </main>
   );
 }

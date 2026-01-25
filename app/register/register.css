@@ -356,3 +356,9 @@
         padding: 3rem 1.5rem;
     }
 }
+
+.cuit-inputs-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}

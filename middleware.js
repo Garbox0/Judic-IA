@@ -13,7 +13,25 @@ function applyCookies(srcResponse, destResponse) {
     return destResponse
 }
 
+// 🌍 GEO-BLOCK CONFIGURATION
+const BLOCKED_COUNTRY_RESPONSE = new NextResponse(JSON.stringify({
+    error: 'Access Denied',
+    message: 'We are sorry, but Judic-IA is currently only available in Argentina due to regulatory compliance.',
+    code: 'GEO_BLOCK'
+}), { status: 403, headers: { 'Content-Type': 'application/json' } })
+
 export async function middleware(request) {
+    // 🛡️ -1. GEO BLOCKING (High Priority)
+    // Check Vercel/Cloudflare country headers
+    const country = request.headers.get('x-vercel-ip-country') || request.headers.get('cf-ipcountry')
+
+    // Only block if we are SURE it is not Argentina (and header exists, so we don't block localhost)
+    if (country && country !== 'AR') {
+        const ip = request.headers.get('x-forwarded-for') || request.ip
+        console.warn(`⛔ BLOCKED ACCESS from ${country} (IP: ${ip})`)
+        return BLOCKED_COUNTRY_RESPONSE
+    }
+
     // 🛡️ 0. SEGURIDAD (CSP Relaxed for Debugging)
     const nonce = crypto.randomUUID()
 

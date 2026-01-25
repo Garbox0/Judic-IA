@@ -273,12 +273,40 @@ button {
 }
 
 /* Mobile Optimizations */
+/* Hide Button (Small X above bubble) - Base (Hidden on Desktop) */
+.chat-hide-btn {
+  width: 24px;
+  height: 24px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  color: white;
+  display: none;
+  /* Explicitly hidden on desktop */
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: -10px;
+  right: 0;
+  z-index: 10;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  opacity: 0.8;
+  transition: all 0.2s;
+}
+
+.chat-hide-btn:hover {
+  background: #f43f5e;
+  border-color: #f43f5e;
+  opacity: 1;
+}
+
+/* Mobile Optimizations */
 @media (max-width: 768px) {
   .chat-widget-container {
     bottom: 1rem;
     right: 1rem;
     align-items: flex-end;
-    /* Ensure alignment to right */
   }
 
   .chat-toggle-wrapper {
@@ -288,45 +316,15 @@ button {
     align-items: flex-end;
   }
 
-  /* Hide Button (Small X above bubble) - ONLY ON MOBILE */
-  .chat-hide-btn {
-    width: 24px;
-    height: 24px;
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    color: white;
-    display: none;
-    /* Hidden by default (desktop) */
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    top: -10px;
-    right: 0;
-    z-index: 10;
-    cursor: pointer;
-    backdrop-filter: blur(4px);
-    opacity: 0.8;
-  }
-
-  .chat-hide-btn:hover {
-    background: #f43f5e;
-    border-color: #f43f5e;
-    opacity: 1;
-  }
-
   /* Show hide button only on mobile */
-  @media (max-width: 768px) {
-    .chat-hide-btn {
-      display: flex;
-    }
+  .chat-hide-btn {
+    display: flex;
   }
 
   /* Minimized Side Tab */
   .chat-minimized-tab {
     position: fixed;
     bottom: 20vh;
-    /* Floating mid-screen height */
     right: 0;
     background: rgba(15, 23, 42, 0.9);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -350,17 +348,13 @@ button {
 
   .chat-label {
     display: none;
-    /* Hide label on mobile */
   }
 
   .chat-window {
     width: calc(100vw - 2rem);
-    /* Full width minus margins */
     height: 70vh;
-    /* Taller on mobile or adjust as needed */
     position: fixed;
     bottom: 5.5rem;
-    /* Above the toggle button */
     right: 1rem;
     border-radius: 16px;
   }
