@@ -393,7 +393,7 @@ function LoginContent() {
 
                     <footer className="auth-nav-footer">
                         <p style={{ marginBottom: '1.2rem' }}>
-                            <Link href="/forgot-password" className="link-gold" style={{ fontSize: '0.85rem', fontWeight: 500, opacity: 0.8 }}>
+                            <Link href="/auth/forgot-password" className="link-gold" style={{ fontSize: '0.85rem', fontWeight: 500, opacity: 0.8 }}>
                                 ¿Olvidaste tu clave?
                             </Link>
                         </p>

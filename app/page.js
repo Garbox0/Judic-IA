@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import styles from "./page.module.css";
 import Link from "next/link";
 import SafeChatWidget from "./components/SafeChatWidget";
+import { Clock, Shield, Zap } from 'lucide-react';
 import "./landing.css"; // Version 3.0 Styles
 
 export default function Home() {
@@ -107,21 +108,6 @@ export default function Home() {
                 Explorar Soluciones
               </Link>
             </div>
-
-            <div className="stats-grid">
-              <div className="stat-item">
-                <span className="stat-value">24/7</span>
-                <span className="stat-label">Atención Permanente</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-value">+10h</span>
-                <span className="stat-label">Ahorro Semanal</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-value">100%</span>
-                <span className="stat-label">Seguridad Cifrada</span>
-              </div>
-            </div>
           </div>
 
           <div className="hero-mockup-wrapper reveal">
@@ -152,6 +138,31 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 📊 STATS SECTION (Moved for Full Width Centering) */}
+        <div className="stats-grid">
+          <div className="stat-item">
+            <div className="stat-icon-wrapper"><Clock size={24} /></div>
+            <div>
+              <span className="stat-value">24/7</span>
+              <span className="stat-label">Atención Permanente</span>
+            </div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-icon-wrapper"><Zap size={24} /></div>
+            <div>
+              <span className="stat-value">+10h</span>
+              <span className="stat-label">Ahorro Semanal</span>
+            </div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-icon-wrapper"><Shield size={24} /></div>
+            <div>
+              <span className="stat-value">100%</span>
+              <span className="stat-label">Seguridad Cifrada</span>
             </div>
           </div>
         </div>
@@ -235,6 +246,11 @@ export default function Home() {
           <Link href="/register" className="btn-primary-v3">
             Crear mi Estudio Digital
           </Link>
+          <div className="cta-pills">
+            <span className="cta-pill"><strong>✓</strong> 14 días gratis</span>
+            <span className="cta-pill"><strong>✓</strong> Sin tarjeta</span>
+            <span className="cta-pill"><strong>✓</strong> Cancela cuando quieras</span>
+          </div>
         </div>
       </section>
 

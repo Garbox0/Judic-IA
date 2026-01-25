@@ -198,7 +198,8 @@ body::before {
 
 /* 🚀 HERO SECTION 3.0 */
 .hero-section {
-    padding: 160px 0 100px;
+    padding: 160px 0 40px;
+    /* Reduced bottom padding from 100px to 40px */
     max-width: 1200px;
     margin: 0 auto;
     padding-left: 2rem;
@@ -430,29 +431,84 @@ body::before {
 
 /* 📊 STATS SECTION */
 .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
+    /* Changed to Flex for better centering control */
+    justify-content: center;
+    /* Center horizontally */
     gap: 2rem;
+    /* Increased gap */
     margin-top: 4rem;
     border-top: 1px solid var(--glass-border);
-    padding-top: 4rem;
+    padding-top: 3rem;
+    max-width: 100%;
+    flex-wrap: wrap;
+    /* Allow wrapping on small screens */
 }
 
 .stat-item {
-    text-align: left;
+    flex: 1;
+    min-width: 150px;
+    /* Ensure they don't get too small */
+    max-width: 220px;
+    /* Prevent them from stretching too wide */
+    display: flex;
+    flex-direction: column;
+    /* Stack vertically for better "center" look */
+    align-items: center;
+    /* Center content horizontally */
+    justify-content: center;
+    text-align: center;
+    /* Center text */
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1.5rem 1rem;
+    /* Increased padding (Vertical) */
+    border-radius: 24px;
+    /* Softer radius */
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    min-height: 140px;
+    /* Force a bit more height */
+}
+
+.stat-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.stat-icon-wrapper {
+    background: rgba(251, 191, 36, 0.1);
+    color: var(--accent);
+    width: 52px;
+    /* Slightly larger */
+    height: 52px;
+    /* Slightly larger */
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-bottom: 0.5rem;
+    /* Space between icon and text */
 }
 
 .stat-value {
-    font-size: 2.5rem;
+    font-size: 2rem;
+    /* Larger font */
     font-weight: 800;
     color: white;
-    display: block;
+    line-height: 1;
+    margin-bottom: 4px;
 }
 
 .stat-label {
     color: var(--text-secondary);
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.2;
+    display: block;
 }
 
 /* 🏛️ FEATURES & PRICING COMMON */
@@ -485,7 +541,7 @@ body::before {
 /* 📦 CARDS 3.0 */
 .grid4 {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 1.5rem;
 }
 
@@ -497,6 +553,13 @@ body::before {
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 320px;
+}
+
+.card-v3 p {
+    margin-top: auto;
 }
 
 .card-v3:hover {
@@ -547,6 +610,21 @@ body::before {
     position: relative;
     overflow: hidden;
     transition: all 0.4s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.price-features {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0;
+    display: grid;
+    gap: 1rem;
+}
+
+.price-card-v3 .btn-primary-v3,
+.price-card-v3 .btn-secondary-v3 {
+    margin-top: auto;
 }
 
 .price-card-v3.featured {
@@ -563,13 +641,15 @@ body::before {
     position: absolute;
     top: 30px;
     right: 30px;
-    padding: 8px 16px;
+    padding: 7px 14px;
     background: var(--accent-gradient);
     color: #020617;
     border-radius: 99px;
     font-weight: 900;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 
 .price-amount {
@@ -628,6 +708,46 @@ body::before {
     margin: 100px 2rem;
     position: relative;
     overflow: visible;
+}
+
+.cta-v3::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 50px;
+    background: radial-gradient(circle at 50% 40%, rgba(251, 191, 36, 0.12), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.cta-v3>* {
+    position: relative;
+    z-index: 1;
+}
+
+.cta-pills {
+    margin-top: 1.8rem;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cta-pill {
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(2, 6, 23, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(226, 232, 240, 0.9);
+    font-size: 0.85rem;
+    font-weight: 650;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cta-pill strong {
+    color: var(--accent);
 }
 
 /* 📱 MOBILE NAVIGATION & FOOTER 3.0 */
@@ -823,12 +943,14 @@ body::before {
     }
 
     .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 3rem;
-        text-align: center;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.2rem;
     }
 
     .stat-item {
+        width: 100%;
+        max-width: 420px;
         text-align: center;
     }
 }
