@@ -21,30 +21,38 @@ export default function ClientUpdatePasswordPage() {
     // Verify Session on Load (Recovery Flow)
     useEffect(() => {
         const checkSession = async () => {
+            // Check if we have a hash with tokens (Supabase sends #access_token=...)
+            const hasAuthHash = window.location.hash && window.location.hash.includes('access_token');
+
+            // If there's a hash, Supabase needs time to process it. We wait longer.
+            const timeoutDuration = hasAuthHash ? 6000 : 3000;
+
             const { data: { session }, error } = await supabase.auth.getSession();
-            if (error || !session) {
-                // Try listening for the recovery event specifically
-                const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-                    if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
-                        setVerifyingSession(false);
-                    }
-                });
 
-                // If after a short delay we still have no session, show error
-                setTimeout(async () => {
-                    const { data: { session: currentSession } } = await supabase.auth.getSession();
-                    if (!currentSession) {
-                        setSessionError("Enlace inválido o expirado. Por favor solicita uno nuevo.");
-                        setVerifyingSession(false);
-                    } else {
-                        setVerifyingSession(false);
-                    }
-                }, 2000);
-
-                return () => subscription.unsubscribe();
-            } else {
+            if (session) {
                 setVerifyingSession(false);
+                return;
             }
+
+            // Try listening for the recovery event specifically
+            const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+                    setVerifyingSession(false);
+                }
+            });
+
+            // If after the delay we still have no session, show error
+            setTimeout(async () => {
+                const { data: { session: currentSession } } = await supabase.auth.getSession();
+                if (!currentSession) {
+                    setSessionError("Enlace inválido o expirado. Por favor solicita uno nuevo.");
+                    setVerifyingSession(false);
+                } else {
+                    setVerifyingSession(false);
+                }
+            }, timeoutDuration);
+
+            return () => subscription.unsubscribe();
         };
 
         checkSession();
