@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import Link from 'next/link';
 
+import { demoLibrary } from '../../lib/demoData';
+
 export default function LibraryPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -24,8 +26,12 @@ export default function LibraryPage() {
 
     const fetchJurisdictions = async () => {
         const { data } = await supabase.from('case_library').select('jurisdiction');
-        if (data) {
+        if (data && data.length > 0) {
             const unique = [...new Set(data.map(item => item.jurisdiction))].filter(Boolean);
+            setJurisdictions(unique);
+        } else {
+            // Demo fallback
+            const unique = [...new Set(demoLibrary.map(item => item.jurisdiction))].filter(Boolean);
             setJurisdictions(unique);
         }
     };
@@ -39,8 +45,6 @@ export default function LibraryPage() {
                 .order('created_at', { ascending: false });
 
             if (searchTerm) {
-                // Using textSearch for full text search capability if configured, or simple ilike
-                // 'autos' and 'summary' are the main fields.
                 query = query.or(`autos.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`);
             }
 
@@ -50,11 +54,29 @@ export default function LibraryPage() {
 
             const { data, error } = await query.limit(50);
 
-            if (error) throw error;
-            setCases(data || []);
+            // If error or empty, use demo data
+            if (error || !data || data.length === 0) {
+                // Filter demo data locally if needed
+                let filtered = demoLibrary;
+                if (searchTerm) {
+                    const lower = searchTerm.toLowerCase();
+                    filtered = filtered.filter(c =>
+                        c.autos.toLowerCase().includes(lower) ||
+                        c.summary.toLowerCase().includes(lower)
+                    );
+                }
+                if (jurisdictionFilter) {
+                    filtered = filtered.filter(c => c.jurisdiction === jurisdictionFilter);
+                }
+                setCases(filtered);
+            } else {
+                setCases(data);
+            }
 
         } catch (error) {
             console.error("Library fetch error:", error);
+            // Fallback on crash
+            setCases(demoLibrary);
         } finally {
             setLoading(false);
         }

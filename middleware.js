@@ -44,9 +44,10 @@ export async function middleware(request) {
         font-src 'self' https://fonts.gstatic.com data:;
         connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com;
         frame-src 'self' https://accounts.google.com https://*.mercadopago.com;
-        object-src 'none';
+        object-src 'self';
+        worker-src 'self' blob:;
         base-uri 'self';
-        frame-ancestors 'none';
+        frame-ancestors 'self';
         upgrade-insecure-requests;
     `.replace(/\s{2,}/g, ' ').trim()
 
@@ -195,6 +196,6 @@ export async function middleware(request) {
 
 export const config = {
     matcher: [
-        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|pdf)$).*)',
     ],
 }

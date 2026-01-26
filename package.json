@@ -11,6 +11,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.89.0",
+    "cheerio": "^1.2.0",
     "dotenv": "^17.2.3",
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",
@@ -18,10 +19,13 @@
     "mercadopago": "^2.11.0",
     "next": "^16.1.1-canary.10",
     "openai": "^6.15.0",
+    "pdfjs-dist": "^5.4.530",
+    "puppeteer": "^24.36.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-dropzone": "^14.3.8",
     "react-easy-crop": "^5.5.6",
+    "react-pdf": "^10.3.0",
     "recharts": "^3.6.0",
     "resend": "^6.7.0",
     "sonner": "^2.0.7"

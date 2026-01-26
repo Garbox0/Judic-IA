@@ -10,7 +10,9 @@ import {
   FolderOpen,
   Calendar,
   BookOpen,
-  Settings
+  Settings,
+  Calculator,
+  Book
 } from 'lucide-react';
 
 export default function DashboardHome({ isDemo = false, basePath = '/dashboard' }) {
@@ -91,6 +93,22 @@ export default function DashboardHome({ isDemo = false, basePath = '/dashboard' 
       icon: <Calendar size={24} />,
       link: '/dashboard/agenda',
       color: '#10b981'
+    },
+    {
+      id: 'calculators',
+      title: 'Calculadora',
+      desc: 'Herramientas de cálculo de indemnizaciones y plazos.',
+      icon: <Calculator size={24} />,
+      link: '/dashboard/calculators',
+      color: '#f59e0b'
+    },
+    {
+      id: 'legislation',
+      title: 'Legislación',
+      desc: 'Acceso rápido a normativas y códigos vigentes.',
+      icon: <Book size={24} />,
+      link: '/dashboard/legislation',
+      color: '#8b5cf6'
     },
     {
       id: 'library',

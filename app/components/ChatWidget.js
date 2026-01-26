@@ -305,7 +305,7 @@ export default function ChatWidget({
 
                     {/* Messages */}
                     <div style={{ flex: 1, padding: "1rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1rem" }}>
-                        {messages.filter(m => !m.content.startsWith('[SISTEMA:')).map((m, i) => (
+                        {messages.filter(m => m.content && !m.content.startsWith('[SISTEMA:')).map((m, i) => (
                             <div key={i} style={{
                                 alignSelf: m.role === "user" ? "flex-end" : "flex-start",
                                 background: m.role === "user" ? "var(--primary)" : "rgba(30, 41, 59, 0.8)",
