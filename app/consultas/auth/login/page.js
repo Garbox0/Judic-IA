@@ -2,6 +2,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { supabase } from '../../../lib/supabase';
 import SafeChatWidget from '../../../components/SafeChatWidget';
 import '../../../globals.css';
@@ -346,7 +347,14 @@ function LoginContent() {
             ) : (
                 <>
                     <header className="brand-header">
-                        <img src="/logo.png" alt="Judic-IA Logo" className="brand-logo-premium" />
+                        <Image
+                            src="/judic-ia-mark.png"
+                            alt="Judic-IA Logo"
+                            className="brand-logo-premium"
+                            width={48}
+                            height={64}
+                            style={{ objectFit: 'contain' }}
+                        />
                         <h1 className="brand-name-premium">Judic-IA <span className="justice-emoji">⚖️</span></h1>
                         <div className="brand-status">Acceso Seguro • Clientes</div>
                         <p className="brand-desc">Ingresa para continuar con tu asesoría legal automatizada.</p>

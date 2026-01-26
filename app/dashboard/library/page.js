@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import Link from 'next/link';
+import { Brain, Library, ExternalLink, Copy, Search, Filter } from 'lucide-react';
 
 import { demoLibrary } from '../../lib/demoData';
 
@@ -94,7 +95,7 @@ export default function LibraryPage() {
 
             <header className="library-header">
                 <div className="header-content">
-                    <h1>🧠 Base de Conocimiento</h1>
+                    <h1><Brain size={48} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.8rem', color: '#ec4899' }} /> Base de Conocimiento</h1>
                     <p>Índice colaborativo de jurisprudencia y precedentes investigados.</p>
                 </div>
 
@@ -124,7 +125,7 @@ export default function LibraryPage() {
                     <div className="loading-state">Cargando biblioteca...</div>
                 ) : cases.length === 0 ? (
                     <div className="empty-state">
-                        <span style={{ fontSize: '3rem' }}>📚</span>
+                        <span style={{ display: 'block', marginBottom: '1rem' }}><Library size={64} style={{ opacity: 0.5 }} /></span>
                         <h3>Biblioteca Vacía</h3>
                         <p>Realiza investigaciones en el módulo de Jurisprudencia para poblar este índice.</p>
                     </div>
@@ -133,7 +134,7 @@ export default function LibraryPage() {
                         <div key={item.id || item.url} className="library-card glass-panel">
                             <div className="card-header">
                                 <span className="jurisdiction-tag">{item.jurisdiction || 'General'}</span>
-                                <a href={item.url} target="_blank" rel="noopener noreferrer" className="card-link">↗</a>
+                                <a href={item.url} target="_blank" rel="noopener noreferrer" className="card-link"><ExternalLink size={18} /></a>
                             </div>
                             <h3 className="card-title">{item.autos}</h3>
                             <p className="card-summary">{item.summary}</p>
@@ -144,8 +145,9 @@ export default function LibraryPage() {
                                         navigator.clipboard.writeText(`${item.autos} - ${item.url}`);
                                         alert("Cita copiada al portapapeles");
                                     }}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                                 >
-                                    Copiar Cita
+                                    <Copy size={12} /> Copiar Cita
                                 </button>
                             </div>
                         </div>

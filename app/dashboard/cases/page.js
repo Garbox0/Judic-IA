@@ -2,6 +2,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import Link from 'next/link';
+import {
+    Folder,
+    Briefcase,
+    Archive,
+    FolderOpen,
+    MessageSquare,
+    Trash2,
+    AlertTriangle,
+    ChevronDown,
+    ChevronUp
+} from 'lucide-react';
 
 export default function CasesPage() {
     const [loading, setLoading] = useState(true);
@@ -130,7 +141,7 @@ export default function CasesPage() {
 
             <header className="cases-header">
                 <div className="header-flex">
-                    <div className="header-icon-box">📁</div>
+                    <div className="header-icon-box"><Briefcase size={48} /></div>
                     <div className="header-text">
                         <h1 className="dashboard-page-title">Expedientes del Estudio</h1>
                         <p>Gestión centralizada de casos oficiales y carpetas legales.</p>
@@ -174,7 +185,7 @@ export default function CasesPage() {
                                 <tr>
                                     <td colSpan="5" style={{ textAlign: 'center', padding: '4rem 1rem' }}>
                                         <div className="empty-state">
-                                            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🗄️</div>
+                                            <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}><Archive size={64} style={{ opacity: 0.5 }} /></div>
                                             <h3>No hay expedientes activos</h3>
                                             <p>Convierte tus consultas entrantes en expedientes para empezar a gestionarlos aquí.</p>
                                         </div>
@@ -202,9 +213,9 @@ export default function CasesPage() {
                                         </td>
                                         <td>
                                             <div className="action-cell">
-                                                <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Abrir Carpeta">📂</Link>
-                                                <Link href={`/dashboard/clients?id=${item.inquiry_id}`} className="btn-chat" title="Ver Chat Original">💬</Link>
-                                                <button onClick={() => setCaseToDelete(item)} className="btn-delete" title="Eliminar Expediente">🗑️</button>
+                                                <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Abrir Carpeta"><FolderOpen size={16} /></Link>
+                                                <Link href={`/dashboard/clients?id=${item.inquiry_id}`} className="btn-chat" title="Ver Chat Original"><MessageSquare size={16} /></Link>
+                                                <button onClick={() => setCaseToDelete(item)} className="btn-delete" title="Eliminar Expediente"><Trash2 size={16} /></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -221,9 +232,9 @@ export default function CasesPage() {
                     className={`btn-vault-toggle ${showVault ? 'active' : ''}`}
                     onClick={() => setShowVault(!showVault)}
                 >
-                    <span style={{ fontSize: '1.2rem' }}>{showVault ? '📂' : '📁'}</span>
+                    <span style={{ fontSize: '1.2rem', display: 'flex' }}>{showVault ? <FolderOpen size={20} /> : <Folder size={20} />}</span>
                     Archivos del Estudio ({archivedCases.length})
-                    <span className="vault-arrow">{showVault ? '▲' : '▼'}</span>
+                    <span className="vault-arrow">{showVault ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</span>
                 </button>
 
                 {showVault && (
@@ -253,7 +264,7 @@ export default function CasesPage() {
                                             <td style={{ opacity: 0.7 }}><span className="date-cell">{new Date(item.updated_at).toLocaleDateString()}</span></td>
                                             <td>
                                                 <div className="action-cell">
-                                                    <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Abrir y Recuperar">📂</Link>
+                                                    <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Abrir y Recuperar"><FolderOpen size={16} /></Link>
                                                 </div>
                                             </td>
                                         </tr>
@@ -269,7 +280,8 @@ export default function CasesPage() {
             {caseToDelete && (
                 <div className="modal-overlay">
                     <div className="modal-box glass-panel">
-                        <h2>⚠️ ¿Eliminar Expediente?</h2>
+                        <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}><AlertTriangle size={48} className="text-amber-500" /></div>
+                        <h2>¿Eliminar Expediente?</h2>
                         <p>Se borrará la "Carpeta Legal" <strong>{caseToDelete.title}</strong>.</p>
                         <p>El usuario y su chat NO se verán afectados.</p>
                         <div className="modal-actions">

@@ -176,7 +176,7 @@ export default function CalculatorsPage() {
 
             <header className="tools-header">
                 <div className="header-content">
-                    <h1>🧮 Calculadoras Jurídicas</h1>
+                    <h1><Calculator size={48} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.8rem', color: '#8b5cf6' }} /> Calculadoras Jurídicas</h1>
                     <p>Herramientas de precisión para el ejercicio profesional.</p>
                 </div>
             </header>

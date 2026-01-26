@@ -4,6 +4,26 @@ import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 import EventModal from '../../components/dashboard/EventModal';
 import { demoClients } from '../../lib/demoData'; // [NEW] Mock Data
+import {
+    Users,
+    Inbox,
+    Phone,
+    Trash2,
+    ArrowRight,
+    AlertTriangle,
+    CheckCircle,
+    X,
+    MessageSquare,
+    FileText,
+    Zap,
+    Loader,
+    Folder,
+    Calendar,
+    PartyPopper,
+    Link2,
+    Copy,
+    Check
+} from 'lucide-react';
 
 export default function ClientsPage({ isDemo = false, basePath = '/dashboard' }) {
     const [clients, setClients] = useState([]);
@@ -330,7 +350,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
             <header className="clients-header">
                 <div className="header-flex">
-                    <div className="header-icon-box">👥</div>
+                    <div className="header-icon-box"><Users size={48} /></div>
                     <div className="header-text">
                         <h1 className="dashboard-page-title">Mis Clientes</h1>
                         <p>Gestiona tus expedientes y consultas entrantes.</p>
@@ -338,14 +358,13 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                 </div>
             </header>
 
-            {/* SMART LINK CARD */}
             <div className="smart-link-card glass-panel">
                 <div className="link-info">
-                    <h3>🔗 Tu Enlace de Consulta Inteligente</h3>
+                    <h3><Link2 size={24} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.5rem' }} /> Tu Enlace de Consulta Inteligente</h3>
                     <p>Comparte este link con tus clientes para que la IA tome sus datos automáticamente.</p>
                 </div>
                 <button onClick={copySmartLink} className={`btn-copy ${copied ? 'copied' : ''}`} disabled={copied}>
-                    {copied ? '✅ Enlace Copiado' : 'Copiar Enlace'}
+                    {copied ? <><Check size={16} /> Enlace Copiado</> : <><Copy size={16} /> Copiar Enlace</>}
                 </button>
             </div>
 
@@ -355,7 +374,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                     <p>Cargando clientes...</p>
                 ) : clients.length === 0 ? (
                     <div className="empty-state glass-panel">
-                        <div className="empty-icon">📭</div>
+                        <div className="empty-icon"><Inbox size={64} style={{ opacity: 0.5 }} /></div>
                         <h3>Aún no tienes consultas</h3>
                         <p>Comparte tu enlace inteligente para empezar a recibir casos.</p>
                     </div>
@@ -363,7 +382,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                     clients.map(client => (
                         <div key={client.id} className="client-card glass-panel" onClick={() => openClientModal(client)}>
                             <button className="btn-delete" onClick={(e) => deleteClient(client.id, e)} title="Eliminar Expediente" style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', fontSize: '1rem' }}>
-                                🗑️
+                                <Trash2 size={14} />
                             </button>
 
                             <h3 className="client-id" style={{ marginTop: '1.5rem', fontSize: '1.1rem' }}>
@@ -375,11 +394,11 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                             )}
 
                             {client.contact_phone && (
-                                <p style={{ color: '#fbbf24', fontSize: '0.9rem', marginBottom: '0.5rem' }}>📞 {client.contact_phone}</p>
+                                <p style={{ color: '#fbbf24', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Phone size={14} /> {client.contact_phone}</p>
                             )}
 
                             <p className="client-date">{new Date(client.created_at).toLocaleDateString()}</p>
-                            <div className="client-footer">Ver Conversación →</div>
+                            <div className="client-footer">Ver Conversación <ArrowRight size={14} style={{ display: 'inline', marginLeft: '5px' }} /></div>
                         </div>
                     ))
                 )}
@@ -389,7 +408,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
             {clientToDelete && (
                 <div className="modal-overlay" onClick={() => setClientToDelete(null)}>
                     <div className="modal-content glass-panel" style={{ maxWidth: '400px', padding: '2rem', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+                        <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}><AlertTriangle size={48} className="text-amber-500" /></div>
                         <h2 style={{ marginBottom: '1rem' }}>¿Eliminar Expediente?</h2>
                         <p style={{ color: 'var(--muted)', marginBottom: '2rem' }}>
                             Esta acción borrará el chat, los archivos adjuntos y <strong>la cuenta de acceso del cliente</strong> de forma permanente.
@@ -410,7 +429,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
             {conversionSuccess && (
                 <div className="modal-overlay" onClick={() => setConversionSuccess(false)}>
                     <div className="modal-content glass-panel" style={{ maxWidth: '450px', height: 'auto', padding: '2.5rem', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.3)' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
+                        <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}><PartyPopper size={64} className="text-emerald-400" /></div>
                         <h2 style={{ marginBottom: '1rem', color: '#4ade80' }}>¡Expediente Creado!</h2>
                         <p style={{ color: '#e2e8f0', marginBottom: '1.5rem', lineHeight: '1.6' }}>
                             La consulta se ha convertido exitosamente en un <strong>Caso Oficial</strong> del estudio.
@@ -452,7 +471,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                 <div className="divider-vertical"></div>
 
                                 <button className="btn-delete" onClick={(e) => deleteClient(selectedClient.id, e)} title="Eliminar Expediente">
-                                    🗑️
+                                    <Trash2 size={16} />
                                 </button>
                                 {/* Generate Document: Disabled in Demo? Or mocked? Let's leave it, but handled by the target page. 
                                     Ideally we pass isDemo in query param or route. 
@@ -469,7 +488,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                         }
                                     }}
                                 >
-                                    ⚡ Generar Escrito
+                                    <Zap size={16} className="text-amber-900" /> Generar Escrito
                                 </Link>
                                 <button
                                     className="btn-convert-action"
@@ -477,12 +496,12 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                     disabled={converting || selectedClient.is_case}
                                     title="Convertir esta consulta en un expediente formal del estudio"
                                 >
-                                    {converting ? '⏳ Convirtiendo...' : selectedClient.is_case ? '📂 Ya es Expediente' : '📁 Convertir en Expediente'}
+                                    {converting ? <><Loader size={16} className="animate-spin" /> Convirtiendo...</> : selectedClient.is_case ? <><Folder size={16} /> Ya es Expediente</> : <><Folder size={16} /> Convertir en Expediente</>}
                                 </button>
                                 <button className="btn-agenda-action" onClick={openEventModalForClient} title="Agendar Plazo">
-                                    📅 Crear Plazo
+                                    <Calendar size={16} /> Crear Plazo
                                 </button>
-                                <button onClick={closeModal} className="close-btn">×</button>
+                                <button onClick={closeModal} className="close-btn"><X size={24} /></button>
                             </div>
                         </div>
 
@@ -491,7 +510,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
                             {/* CHAT SECTION (CENTRAL) */}
                             <div className="chat-section">
-                                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#fbbf24' }}>💬 Historial de Conversación</h3>
+                                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MessageSquare size={18} /> Historial de Conversación</h3>
                                 <div className="chat-viewer">
                                     {loadingChat ? <p>Cargando chat...</p> : (
                                         chatHistory.length === 0 ? <p className="no-msgs">No hay mensajes aún.</p> :
@@ -548,7 +567,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                 <div className="attachments-list">
                                                     {attachments.map(file => (
                                                         <a key={file.id} href={file.file_url} target="_blank" rel="noopener noreferrer" className="attachment-row-link">
-                                                            <span className="file-icon-small">📄</span>
+                                                            <FileText size={16} />
                                                             <span className="file-name">{file.file_name}</span>
                                                         </a>
                                                     ))}

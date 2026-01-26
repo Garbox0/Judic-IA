@@ -3,6 +3,19 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 import EventModal from '../../components/dashboard/EventModal';
+import {
+    Calendar,
+    Bell,
+    User,
+    Check,
+    Trash2,
+    FileClock,
+    ChevronDown,
+    ChevronUp,
+    CheckCircle,
+    XCircle,
+    Clock
+} from 'lucide-react';
 
 // Helper to get days in month
 const getDaysInMonth = (year, month) => {
@@ -228,7 +241,7 @@ export default function AgendaPage() {
 
             <header className="agenda-header">
                 <div>
-                    <h1 className="dashboard-page-title">📅 Agenda Jurídica</h1>
+                    <h1 className="dashboard-page-title"><Calendar size={32} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.8rem', color: '#fbbf24' }} /> Agenda Jurídica</h1>
                     <p className="subtitle">Gestión de vencimientos, audiencias y plazos procesales.</p>
                 </div>
                 <button className="btn-primary" onClick={() => setModalOpen(true)}>
@@ -258,7 +271,7 @@ export default function AgendaPage() {
                 <aside className="upcoming-panel glass-panel">
                     <div className="upcoming-sticky">
                         <div className="upcoming-title-row">
-                            <h3>🔔 Plazos</h3>
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Bell size={18} /> Plazos</h3>
                             <div className="upcoming-mini">
                                 <span className="pill">Vencidos: {kpiOverdue}</span>
                                 <span className="pill">Hoy: {kpiToday}</span>
@@ -293,7 +306,7 @@ export default function AgendaPage() {
                     <div className="upcoming-scroll">
                         {filtered.length === 0 && (
                             <div className="empty-state">
-                                <div className="empty-title">No hay plazos en este rango ✅</div>
+                                <div className="empty-title">No hay plazos en este rango <CheckCircle size={16} style={{ display: 'inline' }} /></div>
                                 <div className="empty-sub">Probá ampliar a 7d/30d o creá un nuevo evento.</div>
                             </div>
                         )}
@@ -311,7 +324,7 @@ export default function AgendaPage() {
                                             </div>
 
                                             {ev.inquiries?.contact_name && (
-                                                <div className="card-client">👤 {ev.inquiries.contact_name}</div>
+                                                <div className="card-client" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={12} /> {ev.inquiries.contact_name}</div>
                                             )}
 
                                             <div className="card-title">{ev.title}</div>
@@ -321,8 +334,8 @@ export default function AgendaPage() {
                                         </div>
 
                                         <div className="event-actions">
-                                            <button onClick={() => markAsDone(ev.id)} title="Marcar completado">✅</button>
-                                            <button onClick={() => deleteEvent(ev.id)} title="Eliminar">🗑️</button>
+                                            <button onClick={() => markAsDone(ev.id)} title="Marcar completado"><Check size={14} /></button>
+                                            <button onClick={() => deleteEvent(ev.id)} title="Eliminar"><Trash2 size={14} /></button>
                                         </div>
                                     </div>
                                 ))}
@@ -342,7 +355,7 @@ export default function AgendaPage() {
                                             </div>
 
                                             {ev.inquiries?.contact_name && (
-                                                <div className="card-client">👤 {ev.inquiries.contact_name}</div>
+                                                <div className="card-client" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={12} /> {ev.inquiries.contact_name}</div>
                                             )}
 
                                             <div className="card-title">{ev.title}</div>
@@ -352,8 +365,8 @@ export default function AgendaPage() {
                                         </div>
 
                                         <div className="event-actions">
-                                            <button onClick={() => markAsDone(ev.id)} title="Marcar completado">✅</button>
-                                            <button onClick={() => deleteEvent(ev.id)} title="Eliminar">🗑️</button>
+                                            <button onClick={() => markAsDone(ev.id)} title="Marcar completado"><Check size={14} /></button>
+                                            <button onClick={() => deleteEvent(ev.id)} title="Eliminar"><Trash2 size={14} /></button>
                                         </div>
                                     </div>
                                 ))}
@@ -373,7 +386,7 @@ export default function AgendaPage() {
                                             </div>
 
                                             {ev.inquiries?.contact_name && (
-                                                <div className="card-client">👤 {ev.inquiries.contact_name}</div>
+                                                <div className="card-client" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={12} /> {ev.inquiries.contact_name}</div>
                                             )}
 
                                             <div className="card-title">{ev.title}</div>
@@ -417,7 +430,7 @@ export default function AgendaPage() {
                                 <div className="tt-main">
                                     <div className="tt-title">{ev.title}</div>
                                     {ev.inquiries?.contact_name && (
-                                        <div className="tt-client">👤 {ev.inquiries.contact_name}</div>
+                                        <div className="tt-client" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={10} /> {ev.inquiries.contact_name}</div>
                                     )}
                                     <div className="tt-meta">
                                         {new Date(ev.due_date).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
@@ -439,13 +452,13 @@ export default function AgendaPage() {
             <div className={`history-panel ${showHistory ? 'expanded' : ''}`}>
                 <div className="history-head" onClick={() => setShowHistory(!showHistory)}>
                     <div className="history-title">
-                        <span className="icon">📜</span>
+                        <span className="icon"><FileClock size={20} /></span>
                         <h3>Historial de Plazos</h3>
                         <span className="count">
                             {deadlines.filter(ev => ev.status !== 'pending').length} archivados
                         </span>
                     </div>
-                    <button className="btn-toggle">{showHistory ? '▼ Ocultar' : '▲ Ver Historial'}</button>
+                    <button className="btn-toggle">{showHistory ? <><ChevronDown size={14} /> Ocultar</> : <><ChevronUp size={14} /> Ver Historial</>}</button>
                 </div>
                 {showHistory && (
                     <div className="history-body">
@@ -460,15 +473,15 @@ export default function AgendaPage() {
                                         .map(ev => (
                                             <div key={ev.id} className={`history-card status-${ev.status}`}>
                                                 <div className="card-info">
-                                                    <span className={`badge-status ${ev.status}`}>
-                                                        {ev.status === 'done' ? '✓ COMPLETADO' : '✕ ELIMINADO'}
+                                                    <span className={`badge-status ${ev.status}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+                                                        {ev.status === 'done' ? <><CheckCircle size={10} /> COMPLETADO</> : <><XCircle size={10} /> ELIMINADO</>}
                                                     </span>
                                                     <h4>{ev.title}</h4>
-                                                    <span className="date">
-                                                        📅 Venció: {new Date(ev.due_date).toLocaleDateString()}
+                                                    <span className="date" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <Calendar size={12} /> Venció: {new Date(ev.due_date).toLocaleDateString()}
                                                     </span>
-                                                    <span className="timestamp">
-                                                        🕒 {ev.status === 'done' ? 'Completado' : 'Eliminado'} el: {new Date(ev.done_at || ev.deleted_at).toLocaleDateString()}
+                                                    <span className="timestamp" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <Clock size={12} /> {ev.status === 'done' ? 'Completado' : 'Eliminado'} el: {new Date(ev.done_at || ev.deleted_at).toLocaleDateString()}
                                                     </span>
                                                 </div>
                                             </div>

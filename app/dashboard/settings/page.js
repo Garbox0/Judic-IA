@@ -8,6 +8,23 @@ import Script from 'next/script';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 import { CONTACT_CHANNELS, buildMailto } from '../../lib/contact-channels';
+import {
+    User,
+    Shield,
+    CreditCard,
+    LifeBuoy,
+    Camera,
+    PenLine,
+    Upload,
+    Check,
+    AlertTriangle,
+    Crown,
+    Scale,
+    Gem,
+    Receipt,
+    HelpCircle,
+    Mail
+} from 'lucide-react';
 import '../../globals.css';
 
 const SPECIALTIES_OPTIONS = [
@@ -343,22 +360,22 @@ export default function SettingsPage() {
                     <span className="breadcrumb-separator">/</span>
                     <span className="breadcrumb-current">Ajustes</span>
                 </nav>
-                <h1 className="dashboard-page-title">Configuración Profesional ⚖️</h1>
+                <h1 className="dashboard-page-title">Configuración Profesional <Gem size={28} className="text-amber-400" style={{ display: 'inline', verticalAlign: 'middle', marginLeft: '0.5rem' }} /></h1>
 
                 <div className="stg-layout-split">
                     {/* Sidebar de Ajustes (Interno) */}
                     <aside className="stg-tabs-nav">
                         <button className={`stg-tab-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => handleTabChange('profile')}>
-                            👤 Perfil Profesional
+                            <User size={18} /> Perfil Profesional
                         </button>
                         <button className={`stg-tab-btn ${activeTab === 'security' ? 'active' : ''}`} onClick={() => handleTabChange('security')}>
-                            🛡️ Seguridad
+                            <Shield size={18} /> Seguridad
                         </button>
                         <button className={`stg-tab-btn ${activeTab === 'billing' ? 'active' : ''}`} onClick={() => handleTabChange('billing')}>
-                            💳 Facturación
+                            <CreditCard size={18} /> Facturación
                         </button>
                         <button className={`stg-tab-btn ${activeTab === 'support' ? 'active' : ''}`} onClick={() => handleTabChange('support')}>
-                            🧩 Soporte y Ayuda
+                            <LifeBuoy size={18} /> Soporte y Ayuda
                         </button>
                     </aside>
 
@@ -376,7 +393,7 @@ export default function SettingsPage() {
                                                 <img src={previewUrl || formData.avatar_url} alt="Profile" />
                                             ) : (
                                                 <div className="stg-placeholder">
-                                                    {isDragActive ? "Soltar" : <>📷</>}
+                                                    {isDragActive ? "Soltar" : <Camera size={24} className="text-slate-500" />}
                                                 </div>
                                             )}
                                             {uploading && <div className="stg-loader-overlay">...</div>}
@@ -388,13 +405,13 @@ export default function SettingsPage() {
                                                 onClick={handleEditCurrent}
                                                 disabled={!(previewUrl || formData.avatar_url)}
                                             >
-                                                ✏️ Editar
+                                                <PenLine size={14} /> Editar
                                             </button>
                                             <button
                                                 className="stg-mini-btn primary"
                                                 onClick={open}
                                             >
-                                                📷 Subir
+                                                <Upload size={14} /> Subir
                                             </button>
                                         </div>
                                     </div>
@@ -452,7 +469,7 @@ export default function SettingsPage() {
 
                         {activeTab === 'security' && (
                             <div className="stg-tab-pane">
-                                <div className="stg-alert-card">🛡️ Sus datos están bajo la protección cifrada de Judic-IA.</div>
+                                <div className="stg-alert-card"><Shield size={16} className="text-emerald-400" style={{ display: 'inline', marginRight: '0.5rem' }} /> Sus datos están bajo la protección cifrada de Judic-IA.</div>
                                 <div className="stg-field-row multi">
                                     <div className="stg-f-group flex-2">
                                         <label className="stg-label">Email de Acceso</label>
@@ -490,7 +507,7 @@ export default function SettingsPage() {
                                     <label className="stg-label">Tu Plan Actual</label>
                                     <div className="stg-current-status-card">
                                         <div className="stg-status-info">
-                                            <span className="stg-status-icon">{formData.plan_tier === 'professional' ? '👑' : '⚖️'}</span>
+                                            <span className="stg-status-icon">{formData.plan_tier === 'professional' ? <Crown size={24} className="text-amber-400" /> : <Scale size={24} className="text-slate-400" />}</span>
                                             <div>
                                                 <h4 style={{ margin: 0, fontSize: '1.2rem' }}>{formData.plan_tier === 'professional' ? 'Judic-IA Suite Pro' : 'Plan Starter (Gratuito)'}</h4>
                                                 <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: '#64748b' }}>
@@ -499,7 +516,7 @@ export default function SettingsPage() {
                                             </div>
                                         </div>
                                         <div className="stg-badge-v2 active">
-                                            ● ACTIVO {formData.subscription_expiry && `(Hasta ${new Date(formData.subscription_expiry).toLocaleDateString()})`}
+                                            <Check size={12} /> ACTIVO {formData.subscription_expiry && `(Hasta ${new Date(formData.subscription_expiry).toLocaleDateString()})`}
                                         </div>
                                     </div>
                                 </div>
@@ -518,10 +535,10 @@ export default function SettingsPage() {
                                                 <span className="stg-period">/ mensual</span>
                                             </div>
                                             <ul className="stg-plan-list">
-                                                <li>✓ Asistente IA Ilimitado</li>
-                                                <li>✓ Investigación de Jurisprudencia Pro</li>
-                                                <li>✓ Gestión de Clientes sin límites</li>
-                                                <li>✓ Generación de Documentos Premium</li>
+                                                <li><Check size={16} className="text-emerald-400" /> Asistente IA Ilimitado</li>
+                                                <li><Check size={16} className="text-emerald-400" /> Investigación de Jurisprudencia Pro</li>
+                                                <li><Check size={16} className="text-emerald-400" /> Gestión de Clientes sin límites</li>
+                                                <li><Check size={16} className="text-emerald-400" /> Generación de Documentos Premium</li>
 
                                                 <div className="stg-plan-footer" style={{
                                                     marginTop: '2.5rem',
@@ -564,7 +581,7 @@ export default function SettingsPage() {
                                                         <img src="/mercadopago/logo_white.svg" alt="Mercado Pago" style={{ height: '24px' }} />
                                                         <div style={{ height: '16px', width: '1px', background: 'rgba(148, 163, 184, 0.3)' }}></div>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                                            <Shield size={14} className="text-emerald-500" />
                                                             <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                                                                 PAGO SEGURO
                                                             </span>
@@ -576,12 +593,12 @@ export default function SettingsPage() {
                                     </>
                                 ) : (
                                     <div className="stg-success-card">
-                                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
+                                        <div style={{ marginBottom: '1rem' }}><Gem size={48} className="text-amber-400" /></div>
                                         <h3 style={{ margin: 0, color: '#fbbf24' }}>¡Ya eres Profesional!</h3>
                                         <p style={{ color: '#94a3b8' }}>Estás aprovechando al máximo el Gabinete Jurídico.</p>
-                                        <h3 style={{ margin: 0, color: '#fbbf24' }}>¡Ya eres Profesional!</h3>
-                                        <p style={{ color: '#94a3b8' }}>Estás aprovechando al máximo el Gabinete Jurídico.</p>
-                                        <button className="stg-outline-btn" style={{ marginTop: '1rem' }} onClick={() => toast.info("Próximamente: Panel de gestión de suscripciones externas.")}>Ver Facturas</button>
+                                        <button className="stg-outline-btn" style={{ marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '8px' }} onClick={() => toast.info("Próximamente: Panel de gestión de suscripciones externas.")}>
+                                            <Receipt size={16} /> Ver Facturas
+                                        </button>
                                     </div>
                                 )}
 
@@ -596,7 +613,7 @@ export default function SettingsPage() {
                                 </p>
                                 <div className="stg-support-grid">
                                     <div className="stg-support-card">
-                                        <div className="icon-circle">🔧</div>
+                                        <div className="icon-circle"><HelpCircle size={32} className="text-amber-400" /></div>
                                         <h4>{CONTACT_CHANNELS.support.label}</h4>
                                         <p>¿Algo no funciona bien en la plataforma?</p>
                                         <a
@@ -612,7 +629,7 @@ export default function SettingsPage() {
                                     </div>
 
                                     <div className="stg-support-card">
-                                        <div className="icon-circle">💳</div>
+                                        <div className="icon-circle"><Receipt size={32} className="text-amber-400" /></div>
                                         <h4>{CONTACT_CHANNELS.billing.label}</h4>
                                         <p>Dudas sobre tu plan o pagos.</p>
                                         <a

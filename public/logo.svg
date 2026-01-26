@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="solid-gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#d97706;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tech-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fff;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:0.4" />
+    </linearGradient>
+  </defs>
+
+  <!-- BASE: The Book (Solid Foundation) -->
+  <!-- Left Page -->
+  <path d="M60 420 Q 156 450 256 420 v 30 Q 156 480 60 450 Z" fill="url(#solid-gold)" />
+  <path d="M60 420 Q 156 450 256 420 L 256 380 Q 156 400 60 380 Z" fill="url(#solid-gold)" opacity="0.8" />
+  
+  <!-- Right Page -->
+  <path d="M256 420 Q 356 450 452 420 v 30 Q 356 480 452 450 Z" fill="url(#solid-gold)" />
+  <path d="M256 420 Q 356 450 452 420 L 452 380 Q 356 400 256 380 Z" fill="url(#solid-gold)" opacity="0.8" />
+
+  <!-- PILLAR: Stronger, fused with Tech -->
+  <rect x="236" y="80" width="40" height="320" fill="url(#solid-gold)" />
+  
+  <!-- Tech Detail: Minimalist Circuit Trace on Pillar -->
+  <path d="M246 380 v -180 l 10 -10 l 10 10 v 60" fill="none" stroke="#fff" stroke-width="3" opacity="0.6" />
+  <circle cx="256" cy="180" r="5" fill="#fff" />
+  <circle cx="266" cy="270" r="3" fill="#fff" opacity="0.6" />
+
+  <!-- TOP BALANCE ARC -->
+  <path d="M100 130 Q 256 50 412 130" fill="none" stroke="url(#solid-gold)" stroke-width="20" stroke-linecap="round" />
+  
+  <!-- Pans/Scales -->
+  <!-- Left Pan -->
+  <g transform="translate(100, 130)">
+     <line x1="0" y1="0" x2="-35" y2="120" stroke="url(#solid-gold)" stroke-width="4" />
+     <line x1="0" y1="0" x2="35" y2="120" stroke="url(#solid-gold)" stroke-width="4" />
+     <path d="M-45 120 H 45 Q 0 170 -45 120 Z" fill="url(#solid-gold)" />
+  </g>
+
+  <!-- Right Pan -->
+  <g transform="translate(412, 130)">
+     <line x1="0" y1="0" x2="-35" y2="120" stroke="url(#solid-gold)" stroke-width="4" />
+     <line x1="0" y1="0" x2="35" y2="120" stroke="url(#solid-gold)" stroke-width="4" />
+     <path d="M-45 120 H 45 Q 0 170 -45 120 Z" fill="url(#solid-gold)" />
+  </g>
+
+  <!-- Digital Halo/Spark at Top -->
+  <path d="M256 50 L 256 70 M 236 60 L 276 60" stroke="#fff" stroke-width="2" opacity="0.5" />
+  <circle cx="256" cy="60" r="4" fill="#fbbf24" />
+
+</svg>

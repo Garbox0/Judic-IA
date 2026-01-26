@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import SafeChatWidget from '../components/SafeChatWidget';
 import './login.css';
 
@@ -83,7 +84,13 @@ export default function LoginPage() {
         fontFamily: "'Inter', sans-serif"
       }}>
         <div style={{ textAlign: 'center' }}>
-          <img src="/logo.png" alt="Logo" style={{ width: '60px', marginBottom: '20px', filter: 'drop-shadow(0 0 10px rgba(251, 191, 36, 0.3))' }} width="60" height="60" />
+          <Image
+            src="/judic-ia-mark.png"
+            alt="Logo"
+            width={48}
+            height={64}
+            style={{ marginBottom: '20px', filter: 'drop-shadow(0 0 10px rgba(251, 191, 36, 0.3))', objectFit: 'contain' }}
+          />
           <p style={{ fontSize: '1.2rem', fontWeight: '600' }}>Verificando credenciales...</p>
         </div>
       </div>
@@ -98,7 +105,15 @@ export default function LoginPage() {
 
       <div className="login-card fade-in">
         <div className="login-header">
-          <img src="/logo.png" alt="Logo Judic-IA" className="logo" width="56" height="56" />
+          <Image
+            src="/judic-ia-mark.png"
+            alt="Logo Judic-IA"
+            className="logo"
+            width={48}
+            height={64}
+            priority
+            style={{ objectFit: 'contain' }}
+          />
           <h1>Judic-IA <span className="justice-emoji">⚖️</span></h1>
           <div className="subtitle">Acceso Profesional · Abogados</div>
         </div>

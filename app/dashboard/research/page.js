@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import Link from 'next/link';
+import Image from 'next/image';
 import { demoResearchHistory, demoFullResearchResult } from '../../lib/demoData'; // [NEW] Mock Data
 import SafeChatWidget from '../../components/SafeChatWidget';
 import TetrisLoader from '../../components/TetrisLoader';
@@ -83,7 +84,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         // Convert logo to base64 for PDF
         const convertLogo = async () => {
             try {
-                const response = await fetch('/logo.png');
+                const response = await fetch('/judic-ia-mark.png');
                 const blob = await response.blob();
                 const reader = new FileReader();
                 reader.onloadend = () => {
@@ -556,7 +557,14 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
                     <header className="research-header">
                         <div className="header-flex">
-                            <img src="/logo.png" alt="Judic-IA Logo" className="logo-main" />
+                            <Image
+                                src="/judic-ia-mark.png"
+                                alt="Judic-IA Logo"
+                                className="logo-main"
+                                width={56}
+                                height={75}
+                                style={{ objectFit: 'contain' }}
+                            />
                             <div className="header-text">
                                 <h1 className="dashboard-page-title">Terminal de Estrategia Jurídica</h1>
                                 <p>Investigación avanzada, Ratio Decidendi y generación de estrategia blindada.</p>

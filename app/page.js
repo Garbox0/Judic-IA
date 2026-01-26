@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from "./page.module.css";
 import Link from "next/link";
+import Image from "next/image";
 import SafeChatWidget from "./components/SafeChatWidget";
 import { Clock, Shield, Zap, Scale, BookOpen, Users, FolderOpen, Calculator, Calendar, FileText, BarChart2 } from 'lucide-react';
 import "./landing.css"; // Version 3.0 Styles
@@ -61,7 +62,14 @@ export default function Home() {
       <nav className="glass-navbar">
         <div className="nav-container">
           <div className="nav-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <img src="/logo.png" alt="Judic-IA Logo" className="nav-logo" />
+            <Image
+              src="/judic-ia-mark.png"
+              alt="Judic-IA Logo"
+              className="nav-logo"
+              width={48}
+              height={64}
+              priority
+            />
             <span className="nav-title text-glow">Judic-IA</span>
           </div>
 
@@ -289,7 +297,14 @@ export default function Home() {
       <footer className="footer-premium-v3">
         <div className="footer-nav-container">
           <div className="footer-brand-side">
-            <img src="/logo.png" alt="Judic-IA Logo" className="footer-logo" />
+            <Image
+              src="/judic-ia-mark.png"
+              alt="Judic-IA Logo"
+              className="nav-logo"
+              width={46}
+              height={62}
+              priority
+            />
             <div className="footer-info">
               <strong>Judic-IA</strong>
               <span>© 2026 — LegalTech Argentina</span>

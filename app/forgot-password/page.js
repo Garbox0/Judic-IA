@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function ForgotPasswordPage() {
     const router = useRouter();
@@ -60,7 +61,14 @@ export default function ForgotPasswordPage() {
 
             <div className="card fade-in">
                 <div className="header">
-                    <img src="/logo.png" alt="Logo Judic-IA" className="logo" />
+                    <Image
+                        src="/judic-ia-mark.png"
+                        alt="Logo Judic-IA"
+                        className="logo"
+                        width={48}
+                        height={64}
+                        style={{ objectFit: 'contain' }}
+                    />
                     <h1>Recuperar Acceso 🔐</h1>
                     <div className="subtitle">Restablecer Contraseña</div>
                 </div>

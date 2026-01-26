@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import SafeChatWidget from '../components/SafeChatWidget';
 import './register.css';
 
@@ -176,7 +177,15 @@ export default function RegisterPage() {
                 <div className="register-card fade-in">
 
                     <header className="register-header">
-                        <img src="/logo.png" alt="Logo" className="logo" width="55" height="55" />
+                        <Image
+                            src="/judic-ia-mark.png"
+                            alt="Logo"
+                            className="logo"
+                            width={48}
+                            height={64}
+                            priority
+                            style={{ objectFit: 'contain' }}
+                        />
                         <h1 className="register-brand">Judic-IA <span className="justice-emoji">⚖️</span></h1>
                         <p className="register-status">Registro Profesional • Abogados</p>
                     </header>

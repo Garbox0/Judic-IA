@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import SafeChatWidget from '../components/SafeChatWidget';
 
 export default function UpdatePasswordPage() {
@@ -218,7 +219,14 @@ export default function UpdatePasswordPage() {
                     {!success ? (
                         <>
                             <header className="brand-header">
-                                <img src="/logo.png" alt="Logo" className="brand-logo-img" width="60" height="60" />
+                                <Image
+                                    src="/judic-ia-mark.png"
+                                    alt="Logo"
+                                    className="brand-logo-img"
+                                    width={48}
+                                    height={64}
+                                    style={{ objectFit: 'contain' }}
+                                />
                                 <h1 className="brand-name-premium">Actualizar Clave</h1>
                                 <p className="brand-status">Restablecimiento Seguro</p>
                             </header>
