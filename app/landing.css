@@ -563,10 +563,10 @@ body::before {
 }
 
 .card-v3:hover {
-    background: rgba(15, 23, 42, 0.5);
-    border-color: rgba(251, 191, 36, 0.3);
-    transform: translateY(-8px);
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+    background: rgba(15, 23, 42, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
 .card-v3 i {

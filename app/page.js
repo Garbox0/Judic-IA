@@ -4,13 +4,24 @@ import { useRouter } from 'next/navigation';
 import styles from "./page.module.css";
 import Link from "next/link";
 import SafeChatWidget from "./components/SafeChatWidget";
-import { Clock, Shield, Zap } from 'lucide-react';
+import { Clock, Shield, Zap, Scale, BookOpen, Users, FolderOpen, Calculator, Calendar, FileText, BarChart2 } from 'lucide-react';
 import "./landing.css"; // Version 3.0 Styles
 
 export default function Home() {
   const router = useRouter();
   const [authError, setAuthError] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const services = [
+    { title: "IA Jurídica Avanzada", desc: "Consultas analizadas con modelos entrenados en normativa legal actualizada.", icon: <Scale size={42} /> },
+    { title: "Digesto Jurídico", desc: "Acceso instantáneo y offline a toda la normativa nacional y provincial.", icon: <BookOpen size={42} /> },
+    { title: "Gestión de Clientes", desc: "Base de datos completa con historial de interacciones y vinculación de causas.", icon: <Users size={42} /> },
+    { title: "Gestión de Expedientes", desc: "Organiza casos, plazos y documentos en un entorno centralizado y seguro.", icon: <FolderOpen size={42} /> },
+    { title: "Calculadoras Legales", desc: "Cálculo automático de intereses, indemnizaciones y actualizaciones monetarias.", icon: <Calculator size={42} /> },
+    { title: "Agenda Inteligente", desc: "Programación de citas y recordatorios automáticos vía WhatsApp y email.", icon: <Calendar size={42} /> },
+    { title: "Biblioteca de Modelos", desc: "Repositorio de escritos, contratos y documentos jurídicos listos para usar.", icon: <FileText size={42} /> },
+    { title: "Panel de Análisis", desc: "Métricas de rendimiento de tu estudio y comportamiento de tus clientes.", icon: <BarChart2 size={42} /> }
+  ];
 
   // 🛡️ REVEAL ANIMATION (Intersection Observer)
   useEffect(() => {
@@ -176,18 +187,19 @@ export default function Home() {
         </div>
 
         <div className="grid4">
-          {[
-            { title: "IA Jurídica Avanzada", desc: "Consultas analizadas con modelos entrenados en normativa legal actualizada.", icon: "⚖️" },
-            { title: "Gestión de Expedientes", desc: "Organiza casos, plazos y documentos en un entorno centralizado y seguro.", icon: "📁" },
-            { title: "Agenda Inteligente", desc: "Programación de citas y recordatorios automáticos vía WhatsApp y email.", icon: "📅" },
-            { title: "Panel de Análisis", desc: "Métricas de rendimiento de tu estudio y comportamiento de tus clientes.", icon: "📈" }
-          ].map((feat, i) => (
-            <div key={i} className="card-v3 reveal" style={{ transitionDelay: `${i * 0.1}s` }}>
-              <i>{feat.icon}</i>
-              <h3>{feat.title}</h3>
-              <p>{feat.desc}</p>
+          <div className="services-wrapper">
+            <div className="grid4">
+              {services.map((feat, i) => (
+                <div key={i} className="card-v3 reveal" style={{ transitionDelay: `${i * 0.1}s` }}>
+                  <i>{feat.icon}</i>
+                  <h3>{feat.title}</h3>
+                  <p>{feat.desc}</p>
+                </div>
+              ))}
             </div>
-          ))}
+
+
+          </div>
         </div>
       </section>
 

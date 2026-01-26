@@ -26,7 +26,9 @@ export async function middleware(request) {
     const country = request.headers.get('x-vercel-ip-country') || request.headers.get('cf-ipcountry')
 
     // Only block if we are SURE it is not Argentina (and header exists, so we don't block localhost)
-    if (country && country !== 'AR') {
+    const isWebhook = request.nextUrl.pathname.startsWith('/api/mp/webhook') || request.nextUrl.pathname.startsWith('/api/webhook/whatsapp');
+
+    if (country && country !== 'AR' && !isWebhook) {
         const ip = request.headers.get('x-forwarded-for') || request.ip
         console.warn(`⛔ BLOCKED ACCESS from ${country} (IP: ${ip})`)
         return BLOCKED_COUNTRY_RESPONSE
