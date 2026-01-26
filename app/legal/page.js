@@ -513,14 +513,151 @@ export default function LegalPage() {
         }
 
         /* --- RESPONSIVE --- */
-        @media (max-width: 1000px) {
-            .legal-layout { grid-template-columns: 1fr; }
-            .legal-sidebar { position: static; }
-            .legal-tabs-vertical { flex-direction: row; overflow-x: auto; padding: 0.5rem; }
-            .legal-tab-nav-btn { white-space: nowrap; padding: 0.8rem 1.2rem; }
-            .legal-content-card-v3 { padding: 2.5rem; }
-            .security-visual-grid { grid-template-columns: 1fr; }
-            .contact-footer-grid { grid-template-columns: 1fr; }
+        /* --- RESPONSIVE PREMIUM --- */
+        @media (max-width: 1024px) {
+            .legal-layout { 
+                grid-template-columns: 1fr; 
+                gap: 2rem;
+            }
+            .legal-sidebar { 
+                position: relative;
+                top: 0;
+                z-index: 10;
+            }
+            .legal-tabs-vertical { 
+                flex-direction: row; 
+                overflow-x: auto; 
+                padding: 0.5rem; 
+                border-radius: 16px;
+                /* Hide scrollbar */
+                -ms-overflow-style: none;  /* IE and Edge */
+                scrollbar-width: none;  /* Firefox */
+            }
+            .legal-tabs-vertical::-webkit-scrollbar {
+                display: none;
+            }
+            .legal-tab-nav-btn { 
+                white-space: nowrap; 
+                padding: 0.8rem 1.2rem;
+                background: rgba(255,255,255,0.03); 
+                border: 1px solid rgba(255,255,255,0.05);
+            }
+            .legal-tab-nav-btn.active {
+                background: rgba(251, 191, 36, 0.1);
+                border-color: var(--accent);
+            }
+            .legal-content-card-v3 { 
+                padding: 3rem; 
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 1.2rem;
+            }
+            
+            /* Logo & Button adjustments */
+            .nav-brand .nav-title {
+                display: none; /* Hide text to save space, keep logo */
+            }
+            .nav-logo {
+                height: 48px;
+            }
+            .btn-login-premium {
+                padding: 0.6rem;
+                width: 48px;
+                height: 48px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%; /* Circle button */
+                font-size: 1.2rem;
+            }
+            .btn-login-premium span {
+                display: none; /* Hide text */
+            }
+            .btn-login-premium::before {
+                content: "←"; /* Only arrow */
+                font-weight: 900;
+            }
+
+            /* Stack Layout */
+            .legal-layout { 
+                grid-template-columns: 1fr; 
+                gap: 2rem;
+            }
+
+            /* Tabs: Stack vertically as requested */
+            .legal-sidebar {
+                position: relative;
+                z-index: 10;
+            }
+            .legal-tabs-vertical { 
+                flex-direction: column; /* Stack them */
+                padding: 0.5rem; 
+                gap: 0.5rem;
+                background: rgba(15, 23, 42, 0.8); /* Darker background */
+            }
+            .legal-tab-nav-btn { 
+                width: 100%; /* Full width */
+                padding: 1rem;
+                justify-content: flex-start; /* Align text left */
+                background: rgba(255,255,255,0.03); 
+                border-radius: 12px;
+            }
+            .legal-tab-nav-btn.active {
+                background: rgba(251, 191, 36, 0.15);
+                border-color: var(--accent);
+            }
+
+            /* Content Cards */
+            .legal-content-card-v3 { 
+                padding: 1.5rem; 
+                border-radius: 20px;
+                overflow: hidden; /* Prevent overflow */
+            }
+
+            /* Typography Scaling */
+            .hero-section {
+                padding: 130px 0 2rem !important;
+            }
+            .hero-title {
+                font-size: 2.2rem;
+            }
+            .section-title-v3 {
+                font-size: 1.6rem;
+                word-break: break-word; /* Prevent long words overflowing */
+            }
+            .content-num {
+                font-size: 2.5rem;
+            }
+            
+            /* Grids */
+            .legal-grid-features, 
+            .privacy-card-grid, 
+            .security-visual-grid, 
+            .contact-footer-grid { 
+                grid-template-columns: 1fr; 
+                gap: 1rem;
+            }
+            .privacy-pill-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.8rem;
+                padding: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 1.8rem;
+            }
+            .legal-content-card-v3 { 
+                padding: 1.2rem; 
+            }
+            .lead-text {
+                font-size: 0.95rem;
+            }
         }
 
         /* ANIMATIONS */
