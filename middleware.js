@@ -29,9 +29,10 @@ export async function middleware(request) {
     const isWebhook = request.nextUrl.pathname.startsWith('/api/mp/webhook') || request.nextUrl.pathname.startsWith('/api/webhook/whatsapp');
 
     if (country && country !== 'AR' && !isWebhook) {
-        const ip = request.headers.get('x-forwarded-for') || request.ip
-        console.warn(`⛔ BLOCKED ACCESS from ${country} (IP: ${ip})`)
-        return BLOCKED_COUNTRY_RESPONSE
+        // const ip = request.headers.get('x-forwarded-for') || request.ip
+        // console.warn(`⛔ BLOCKED ACCESS from ${country} (IP: ${ip})`)
+        // return BLOCKED_COUNTRY_RESPONSE
+        console.log(`⚠️ GEO-BLOCK DISABLED TEMPORARILY: Access allowed from ${country}`);
     }
 
     // 🛡️ 0. SEGURIDAD (CSP Relaxed for Debugging)
