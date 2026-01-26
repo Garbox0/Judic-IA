@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import "../landing.css";
 
+import { Lock, ShieldCheck, Cloud, FileText, User, Shield } from 'lucide-react';
+
 export default function LegalPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -17,9 +19,9 @@ export default function LegalPage() {
   }, [searchParams]);
 
   const tabs = [
-    { id: 'terminos', label: 'Términos', icon: '📜' },
-    { id: 'privacidad', label: 'Privacidad', icon: '👤' },
-    { id: 'seguridad', label: 'Seguridad', icon: '🛡️' }
+    { id: 'terminos', label: 'Términos', icon: <FileText size={20} /> },
+    { id: 'privacidad', label: 'Privacidad', icon: <User size={20} /> },
+    { id: 'seguridad', label: 'Seguridad', icon: <Shield size={20} /> }
   ];
 
   const handleTabClick = (id) => {
@@ -61,7 +63,7 @@ export default function LegalPage() {
                   className={`legal-tab-nav-btn ${activeTab === tab.id ? 'active' : ''}`}
                   onClick={() => handleTabClick(tab.id)}
                 >
-                  <span className="tab-icon-dot"></span>
+                  <span className="tab-icon-wrapper">{tab.icon}</span>
                   {tab.label}
                 </button>
               ))}
@@ -102,7 +104,7 @@ export default function LegalPage() {
                       <div className="legal-feature-item">
                         <div className="feature-marker"></div>
                         <div className="feature-text">
-                          <strong>Transacciones:</strong> Los pagos se procesan mediante pasarelas cifradas con los más altos estándares de seguridad.
+                          <strong>Transacciones:</strong> Los pagos se procesan en pesos argentinos mediante pasarelas cifradas de Mercado Pago.
                         </div>
                       </div>
                     </div>
@@ -154,17 +156,17 @@ export default function LegalPage() {
 
                     <div className="security-visual-grid">
                       <div className="security-v-card">
-                        <div className="v-card-icon">🔐</div>
+                        <div className="v-card-icon"><Lock size={42} /></div>
                         <h3>TLS/SSL 1.3</h3>
                         <p>Toda la comunicación entre tu navegador y nuestros servidores está cifrada de extremo a extremo.</p>
                       </div>
                       <div className="security-v-card">
-                        <div className="v-card-icon">🛡️</div>
+                        <div className="v-card-icon"><ShieldCheck size={42} /></div>
                         <h3>AES-256 bits</h3>
                         <p>Los archivos y datos en reposo se almacenan utilizando el estándar de encriptación más avanzado del mundo.</p>
                       </div>
                       <div className="security-v-card">
-                        <div className="v-card-icon">☁️</div>
+                        <div className="v-card-icon"><Cloud size={42} /></div>
                         <h3>Cloudflare Shield</h3>
                         <p>Protección permanente contra ataques DDoS y escaneo de vulnerabilidades en tiempo real.</p>
                       </div>
