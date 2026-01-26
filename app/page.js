@@ -97,11 +97,11 @@ export default function Home() {
           <Link href="#pricing" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Precios</Link>
 
           <div className="mobile-access-row">
-            <Link href="https://consultas.judic-ia.com" className="btn-login-mobile primary" onClick={() => setMobileMenuOpen(false)}>
-              Acceso Clientes
-            </Link>
-            <Link href="/login" className="btn-login-mobile" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/login" className="btn-login-mobile primary" onClick={() => setMobileMenuOpen(false)}>
               Acceso Abogados
+            </Link>
+            <Link href="https://consultas.judic-ia.com" className="btn-login-mobile" onClick={() => setMobileMenuOpen(false)}>
+              Acceso Clientes
             </Link>
           </div>
         </div>
