@@ -6,7 +6,7 @@ const OUTPUT_BASE = path.join(__dirname, '..', 'public', 'legislation');
 
 const targets = [
     // --- NACION (Códigos de Fondo) ---
-    { province: 'nacion', name: 'constitucion-nacional', url: 'https://servicios.infoleg.gob.ar/infolegInternet/anexos/0-4999/638/texact.htm?page_id=63' }, // CN often redirects, using valid entry
+    { province: 'nacion', name: 'constitucion-nacional', url: 'https://servicios.infoleg.gob.ar/infolegInternet/anexos/0-4999/804/norma.htm' },
     { province: 'nacion', name: 'codigo-civil-comercial-nacion', url: 'https://servicios.infoleg.gob.ar/infolegInternet/verNorma.do?id=235975' },
     { province: 'nacion', name: 'codigo-penal-nacion', url: 'http://servicios.infoleg.gob.ar/infolegInternet/anexos/15000-19999/16546/texact.htm' },
     { province: 'nacion', name: 'ley-contrato-trabajo', url: 'http://servicios.infoleg.gob.ar/infolegInternet/anexos/25000-29999/25552/texact.htm' },
@@ -46,6 +46,17 @@ const targets = [
     { province: 'buenos-aires', name: 'codigo-procesal-penal-pba', url: 'https://normas.gba.gob.ar/ar-b/ley/1997/11922/4917' },
     { province: 'buenos-aires', name: 'codigo-contencioso-admin-pba', url: 'https://normas.gba.gob.ar/ar-b/ley/1997/12008/4818' },
     { province: 'buenos-aires', name: 'codigo-civil-comercial-pba', url: 'https://normas.gba.gob.ar/ar-b/ley/1968/7425/7888' },
+
+    // --- LA PAMPA ---
+    { province: 'la-pampa', name: 'codigo-procesal-penal-la-pampa', url: 'https://digesto.tcuentaslp.gob.ar/digesto%20tribunal/Leyes/Ley%202287.html' },
+
+    // --- MENDOZA (SAIJ pages) ---
+    { province: 'mendoza', name: 'codigo-procesal-civil-comercial-tributario-mendoza', url: 'https://www.saij.gob.ar/9001-local-mendoza-codigo-procesal-civil-comercial-tributario-provincia-mendoza-lpm0009001-2017-08-30/123456789-0abc-defg-100-9000mvorpyel' },
+    { province: 'mendoza', name: 'codigo-procesal-administrativo-mendoza', url: 'https://www.saij.gob.ar/3918-local-mendoza-codigo-procesal-administrativo-lpm0003918-1973-08-07/123456789-0abc-defg-819-3000mvorpyel' },
+    { province: 'mendoza', name: 'codigo-procesal-laboral-mendoza', url: 'https://www.saij.gob.ar/9109-local-mendoza-modifica-codigo-procesal-laboral-provincia-mendoza-lpm0009109-2018-10-23/123456789-0abc-defg-901-9000mvorpyel' },
+
+    // --- NEUQUEN (SAIJ pages) ---
+    { province: 'neuquen', name: 'codigo-procesal-administrativo-neuquen', url: 'https://www.saij.gob.ar/1305-local-neuquen-codigo-procesal-administrativo-neuquen-lpq0001305-1981-07-10/123456789-0abc-defg-503-1000qvorpyel' },
 ];
 
 async function cleanPage(page, url) {
@@ -76,6 +87,16 @@ async function cleanPage(page, url) {
             document.querySelector('#contenido') ? document.querySelector('#contenido').style.margin = "0" : null;
             document.body.style.padding = "40px";
             document.body.style.background = "#fff";
+        });
+    } else if (url.includes('tcuentaslp.gob.ar')) {
+        // La Pampa Digesto cleanup
+        await page.evaluate(() => {
+            document.querySelectorAll('header, footer, nav, iframe, script').forEach(e => e.remove());
+            document.body.style.fontFamily = "'Roboto', sans-serif";
+            document.body.style.padding = "40px";
+            document.body.style.background = "#fff";
+            document.body.style.color = "#000";
+            document.body.style.lineHeight = "1.6";
         });
     }
 }

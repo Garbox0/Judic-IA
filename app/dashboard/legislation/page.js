@@ -4,18 +4,46 @@ import Link from 'next/link';
 import { Book, Gavel, FileText, Scale, Search, Map, Globe, Shield, Pickaxe, Utensils, Landmark, Scroll, Users, Briefcase, HeartHandshake } from 'lucide-react';
 
 export default function LegislationPage() {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedJurisdiction, setSelectedJurisdiction] = useState('Nación');
+    const [searchMode, setSearchMode] = useState('norma'); // 'norma' | 'boletin'
+
+    // State for Norm Search
+    const [searchState, setSearchState] = useState({
+        tipo: '',
+        numero: '',
+        anio: '',
+        texto: '',
+        dependencia: ''
+    });
+
+    // State for Boletin Search
+    const [boState, setBoState] = useState({
+        type: 'fecha', // 'fecha' | 'numero'
+        fecha: '',
+        numero: ''
+    });
+
+    const [selectedJurisdiction, setSelectedJurisdiction] = useState('Buenos Aires (PBA)');
+    const [isProceduralExpanded, setIsProceduralExpanded] = useState(false);
 
     const handleSearch = (e) => {
         e.preventDefault();
-        if (!searchQuery) return;
-        // Smart Search: Use Google Site Search for reliable InfoLeg results
-        const url = `https://www.google.com/search?q=site:infoleg.gob.ar+${encodeURIComponent(searchQuery)}`;
+        const { tipo, numero, anio, texto } = searchState;
+        if (!tipo && !numero && !anio && !texto) return;
+
+        // Construct a Smart Query for InfoLeg via Google
+        let queryParts = [`site:infoleg.gob.ar`];
+
+        if (tipo) queryParts.push(tipo);
+        if (numero) queryParts.push(`"${numero}"`); // Exact number match
+        if (anio) queryParts.push(anio);
+        if (texto) queryParts.push(texto);
+
+        const finalQuery = queryParts.join(' ');
+        const url = `https://www.google.com/search?q=${encodeURIComponent(finalQuery)}`;
         window.open(url, '_blank');
     };
 
-    // 1. CÓDIGOS DE FONDO (SUSTANTIVOS) - NACIONALES
+    // 1. CÓDIGOS NACIONALES (FONDO Y FORMA)
     const codesFondo = [
         {
             title: "Constitución Nacional",
@@ -25,15 +53,33 @@ export default function LegislationPage() {
         },
         {
             title: "Código Civil y Comercial de la Nación",
-            desc: "Regula las relaciones civiles y comerciales.",
-            url: "/dashboard/legislation/viewer/codigo-civil-comercial-nacion.pdf?province=nacion",
+            desc: "Regula las relaciones civiles y comerciales (InfoLeg).",
+            url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/235000-239999/235975/texact.htm",
             icon: <Scale size={28} className="text-amber-400" />
         },
         {
             title: "Código Penal de la Nación",
-            desc: "Delitos y penas en el territorio argentino.",
-            url: "/dashboard/legislation/viewer/codigo-penal-nacion.pdf?province=nacion",
+            desc: "Delitos y penas en el territorio argentino (InfoLeg).",
+            url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/15000-19999/16546/texact.htm",
             icon: <Gavel size={28} className="text-amber-400" />
+        },
+        {
+            title: "Código Procesal Civil y Comercial",
+            desc: "Reglas de procedimiento en materia civil y comercial (InfoLeg).",
+            url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/15000-19999/16547/texact.htm",
+            icon: <Book size={28} className="text-amber-400" />
+        },
+        {
+            title: "Código Procesal Penal Federal",
+            desc: "Procedimiento penal federal acusatorio (PDF).",
+            url: "/dashboard/legislation/viewer/codigo-procesal-penal-federal.pdf?province=nacion",
+            icon: <Scale size={28} className="text-amber-400" />
+        },
+        {
+            title: "Código Procesal Penal (Ley 27.063)",
+            desc: "Nuevo Código Procesal Penal de la Nación (InfoLeg).",
+            url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/0-4999/383/texact.htm",
+            icon: <Scale size={28} className="text-amber-400" />
         },
         {
             title: "Ley de Contrato de Trabajo (20.744)",
@@ -43,26 +89,32 @@ export default function LegislationPage() {
         },
         {
             title: "Código de Minería",
-            desc: "Régimen legal de las minas y su explotación.",
-            url: "/dashboard/legislation/viewer/codigo-mineria.pdf?province=nacion",
+            desc: "Régimen legal de las minas y su explotación (InfoLeg).",
+            url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/40000-44999/43797/texact.htm",
             icon: <Pickaxe size={28} className="text-amber-400" />
         },
         {
             title: "Código Aduanero",
-            desc: "Disposiciones sobre el tráfico internacional.",
-            url: "/dashboard/legislation/viewer/codigo-aduanero.pdf?province=nacion",
+            desc: "Disposiciones sobre el tráfico internacional (InfoLeg).",
+            url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/15000-19999/16536/texact.htm",
             icon: <Globe size={28} className="text-amber-400" />
         },
         {
             title: "Código Aeronáutico",
-            desc: "Rige la aeronáutica civil en el territorio.",
-            url: "/dashboard/legislation/viewer/codigo-aeronautico.pdf?province=nacion",
+            desc: "Rige la aeronáutica civil en el territorio (InfoLeg).",
+            url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/20000-24999/24963/texact.htm",
             icon: <Shield size={28} className="text-amber-400" />
         },
         {
             title: "Código Alimentario Argentino",
             desc: "Normas higiénico-sanitarias y bromatológicas.",
             url: "/dashboard/legislation/viewer/codigo-alimentario.pdf?province=nacion",
+            icon: <Utensils size={28} className="text-amber-400" />
+        },
+        {
+            title: "Código Alimentario (ANMAT)",
+            desc: "Portal oficial de la ANMAT para el código alimentario.",
+            url: "https://www.argentina.gob.ar/anmat/codigoalimentario",
             icon: <Utensils size={28} className="text-amber-400" />
         },
         {
@@ -76,10 +128,16 @@ export default function LegislationPage() {
             desc: "Régimen electoral y partidos políticos.",
             url: "/dashboard/legislation/viewer/codigo-electoral-nacional.pdf?province=nacion",
             icon: <Briefcase size={28} className="text-amber-400" />
+        },
+        {
+            title: "Reglamento para la Justicia Nacional",
+            desc: "Reglamentación oficial del Poder Judicial (PJN).",
+            url: "https://www.pjn.gov.ar/",
+            icon: <FileText size={28} className="text-amber-400" />
         }
     ];
 
-    // 2. LEYES ESPECIALES Y COMPLEMENTARIAS
+    // ... (specialLaws left unchanged)
     const specialLaws = [
         {
             title: "Defensa del Consumidor (24.240)",
@@ -115,21 +173,7 @@ export default function LegislationPage() {
 
     // 3. CÓDIGOS DE FORMA (PROCESALES) - POR JURISDICCIÓN
     const proceduralData = {
-        "Nación": [
-            { title: "Código Civil y Comercial de la Nación", url: "/dashboard/legislation/viewer/codigo-civil-comercial-nacion.pdf?province=nacion" },
-            { title: "Código Penal de la Nación", url: "/dashboard/legislation/viewer/codigo-penal-nacion.pdf?province=nacion" },
-            { title: "Código Procesal Civil y Comercial", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-nacion.pdf?province=nacion" },
-            { title: "Código Procesal Penal Federal", url: "/dashboard/legislation/viewer/codigo-procesal-penal-federal.pdf?province=nacion" },
-            { title: "Código Procesal Penal (Ley 27.063)", url: "/dashboard/legislation/viewer/codigo-procesal-penal-27063.pdf?province=nacion" },
-            { title: "Código Aduanero", url: "/dashboard/legislation/viewer/codigo-aduanero.pdf?province=nacion" },
-            { title: "Código Aeronáutico", url: "/dashboard/legislation/viewer/codigo-aeronautico.pdf?province=nacion" },
-            { title: "Código de Minería", url: "/dashboard/legislation/viewer/codigo-mineria.pdf?province=nacion" },
-            { title: "Código Alimentario Argentino", url: "/dashboard/legislation/viewer/codigo-alimentario.pdf?province=nacion" },
-            { title: "Código Alimentario (ANMAT)", url: "https://www.argentina.gob.ar/anmat/codigoalimentario" },
-            { title: "Código de Ética Pública", url: "/dashboard/legislation/viewer/codigo-etica-publica.pdf?province=nacion" },
-            { title: "Código Electoral Nacional", url: "/dashboard/legislation/viewer/codigo-electoral-nacional.pdf?province=nacion" },
-            { title: "Reglamento para la Justicia Nacional", url: "https://www.pjn.gov.ar/" }
-        ],
+        // "Nación" moved to 'codesFondo' as per user request (unified grid)
         "Buenos Aires (PBA)": [
             { title: "Constitución de la Pcia. de Bs. As.", url: "/dashboard/legislation/viewer/constitucion-pba.pdf?province=buenos-aires" },
             { title: "Código Rural (Ley 10.081)", url: "/dashboard/legislation/viewer/codigo-rural-pba.pdf?province=buenos-aires" },
@@ -231,7 +275,54 @@ export default function LegislationPage() {
             { title: "Cód. de Procedimiento de Trabajo", url: "/dashboard/legislation/viewer/codigo-procedimiento-trabajo-formosa.pdf?province=formosa" },
         ],
         "Mendoza": [
-            { title: "Código Procesal Civil, Comercial y Tributario", url: "http://www.jus.mendoza.gov.ar/" }
+            { title: "Cód. Procesal Civil, Comercial y Tributario – Ley 9001", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-tributario-mendoza.pdf?province=mendoza" },
+            { title: "Código Fiscal (T.O. 2026)", url: "/dashboard/legislation/viewer/codigo-fiscal-mendoza.pdf?province=mendoza" },
+            { title: "Código Procesal Administrativo – Ley 3918", url: "/dashboard/legislation/viewer/codigo-procesal-administrativo-mendoza.pdf?province=mendoza" },
+            { title: "Código Procesal Laboral – Ley 9109", url: "/dashboard/legislation/viewer/codigo-procesal-laboral-mendoza.pdf?province=mendoza" },
+            { title: "Código Procesal Penal – Ley 8937", url: "/dashboard/legislation/viewer/codigo-procesal-penal-mendoza.pdf?province=mendoza" },
+            { title: "Código Contravencional de Faltas – Ley 9099", url: "/dashboard/legislation/viewer/codigo-contravencional-mendoza.pdf?province=mendoza" }
+        ],
+        "Jujuy": [
+            { title: "Código Procesal Civil – Ley 1967", url: "/dashboard/legislation/viewer/codigo-procesal-civil-jujuy.pdf?province=jujuy" },
+            { title: "Código Procesal Penal – Ley 3584", url: "/dashboard/legislation/viewer/codigo-procesal-penal-3584-jujuy.pdf?province=jujuy" },
+            { title: "Código Procesal Penal – Ley 5623", url: "/dashboard/legislation/viewer/codigo-procesal-penal-5623-jujuy.pdf?province=jujuy" },
+            { title: "CPP Fe de Erratas", url: "/dashboard/legislation/viewer/cpp-fe-erratas-jujuy.pdf?province=jujuy" },
+            { title: "Código Procesal del Trabajo – Ley 1938", url: "/dashboard/legislation/viewer/codigo-procesal-trabajo-jujuy.pdf?province=jujuy" },
+            { title: "Código Contencioso Administrativo – Ley 1888", url: "/dashboard/legislation/viewer/codigo-contencioso-administrativo-jujuy.pdf?province=jujuy" },
+            { title: "Código de Procedimientos Mineros – Ley 5186", url: "/dashboard/legislation/viewer/codigo-procedimientos-mineros-jujuy.pdf?province=jujuy" },
+            { title: "Código Electoral – Ley 4164", url: "/dashboard/legislation/viewer/codigo-electoral-jujuy.pdf?province=jujuy" },
+            { title: "Código Fiscal – Ley 5791", url: "/dashboard/legislation/viewer/codigo-fiscal-jujuy.pdf?province=jujuy" }
+        ],
+        "La Pampa": [
+            { title: "Código Procesal Civil y Comercial – Ley 1828", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-la-pampa.pdf?province=la-pampa" },
+            { title: "Ley de Procedimiento Laboral (NJF 986)", url: "/dashboard/legislation/viewer/ley-procedimiento-laboral-la-pampa.pdf?province=la-pampa" },
+            { title: "Compendio de Normas Electorales", url: "/dashboard/legislation/viewer/compendio-normas-electorales-la-pampa.pdf?province=la-pampa" },
+            { title: "Código Procesal Penal – Ley 2287", url: "/dashboard/legislation/viewer/codigo-procesal-penal-la-pampa.pdf?province=la-pampa" }
+        ],
+        "La Rioja": [
+            { title: "Código Procesal Civil y Comercial", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-la-rioja.pdf?province=la-rioja" },
+            { title: "Código Procesal Penal", url: "/dashboard/legislation/viewer/codigo-procesal-penal-la-rioja.pdf?province=la-rioja" },
+            { title: "Código de Procedimientos Mineros", url: "/dashboard/legislation/viewer/codigo-procedimientos-mineros-la-rioja.pdf?province=la-rioja" },
+            { title: "Ley Orgánica de la Función Judicial", url: "/dashboard/legislation/viewer/ley-organica-funcion-judicial-la-rioja.pdf?province=la-rioja" },
+            { title: "Ley Electoral Provincial", url: "/dashboard/legislation/viewer/ley-electoral-la-rioja.pdf?province=la-rioja" },
+            { title: "Ley Orgánica de los Partidos Políticos", url: "/dashboard/legislation/viewer/ley-partidos-politicos-la-rioja.pdf?province=la-rioja" }
+        ],
+        "Misiones": [
+            { title: "Cód. Procesal Civil, Comercial, Familia y Violencia – Ley XII Nº 27", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-misiones.pdf?province=misiones" },
+            { title: "Código Fiscal – Ley XXII Nº 35", url: "/dashboard/legislation/viewer/codigo-fiscal-misiones.pdf?province=misiones" },
+            { title: "Código de Faltas – Ley XIV Nº 5", url: "/dashboard/legislation/viewer/codigo-faltas-misiones.pdf?province=misiones" },
+            { title: "Código de Procedimiento Laboral – Ley XIII Nº 2", url: "/dashboard/legislation/viewer/codigo-procedimiento-laboral-misiones.pdf?province=misiones" },
+            { title: "Cód. Proc. Contencioso Administrativo – Ley I Nº 95", url: "/dashboard/legislation/viewer/codigo-contencioso-administrativo-misiones.pdf?province=misiones" },
+            { title: "Código Procesal Penal – Ley XIV Nº 13", url: "/dashboard/legislation/viewer/codigo-procesal-penal-misiones.pdf?province=misiones" }
+        ],
+        "Neuquén": [
+            { title: "Código Fiscal – Ley 2680", url: "/dashboard/legislation/viewer/codigo-fiscal-neuquen.pdf?province=neuquen" },
+            { title: "Código Procesal Administrativo – Ley 1305", url: "/dashboard/legislation/viewer/codigo-procesal-administrativo-neuquen.pdf?province=neuquen" },
+            { title: "Código Procesal Civil y Comercial – Ley 912", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-neuquen.pdf?province=neuquen" },
+            { title: "Código Procesal Penal – Ley 3021", url: "/dashboard/legislation/viewer/codigo-procesal-penal-3021-neuquen.pdf?province=neuquen" },
+            { title: "Código Procesal Penal – Ley 2784", url: "/dashboard/legislation/viewer/codigo-procesal-penal-2784-neuquen.pdf?province=neuquen" },
+            { title: "Código de Procedimiento Minero – Ley 902", url: "/dashboard/legislation/viewer/codigo-procedimiento-minero-neuquen.pdf?province=neuquen" },
+            { title: "Código Electoral – Ley 165", url: "/dashboard/legislation/viewer/codigo-electoral-neuquen.pdf?province=neuquen" }
         ]
     };
 
@@ -260,39 +351,63 @@ export default function LegislationPage() {
                 /* SEARCH BAR REFINED */
                 .infoleg-search {
                     margin: 0 auto;
-                    padding: 0.4rem;
-                    border-radius: 999px;
+                    padding: 1.5rem;
+                    border-radius: 12px;
                     border: 1px solid rgba(255,255,255,0.1);
                     background: rgba(15, 23, 42, 0.8);
-                    max-width: 700px;
+                    max-width: 800px;
                     box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+                }
+                .search-grid {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 1rem;
+                    margin-bottom: 1rem;
+                }
+                .search-field { display: flex; flex-direction: column; gap: 0.5rem; }
+                .search-field label { color: #94a3b8; font-size: 0.8rem; font-weight: 500; }
+                
+                .search-input, .search-select {
+                    background: rgba(255,255,255,0.05);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    border-radius: 6px;
+                    padding: 0.6rem;
+                    color: white;
+                    font-size: 0.9rem;
+                    width: 100%;
+                }
+                .search-input:focus, .search-select:focus {
+                    border-color: #fbbf24;
+                    outline: none;
+                    background: rgba(255,255,255,0.1);
+                }
+                .search-input::placeholder { color: rgba(255,255,255,0.3); }
+
+                option { background: #0f172a; color: white; }
+
+                .col-span-2 { grid-column: span 2; }
+                .col-span-4 { grid-column: span 4; }
+                
+                .search-actions { display: flex; justify-content: flex-end; gap: 1rem; }
+                .btn-search {
+                    background: #fbbf24;
+                    color: black;
+                    border: none;
+                    padding: 0.6rem 2rem;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
                     transition: all 0.2s;
                 }
-                .infoleg-search:focus-within {
-                    border-color: #fbbf24;
-                    box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.1);
-                    transform: scale(1.01);
+                .btn-search:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3); }
+
+                @media (max-width: 768px) {
+                    .search-grid { grid-template-columns: 1fr; }
+                    .col-span-2, .col-span-4 { grid-column: span 1; }
                 }
-                .search-form { display: flex; align-items: center; gap: 0.5rem; }
-                .search-icon-wrapper {
-                    display: flex; align-items: center; gap: 0.4rem;
-                    background: rgba(255,255,255,0.05);
-                    padding: 0.5rem 1rem;
-                    border-radius: 999px;
-                    color: #fbbf24;
-                    font-weight: 600;
-                    font-size: 0.85rem;
-                }
-                .search-form input {
-                    flex: 1; background: transparent; border: none; color: white;
-                    font-size: 1rem; padding: 0.5rem; outline: none;
-                }
-                .search-form button {
-                    background: #fbbf24; color: #020617; border: none;
-                    padding: 0.6rem 1.5rem; border-radius: 999px;
-                    font-weight: 700; cursor: pointer; transition: 0.2s;
-                }
-                .search-form button:hover { background: #f59e0b; }
 
                 /* SECTIONS */
                 .legislation-layout { display: flex; flex-direction: column; gap: 3rem; }
@@ -431,19 +546,161 @@ export default function LegislationPage() {
                 </div>
 
                 {/* INFOLEG SEARCH BAR */}
+                {/* INFOLEG SEARCH BAR */}
                 <div className="infoleg-search glass-panel">
-                    <form onSubmit={handleSearch} className="search-form">
-                        <div className="search-icon-wrapper">
-                            <Search size={18} />
-                            <span className="search-label">InfoLeg</span>
+                    {/* Search Tabs */}
+                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
+                        <button
+                            onClick={() => setSearchMode('norma')}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: searchMode === 'norma' ? '#fbbf24' : '#94a3b8',
+                                borderBottom: searchMode === 'norma' ? '2px solid #fbbf24' : '2px solid transparent',
+                                padding: '0.5rem 0',
+                                cursor: 'pointer',
+                                fontWeight: 500
+                            }}
+                        >
+                            Buscar por Norma
+                        </button>
+                        <button
+                            onClick={() => setSearchMode('boletin')}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: searchMode === 'boletin' ? '#fbbf24' : '#94a3b8',
+                                borderBottom: searchMode === 'boletin' ? '2px solid #fbbf24' : '2px solid transparent',
+                                padding: '0.5rem 0',
+                                cursor: 'pointer',
+                                fontWeight: 500
+                            }}
+                        >
+                            Buscar por Boletín Oficial
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleSearch}>
+                        {searchMode === 'norma' ? (
+                            <div className="search-grid">
+                                {/* Tipo de Norma */}
+                                <div className="search-field col-span-2">
+                                    <label>Tipo de Norma</label>
+                                    <select
+                                        className="search-select"
+                                        value={searchState.tipo}
+                                        onChange={(e) => setSearchState({ ...searchState, tipo: e.target.value })}
+                                    >
+                                        <option value="">Todos los tipos</option>
+                                        <option value="Ley">Ley</option>
+                                        <option value="Decreto">Decreto</option>
+                                        <option value="Resolución">Resolución</option>
+                                        <option value="Disposición">Disposición</option>
+                                        <option value="Decisión Administrativa">Decisión Administrativa</option>
+                                        <option value="Acordada">Acordada</option>
+                                        <option value="Acta">Acta</option>
+                                        <option value="Acuerdo">Acuerdo</option>
+                                        <option value="Circular">Circular</option>
+                                        <option value="Comunicación">Comunicación</option>
+                                        <option value="Convenio">Convenio</option>
+                                        <option value="Laudo">Laudo</option>
+                                        <option value="Nota">Nota</option>
+                                        <option value="Ordenanza">Ordenanza</option>
+                                    </select>
+                                </div>
+
+                                {/* Número */}
+                                <div className="search-field">
+                                    <label>Número</label>
+                                    <input
+                                        type="text"
+                                        className="search-input"
+                                        placeholder="Ej: 27448"
+                                        value={searchState.numero}
+                                        onChange={(e) => setSearchState({ ...searchState, numero: e.target.value })}
+                                    />
+                                </div>
+
+                                {/* Año */}
+                                <div className="search-field">
+                                    <label>Año</label>
+                                    <input
+                                        type="text"
+                                        className="search-input"
+                                        placeholder="Ej: 2024"
+                                        value={searchState.anio}
+                                        onChange={(e) => setSearchState({ ...searchState, anio: e.target.value })}
+                                    />
+                                </div>
+
+                                {/* Texto Libre */}
+                                <div className="search-field col-span-4">
+                                    <label>Texto / Palabras Clave</label>
+                                    <input
+                                        type="text"
+                                        className="search-input"
+                                        placeholder="Ingrese términos de búsqueda..."
+                                        value={searchState.texto}
+                                        onChange={(e) => setSearchState({ ...searchState, texto: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            /* BOLETIN OFICIAL FORM */
+                            <div className="search-grid">
+                                <div className="search-field col-span-4" style={{ flexDirection: 'row', gap: '2rem', marginBottom: '1rem' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'white' }}>
+                                        <input
+                                            type="radio"
+                                            name="boType"
+                                            checked={boState.type === 'fecha'}
+                                            onChange={() => setBoState({ ...boState, type: 'fecha' })}
+                                        />
+                                        Fecha de Publicación
+                                    </label>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'white' }}>
+                                        <input
+                                            type="radio"
+                                            name="boType"
+                                            checked={boState.type === 'numero'}
+                                            onChange={() => setBoState({ ...boState, type: 'numero' })}
+                                        />
+                                        Nro. de Boletín
+                                    </label>
+                                </div>
+
+                                {boState.type === 'fecha' ? (
+                                    <div className="search-field col-span-2">
+                                        <label>Fecha (dd/mm/aaaa)</label>
+                                        <input
+                                            type="text"
+                                            className="search-input"
+                                            placeholder="Ej: 25/05/2023"
+                                            value={boState.fecha}
+                                            onChange={(e) => setBoState({ ...boState, fecha: e.target.value })}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="search-field col-span-2">
+                                        <label>Número de Boletín</label>
+                                        <input
+                                            type="text"
+                                            className="search-input"
+                                            placeholder="Ej: 35123"
+                                            value={boState.numero}
+                                            onChange={(e) => setBoState({ ...boState, numero: e.target.value })}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="search-actions">
+                            <button type="submit" className="btn-search">
+                                <Search size={18} />
+                                {searchMode === 'norma' ? 'Buscar en InfoLeg' : 'Buscar Boletín'}
+                            </button>
                         </div>
-                        <input
-                            type="text"
-                            placeholder="Buscar leyes, decretos o normas..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        <button type="submit">Buscar</button>
                     </form>
                 </div>
             </header>
@@ -522,20 +779,38 @@ export default function LegislationPage() {
 
                 <div className="divider"></div>
 
-                {/* SECTION 3: CÓDIGOS DE FORMA */}
+                {/* SECTION 3: CÓDIGOS DE FORMA (COLLAPSIBLE) */}
                 <section className="legislation-section">
-                    <div className="section-head">
+                    <div
+                        className="section-head collapsible-header"
+                        onClick={() => setIsProceduralExpanded(!isProceduralExpanded)}
+                        style={{ cursor: 'pointer' }}
+                    >
                         <div className="icon-badge blue">
                             <Map size={20} />
                         </div>
                         <div className="head-row">
-                            <div>
-                                <h2>Códigos de Forma (Procesales)</h2>
-                                <p className="section-desc">Reglas de procedimiento según la jurisdicción competente.</p>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div>
+                                    <h2>Códigos de Forma (Procesales)</h2>
+                                    <p className="section-desc">Reglas de procedimiento según la jurisdicción competente.</p>
+                                </div>
+                                <span style={{
+                                    fontSize: '1.2rem',
+                                    color: '#94a3b8',
+                                    transition: 'transform 0.2s',
+                                    transform: isProceduralExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
+                                }}>
+                                    ▼
+                                </span>
                             </div>
+                        </div>
+                    </div>
 
+                    {isProceduralExpanded && (
+                        <>
                             {/* JURISDICTION SELECTOR */}
-                            <div className="jurisdiction-select-wrapper">
+                            <div className="jurisdiction-select-wrapper" style={{ marginBottom: '1.5rem' }}>
                                 <select
                                     value={selectedJurisdiction}
                                     onChange={(e) => setSelectedJurisdiction(e.target.value)}
@@ -544,31 +819,31 @@ export default function LegislationPage() {
                                     {jurisdictions.map(j => <option key={j} value={j}>{j}</option>)}
                                 </select>
                             </div>
-                        </div>
-                    </div>
 
-                    <div className="procedural-list">
-                        {proceduralData[selectedJurisdiction]?.map((norm, index) => (
-                            <a
-                                key={index}
-                                href={norm.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="proc-item glass-panel"
-                            >
-                                <div className="proc-icon">
-                                    <FileText size={20} className="text-blue-400" />
-                                </div>
-                                <div className="proc-content">
-                                    <h3>{norm.title}</h3>
-                                    <span className="jurisdiction-tag">{selectedJurisdiction}</span>
-                                </div>
-                                <div className="proc-action">
-                                    Ver Norma →
-                                </div>
-                            </a>
-                        ))}
-                    </div>
+                            <div className="procedural-list">
+                                {proceduralData[selectedJurisdiction]?.map((norm, index) => (
+                                    <a
+                                        key={index}
+                                        href={norm.url}
+                                        target={norm.url.startsWith('/dashboard') ? "_self" : "_blank"}
+                                        rel={norm.url.startsWith('/dashboard') ? "" : "noopener noreferrer"}
+                                        className="proc-item glass-panel"
+                                    >
+                                        <div className="proc-icon">
+                                            <FileText size={20} className="text-blue-400" />
+                                        </div>
+                                        <div className="proc-content">
+                                            <h3>{norm.title}</h3>
+                                            <span className="jurisdiction-tag">{selectedJurisdiction}</span>
+                                        </div>
+                                        <div className="proc-action">
+                                            Ver Norma →
+                                        </div>
+                                    </a>
+                                ))}
+                            </div>
+                        </>
+                    )}
                 </section>
 
                 <div className="divider"></div>
