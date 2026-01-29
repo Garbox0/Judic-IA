@@ -435,13 +435,19 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         }, 3500);
 
         try {
+            // Get current session token for Authorization
+            const { data: { session } } = await supabase.auth.getSession();
+            const accessToken = session?.access_token;
+
             const res = await fetch('/api/research', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(accessToken && { 'Authorization': `Bearer ${accessToken}` })
+                },
                 body: JSON.stringify({
                     query: finalQuery,
                     jurisdiction: scope === 'nacional' ? 'Nacional' : province,
-                    userId: userProfile?.id,
                     mode: 'pro'
                 })
             });
