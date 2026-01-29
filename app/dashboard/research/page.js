@@ -1,8 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { generateResearchPDF } from '../../lib/pdfGenerator';
 import Link from 'next/link';
 import Image from 'next/image';
 import { demoResearchHistory, demoFullResearchResult } from '../../lib/demoData'; // [NEW] Mock Data
@@ -99,159 +98,12 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     }, []);
 
     const handleDownloadPDF = () => {
-        if (!results) return;
-
-        const doc = new jsPDF();
-        const timestamp = new Date().toLocaleDateString();
-
-        const addWatermark = (pdf) => {
-            if (logoBase64) {
-                // Background watermark
-                try {
-                    pdf.setGState(new pdf.GState({ opacity: 0.05 }));
-                    pdf.addImage(logoBase64, 'PNG', 45, 80, 120, 120, undefined, 'FAST');
-                    pdf.setGState(new pdf.GState({ opacity: 1 }));
-                } catch (e) {
-                    // Fallback if GState fails
-                    console.log("Watermark opacity skip", e);
-                }
-            }
-        };
-
-        const addHeader = (pdf, isFirstPage = false) => {
-            addWatermark(pdf);
-
-            if (isFirstPage) {
-                if (logoBase64) {
-                    pdf.addImage(logoBase64, 'PNG', 14, 10, 22, 22);
-                }
-
-                pdf.setFontSize(22);
-                pdf.setTextColor(15, 23, 42);
-                pdf.text("Judic-IA: Informe Legal", 42, 22);
-
-                if (userProfile || currentUser) {
-                    pdf.setFontSize(9);
-                    pdf.setTextColor(71, 85, 105);
-
-                    const name = userProfile?.full_name || currentUser?.user_metadata?.full_name || 'Dr./Dra. Judic-IA';
-                    const matriculaRaw = userProfile?.matricula || currentUser?.user_metadata?.matricula;
-                    const matriculaText = matriculaRaw ? `Matrícula: ${matriculaRaw}` : null; // Don't show "Pendiente" if we can help it, or show it if really missing
-
-                    const lawyerLines = [name];
-                    if (matriculaText) lawyerLines.push(matriculaText);
-                    else lawyerLines.push('Matrícula: (Pendiente de registro)');
-
-                    pdf.text(lawyerLines, 196, 18, { align: 'right' });
-                }
-
-                pdf.setDrawColor(226, 232, 240);
-                pdf.line(14, 34, 196, 34);
-
-                pdf.setFontSize(10);
-                pdf.setTextColor(100);
-                pdf.text(`Fecha: ${timestamp}`, 14, 42);
-                pdf.text(`Jurisdicción: ${scope === 'nacional' ? 'Nacional/Federal' : province}`, 14, 47);
-
-                pdf.setFontSize(9);
-                const queryText = `Consulta: ${query || (placeholder.startsWith("Ej:") ? "General" : placeholder)}`;
-                const splitQuery = pdf.splitTextToSize(queryText, 180);
-                pdf.text(splitQuery, 14, 53);
-                return 65; // yPos start
-            }
-            return 20; // yPos start for subsequest pages
-        };
-
-        let yPos = addHeader(doc, true);
-
-        const safeRender = (content) => {
-            if (!content) return "";
-            let text = "";
-            if (typeof content === 'string') text = content;
-            else if (Array.isArray(content)) {
-                if (content.length > 0 && content[0].title) {
-                    // Remove emojis from here, use simple bullets
-                    text = content.map(c => `• ${c.title}\n  ${c.summary}\n  (Fuente: ${c.source})`).join('\n\n');
-                } else {
-                    text = content.join('\n');
-                }
-            } else if (typeof content === 'object') {
-                text = Object.entries(content).map(([k, v]) => `${k.toUpperCase()}:\n${v}`).join('\n\n');
-            } else {
-                text = String(content);
-            }
-
-            return text
-                .replace(/\*\*/g, '')      // Remove bold markers
-                .replace(/###\s?/g, '')    // Remove header markers
-                .replace(/[^\x20-\x7E\n\r\t¡¿áéíóúÁÉÍÓÚñÑüÜ]/g, ''); // Remove non-latin chars (emojis)
-        };
-
-        const sections = [
-            { title: "Normativa Aplicable", content: safeRender(results.laws) },
-            { title: "Análisis de Jurisprudencia", content: safeRender(results.cases) },
-            { title: "Liquidación Estimativa", content: safeRender(results.calculation) },
-            { title: "Puntos de Prueba", content: safeRender(results.evidence) },
-            { title: "Estrategia Recomendada", content: safeRender(results.strategy) }
-        ];
-
-        sections.forEach(section => {
-            if (section.content) {
-                // Adjust width to be safe (170 instead of 180)
-                const splitContent = doc.splitTextToSize(section.content, 170);
-                const sectionHeight = (splitContent.length * 5) + 15;
-
-                if (yPos + sectionHeight > 275) {
-                    doc.addPage();
-                    yPos = addHeader(doc);
-                }
-
-                doc.setFontSize(14);
-                doc.setTextColor(30, 41, 59);
-                doc.text(section.title, 14, yPos);
-
-                doc.setFontSize(11);
-                doc.setTextColor(0);
-                doc.text(splitContent, 14, yPos + 8);
-
-                yPos += sectionHeight + 5;
-            }
+        generateResearchPDF(results, userProfile, currentUser, {
+            scope,
+            province,
+            query,
+            logoBase64
         });
-
-        // Links Section
-        if (results.links && results.links.length > 0) {
-            if (yPos > 240) {
-                doc.addPage();
-                yPos = addHeader(doc);
-            } else {
-                yPos += 10;
-            }
-
-            doc.setFontSize(16);
-            doc.setTextColor(30, 41, 59);
-            doc.text("Recursos y Enlaces Útiles", 14, yPos);
-
-            let linkY = yPos + 10;
-            results.links.forEach(link => {
-                if (linkY > 275) {
-                    doc.addPage();
-                    linkY = addHeader(doc);
-                }
-
-                doc.setFontSize(11);
-                doc.setTextColor(0, 0, 0);
-                doc.text(link.title, 14, linkY);
-
-                doc.setFontSize(8);
-                doc.setTextColor(0, 0, 255);
-                const displayUrl = link.url.length > 105 ? link.url.substring(0, 102) + "..." : link.url;
-                doc.textWithLink(displayUrl, 14, linkY + 5, { url: link.url });
-
-                linkY += 15;
-            });
-        }
-
-        doc.save(`Informe_JudicIA_${new Date().getTime()}.pdf`);
     };
 
     const handleRefreshCase = async (index) => {
