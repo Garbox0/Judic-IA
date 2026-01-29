@@ -30,6 +30,7 @@ export const viewport = {
 };
 
 import { headers } from "next/headers";
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 export default async function RootLayout({ children }) {
   const nonce = (await headers()).get("x-nonce") || undefined;
@@ -38,6 +39,7 @@ export default async function RootLayout({ children }) {
     <html lang="es" suppressHydrationWarning>
       <body className={`${outfit.variable} ${playfair.variable}`} suppressHydrationWarning>
         {children}
+        <GoogleAnalytics gaId="G-YGHD9G2S0R" />
       </body>
     </html>
   );
