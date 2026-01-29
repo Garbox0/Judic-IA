@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { getHtmlEmail } from '../../../lib/email-template';
+import { getHtmlEmail } from '../../../../lib/email-template';
 
 // Use Service Role for Admin actions
 const supabaseAdmin = createClient(

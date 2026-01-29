@@ -2,15 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import SafeChatWidget from '../../components/SafeChatWidget';
-import './IntakeFormContent.css';
-
-export default function IntakeFormContent({ id }) {
-    // ...
-    // Skipping imports to keep it clean, just adding the import line
-}
-// Actually, I should just modify the top imports and the main tag separately or in one go if I can see them.
-// I'll do two edits. One for imports, one for the main tag and removing style block.
-
+import styles from '../../page.module.css';
 import { useSearchParams, useRouter } from 'next/navigation';
 import './IntakeFormContent.css';
 

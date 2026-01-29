@@ -14,7 +14,6 @@ import {
     ChevronUp,
     CheckCircle,
     XCircle,
-    XCircle,
     Clock
 } from 'lucide-react';
 import './agenda.css';

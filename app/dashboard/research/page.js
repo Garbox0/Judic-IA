@@ -18,7 +18,6 @@ import {
     ExternalLink,
     Eye,
     FileText,
-    FileText,
     ClipboardCopy
 } from 'lucide-react';
 import './research.css';
