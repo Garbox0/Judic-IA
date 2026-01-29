@@ -112,7 +112,7 @@ export async function POST(req) {
                 await sendEmail({
                     resendClient: resend,
                     to: userEmail,
-                    from: "billing@judic-ia.com", // Usando el remitente configurado en resend.js si este parámetro se omite usa no-reply
+                    from: "billing@judic-ia.com",
                     subject: "Bienvenido a Judic-IA Profesional ⚖️",
                     html: `
                         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #020617; color: #f8fafc; padding: 40px; border-radius: 12px; border: 1px solid #1e293b;">

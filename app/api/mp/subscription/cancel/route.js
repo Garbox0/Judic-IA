@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { Resend } from 'resend';
+import { sendEmail } from "../../../lib/resend";
 
 export async function POST(req) {
     try {
@@ -69,6 +71,46 @@ export async function POST(req) {
         if (updateError) {
             console.error("Profile Update Error:", updateError);
             return NextResponse.json({ error: "Failed to update local subscription status" }, { status: 500 });
+        }
+
+        // 4. Send Cancellation Email (Fire & Forget)
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        const { data: userData } = await supabase.auth.admin.getUserById(userId);
+        const userEmail = userData?.user?.email;
+
+        if (userEmail) {
+            await sendEmail({
+                resendClient: resend,
+                to: userEmail,
+                from: "billing@judic-ia.com",
+                subject: "Confirmación de Cancelación - Judic-IA",
+                html: `
+                    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #020617; color: #f8fafc; padding: 40px; border-radius: 12px; border: 1px solid #1e293b;">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <h1 style="color: #fbbf24; margin: 0; font-family: 'Playfair Display', serif; font-size: 32px;">Judic-IA</h1>
+                            <p style="color: #94a3b8; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px;">Cancelación de Suscripción</p>
+                        </div>
+                        
+                        <div style="background-color: rgba(255,255,255,0.03); padding: 30px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 20px;">👋</div>
+                            <h2 style="color: #f8fafc; margin-top: 0;">Lamentamos verte partir</h2>
+                            <p style="color: #cbd5e1; line-height: 1.6;">
+                                Tu suscripción ha sido cancelada correctamente. No se realizarán más cobros en tu tarjeta.
+                            </p>
+                            <p style="color: #cbd5e1; line-height: 1.6; margin-top: 15px;">
+                                Mantendrás acceso a las funciones Profesionales hasta el final de tu período de facturación actual.
+                            </p>
+                            <a href="https://judic-ia.com/dashboard/settings" style="display: inline-block; background-color: rgba(255, 255, 255, 0.1); color: #f8fafc; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; margin-top: 20px; border: 1px solid rgba(255, 255, 255, 0.2);">Gestionar Suscripción</a>
+                        </div>
+
+                        <div style="margin-top: 40px; border-top: 1px solid #1e293b; padding-top: 20px; font-size: 12px; color: #64748b; text-align: center;">
+                            <p>Esperamos verte de nuevo pronto.</p>
+                            <p>© ${new Date().getFullYear()} Judic-IA.</p>
+                        </div>
+                    </div>
+                `
+            });
+            console.log("📧 Cancellation Email sent to:", userEmail);
         }
 
         return NextResponse.json({
