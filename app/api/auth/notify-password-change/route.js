@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { sendEmail } from '../../../lib/resend';
+import { getHtmlEmail } from '../../../lib/email-template';
 import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request) {
@@ -26,21 +27,15 @@ export async function POST(request) {
             to: email,
             from: 'noreply@judic-ia.com',
             subject: '🔐 Tu contraseña de Judic-IA ha sido modificada',
-            html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
-                    <h2 style="color: #d97706;">Cambio de Contraseña Exitoso</h2>
-                    <p>Hola,</p>
-                    <p>Te informamos que la contraseña de tu cuenta profesional en <strong>Judic-IA</strong> ha sido modificada recientemente.</p>
-                    <p>Si fuiste tú, no necesitas hacer nada más.</p>
-                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                    <p style="color: #777; font-size: 0.9em;">
-                        Si NO realizaste este cambio, por favor contacta inmediatamente a <a href="mailto:soporte@judic-ia.com">soporte@judic-ia.com</a> para proteger tu cuenta.
-                    </p>
-                    <p style="font-size: 0.8em; color: #999; text-align: center; margin-top: 30px;">
-                        © 2026 Judic-IA - Inteligencia Artificial Jurídica
-                    </p>
-                </div>
-            `
+            html: getHtmlEmail({
+                heading: '🔐 Clave Modificada',
+                bodyContent: `
+                    <p>Hola estimado/a,</p>
+                    <p>Le informamos que la contraseña de su cuenta profesional en <strong>Judic-IA</strong> ha sido modificada exitosamente.</p>
+                    <p>Si usted realizó este cambio, puede ignorar este mensaje.</p>
+                    <p style="color: #ef4444; margin-top: 20px;"><strong>¿No fue usted?</strong> Contacte a soporte inmediatamente.</p>
+                `
+            })
         });
 
         return NextResponse.json({ success: true });

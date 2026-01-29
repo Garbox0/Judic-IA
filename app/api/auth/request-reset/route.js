@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { sendEmail } from '../../../lib/resend';
+import { getHtmlEmail } from '../../../lib/email-template';
 import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request) {
@@ -55,32 +56,17 @@ export async function POST(request) {
             to: email,
             from: 'noreply@judic-ia.com',
             subject: '🔐 Recupera tu acceso a Judic-IA',
-            html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background: #f8fafc; border-radius: 12px;">
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <h2 style="color: #d97706; margin-bottom: 5px;">Recuperación de Contraseña</h2>
-                        <p style="color: #64748b;">Judic-IA Acceso Profesional</p>
-                    </div>
-                    
-                    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                        <p>Hola,</p>
-                        <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta asociada a <strong>${email}</strong>.</p>
-                        <p>Haz clic en el siguiente botón para crear una nueva clave:</p>
-                        
-                        <div style="text-align: center; margin: 30px 0;">
-                            <a href="${action_link}" style="background: linear-gradient(135deg, #fbbf24, #d97706); color: #020617; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Restablecer Contraseña</a>
-                        </div>
-                        
-                        <p style="font-size: 0.9em; color: #64748b;">Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
-                        <p style="font-size: 0.8em; color: #94a3b8; word-break: break-all;">${action_link}</p>
-                    </div>
-
-                    <p style="font-size: 0.8em; color: #999; text-align: center; margin-top: 30px;">
-                        Si no solicitaste este cambio, puedes ignorar este correo. Tu cuenta sigue segura.<br>
-                        © 2026 Judic-IA
-                    </p>
-                </div>
-            `
+            html: getHtmlEmail({
+                heading: '🔐 Recuperar Acceso',
+                bodyContent: `
+                    <p>Hola,</p>
+                    <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta profesional en <strong>Judic-IA</strong>.</p>
+                    <p>Para crear una nueva clave y recuperar el acceso a tu estudio jurídico, haz clic en el siguiente botón:</p>
+                `,
+                buttonText: 'Restablecer Contraseña',
+                buttonUrl: action_link,
+                previewText: 'Enlace de recuperación de cuenta Judic-IA'
+            })
         });
 
         return NextResponse.json({ success: true });

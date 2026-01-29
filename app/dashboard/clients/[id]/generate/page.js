@@ -3,6 +3,7 @@ import React, { useState, useEffect, use } from 'react';
 import { supabase } from '../../../../lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import './generate.css';
 
 export default function GenerateDocPage({ params }) {
     const { id } = use(params);
@@ -166,68 +167,7 @@ export default function GenerateDocPage({ params }) {
                 </div>
             </div>
 
-            <style jsx>{`
-                .generate-container { padding: 2rem; max-width: 1400px; margin: 0 auto; color: white; height: 100vh; display: flex; flex-direction: column; }
-                
-                .top-nav { margin-bottom: 2rem; display: flex; align-items: center; gap: 2rem; }
-                .back-link { color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: 0.2s; }
-                .back-link:hover { color: #fbbf24; }
-                .page-title { font-size: 1.8rem; font-weight: 700; color: white; }
 
-                .workspace-grid { display: grid; grid-template-columns: 350px 1fr; gap: 2rem; flex: 1; min-height: 0; }
-                
-                .glass-panel { background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; backdrop-filter: blur(10px); }
-                
-                .panel-header { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.3); }
-                .panel-header h2 { font-size: 1.1rem; color: #fbbf24; margin: 0; font-weight: 600; }
-                .badge-case { font-size: 0.8rem; background: rgba(255, 255, 255, 0.1); padding: 0.2rem 0.6rem; border-radius: 99px; }
-
-                .context-panel { padding: 0; }
-                .form-group { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
-                .form-group label { display: block; color: #94a3b8; margin-bottom: 1rem; font-size: 0.9rem; font-weight: 600; }
-                
-                .doc-selector { display: flex; flex-direction: column; gap: 0.8rem; }
-                .doc-option { 
-                    padding: 0.8rem; background: rgba(255,255,255,0.03); border: 1px solid transparent; 
-                    border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 1rem; transition: 0.2s;
-                }
-                .doc-option:hover { background: rgba(255,255,255,0.06); }
-                .doc-option.active { border-color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
-                .doc-icon { font-size: 1.2rem; }
-                .doc-label { font-size: 0.95rem; font-weight: 500; }
-
-                .transcript-box { flex: 1; padding: 1.5rem; overflow-y: auto; border-bottom: 1px solid rgba(255,255,255,0.05); }
-                .transcript-box h3 { font-size: 0.9rem; color: #94a3b8; margin-bottom: 1rem; }
-                .messages-preview { font-size: 0.85rem; color: #cbd5e1; display: flex; flex-direction: column; gap: 0.8rem; }
-                .msg-line { padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 6px; }
-                .msg-line.user { border-left: 2px solid #fbbf24; }
-
-                .btn-generate { 
-                    margin: 1.5rem; padding: 1rem; font-weight: 700; font-size: 1rem; 
-                    background: #fbbf24; color: #0f172a; border: none; border-radius: 12px; 
-                    cursor: pointer; transition: 0.2s; 
-                }
-                .btn-generate:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(251, 191, 36, 0.3); }
-                .btn-generate:disabled { opacity: 0.7; cursor: wait; }
-
-                .loading-bar { height: 4px; background: linear-gradient(90deg, transparent, #fbbf24, transparent); animation: load 1.5s infinite; }
-                @keyframes load { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-
-                .editor-panel { flex: 1; }
-                .actions { display: flex; gap: 0.5rem; }
-                .btn-secondary { background: rgba(255,255,255,0.1); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
-                .btn-primary { background: #fbbf24; color: #0f172a; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
-                .btn-secondary:disabled, .btn-primary:disabled { opacity: 0.5; cursor: default; }
-
-                .editor-textarea { 
-                    flex: 1; width: 100%; resize: none; border: none; background: transparent; 
-                    padding: 2rem; color: #e2e8f0; font-family: 'Courier New', monospace; font-size: 1.1rem; line-height: 1.6; outline: none; 
-                }
-                .editor-placeholder { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; }
-                .icon-placeholder { font-size: 4rem; margin-bottom: 1rem; opacity: 0.3; }
-
-                .loading-screen { display: flex; align-items: center; justify-content: center; height: 100vh; color: white; font-family: sans-serif; }
-            `}</style>
         </div>
     );
 }

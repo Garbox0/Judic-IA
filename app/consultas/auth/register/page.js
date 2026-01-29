@@ -6,78 +6,7 @@ import SafeChatWidget from '../../../components/SafeChatWidget';
 import { supabase } from '../../../lib/supabase';
 import '../../../globals.css';
 
-// --- STYLES (Hoisted to apply to both Content and Loading) ---
-const AuthStyles = () => (
-    <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap');
-
-        .auth-main { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 10%, #0f172a, #020617); font-family: 'Inter', sans-serif; padding: 2rem; }
-        .auth-container { width: 100%; max-width: 420px; position: relative; }
-        
-        .glass-premium { 
-            background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); 
-            padding: 3.5rem 3rem; border-radius: 28px; 
-            border: 1px solid rgba(255, 255, 255, 0.08); 
-            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6); 
-        }
-
-        .brand-header { text-align: center; margin-bottom: 2.5rem; }
-        .brand-logo-premium { width: 60px; margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.3)); }
-        .brand-name-premium { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; color: #fbbf24; margin: 0; }
-        .justice-emoji { font-style: normal; font-size: 0.8em; margin-left: 8px; }
-
-        .brand-status { color: #94a3b8; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.15em; margin-top: 0.5rem; margin-bottom: 1rem; }
-        .brand-desc { color: #94a3b8; font-size: 0.95rem; line-height: 1.5; font-weight: 400; }
-
-        .premium-form { display: flex; flex-direction: column; gap: 1.5rem; }
-        .input-field label { display: block; color: #94a3b8; margin-bottom: 0.4rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
-        .input-field input { 
-            width: 100%; padding: 1rem 1.2rem; background: #020617; 
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; 
-            color: white; font-size: 1rem; transition: 0.3s; outline: none;
-        }
-        .input-field input:focus { border-color: #fbbf24; box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.1); }
-        
-        .btn-gold-action { 
-            width: 100%; padding: 1.1rem; background: linear-gradient(135deg, #fbbf24, #d97706); 
-            color: #020617; border: none; border-radius: 14px; font-weight: 800; font-size: 0.95rem;
-            cursor: pointer; transition: 0.3s; margin-top: 0.5rem;
-        }
-        .btn-gold-action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(217, 119, 6, 0.3); }
-        .btn-gold-action:disabled { opacity: 0.7; cursor: not-allowed; }
-
-        .divider-premium { text-align: center; position: relative; margin: 2rem 0; }
-        .divider-premium::before { content: ''; position: absolute; left: 0; top: 50%; width: 100%; height: 1px; background: rgba(255, 255, 255, 0.05); }
-        .divider-premium span { position: relative; background: #0c1222; padding: 0 1rem; color: #475569; font-size: 0.8rem; }
-
-        .error-premium { background: rgba(239, 68, 68, 0.1); color: #fca5a5; padding: 1rem; border-radius: 12px; font-size: 0.9rem; text-align: center; border: 1px solid rgba(239, 68, 68, 0.2); }
-        .success-premium { background: rgba(34, 197, 94, 0.1); color: #86efac; padding: 1rem; border-radius: 12px; font-size: 0.9rem; text-align: center; border: 1px solid rgba(34, 197, 94, 0.2); margin-bottom: 1.5rem; }
-
-        .btn-back-premium { position: absolute; top: 2rem; left: 2rem; color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: 0.3s; }
-        .btn-back-premium:hover { color: #fbbf24; }
-
-        .auth-nav-footer { text-align: center; font-size: 0.9rem; color: #94a3b8; margin-top: 1rem; }
-        .btn-text-gold { background: none; border: none; color: #fbbf24; font-weight: 700; cursor: pointer; margin-left: 0.5rem; font-size: 0.9rem; transition: 0.2s; }
-        .btn-text-gold:hover { text-decoration: underline; }
-
-        .confirmed-ui { text-align: center; padding: 2rem 0; }
-        .success-icon { font-size: 5rem; margin-bottom: 1.5rem; }
-        .confirmed-text { color: #94a3b8; margin-bottom: 2.5rem; font-size: 1.1rem; }
-        
-        .fade-in { animation: fadeIn 0.5s ease forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* PASSWORD RULES & TOGGLE */
-        .pass-input-wrapper { position: relative; }
-        .eye-toggle-premium { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.2rem; opacity: 0.5; transition: 0.3s; color: white; }
-        .eye-toggle-premium:hover { opacity: 1; color: #fbbf24; }
-
-        .password-checklist-premium { background: rgba(2, 6, 23, 0.4); padding: 1rem; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.05); margin-top: 0.5rem; }
-        .password-checklist-premium p { margin: 0.3rem 0; font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 0.5rem; }
-        .password-checklist-premium p.valid { color: #86efac; font-weight: 600; }
-        .password-checklist-premium p.invalid { color: #fca5a5; }
-    `}</style>
-);
+import './register.css';
 
 function RegisterContent() {
     const router = useRouter();
@@ -542,7 +471,7 @@ function LoadingFallback() {
 export default function ClientRegisterPage() {
     return (
         <main className="auth-main">
-            <AuthStyles />
+
             <div className="auth-container">
                 <Suspense fallback={<LoadingFallback />}>
                     <RegisterContent />

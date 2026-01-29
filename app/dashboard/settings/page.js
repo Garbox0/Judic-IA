@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef, useCallback } from 'react';
+import './settings.css';
 import { Toaster, toast } from 'sonner';
 import { useDropzone } from 'react-dropzone';
 import AvatarEditor from './AvatarEditor';
@@ -65,6 +66,9 @@ export default function SettingsPage() {
     const [pendingAvatarBlob, setPendingAvatarBlob] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [deletionStep, setDeletionStep] = useState('initial'); // initial, otp_sent, verified
+    const [deletionOtp, setDeletionOtp] = useState('');
 
     const [formData, setFormData] = useState({
         full_name: '',
@@ -539,6 +543,8 @@ export default function SettingsPage() {
                                         {saving ? 'Guardando...' : 'Actualizar Seguridad'}
                                     </button>
                                 </div>
+
+
                             </div>
                         )}
 
@@ -759,6 +765,119 @@ export default function SettingsPage() {
                                             {CONTACT_CHANNELS.billing.email}
                                         </a>
                                     </div>
+                                    <div className="stg-discrete-danger">
+                                        <button
+                                            onClick={() => setDeleteModalOpen(true)}
+                                            className="stg-discrete-delete-btn"
+                                        >
+                                            Eliminar mi cuenta definitivamente
+                                        </button>
+                                    </div>
+
+                                    {deleteModalOpen && (
+                                        <div className="stg-modal-overlay">
+                                            <div className="stg-modal-content">
+                                                {deletionStep === 'initial' && (
+                                                    <>
+                                                        <h3 className="text-xl font-bold mb-4 text-red-500">¿Estás absolutamente seguro?</h3>
+                                                        <p className="text-slate-400 mb-6">
+                                                            Esta acción eliminará <strong>permanentemente</strong> tu cuenta, casos, clientes y expedientes.
+                                                            <br /><br />
+                                                            Para confirmar, enviaremos un código a tu email.
+                                                        </p>
+                                                        <div className="flex justify-end gap-3">
+                                                            <button
+                                                                className="stg-ghost-btn"
+                                                                onClick={() => setDeleteModalOpen(false)}
+                                                            >
+                                                                Cancelar
+                                                            </button>
+                                                            <button
+                                                                className="stg-danger-btn"
+                                                                onClick={async () => {
+                                                                    setSaving(true);
+                                                                    try {
+                                                                        const { data: { session } } = await supabase.auth.getSession();
+                                                                        const res = await fetch('/api/account/request-deletion-otp', {
+                                                                            method: 'POST',
+                                                                            headers: {
+                                                                                'Authorization': `Bearer ${session?.access_token}`
+                                                                            }
+                                                                        });
+                                                                        if (!res.ok) throw new Error('Error solicitando eliminación');
+                                                                        setDeletionStep('otp_sent');
+                                                                        toast.success("Código enviado a tu email");
+                                                                    } catch (e) {
+                                                                        toast.error(e.message);
+                                                                    } finally {
+                                                                        setSaving(false);
+                                                                    }
+                                                                }}
+                                                                disabled={saving}
+                                                            >
+                                                                {saving ? 'Enviando...' : 'Sí, eliminar cuenta'}
+                                                            </button>
+                                                        </div>
+                                                    </>
+                                                )}
+
+                                                {deletionStep === 'otp_sent' && (
+                                                    <>
+                                                        <h3 className="text-xl font-bold mb-4">Ingresa el código de confirmación</h3>
+                                                        <p className="text-slate-400 mb-4">Revisa tu email y escribe el código de 6 dígitos.</p>
+
+                                                        <input
+                                                            type="text"
+                                                            className="stg-dark-input text-center text-2xl tracking-widest mb-6"
+                                                            placeholder="000000"
+                                                            maxLength={6}
+                                                            value={deletionOtp}
+                                                            onChange={(e) => setDeletionOtp(e.target.value)}
+                                                        />
+
+                                                        <div className="flex justify-end gap-3">
+                                                            <button
+                                                                className="stg-ghost-btn"
+                                                                onClick={() => setDeleteModalOpen(false)}
+                                                            >
+                                                                Cancelar
+                                                            </button>
+                                                            <button
+                                                                className="stg-danger-btn"
+                                                                onClick={async () => {
+                                                                    setSaving(true);
+                                                                    try {
+                                                                        const { data: { session } } = await supabase.auth.getSession();
+                                                                        const res = await fetch('/api/account/confirm-deletion', {
+                                                                            method: 'POST',
+                                                                            headers: {
+                                                                                'Content-Type': 'application/json',
+                                                                                'Authorization': `Bearer ${session?.access_token}`
+                                                                            },
+                                                                            body: JSON.stringify({ otp: deletionOtp })
+                                                                        });
+
+                                                                        const d = await res.json();
+                                                                        if (!res.ok) throw new Error(d.error || 'Error eliminando cuenta');
+
+                                                                        toast.success("Cuenta eliminada correctamente");
+                                                                        window.location.href = '/'; // Force redirect
+                                                                    } catch (e) {
+                                                                        toast.error(e.message);
+                                                                    } finally {
+                                                                        setSaving(false);
+                                                                    }
+                                                                }}
+                                                                disabled={saving || deletionOtp.length < 6}
+                                                            >
+                                                                {saving ? 'Eliminando...' : 'CONFIRMAR ELIMINACIÓN'}
+                                                            </button>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -766,315 +885,7 @@ export default function SettingsPage() {
                 </div>
             </div>
 
-            <style jsx global>{`
-                /* SUPPORT GRID STYLES */
-                .stg-support-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                    gap: 1.5rem;
-                }
-                .stg-support-card {
-                    background: rgba(255,255,255,0.03);
-                    border: 1px solid rgba(255,255,255,0.08);
-                    border-radius: 20px;
-                    padding: 2rem;
-                    text-align: center;
-                    transition: 0.3s;
-                }
-                .stg-support-card:hover {
-                    background: rgba(255,255,255,0.05);
-                    border-color: rgba(251, 191, 36, 0.3);
-                    transform: translateY(-3px);
-                }
-                .icon-circle {
-                    width: 60px; height: 60px;
-                    background: rgba(15, 23, 42, 0.6);
-                    border-radius: 50%;
-                    display: flex; align-items: center; justify-content: center;
-                    font-size: 1.8rem;
-                    margin: 0 auto 1rem;
-                    border: 1px solid rgba(255,255,255,0.1);
-                }
-                .stg-support-card h4 {
-                    margin: 0.5rem 0;
-                    font-size: 1.1rem;
-                    color: white;
-                }
-                .stg-support-card p {
-                    color: #64748b;
-                    font-size: 0.9rem;
-                    margin-bottom: 1.5rem;
-                }
-                .stg-link-btn {
-                    display: inline-block;
-                    padding: 0.8rem 1.2rem;
-                    background: rgba(251, 191, 36, 0.1);
-                    color: #fbbf24;
-                    text-decoration: none;
-                    font-weight: 700;
-                    border-radius: 12px;
-                    font-size: 0.9rem;
-                    transition: 0.3s;
-                }
-                .stg-link-btn:hover {
-                    background: #fbbf24;
-                    color: #020617;
-                }
 
-                /* ENCAPSULATED ROOT - PREVENT OVERLAP */
-                .stg-root {
-                    min-height: 100vh;
-                    background: #020617;
-                    color: white;
-                    padding: 0 4rem 3rem 2rem;
-                    font-family: var(--font-main);
-                }
-                .stg-container { max-width: 1200px; margin: 0 auto; }
-
-
-                .stg-layout-split { 
-                    display: flex; 
-                    gap: 3.5rem; 
-                    align-items: flex-start;
-                }
-
-                /* INTERNAL SIDEBAR - UNIQUE CLASSES */
-                .stg-tabs-nav {
-                    width: 280px;
-                    background: rgba(15, 23, 42, 0.4);
-                    border: 1px solid rgba(255,255,255,0.05);
-                    border-radius: 24px;
-                    padding: 1.5rem;
-                    backdrop-filter: blur(20px);
-                }
-
-                .stg-tab-btn {
-                    width: 100%;
-                    text-align: left;
-                    padding: 1.1rem 1.4rem;
-                    margin-bottom: 0.8rem;
-                    border: 1px solid transparent;
-                    background: transparent;
-                    color: #64748b;
-                    border-radius: 14px;
-                    cursor: pointer;
-                    font-weight: 700;
-                    transition: all 0.3s;
-                    font-size: 0.95rem;
-                }
-                .stg-tab-btn:hover { background: rgba(255,255,255,0.03); color: white; }
-                .stg-tab-btn.active {
-                    background: rgba(251, 191, 36, 0.1);
-                    border-color: rgba(251, 191, 36, 0.2);
-                    color: #fbbf24;
-                }
-
-                /* CONTENT BOX */
-                .stg-main-content {
-                    flex: 1;
-                    background: rgba(15, 23, 42, 0.6);
-                    border: 1px solid rgba(255,255,255,0.08);
-                    border-radius: 32px;
-                    padding: 3.5rem;
-                    backdrop-filter: blur(50px);
-                    box-shadow: 0 40px 100px -20px rgba(0,0,0,0.5);
-                    min-height: 700px;
-                }
-
-                .stg-tab-pane { animation: stgFade 0.6s ease; }
-                @keyframes stgFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-                .stg-profile-header { display: flex; gap: 3.5rem; margin-bottom: 2.5rem; }
-                .stg-photo-col { width: 180px; }
-                .stg-avatar-box {
-                    width: 180px; height: 180px;
-                    background: #0f172a;
-                    border: 2px dashed rgba(251, 191, 36, 0.25);
-                    border-radius: 24px;
-                    overflow: hidden; cursor: pointer; position: relative;
-                    display: flex; align-items: center; justify-content: center;
-                    transition: 0.4s;
-                }
-                .stg-avatar-box:hover, .stg-avatar-box.drag-active { border-color: #fbbf24; transform: scale(1.02); background: rgba(251,191,36,0.05); }
-                .stg-avatar-box img { width: 100%; height: 100%; object-fit: cover; }
-                .stg-placeholder { text-align: center; color: #334155; font-size: 0.8rem; font-weight: 800; }
-                
-                .stg-avatar-actions {
-                    display: flex; gap: 0.8rem; margin-top: 0.8rem; width: 100%; justify-content: space-between;
-                }
-                .stg-mini-btn {
-                    flex: 1;
-                    padding: 0.4rem 0.6rem;
-                    border-radius: 8px;
-                    border: 1px solid rgba(255,255,255,0.08);
-                    background: transparent;
-                    color: #64748b;
-                    font-size: 0.7rem; font-weight: 700;
-                    text-transform: uppercase; letter-spacing: 0.05em;
-                    cursor: pointer; transition: 0.3s;
-                    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
-                }
-                .stg-mini-btn:hover:not(:disabled) { background: rgba(255,255,255,0.03); color: white; border-color: rgba(255,255,255,0.2); }
-                .stg-mini-btn.primary { background: rgba(251, 191, 36, 0.05); color: #fbbf24; border-color: rgba(251, 191, 36, 0.15); }
-                .stg-mini-btn.primary:hover { background: rgba(251, 191, 36, 0.15); border-color: #fbbf24; color: #fbbf24; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.1); }
-                .stg-mini-btn:disabled { opacity: 0.3; cursor: not-allowed; border-color: transparent; }
-
-                /* REMOVED stg-change-photo-btn */
-                .stg-loader-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; color: #fbbf24; }
-
-                .stg-fields-col { flex: 1; }
-                .stg-f-group { margin-bottom: 1.8rem; display: flex; flex-direction: column; }
-                .stg-label { font-size: 0.75rem; font-weight: 900; color: #475569 !important; text-transform: uppercase; margin-bottom: 0.7rem; letter-spacing: 0.08em; padding-left: 0.4rem; }
-                
-                .stg-dark-input {
-                    background: #0f172a !important;
-                    border: 1px solid rgba(255,255,255,0.1) !important;
-                    color: white !important;
-                    padding: 1rem 1.4rem !important;
-                    border-radius: 16px !important;
-                    font-size: 1rem !important;
-                    outline: none !important;
-                    width: 100%;
-                    transition: 0.3s;
-                }
-                .stg-dark-input:focus { border-color: #fbbf24 !important; background: #020617 !important; box-shadow: 0 0 0 5px rgba(251,191,36,0.1) !important; }
-                .stg-dark-input.readonly { opacity: 0.4; cursor: not-allowed; }
-                .stg-dark-input.underline { resize: none; }
-
-                .stg-dark-input.underline { resize: none; }
-
-                .stg-field-row.multi { display: flex; gap: 1.8rem; align-items: flex-end; }
-                .flex-1 { flex: 1; } .flex-2 { flex: 2; }
-                .flex-1 { flex: 1; } .flex-2 { flex: 2; }
-
-                .stg-chips-grid { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-                .stg-chip {
-                    padding: 0.6rem 1rem;
-                    background: rgba(15, 23, 42, 0.4);
-                    border: 1px solid rgba(255,255,255,0.06);
-                    border-radius: 10px;
-                    color: #64748b;
-                    font-size: 0.8rem;
-                    cursor: pointer;
-                    font-weight: 600;
-                    transition: 0.3s;
-                }
-                .stg-chip:hover { color: white; background: rgba(255,255,255,0.05); }
-                .stg-chip.selected { background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.2); color: #fbbf24; }
-
-                .stg-actions-footer { margin-top: 3.5rem; display: flex; justify-content: flex-end; padding-top: 2.5rem; border-top: 1px solid rgba(255,255,255,0.05); }
-                .stg-gold-btn {
-                    background: linear-gradient(135deg, #fbbf24, #d97706);
-                    color: #020617; border: none; padding: 1.1rem 3.5rem; border-radius: 18px;
-                    font-weight: 800; cursor: pointer; transition: 0.3s; font-size: 1rem;
-                    text-transform: uppercase; letter-spacing: 0.05em;
-                }
-                .stg-gold-btn:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(217, 119, 6, 0.3); }
-                .stg-gold-btn:disabled { opacity: 0.5; }
-
-                /* SECURITY */
-                .stg-alert-card { background: rgba(251,191,36,0.05); border: 1px solid rgba(251,191,36,0.15); padding: 1.5rem; border-radius: 16px; color: #fbbf24; font-size: 0.95rem; margin-bottom: 3rem; font-weight: 700; }
-                .stg-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 3rem 0; }
-                .stg-sec-title { font-family: 'Playfair Display'; font-size: 1.8rem; color: white; margin-bottom: 2rem; }
-                .stg-bg-box { background: rgba(15, 23, 42, 0.3); padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.03); }
-                .stg-hint { font-size: 0.75rem; color: #475569; margin-top: 0.8rem; }
-                .stg-outline-btn { background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #94a3b8; padding: 1rem; border-radius: 14px; cursor: pointer; font-weight: 700; transition: 0.3s; }
-                .stg-outline-btn:hover { color: white; border-color: #fbbf24; }
-
-                /* BILLING */
-                .stg-plan-card {
-                    background: linear-gradient(145deg, #0f172a, #020617);
-                    border: 1px solid rgba(251, 191, 36, 0.4);
-                    padding: 3.5rem; border-radius: 28px; position: relative;
-                }
-                .stg-premium-glow { box-shadow: 0 0 50px rgba(251, 191, 36, 0.05); }
-                .stg-plan-badge { 
-                    position: absolute; top: 2rem; right: 2rem; 
-                    background: #fbbf24; color: #020617; font-size: 0.75rem; font-weight: 950; 
-                    padding: 0.5rem 1.2rem; border-radius: 100px;
-                }
-                .stg-tag { color: #fbbf24; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; display: block; margin-bottom: 0.5rem; }
-                .stg-plan-name { font-family: 'Playfair Display'; font-size: 3rem; margin: 0; }
-                .stg-price-row { display: flex; align-items: baseline; gap: 0.8rem; margin-top: 1rem; }
-                .stg-val { font-size: 2.5rem; font-weight: 900; color: white; }
-                .stg-period { color: #475569; font-weight: 600; }
-                .stg-plan-footer { display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 2rem; padding-top: 1.5rem; }
-                .stg-status-active { color: #10b981; font-weight: 900; font-size: 0.85rem; }
-                .stg-next-date { color: #64748b; font-size: 0.85rem; }
-
-                .stg-methods-box { margin-top: 4rem; }
-                .stg-method-item { 
-                    background: rgba(0, 158, 227, 0.04); 
-                    border: 1px solid rgba(0, 158, 227, 0.15); 
-                    padding: 1.8rem; border-radius: 18px; 
-                    display: flex; justify-content: space-between; align-items: center;
-                }
-                .stg-mp-btn:hover { background: #0085bd; transform: translateY(-2px); }
-                .stg-mp-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-                /* NEW BILLING STYLES */
-                .stg-current-status-card {
-                    display: flex; justify-content: space-between; align-items: center;
-                    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
-                    padding: 1.5rem 2rem; border-radius: 20px;
-                }
-                .stg-status-info { display: flex; align-items: center; gap: 1.5rem; }
-                .stg-status-icon { font-size: 2rem; background: rgba(255,255,255,0.05); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 16px; }
-                
-                .stg-badge-v2 { font-size: 0.75rem; font-weight: 900; padding: 0.5rem 1rem; border-radius: 99px; }
-                .stg-badge-v2.active { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.2); }
-                .stg-badge-v2.inactive { background: rgba(244, 63, 94, 0.1); color: #f43f5e; border: 1px solid rgba(244,63,94,0.2); }
-
-                .stg-plan-list { list-style: none; padding: 0; margin: 2rem 0 0; text-align: left; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-                .stg-plan-list li { color: #94a3b8; font-size: 0.9rem; font-weight: 500; }
-                
-                .stg-success-card { text-align: center; padding: 4rem 2rem; background: rgba(251, 191, 36, 0.03); border: 2px dashed rgba(251,191,36,0.15); border-radius: 32px; }
-
-                .stg-pro-upgrade-action {
-                    margin-top: 2.5rem;
-                    padding-top: 2rem;
-                    border-top: 1px solid rgba(255,255,255,0.05);
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    text-align: left;
-                }
-
-                .pulse-anim {
-                    animation: proPulse 2s infinite;
-                }
-                @keyframes proPulse {
-                    0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
-                    70% { box-shadow: 0 0 0 15px rgba(251, 191, 36, 0); }
-                    100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
-                }
-
-                @media (max-width: 900px) {
-                    .stg-layout-split { flex-direction: column; }
-                    .stg-tabs-nav { width: 100%; }
-                    .stg-profile-header { flex-direction: column; align-items: center; }
-                    .stg-field-row.multi { flex-direction: column; gap: 0; }
-                    .stg-root { padding: 2rem; }
-                    .stg-plan-list { grid-template-columns: 1fr; }
-                    
-                    /* BILLING & SUPPORT FIXES */
-                    .stg-plan-card { padding: 2rem; } /* Reduce padding */
-                    .stg-plan-name { font-size: 2.2rem; }
-                    .stg-plan-footer { flex-direction: column; gap: 1.5rem; text-align: center; }
-                    .stg-support-grid { grid-template-columns: 1fr; } /* Stack support cards */
-                    .stg-val { font-size: 2rem; }
-
-                     /* STATUS CARD FIX (Tu Plan Actual) */
-                    .stg-current-status-card { flex-direction: column; gap: 1rem; text-align: center; }
-                    .stg-status-info { flex-direction: column; gap: 0.5rem; }
-                }
-
-                @media (max-width: 600px) {
-                    .stg-root { padding: 1rem; }
-                    .stg-main-content { padding: 1.5rem; }
-                    .stg-header-title { font-size: 1.8rem; }
-                }
-            `}</style>
             <Script
                 src="https://sdk.mercadopago.com/js/v2"
                 onLoad={() => {

@@ -1,0 +1,424 @@
+.inline-icon {
+    vertical-align: middle;
+    margin-right: 0.5rem;
+    color: #fbbf24;
+}
+
+.resource-icon {
+    margin-bottom: 0.5rem;
+    color: #94a3b8;
+}
+
+.legislation-container {
+    padding: 0 3rem 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    color: white;
+}
+
+@media (max-width: 900px) {
+    .legislation-container {
+        padding: 0 1.5rem 2rem;
+    }
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+    color: #94a3b8;
+}
+
+.breadcrumb-item {
+    color: #94a3b8;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.breadcrumb-item:hover {
+    color: #fbbf24;
+}
+
+.breadcrumb-separator {
+    opacity: 0.5;
+}
+
+.legislation-header {
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.header-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.header-content p {
+    color: #94a3b8;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+/* SEARCH BAR REFINED */
+.infoleg-search {
+    margin: 0 auto;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(15, 23, 42, 0.8);
+    max-width: 800px;
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+}
+
+.search-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.search-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.search-field label {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.search-input,
+.search-select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 0.6rem;
+    color: white;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+.search-input:focus,
+.search-select:focus {
+    border-color: #fbbf24;
+    outline: none;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+option {
+    background: #0f172a;
+    color: white;
+}
+
+.col-span-2 {
+    grid-column: span 2;
+}
+
+.col-span-4 {
+    grid-column: span 4;
+}
+
+.search-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.btn-search {
+    background: #fbbf24;
+    color: black;
+    border: none;
+    padding: 0.6rem 2rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.btn-search:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+@media (max-width: 768px) {
+    .search-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .col-span-2,
+    .col-span-4 {
+        grid-column: span 1;
+    }
+}
+
+/* SECTIONS */
+.legislation-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.section-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.section-head .head-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.icon-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.icon-badge.amber {
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+}
+
+.icon-badge.blue {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.section-head h2 {
+    font-size: 1.4rem;
+    margin: 0;
+    color: #f8fafc;
+}
+
+.section-desc {
+    margin: 0.2rem 0 0 0;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
+/* CODES GRID (FONDO) */
+.codes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.2rem;
+}
+
+.code-card {
+    padding: 1.5rem;
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.code-card:hover {
+    border-color: rgba(251, 191, 36, 0.3);
+    background: rgba(30, 41, 59, 0.7);
+    transform: translateY(-4px);
+}
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.arrow {
+    color: #525252;
+    font-size: 1.2rem;
+    transition: 0.2s;
+}
+
+.code-card:hover .arrow {
+    color: #fbbf24;
+    transform: translate(2px, -2px);
+}
+
+.code-info h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #e2e8f0;
+    line-height: 1.3;
+}
+
+.code-info p {
+    margin: 0.5rem 0 0 0;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    line-height: 1.4;
+}
+
+/* PROCEDURAL LIST (FORMA) */
+.jurisdiction-select {
+    background: #0f172a;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: white;
+    padding: 0.6rem 2rem 0.6rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    outline: none;
+    min-width: 200px;
+}
+
+.jurisdiction-select:focus {
+    border-color: #3b82f6;
+}
+
+.procedural-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+}
+
+.proc-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(30, 41, 59, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.proc-item:hover {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: #3b82f6;
+    transform: translateX(4px);
+}
+
+.proc-icon {
+    font-size: 1.5rem;
+}
+
+.proc-content {
+    flex: 1;
+}
+
+.proc-content h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #e2e8f0;
+}
+
+.jurisdiction-tag {
+    display: inline-block;
+    margin-top: 0.3rem;
+    font-size: 0.7rem;
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+}
+
+.proc-action {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.proc-item:hover .proc-action {
+    color: #60a5fa;
+}
+
+.resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.resource-card {
+    padding: 1.2rem;
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.resource-card:hover {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: #fbbf24;
+    transform: translateY(-3px);
+}
+
+.resource-card h3 {
+    font-size: 0.95rem;
+    color: #f1f5f9;
+    margin: 0;
+    font-weight: 600;
+}
+
+.resource-card p {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.resource-card.highlight {
+    border-left: 3px solid #fbbf24;
+}
+
+@media (max-width: 600px) {
+    .header-content h1 {
+        font-size: 2rem;
+    }
+
+    .search-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-icon-wrapper {
+        justify-content: center;
+    }
+
+    .head-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .jurisdiction-select {
+        width: 100%;
+    }
+}

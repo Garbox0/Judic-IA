@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import Link from 'next/link';
 import { Brain, Library, ExternalLink, Copy, Search, Filter } from 'lucide-react';
-
 import { demoLibrary } from '../../lib/demoData';
+import './library.css';
 
 export default function LibraryPage() {
     const [loading, setLoading] = useState(true);
@@ -155,77 +155,7 @@ export default function LibraryPage() {
                 )}
             </div>
 
-            <style jsx>{`
-                .library-container { padding: 0 3rem 3rem; max-width: 1200px; margin: 0 auto; color: white; }
-                
-                @media (max-width: 900px) {
-                    .library-container { padding: 0 1.5rem 2rem; }
-                    .header-content h1 { font-size: 1.6rem; }
-                }
 
-                .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; margin-bottom: 2rem; color: var(--muted); }
-                .breadcrumb-item { color: var(--muted); text-decoration: none; transition: 0.2s; }
-                .breadcrumb-item:hover { color: #fbbf24; }
-                .breadcrumb-separator { opacity: 0.5; }
-                .breadcrumb-current { color: #fbbf24; font-weight: 600; }
-
-                .library-header { margin-bottom: 2rem; }
-                .header-content h1 { font-size: 2rem; margin-bottom: 0.5rem; }
-                .header-content p { color: var(--muted); margin-bottom: 1.5rem; }
-
-                .search-bar-container { 
-                    display: flex; gap: 1rem; padding: 1rem; background: rgba(30, 41, 59, 0.6); 
-                    border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
-                    flex-wrap: wrap;
-                }
-                .search-input { 
-                    flex: 1; min-width: 250px; background: transparent; border: none; 
-                    font-size: 1.1rem; color: white; outline: none; 
-                }
-                .search-input::placeholder { color: rgba(255,255,255,0.3); }
-                .jurisdiction-select {
-                    background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1);
-                    color: white; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;
-                    outline: none;
-                }
-
-                .library-grid { 
-                    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-                    gap: 1.5rem; 
-                }
-
-                .library-card { 
-                    padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; 
-                    transition: 0.2s; border: 1px solid rgba(255,255,255,0.05);
-                }
-                .library-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.15); }
-
-                .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
-                .jurisdiction-tag { 
-                    font-size: 0.75rem; text-transform: uppercase; font-weight: 700; 
-                    background: rgba(96, 165, 250, 0.1); color: #60a5fa; padding: 0.2rem 0.6rem; border-radius: 4px;
-                }
-                .card-link { color: var(--muted); text-decoration: none; font-size: 1.2rem; transition: 0.2s; }
-                .card-link:hover { color: white; }
-
-                .card-title { font-size: 1.1rem; line-height: 1.4; margin: 0; color: #f8fafc; font-weight: 600; }
-                .card-summary { font-size: 0.9rem; color: #cbd5e1; line-height: 1.6; flex-grow: 1; }
-
-                .card-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); }
-                .btn-copy {
-                    background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--muted);
-                    font-size: 0.8rem; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; transition: 0.2s;
-                }
-                .btn-copy:hover { background: rgba(255,255,255,0.05); color: white; }
-                
-                .loading-state, .empty-state { grid-column: 1 / -1; text-align: center; padding: 4rem; color: var(--muted); }
-                .empty-state h3 { color: white; margin-top: 1rem; margin-bottom: 0.5rem; }
-
-                @media (max-width: 768px) {
-                    .library-container { padding: 0 1.5rem 3rem; }
-                    .search-bar-container { flex-direction: column; }
-                }
-            `}</style>
         </div>
     );
 }

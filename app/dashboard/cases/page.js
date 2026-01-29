@@ -13,6 +13,7 @@ import {
     ChevronDown,
     ChevronUp
 } from 'lucide-react';
+import './cases.css';
 
 export default function CasesPage() {
     const [loading, setLoading] = useState(true);
@@ -292,117 +293,7 @@ export default function CasesPage() {
                 </div>
             )}
 
-            <style jsx>{`
-                .cases-container { padding: 0 3rem 3rem; max-width: 1200px; margin: 0 auto; color: white; }
-                
-                @media (max-width: 900px) {
-                    .cases-container { padding: 0 1.5rem 2rem; }
-                }
-                
-                .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; margin-bottom: 2rem; color: var(--muted); }
-                .breadcrumb-item { color: var(--muted); text-decoration: none; transition: 0.2s; }
-                .breadcrumb-item:hover { color: #fbbf24; }
-                .breadcrumb-separator { opacity: 0.5; }
-                .breadcrumb-current { color: #fbbf24; font-weight: 600; }
 
-                .cases-header { margin-bottom: 2.5rem; }
-                .header-flex { display: flex; align-items: center; gap: 2rem; }
-                .header-icon-box { width: 80px; height: 80px; background: rgba(59, 130, 246, 0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #60a5fa; }
-                .header-text p { color: var(--muted); margin-top: 0.2rem; }
-
-                .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
-                .stat-card { padding: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-                .stat-label { font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-                .stat-value { font-size: 2rem; font-weight: 700; color: white; }
-
-                .cases-list-container { width: 100%; overflow-x: auto; margin-bottom: 2rem; border-radius: 16px; -webkit-overflow-scrolling: touch; }
-                .cases-list-wrapper { border-radius: 16px; overflow: hidden; background: rgba(15, 23, 42, 0.4); min-width: 700px; }
-                .cases-table { width: 100%; border-collapse: collapse; text-align: left; }
-                .cases-table th { padding: 1.2rem 1.5rem; background: rgba(30, 41, 59, 0.5); color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
-                .cases-table td { padding: 1.2rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
-                .cases-table tr:hover td { background: rgba(255,255,255,0.02); }
-
-                .case-title-cell { display: flex; flex-direction: column; }
-                .case-title-cell strong { font-size: 1rem; color: white; }
-                .case-title-cell small { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
-
-                .matter-badge { background: rgba(255,255,255,0.05); color: #e2e8f0; padding: 0.3rem 0.7rem; border-radius: 6px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); }
-                
-                .status-badge { padding: 0.3rem 0.8rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-
-                .date-cell { color: var(--muted); font-size: 0.9rem; }
-
-                .action-cell { display: flex; gap: 0.8rem; }
-                .btn-view, .btn-chat { 
-                    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
-                    color: white; width: 34px; height: 34px; border-radius: 8px; 
-                    display: flex; align-items: center; justify-content: center; 
-                    cursor: pointer; transition: 0.2s; text-decoration: none; font-size: 1.1rem;
-                }
-                .btn-view:hover { background: #60a5fa; color: white; transform: translateY(-2px); }
-                .btn-chat:hover { background: #fbbf24; color: #0f172a; transform: translateY(-2px); }
-                .btn-delete { 
-                    background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); 
-                    color: #ef4444; width: 34px; height: 34px; border-radius: 8px; 
-                    display: flex; align-items: center; justify-content: center; 
-                    cursor: pointer; transition: 0.2s; font-size: 1.1rem;
-                }
-                .btn-delete:hover { background: rgba(239, 68, 68, 0.2); transform: translateY(-2px); }
-
-                .empty-state { color: var(--muted); }
-                .empty-state h3 { color: white; margin-bottom: 0.5rem; }
-
-                /* VAULT */
-                .vault-section { margin-top: 3rem; margin-bottom: 2rem; }
-                .btn-vault-toggle {
-                    width: 100%; display: flex; align-items: center; gap: 1rem;
-                    background: rgba(15, 23, 42, 0.6); color: var(--muted); border: 1px solid rgba(255,255,255,0.05);
-                    padding: 1.5rem; border-radius: 12px; cursor: pointer; font-size: 1rem; transition: 0.2s;
-                    text-align: left;
-                }
-                .btn-vault-toggle:hover { background: rgba(15, 23, 42, 0.8); color: white; border-color: rgba(255,255,255,0.1); }
-                .btn-vault-toggle.active { background: #0f172a; border-color: #fbbf24; color: #fbbf24; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
-                .vault-arrow { margin-left: auto; font-size: 0.8rem; opacity: 0.6; }
-                
-                .vault-content { 
-                    border-top-left-radius: 0; border-top-right-radius: 0; 
-                    border-top: none; padding: 0; overflow: hidden; animation: slideDown 0.3s ease-out;
-                }
-                @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-                
-                .vault-empty { padding: 2rem; text-align: center; color: var(--muted); }
-                .vault-table { background: rgba(0,0,0,0.2); }
-                .vault-table td { border-bottom-color: rgba(255,255,255,0.02); }
-
-                /* MODAL */
-                .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 50; }
-                .modal-box { padding: 2rem; max-width: 400px; text-align: center; border-radius: 16px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); }
-                .modal-actions { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; }
-                .btn-cancel { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; }
-                .btn-confirm-delete { background: #ef4444; border: none; color: white; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
-                .empty-state h3 { color: white; margin-bottom: 0.5rem; }
-
-                @media (max-width: 768px) {
-                    .stats-grid { grid-template-columns: 1fr; }
-                    
-                    /* Hide less relevant columns on small screens */
-                    .cases-table th:nth-child(2), .cases-table td:nth-child(2) { display: none; } /* Materia */
-                    .cases-table th:nth-child(4), .cases-table td:nth-child(4) { display: none; } /* Apertura */
-                    
-                    /* Adjust table layout */
-                    .cases-table th, .cases-table td { padding: 1rem 0.8rem; }
-                    .status-badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
-                    
-                    .cases-list-wrapper { min-width: 100%; } /* Allow wrapper to shrink */
-                    .cases-table { min-width: 100%; }
-                    
-                    /* Cases list container should scroll if it really has to, but we try to fit content first */
-                    .cases-list-container { overflow-x: auto; }
-                    
-                    .header-flex { flex-direction: column; text-align: center; gap: 1rem; }
-                    .header-icon-box { margin: 0 auto; }
-                }
-            `}</style>
         </div>
     );
 }
