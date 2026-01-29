@@ -41,11 +41,11 @@ export async function middleware(request) {
     // CSP Relajada: permitimos unsafe-inline/eval para hidratación de Next.js y SDKs externos
     const cspHeader = `
         default-src 'self';
-        script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://sdk.mercadopago.com https://static.cloudflareinsights.com;
+        script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://sdk.mercadopago.com https://static.cloudflareinsights.com https://www.googletagmanager.com;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-        img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com;
+        img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com;
         font-src 'self' https://fonts.gstatic.com data:;
-        connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com;
+        connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com;
         frame-src 'self' https://accounts.google.com https://*.mercadopago.com;
         object-src 'self';
         worker-src 'self' blob:;
