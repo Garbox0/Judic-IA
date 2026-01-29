@@ -248,7 +248,7 @@ function RegisterContent() {
 
     return (
         <div className="auth-card glass-premium fade-in">
-            <a href="https://judic-ia.com" className="btn-back-premium">← Volver al Inicio</a>
+            <a href="/" className="btn-back-premium" onClick={(e) => { e.preventDefault(); window.location.href = '/?public=true'; }}>← Volver al Inicio</a>
 
             {isConfirmed ? (
                 <div className="confirmed-ui fade-in">

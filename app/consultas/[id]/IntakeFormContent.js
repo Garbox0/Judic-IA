@@ -99,7 +99,7 @@ export default function IntakeFormContent({ id }) {
                     setIsDeleted(true);
                     setTimeout(async () => {
                         await supabase.auth.signOut();
-                        window.location.href = "/";
+                        window.location.href = "/?public=true";
                     }, 5000);
                     return;
                 } else {
@@ -181,7 +181,7 @@ export default function IntakeFormContent({ id }) {
                     // Force a harder exit
                     setTimeout(async () => {
                         await supabase.auth.signOut();
-                        window.location.href = "/";
+                        window.location.href = "/?public=true";
                     }, 5000);
                 }
             }, 4000);
