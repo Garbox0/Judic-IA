@@ -39,6 +39,7 @@ export default async function RootLayout({ children }) {
     <html lang="es" suppressHydrationWarning>
       <body className={`${outfit.variable} ${playfair.variable}`} suppressHydrationWarning>
         {children}
+        <GoogleAnalytics gaId="G-YGHD9G2S0R" />
       </body>
     </html>
   );
