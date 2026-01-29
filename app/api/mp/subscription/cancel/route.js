@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from 'resend';
-import { sendEmail } from "../../../lib/resend";
+import { sendEmail } from "../../../../lib/resend";
 
 export async function POST(req) {
     try {
