@@ -119,32 +119,57 @@ export async function POST(request) {
     );
 
     // --- QUOTA & LIMITS ---
+    // --- SECURITY: IDOR PROTECTION & QUOTA ---
     try {
+        let effectiveUserId = null;
+
         if (mode === 'demo') {
             const forwardedFor = request.headers.get('x-forwarded-for');
             let ip = forwardedFor ? forwardedFor.split(',')[0] : '127.0.0.1';
+
+            // Demo Limit Check
             const { data: limitData } = await supabase.from('demo_limits').select('research_count').eq('ip_address', ip).single();
             if ((limitData?.research_count || 0) >= 2) {
                 return NextResponse.json({ laws: "🔒 LÍMITE ALCANZADO", cases: "Acceso ilimitado en versión PRO.", links: [] }, { status: 402 });
             }
             await supabase.from('demo_limits').upsert({ ip_address: ip, research_count: (limitData?.research_count || 0) + 1 }, { onConflict: 'ip_address' });
-        } else if (userId) {
+
+        } else {
+            // PRO/AUTH MODE: Validate Session Token (Fix IDOR)
+            const authHeader = request.headers.get('authorization');
+
+            if (!authHeader) {
+                return NextResponse.json({ error: "Missing Authorization Header" }, { status: 401 });
+            }
+
+            const token = authHeader.replace('Bearer ', '');
+            const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+            if (authError || !user) {
+                console.warn("⚠️ Invalid Token in Research API:", authError);
+                return NextResponse.json({ error: "Invalid or Expired Session" }, { status: 401 });
+            }
+
+            effectiveUserId = user.id;
+
             // SUPERUSER CHECK
-            const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userId);
-            const isSuperUser = authUser?.email === 'gbrlescalada@gmail.com' && authUser?.id === '365cd259-4f1e-4004-a677-1eda06a5147e';
+            const isSuperUser = user?.email === 'gbrlescalada@gmail.com' && user?.id === '365cd259-4f1e-4004-a677-1eda06a5147e';
 
             if (!isSuperUser) {
-                const { data: quota } = await supabase.rpc("consume_ai_message", { p_user: userId });
+                const { data: quota } = await supabase.rpc("consume_ai_message", { p_user: effectiveUserId });
                 if (!quota?.ok) return NextResponse.json({ laws: "⚠️ CRÉDITOS AGOTADOS", cases: "Actualiza tu plan.", links: [] }, { status: 402 });
             } else {
-                // console.log("🛡️ SUPERUSER BYPASS ACTIVE: gbrlescalada@gmail.com");
+                // console.log("🛡️ SUPERUSER BYPASS ACTIVE");
             }
         }
 
+        // Override potentially spoofed userId with validated one (or null if demo)
+        const secureUserId = effectiveUserId;
+
         // --- STAGE 0.5: GET USER ORG (For Private Library) ---
         let userOrgId = null;
-        if (userId) {
-            const { data: orgMember } = await supabase.from('org_members').select('org_id').eq('user_id', userId).single();
+        if (secureUserId) {
+            const { data: orgMember } = await supabase.from('org_members').select('org_id').eq('user_id', secureUserId).single();
             if (orgMember) userOrgId = orgMember.org_id;
         }
 
