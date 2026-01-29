@@ -41,7 +41,7 @@ export async function GET(request) {
             // fail-safe context check
             if (!role && (lawyerId || cid)) role = 'client';
 
-            console.log(`✅ Auth confirmed for ${user?.email} - Role: ${role}`);
+            // console.log(`✅ Auth confirmed for ${user?.email} - Role: ${role}`);
 
             // Intelligent Redirect based on Role
             if (role === 'lawyer') {

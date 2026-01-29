@@ -11,6 +11,7 @@ import { CONTACT_CHANNELS, buildMailto } from '../../lib/contact-channels';
 import {
     User,
     Shield,
+    ShieldOff,
     CreditCard,
     LifeBuoy,
     Camera,
@@ -63,6 +64,7 @@ export default function SettingsPage() {
     const [tempImageSrc, setTempImageSrc] = useState(null);
     const [pendingAvatarBlob, setPendingAvatarBlob] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
 
     const [formData, setFormData] = useState({
         full_name: '',
@@ -192,6 +194,46 @@ export default function SettingsPage() {
         setPreviewUrl(localUrl);
         toast.info("📷 Foto lista. Guardá el perfil para aplicar.");
     };
+
+    // Verify subscription status on mount if returing from MP
+    useEffect(() => {
+        const checkStatus = async () => {
+            const tab = searchParams.get('tab');
+            // Mercado Pago adds these params on return
+            const preapproval_id = searchParams.get('preapproval_id');
+            const status = searchParams.get('status');
+
+            if (tab === 'billing' && user) {
+                // Si viene de MP o simplemente entró a billing, podemos verificar silenciosamente
+                // Pero para no saturar, hagámoslo si hay params de MP o el usuario es Starter
+                if (status === 'approved' || preapproval_id || formData.plan_tier === 'starter') {
+                    // Solo mostramos toast si la verificación cambia algo importante
+                    try {
+                        const res = await fetch('/api/mp/subscription/sync', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                userId: user.id,
+                                preapproval_id: preapproval_id
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.ok) {
+                            // Reload data to reflect changes
+                            toast.success("¡Suscripción Verificada! Bienvenido a Pro.");
+                            window.location.reload();
+                        }
+                    } catch (e) {
+                        console.error("Auto-sync failed", e);
+                    }
+                }
+            }
+        };
+
+        if (user) {
+            checkStatus();
+        }
+    }, [user, searchParams, formData.plan_tier]);
 
     const handleSaveProfile = async () => {
         setSaving(true);
@@ -596,9 +638,83 @@ export default function SettingsPage() {
                                         <div style={{ marginBottom: '1rem' }}><Gem size={48} className="text-amber-400" /></div>
                                         <h3 style={{ margin: 0, color: '#fbbf24' }}>¡Ya eres Profesional!</h3>
                                         <p style={{ color: '#94a3b8' }}>Estás aprovechando al máximo el Gabinete Jurídico.</p>
-                                        <button className="stg-outline-btn" style={{ marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '8px' }} onClick={() => toast.info("Próximamente: Panel de gestión de suscripciones externas.")}>
-                                            <Receipt size={16} /> Ver Facturas
-                                        </button>
+
+                                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
+                                            {formData.subscription_status === 'cancelled' ? (
+                                                <div className="stg-badge-v2" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <ShieldOff size={14} className="text-red-400" /> CANCELADA (Expira el {formData.subscription_expiry ? new Date(formData.subscription_expiry).toLocaleDateString() : 'fin de mes'})
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    className="stg-outline-btn danger"
+                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', borderColor: 'rgba(239, 68, 68, 0.3)', color: '#f87171' }}
+                                                    onClick={() => setModalOpen(true)}
+                                                    disabled={saving}
+                                                >
+                                                    {saving ? 'Cancelando...' : 'Cancelar Suscripción'}
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Custom Confirmation Modal */}
+                                        {modalOpen && (
+                                            <div style={{
+                                                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                                                background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+                                            }}>
+                                                <div style={{
+                                                    background: '#1e293b', border: '1px solid #334155', borderRadius: '12px',
+                                                    padding: '24px', maxWidth: '400px', width: '90%', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                                                }}>
+                                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#f8fafc', marginBottom: '12px' }}>
+                                                        ¿Cancelar Suscripción?
+                                                    </h3>
+                                                    <p style={{ color: '#94a3b8', marginBottom: '24px', lineHeight: '1.5' }}>
+                                                        Perderás acceso a las funciones profesionales (búsqueda ilimitada, documentos, IA avanzada) al finalizar tu periodo actual.
+                                                    </p>
+                                                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                                                        <button
+                                                            onClick={() => setModalOpen(false)}
+                                                            style={{
+                                                                padding: '8px 16px', borderRadius: '6px', color: '#e2e8f0',
+                                                                background: '#334155', border: 'none', cursor: 'pointer', fontWeight: 500
+                                                            }}
+                                                        >
+                                                            Conservar Plan
+                                                        </button>
+                                                        <button
+                                                            onClick={async () => {
+                                                                setSaving(true);
+                                                                try {
+                                                                    const res = await fetch('/api/mp/subscription/cancel', {
+                                                                        method: 'POST',
+                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                        body: JSON.stringify({ userId: user.id })
+                                                                    });
+                                                                    const d = await res.json();
+                                                                    if (!res.ok) throw new Error(d.error);
+                                                                    toast.success(d.message || "Suscripción cancelada.");
+                                                                    setFormData(p => ({ ...p, subscription_status: 'cancelled' }));
+                                                                    window.location.reload();
+                                                                } catch (e) {
+                                                                    toast.error("Error al cancelar: " + e.message);
+                                                                } finally {
+                                                                    setSaving(false);
+                                                                    setModalOpen(false);
+                                                                }
+                                                            }}
+                                                            style={{
+                                                                padding: '8px 16px', borderRadius: '6px', color: '#fee2e2',
+                                                                background: '#991b1b', border: 'none', cursor: 'pointer', fontWeight: 600
+                                                            }}
+                                                        >
+                                                            {saving ? 'Procesando...' : 'Confirmar Baja'}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 

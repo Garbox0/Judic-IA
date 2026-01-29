@@ -77,7 +77,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     useEffect(() => {
         if (!lawyerId || isDemo) return; // Disable Realtime in Demo
 
-        console.log("🟢 Subscribing to Inquiries for Lawyer:", lawyerId);
+        // console.log("🟢 Subscribing to Inquiries for Lawyer:", lawyerId);
         const channel = supabase.channel('realtime-clients')
             .on(
                 'postgres_changes',
@@ -115,7 +115,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     useEffect(() => {
         if (!selectedClient || isDemo) return; // Disable Realtime in Demo
 
-        console.log("🔵 Subscribing to Chat/Attachments for Client:", selectedClient.id);
+        // console.log("🔵 Subscribing to Chat/Attachments for Client:", selectedClient.id);
         const channel = supabase.channel(`realtime-chat-${selectedClient.id}`)
             .on(
                 'postgres_changes',

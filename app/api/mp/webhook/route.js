@@ -52,7 +52,7 @@ export async function POST(req) {
         };
 
         // Check current status for Idempotency (Prevent duplicate emails)
-        const { data: currentProfile } = await supabase.from("profiles").select("plan_tier").eq("id", userId).single();
+        const { data: currentProfile } = await supabase.from("profiles").select("plan_tier, subscription_expiry").eq("id", userId).single();
         const isFreshUpgrade = currentProfile?.plan_tier !== 'professional';
 
         // Lógica de Estado
@@ -75,7 +75,22 @@ export async function POST(req) {
 
         if (sub.status === "paused" || sub.status === "cancelled") {
             patch.subscription_status = "cancelled";
-            patch.plan_tier = "starter";
+
+            // Logic to prevent premature downgrade:
+            // Only downgrade to starter if the expiry date has passed.
+            // If the user paid for the month, they keep 'professional' until expiry.
+
+            const now = new Date();
+            const storedExpiry = currentProfile?.subscription_expiry ? new Date(currentProfile.subscription_expiry) : null;
+
+            // If expiry is in the future, we KEEP professional tier.
+            // The CRON job will downgrade them when the date passes.
+            if (storedExpiry && storedExpiry > now) {
+                console.log(`User ${userId} cancelled but has time remaining until ${storedExpiry.toISOString()}`);
+                // patch.plan_tier remains untouched (or ensures it stays professional)
+            } else {
+                patch.plan_tier = "starter";
+            }
         }
 
         // 5) Actualizar Base de Datos

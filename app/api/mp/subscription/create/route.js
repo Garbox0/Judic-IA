@@ -15,8 +15,11 @@ export async function POST(req) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     const body = {
-        subscription_plan_id: planId,
+        subscription_plan_id: planId, // NOTE: This might be ignored by 'checkout/preferences' but kept for legacy/tracking
         external_reference: userId,
+        statement_descriptor: "JUDIC-IA PRO",
+        notification_url: `${appUrl}/api/mp/webhook`,
+        auto_return: "approved",
 
         // 🔑 ITEM OBLIGATORIO (dummy para validación de MP)
         items: [
@@ -27,6 +30,7 @@ export async function POST(req) {
                 quantity: 1,
                 unit_price: 25000,
                 currency_id: "ARS",
+                category_id: "services"
             },
         ],
 

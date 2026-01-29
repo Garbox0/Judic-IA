@@ -109,7 +109,7 @@ export async function POST(request) {
 
     // Debug Logging for API Key
     const keyStatus = braveApiKey ? `Present (Starts with ${braveApiKey.substring(0, 4)}..., Length: ${braveApiKey.length})` : 'MISSING';
-    console.log(`🔑 Brave API Key Status: ${keyStatus}`);
+    // console.log(`🔑 Brave API Key Status: ${keyStatus}`);
 
     const { query, jurisdiction, userId, mode } = await request.json();
 
@@ -137,7 +137,7 @@ export async function POST(request) {
                 const { data: quota } = await supabase.rpc("consume_ai_message", { p_user: userId });
                 if (!quota?.ok) return NextResponse.json({ laws: "⚠️ CRÉDITOS AGOTADOS", cases: "Actualiza tu plan.", links: [] }, { status: 402 });
             } else {
-                console.log("🛡️ SUPERUSER BYPASS ACTIVE: gbrlescalada@gmail.com");
+                // console.log("🛡️ SUPERUSER BYPASS ACTIVE: gbrlescalada@gmail.com");
             }
         }
 
@@ -156,7 +156,7 @@ export async function POST(request) {
 
         // --- STAGE 0.5: QUERY OPTIMIZER (Para Abogados) ---
         // Analiza la consulta profesional y extrae conceptos legales implícitos
-        console.log(`🔬 Analyzing query: "${query}"`);
+        // console.log(`🔬 Analyzing query: "${query}"`);
 
         const queryAnalysis = await openai.chat.completions.create({
             model: "openai/gpt-4o-mini",
@@ -195,7 +195,7 @@ REGLAS:
         let analysis;
         try {
             analysis = JSON.parse(queryAnalysis.choices[0].message.content);
-            console.log(`✅ Query Analysis:`, analysis);
+            // console.log(`✅ Query Analysis:`, analysis);
         } catch (e) {
             console.warn("⚠️ Query analysis failed, using fallback");
             analysis = {
@@ -272,7 +272,7 @@ DEVOLVÉ SOLO EL JSON válido.`
             analysis.cleanQuery || query,
             analysis.legalConcepts || []
         );
-        console.log(`📍 Official source queries:`, officialSourceQueries.slice(0, 3), '...');
+        // console.log(`📍 Official source queries:`, officialSourceQueries.slice(0, 3), '...');
 
         // Combine: Original query + Analysis suggestions + Generated dorks + Official Sources
         const allQueries = [
@@ -285,7 +285,7 @@ DEVOLVÉ SOLO EL JSON válido.`
 
         // Dedupe and limit (increased to 20 to accommodate official sources)
         const queries = [...new Set(allQueries)].filter(q => q && q.length > 2).slice(0, 20);
-        console.log(`🔍 Final query pool (${queries.length}):`, queries.slice(0, 5), '...');
+        // console.log(`🔍 Final query pool (${queries.length}):`, queries.slice(0, 5), '...');
 
         const searchResults = [];
 
@@ -522,7 +522,7 @@ DEVOLVÉ SOLO EL JSON válido.`
                     const data = await res.json();
 
                     const results = data.web?.results || [];
-                    console.log(`✅ Brave 200 | Query: ${sanitizedQuery} | Results: ${results.length}`);
+                    // console.log(`✅ Brave 200 | Query: ${sanitizedQuery} | Results: ${results.length}`);
 
                     return results.map(r => ({
                         title: r.title,
@@ -567,7 +567,7 @@ DEVOLVÉ SOLO EL JSON válido.`
                 'landing_pages': scoredResults.filter(r => r._isLandingPage).length,
                 'valid_cases': scoredResults.filter(r => r._isValidCase).length
             };
-            console.log('📊 Score distribution:', scoreDistribution);
+            // console.log('📊 Score distribution:', scoreDistribution);
 
             scoredResults
                 .filter(r => r.score >= 35 && !r._isLandingPage) // Filter out landing pages
@@ -579,14 +579,14 @@ DEVOLVÉ SOLO EL JSON válido.`
                     }
                 });
 
-            console.log(`🔍 Brave Search Round 1: ${braveResults.length} raw → ${searchResults.filter(r => !r.fromCache).length} filtered (${searchResults.filter(r => r.fromCache).length} from cache)`);
+            // console.log(`🔍 Brave Search Round 1: ${braveResults.length} raw → ${searchResults.filter(r => !r.fromCache).length} filtered (${searchResults.filter(r => r.fromCache).length} from cache)`);
 
             // ══════════════════════════════════════════════════
             // 🔁 DEEP DIVE MODE: Second round if few gold results
             // ══════════════════════════════════════════════════
             const goldResults = searchResults.filter(r => r.score >= 80);
             if (goldResults.length < 5 && searchResults.length > 0) {
-                console.log(`🔁 Deep Dive Mode: Only ${goldResults.length} gold results, starting round 2...`);
+                // console.log(`🔁 Deep Dive Mode: Only ${goldResults.length} gold results, starting round 2...`);
 
                 // Extract patterns from best results to generate more specific queries
                 const topResults = searchResults.slice(0, 5);
@@ -612,7 +612,7 @@ DEVOLVÉ SOLO EL JSON válido.`
                         `${analysis.cleanQuery} "se resuelve"`
                     ].slice(0, 6);
 
-                    console.log(`🔍 Deep Dive queries:`, refineQueries);
+                    // console.log(`🔍 Deep Dive queries:`, refineQueries);
 
                     // Execute round 2
                     const round2Results = await Promise.all(refineQueries.map(async (q) => {
@@ -660,7 +660,7 @@ DEVOLVÉ SOLO EL JSON válido.`
                             }
                         });
 
-                    console.log(`🔁 Deep Dive Round 2: Added ${addedRound2} more results`);
+                    // console.log(`🔁 Deep Dive Round 2: Added ${addedRound2} more results`);
                 }
             }
         }
