@@ -2,7 +2,7 @@ import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { createClient } from '@supabase/supabase-js';
 
 const client = new MercadoPagoConfig({
-    accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || 'APP_USR-193565517908864-123107-2eff73d48616b0417b658dcc36e312e5-3102487914'
+    accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN
 });
 
 // Initialize Supabase Admin for backend updates (bypass RLS)
