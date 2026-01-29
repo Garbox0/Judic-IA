@@ -132,7 +132,7 @@ export default function AuthFormContent() {
     useEffect(() => {
         if (restricted) {
             const timer = setTimeout(() => {
-                router.push('/?public=true');
+                window.location.href = 'https://judic-ia.com/?public=true';
             }, 5000);
             return () => clearTimeout(timer);
         }
@@ -446,7 +446,7 @@ export default function AuthFormContent() {
                     <div className="redirect-hint">
                         Redirigiendo a la página principal en 5 segundos...
                     </div>
-                    <button onClick={() => router.push('/?public=true')} className="btn-secondary">Volver Ahora</button>
+                    <button onClick={() => window.location.href = 'https://judic-ia.com/?public=true'} className="btn-secondary">Volver Ahora</button>
                 </div>
                 <style jsx>{`
                     .restricted-card { text-align: center; border-color: rgba(239, 68, 68, 0.3) !important; }

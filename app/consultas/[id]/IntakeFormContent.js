@@ -99,7 +99,7 @@ export default function IntakeFormContent({ id }) {
                     setIsDeleted(true);
                     setTimeout(async () => {
                         await supabase.auth.signOut();
-                        window.location.href = "/?public=true";
+                        window.location.href = "https://judic-ia.com/?public=true";
                     }, 5000);
                     return;
                 } else {
@@ -181,7 +181,7 @@ export default function IntakeFormContent({ id }) {
                     // Force a harder exit
                     setTimeout(async () => {
                         await supabase.auth.signOut();
-                        window.location.href = "/?public=true";
+                        window.location.href = "https://judic-ia.com/?public=true";
                     }, 5000);
                 }
             }, 4000);
@@ -210,7 +210,7 @@ export default function IntakeFormContent({ id }) {
         return (
             <div className="error-screen">
                 <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', maxWidth: '400px', borderRadius: '20px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                    <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🔒</div>
+                    <div style={{ width: '70px', height: '70px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', border: '1px solid rgba(239, 68, 68, 0.3)' }}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
                     <h2 style={{ color: '#fca5a5', marginBottom: '1rem' }}>Acceso Restringido</h2>
                     <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.6' }}>
                         Este acceso ha expirado o el abogado ha revocado el permiso para este caso específico.
@@ -226,7 +226,7 @@ export default function IntakeFormContent({ id }) {
         return (
             <div className="error-screen">
                 <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', maxWidth: '450px', borderRadius: '20px', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(15,23,42,0.9)' }}>
-                    <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🚫</div>
+                    <div style={{ width: '70px', height: '70px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', border: '1px solid rgba(239, 68, 68, 0.3)' }}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg></div>
                     <h2 style={{ color: '#fbbf24', marginBottom: '1.5rem', fontFamily: 'Playfair Display, serif' }}>Acceso Revocado</h2>
                     <p style={{ color: '#cbd5e1', fontSize: '1rem', lineHeight: '1.6' }}>
                         Usted ya no forma parte de la cartera de clientes de <strong style={{ color: 'white' }}>{lawyer?.full_name || 'este abogado'}</strong>.
@@ -242,7 +242,7 @@ export default function IntakeFormContent({ id }) {
         )
     }
 
-    if (error) return <div className="error-screen">⚠️ {error}</div>;
+    if (error) return <div className="error-screen">{error}</div>;
 
     async function handleLogout() {
         await supabase.auth.signOut();
@@ -282,7 +282,7 @@ export default function IntakeFormContent({ id }) {
                             <p>👋 <strong>Hola.</strong></p>
                             <p>Soy el asistente virtual del estudio. Estoy aquí para tomar los datos de tu caso de forma segura y confidencial.</p>
                             <p style={{ marginTop: '1rem', fontSize: '0.85rem', opacity: 0.7 }}>
-                                🔒 Tus datos están protegidos
+                                Tus datos están protegidos
                             </p>
                         </div>
 

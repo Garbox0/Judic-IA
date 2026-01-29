@@ -191,7 +191,7 @@ function RegisterContent() {
                 }
                 if (signUpError.message.includes("Error sending confirmation email")) {
                     console.warn("Supabase SMTP Error. User likely created but email failed.");
-                    throw new Error("⚠️ El sistema de correos está saturado. Por favor, avisa a tu abogado o intenta iniciar sesión directo si ya te registraste.");
+                    throw new Error("El sistema de correos está saturado. Por favor, avisa a tu abogado o intenta iniciar sesión directo si ya te registraste.");
                 }
                 throw signUpError;
             }
@@ -248,11 +248,11 @@ function RegisterContent() {
 
     return (
         <div className="auth-card glass-premium fade-in">
-            <a href="/" className="btn-back-premium" onClick={(e) => { e.preventDefault(); window.location.href = '/?public=true'; }}>← Volver al Inicio</a>
+            <a href="https://judic-ia.com/?public=true" className="btn-back-premium">← Volver al Inicio</a>
 
             {isConfirmed ? (
                 <div className="confirmed-ui fade-in">
-                    <div className="success-icon">✅</div>
+                    <div className="success-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
                     <h1 className="brand-name-premium">¡Email Confirmado!</h1>
                     <p className="confirmed-text">Tu privacidad ha sido asegurada. Ya puedes ingresar a la consulta.</p>
                     <button onClick={enterIntake} className="btn-gold-action" disabled={loading}>
@@ -396,31 +396,31 @@ function RegisterContent() {
                         {/* PASSWORD RULES */}
                         <div className="password-checklist-premium">
                             <p className={passwordValidations.length ? 'valid' : ''}>
-                                {passwordValidations.length ? '✅' : '❌'} Mínimo 8 caracteres
+                                {passwordValidations.length ? '✓' : '✗'} Mínimo 8 caracteres
                             </p>
                             <p className={passwordValidations.uppercase ? 'valid' : ''}>
-                                {passwordValidations.uppercase ? '✅' : '❌'} Al menos 1 Mayúscula
+                                {passwordValidations.uppercase ? '✓' : '✗'} Al menos 1 Mayúscula
                             </p>
                             <p className={passwordValidations.number ? 'valid' : ''}>
-                                {passwordValidations.number ? '✅' : '❌'} Al menos 1 Número
+                                {passwordValidations.number ? '✓' : '✗'} Al menos 1 Número
                             </p>
                             <p className={passwordValidations.symbol ? 'valid' : ''}>
-                                {passwordValidations.symbol ? '✅' : '❌'} Al menos 1 Símbolo
+                                {passwordValidations.symbol ? '✓' : '✗'} Al menos 1 Símbolo
                             </p>
                             {confirmPassword && (
                                 <p className={passwordsMatch ? 'valid' : 'invalid'}>
-                                    {passwordsMatch ? '✅' : '❌'} Las contraseñas coinciden
+                                    {passwordsMatch ? '✓' : '✗'} Las contraseñas coinciden
                                 </p>
                             )}
                         </div>
 
-                        {error && <div className="error-premium">⚠️ {error}</div>}
+                        {error && <div className="error-premium">{error}</div>}
                         {message && (
                             <div className="success-premium">
-                                📩 {message}
+                                {message}
                                 <br />
                                 <small style={{ color: '#fff', display: 'block', marginTop: '5px' }}>
-                                    ⚠️ Si no lo ves, <strong>revisá SPAM</strong>.
+                                    Si no lo ves, <strong>revisá SPAM</strong>.
                                 </small>
                                 {redirectCountdown !== null && (
                                     <div style={{ marginTop: '0.8rem', fontWeight: 700, color: '#white' }}>

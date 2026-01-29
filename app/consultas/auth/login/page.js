@@ -33,14 +33,14 @@ function LoginContent() {
 
         // Show confirmation success message
         if (justConfirmed) {
-            setConfirmationMessage("✅ ¡Email confirmado! Ahora ingresa con tu email y contraseña.");
+            setConfirmationMessage("¡Email confirmado! Ahora ingresa con tu email y contraseña.");
         }
 
         // Handle error params from callback
         if (urlError === 'link_expired') {
-            setError("⚠️ El enlace de confirmación expiró o ya fue utilizado. Ingresa tus credenciales para continuar.");
+            setError("El enlace de confirmación expiró o ya fue utilizado. Ingresa tus credenciales para continuar.");
         } else if (urlError === 'auth_error') {
-            setError("⚠️ Error de autenticación. Ingresa tus credenciales para continuar.");
+            setError("Error de autenticación. Ingresa tus credenciales para continuar.");
         }
 
         // Fallback to localStorage if URL params are missing
@@ -66,13 +66,13 @@ function LoginContent() {
                 // HARDEN: Block lawyers here too
                 if (session.user.user_metadata?.role === 'lawyer') {
                     await supabase.auth.signOut();
-                    setError("🚫 Acceso Denegado: Esta área es solo para clientes.");
+                    setError("Acceso Denegado: Esta área es solo para clientes.");
                     return;
                 }
 
                 if (!session.user.email_confirmed_at) {
                     await supabase.auth.signOut();
-                    setError("⚠️ Debes confirmar tu email antes de ingresar.");
+                    setError("Debes confirmar tu email antes de ingresar.");
                     return;
                 }
                 setIsConfirmed(true);
@@ -181,7 +181,7 @@ function LoginContent() {
             // RESTRICT LAWYERS
             if (data.user?.user_metadata?.role === 'lawyer') {
                 await supabase.auth.signOut();
-                throw new Error("🚫 Acceso Denegado: Esta área es solo para clientes. Los abogados deben ingresar por el panel principal.");
+                throw new Error("Acceso Denegado: Esta área es solo para clientes. Los abogados deben ingresar por el panel principal.");
             }
 
             if (!data.user.email_confirmed_at) {
@@ -261,11 +261,11 @@ function LoginContent() {
 
     return (
         <div className="auth-card glass-premium fade-in">
-            <a href="/" className="btn-back-premium" onClick={(e) => { e.preventDefault(); window.location.href = '/?public=true'; }}>← Volver al Inicio</a>
+            <a href="https://judic-ia.com/?public=true" className="btn-back-premium">← Volver al Inicio</a>
 
             {isConfirmed ? (
                 <div className="confirmed-ui slide-up">
-                    <div className="success-icon">✅</div>
+                    <div className="success-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
                     <h1 className="brand-name-premium">¡Bienvenido!</h1>
                     <p className="confirmed-text">Tu sesión jurídica está activa y verificada.</p>
                     <button onClick={enterIntake} className="btn-gold-action" disabled={loading}>
@@ -319,8 +319,8 @@ function LoginContent() {
                             </div>
                         </div>
 
-                        {confirmationMessage && <div className="success-premium">✅ {confirmationMessage}</div>}
-                        {error && <div className="error-premium">⚠️ {error}</div>}
+                        {confirmationMessage && <div className="success-premium">{confirmationMessage}</div>}
+                        {error && <div className="error-premium">{error}</div>}
 
                         <button type="submit" className="btn-gold-action" disabled={loading}>
                             {loading ? 'Validando Acceso...' : 'Ingresar al Chat Seguro'}

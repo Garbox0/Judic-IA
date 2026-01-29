@@ -189,7 +189,7 @@ export default function ClientUpdatePasswordPage() {
                                 </div>
                             ) : sessionError ? (
                                 <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-                                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+                                    <div style={{ width: '60px', height: '60px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', border: '1px solid rgba(239, 68, 68, 0.3)' }}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>
                                     <h3 style={{ color: '#fca5a5', marginBottom: '1rem' }}>Acceso Denegado</h3>
                                     <p style={{ color: '#94a3b8', marginBottom: '2rem' }}>{sessionError}</p>
                                     <Link href="/auth/forgot-password" style={{ color: '#fbbf24', textDecoration: 'none', fontWeight: 'bold' }}>
@@ -239,16 +239,16 @@ export default function ClientUpdatePasswordPage() {
                                     </div>
 
                                     <div className="password-checklist-premium">
-                                        <p className={passwordValidations.length ? 'valid' : ''}>{passwordValidations.length ? '✅' : '❌'} Mínimo 8 caracteres</p>
-                                        <p className={passwordValidations.uppercase ? 'valid' : ''}>{passwordValidations.uppercase ? '✅' : '❌'} Al menos 1 Mayúscula</p>
-                                        <p className={passwordValidations.number ? 'valid' : ''}>{passwordValidations.number ? '✅' : '❌'} Al menos 1 Número</p>
-                                        <p className={passwordValidations.symbol ? 'valid' : ''}>{passwordValidations.symbol ? '✅' : '❌'} Al menos 1 Símbolo</p>
+                                        <p className={passwordValidations.length ? 'valid' : ''}>{passwordValidations.length ? '✓' : '✗'} Mínimo 8 caracteres</p>
+                                        <p className={passwordValidations.uppercase ? 'valid' : ''}>{passwordValidations.uppercase ? '✓' : '✗'} Al menos 1 Mayúscula</p>
+                                        <p className={passwordValidations.number ? 'valid' : ''}>{passwordValidations.number ? '✓' : '✗'} Al menos 1 Número</p>
+                                        <p className={passwordValidations.symbol ? 'valid' : ''}>{passwordValidations.symbol ? '✓' : '✗'} Al menos 1 Símbolo</p>
                                         {confirmPassword && (
-                                            <p className={passwordsMatch ? 'valid' : 'invalid'}>{passwordsMatch ? '✅' : '❌'} Las contraseñas coinciden</p>
+                                            <p className={passwordsMatch ? 'valid' : 'invalid'}>{passwordsMatch ? '✓' : '✗'} Las contraseñas coinciden</p>
                                         )}
                                     </div>
 
-                                    {error && <div className="error-premium">⚠️ {error}</div>}
+                                    {error && <div className="error-premium">{error}</div>}
 
                                     <button type="submit" disabled={loading || !isPasswordStrong || !passwordsMatch} className="btn-gold-action">
                                         {loading ? 'Actualizando...' : 'Confirmar Nueva Contraseña'}
