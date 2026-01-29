@@ -326,6 +326,17 @@ export default function Home() {
             Protected by <strong>Cloudflare</strong>
           </a>
         </div>
+
+        {/* FISCAL INFO ROW */}
+        <div className="footer-fiscal-row">
+          <span>Gabriel Yago Escalada</span>
+          <span className="fiscal-separator">•</span>
+          <span>CUIT 20-39156370-6</span>
+          <span className="fiscal-separator">•</span>
+          <span>Monotributista</span>
+          <span className="fiscal-separator">•</span>
+          <span>República Argentina</span>
+        </div>
       </footer>
     </main>
   );

@@ -937,6 +937,40 @@ body::before {
     margin-left: 4px;
 }
 
+/* FISCAL INFO ROW */
+.footer-fiscal-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem 1.5rem;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    flex-wrap: wrap;
+}
+
+.footer-fiscal-row span {
+    white-space: nowrap;
+}
+
+.fiscal-separator {
+    color: rgba(255, 255, 255, 0.15);
+    font-size: 0.6rem;
+}
+
+@media (max-width: 600px) {
+    .footer-fiscal-row {
+        flex-direction: column;
+        gap: 0.25rem;
+        text-align: center;
+    }
+
+    .fiscal-separator {
+        display: none;
+    }
+}
+
 /* --- RESPONSIVE ADJUSTMENTS --- */
 @media (max-width: 1100px) {
     .hero-grid {

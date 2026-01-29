@@ -57,6 +57,49 @@ const targets = [
 
     // --- NEUQUEN (SAIJ pages) ---
     { province: 'neuquen', name: 'codigo-procesal-administrativo-neuquen', url: 'https://www.saij.gob.ar/1305-local-neuquen-codigo-procesal-administrativo-neuquen-lpq0001305-1981-07-10/123456789-0abc-defg-503-1000qvorpyel' },
+
+    // --- RIO NEGRO (HTML pages) ---
+    { province: 'rio-negro', name: 'codigo-procesal-civil-comercial-rio-negro', url: 'https://web.legisrn.gov.ar/legislativa/legislacion/documento?id=7576' },
+    { province: 'rio-negro', name: 'codigo-faltas-rio-negro', url: 'https://www.argentina.gob.ar/normativa/provincial/ley-532-123456789-0abc-defg-235-0002rvorpyel/actualizacion' },
+    { province: 'rio-negro', name: 'codigo-procedimiento-minero-rio-negro', url: 'https://web.legisrn.gov.ar/legislativa/legislacion/documento?id=9088' },
+    { province: 'rio-negro', name: 'codigo-aguas-rio-negro', url: 'https://www.argentina.gob.ar/normativa/provincial/ley-2952-123456789-0abc-defg-259-2002rvorpyel/actualizacion' },
+
+    // --- SALTA (diputadosalta pages) ---
+    { province: 'salta', name: 'codigo-procesal-penal-6345-salta', url: 'https://www.diputadosalta.gob.ar/digesto_leyes/1159/download_file' },
+    { province: 'salta', name: 'codigo-contravencional-salta', url: 'https://www.diputadosalta.gob.ar/digesto_leyes/251/download_file' },
+    { province: 'salta', name: 'codigo-procesal-civil-comercial-salta', url: 'https://www.diputadosalta.gob.ar/digesto_leyes/979/download_file' },
+    { province: 'salta', name: 'codigo-procedimientos-mineros-salta', url: 'https://www.diputadosalta.gob.ar/digesto_leyes/885/download_file' },
+    { province: 'salta', name: 'codigo-procesal-laboral-salta', url: 'https://www.diputadosalta.gob.ar/digesto_leyes/250/download_file' },
+    { province: 'salta', name: 'codigo-contencioso-administrativo-salta', url: 'https://www.diputadosalta.gob.ar/digesto_leyes/1216/download_file' },
+    // SAIJ/argentina.gob.ar pages for Salta
+    { province: 'salta', name: 'codigo-procesal-penal-7690-salta', url: 'https://www.saij.gob.ar/7690-local-salta-codigo-procesal-penal-provincia-salta-lpa0007690-2011-11-01/123456789-0abc-defg-096-7000avorpyel' },
+    { province: 'salta', name: 'codigo-fiscal-salta', url: 'https://www.argentina.gob.ar/normativa/provincial/ley-9-123456789-0abc-defg-160-0202avorpyel/actualizacion' },
+
+    // --- SAN LUIS (SAIJ/argentina.gob.ar pages) ---
+    { province: 'san-luis', name: 'codigo-tributario-san-luis', url: 'https://www.saij.gob.ar/490-local-san-luis-codigo-tributario-provincia-san-luis-lpd1000490-2005-11-23/123456789-0abc-defg-094-0001dvorpyel' },
+    { province: 'san-luis', name: 'codigo-consumidores-san-luis', url: 'https://www.saij.gob.ar/13133-local-buenos-aires-codigo-provincial-implementacion-derechos-consumidores-usuarios-lpb0013133-2003-11-27/123456789-0abc-defg-331-3100bvorpyel' },
+    { province: 'san-luis', name: 'codigo-contravencional-san-luis', url: 'https://www.argentina.gob.ar/normativa/provincial/ley-1000-123456789-0abc-defg-000-1000dvorpyel/actualizacion' },
+    { province: 'san-luis', name: 'codigo-procedimientos-administrativos-san-luis', url: 'https://www.saij.gob.ar/5540-local-san-luis-ley-procedimientos-administrativos-san-luis-lpd0005540-2004-04-14/123456789-0abc-defg-045-5000dvorpyel' },
+    { province: 'san-luis', name: 'codigo-rural-san-luis', url: 'https://www.saij.gob.ar/5553-local-san-luis-codigo-rural-provincia-san-luis-lpd0005553-2004-04-21/123456789-0abc-defg-355-5000dvorpyel' },
+
+    // --- SANTA CRUZ (SAIJ pages) ---
+    { province: 'santa-cruz', name: 'codigo-procesal-civil-comercial-1418-santa-cruz', url: 'https://www.saij.gob.ar/legislacion/ley-santa_cruz-1418-codigo_procesal_civil_comercial.htm' },
+    { province: 'santa-cruz', name: 'codigo-procesal-penal-santa-cruz', url: 'https://www.saij.gob.ar/2424-local-santa-cruz-codigo-procesal-penal-provincia-santa-cruz-lpz0002424-1995-11-16/123456789-0abc-defg-424-2000zvorpyel' },
+    { province: 'santa-cruz', name: 'codigo-faltas-santa-cruz', url: 'https://www.saij.gob.ar/legislacion/ley-santa_cruz-3125-codigo_faltas_provincia_santa.htm' },
+    { province: 'santa-cruz', name: 'codigo-fiscal-santa-cruz', url: 'https://www.saij.gob.ar/3934-local-santa-cruz-modificacion-ley-3486-codigo-fiscal-lpz0003934-2025-06-12/123456789-0abc-defg-439-3000zvorpyel' },
+    { province: 'santa-cruz', name: 'codigo-procedimientos-mineros-santa-cruz', url: 'https://www.saij.gob.ar/990-local-santa-cruz-codigo-procedimiento-autoridad-minera-primera-instancia-codigo-procedimientos-mineros-santa-cruz-lpz0000990-1975-08-20/123456789-0abc-defg-099-0000zvorpyel' },
+
+    // --- SANTA FE (SAIJ/argentina.gob.ar pages) ---
+    { province: 'santa-fe', name: 'codigo-procesal-laboral-13840-santa-fe', url: 'https://www.saij.gob.ar/13840-local-santa-fe-modificacion-al-codigo-procesal-laboral-modificacion-ley-organica-poder-judicial-lps0013840-2018-11-29/123456789-0abc-defg-048-3100svorpyel' },
+    { province: 'santa-fe', name: 'codigo-tributario-municipal-santa-fe', url: 'https://www.argentina.gob.ar/normativa/provincial/ley-8173-123456789-0abc-defg-961-0000svorpyel/actualizacion' },
+
+    // --- SANTIAGO DEL ESTERO (HTML pages) ---
+    { province: 'santiago-del-estero', name: 'codigo-procesal-penal-6941-santiago', url: 'https://www.jussantiago.gov.ar/jusnueva/Normativa/Ley6941.php' },
+
+    // --- TUCUMAN (argentina.gob.ar pages) ---
+    { province: 'tucuman', name: 'codigo-procesal-laboral-tucuman', url: 'https://www.argentina.gob.ar/normativa/provincial/ley-8988-123456789-0abc-defg-889-8000tvorpyel/actualizacion' },
+    { province: 'tucuman', name: 'codigo-implementacion-cpp-tucuman', url: 'https://www.argentina.gob.ar/normativa/provincial/ley-9675-123456789-0abc-defg-576-9000tvorpyel/actualizacion' },
+    { province: 'tucuman', name: 'codigo-procesal-constitucional-tucuman', url: 'https://www.argentina.gob.ar/normativa/provincial/ley-6944-123456789-0abc-defg-449-6000tvorpyel/actualizacion' },
 ];
 
 async function cleanPage(page, url) {

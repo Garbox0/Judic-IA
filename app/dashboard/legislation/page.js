@@ -323,6 +323,99 @@ export default function LegislationPage() {
             { title: "Código Procesal Penal – Ley 2784", url: "/dashboard/legislation/viewer/codigo-procesal-penal-2784-neuquen.pdf?province=neuquen" },
             { title: "Código de Procedimiento Minero – Ley 902", url: "/dashboard/legislation/viewer/codigo-procedimiento-minero-neuquen.pdf?province=neuquen" },
             { title: "Código Electoral – Ley 165", url: "/dashboard/legislation/viewer/codigo-electoral-neuquen.pdf?province=neuquen" }
+        ],
+        "Río Negro": [
+            { title: "Código Procesal Civil y Comercial – Ley 4142", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-rio-negro.pdf?province=rio-negro" },
+            { title: "Código de Faltas – Ley 532", url: "/dashboard/legislation/viewer/codigo-faltas-rio-negro.pdf?province=rio-negro" },
+            { title: "Código Procesal Penal – Ley 2107", url: "/dashboard/legislation/viewer/codigo-procesal-penal-rio-negro.pdf?province=rio-negro" },
+            { title: "Código de Procedimiento Minero – Ley 4941", url: "/dashboard/legislation/viewer/codigo-procedimiento-minero-rio-negro.pdf?province=rio-negro" },
+            { title: "Código de Aguas – Ley 2952", url: "/dashboard/legislation/viewer/codigo-aguas-rio-negro.pdf?province=rio-negro" }
+        ],
+        "Salta": [
+            { title: "Código Procesal Penal – Ley 7690", url: "/dashboard/legislation/viewer/codigo-procesal-penal-7690-salta.pdf?province=salta" },
+            { title: "Código Procesal Penal – Ley 6345", url: "/dashboard/legislation/viewer/codigo-procesal-penal-6345-salta.pdf?province=salta" },
+            { title: "Código Fiscal – Decreto Ley 9/1975", url: "/dashboard/legislation/viewer/codigo-fiscal-salta.pdf?province=salta" },
+            { title: "Código Contravencional – Ley 7135", url: "/dashboard/legislation/viewer/codigo-contravencional-salta.pdf?province=salta" },
+            { title: "Código Procesal Civil y Comercial – Ley 5233", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-salta.pdf?province=salta" },
+            { title: "Código de Procedimientos Mineros – Ley 7141", url: "/dashboard/legislation/viewer/codigo-procedimientos-mineros-salta.pdf?province=salta" },
+            { title: "Código Procesal Laboral – Ley 528", url: "/dashboard/legislation/viewer/codigo-procesal-laboral-salta.pdf?province=salta" },
+            { title: "Cód. Proc. Contencioso Administrativo – Ley 793", url: "/dashboard/legislation/viewer/codigo-contencioso-administrativo-salta.pdf?province=salta" }
+        ],
+        "San Juan": [
+            { title: "Cód. Procesal Civil, Comercial y Minería – Ley 988", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-mineria-san-juan.pdf?province=san-juan" },
+            { title: "Código Procesal Penal – Ley 754", url: "/dashboard/legislation/viewer/codigo-procesal-penal-san-juan.pdf?province=san-juan" },
+            { title: "Código de Procedimiento Laboral – Ley 337", url: "/dashboard/legislation/viewer/codigo-procedimiento-laboral-san-juan.pdf?province=san-juan" },
+            { title: "Código de Faltas – Ley 941", url: "/dashboard/legislation/viewer/codigo-faltas-san-juan.pdf?province=san-juan" },
+            { title: "Código Tributario – Ley 151", url: "/dashboard/legislation/viewer/codigo-tributario-san-juan.pdf?province=san-juan" },
+            { title: "Código de Procedimiento Minero – Ley 688", url: "/dashboard/legislation/viewer/codigo-procedimiento-minero-san-juan.pdf?province=san-juan" },
+            { title: "Código Sanitario – Ley 67", url: "/dashboard/legislation/viewer/codigo-sanitario-san-juan.pdf?province=san-juan" },
+            { title: "Código Electoral – Ley 1268", url: "/dashboard/legislation/viewer/codigo-electoral-san-juan.pdf?province=san-juan" },
+            { title: "Cód. Derechos Consumidores y Usuarios – Ley 898", url: "/dashboard/legislation/viewer/codigo-consumidores-san-juan.pdf?province=san-juan" }
+        ],
+        "San Luis": [
+            { title: "Código Procesal Civil y Comercial – Ley VI-0150", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-san-luis.pdf?province=san-luis" },
+            { title: "Código Tributario – Ley 490", url: "/dashboard/legislation/viewer/codigo-tributario-san-luis.pdf?province=san-luis" },
+            { title: "Código Procesal Criminal – Ley VI-0152", url: "/dashboard/legislation/viewer/codigo-procesal-criminal-san-luis.pdf?province=san-luis" },
+            { title: "Código Procesal Laboral – Ley VI-0711", url: "/dashboard/legislation/viewer/codigo-procesal-laboral-san-luis.pdf?province=san-luis" },
+            { title: "Cód. Derechos Consumidores y Usuarios – Ley 7714", url: "/dashboard/legislation/viewer/codigo-consumidores-san-luis.pdf?province=san-luis" },
+            { title: "Código Contravencional – Ley 1000", url: "/dashboard/legislation/viewer/codigo-contravencional-san-luis.pdf?province=san-luis" },
+            { title: "Código de Procedimientos Mineros – Ley VI-0157", url: "/dashboard/legislation/viewer/codigo-procedimientos-mineros-san-luis.pdf?province=san-luis" },
+            { title: "Código de Procedimientos Administrativos – Ley 5540", url: "/dashboard/legislation/viewer/codigo-procedimientos-administrativos-san-luis.pdf?province=san-luis" },
+            { title: "Código Rural – Ley 5553", url: "/dashboard/legislation/viewer/codigo-rural-san-luis.pdf?province=san-luis" },
+            { title: "Código de Aguas – Ley 0671", url: "/dashboard/legislation/viewer/codigo-aguas-san-luis.pdf?province=san-luis" }
+        ],
+        "Santa Cruz": [
+            { title: "Cód. Procesal Civil y Comercial – Ley 1418", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-1418-santa-cruz.pdf?province=santa-cruz" },
+            { title: "Cód. Procesal Civil y Comercial – Ley 3453", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-3453-santa-cruz.pdf?province=santa-cruz" },
+            { title: "Código Procesal Penal – Ley 2424", url: "/dashboard/legislation/viewer/codigo-procesal-penal-santa-cruz.pdf?province=santa-cruz" },
+            { title: "Cód. Proc. Contencioso Administrativo – Ley 2600", url: "/dashboard/legislation/viewer/codigo-contencioso-administrativo-santa-cruz.pdf?province=santa-cruz" },
+            { title: "Código de Faltas – Ley 3125", url: "/dashboard/legislation/viewer/codigo-faltas-santa-cruz.pdf?province=santa-cruz" },
+            { title: "Código Fiscal – Ley 3486", url: "/dashboard/legislation/viewer/codigo-fiscal-santa-cruz.pdf?province=santa-cruz" },
+            { title: "Código de Edificación – Ley 2654", url: "/dashboard/legislation/viewer/codigo-edificacion-santa-cruz.pdf?province=santa-cruz" },
+            { title: "Código de Procedimientos Mineros – Ley 990", url: "/dashboard/legislation/viewer/codigo-procedimientos-mineros-santa-cruz.pdf?province=santa-cruz" }
+        ],
+        "Santa Fe": [
+            { title: "Código Procesal Civil y Comercial – Ley 5531", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-santa-fe.pdf?province=santa-fe" },
+            { title: "Código Procesal Penal – Ley 12734", url: "/dashboard/legislation/viewer/codigo-procesal-penal-santa-fe.pdf?province=santa-fe" },
+            { title: "Código Procesal Laboral – Ley 7945", url: "/dashboard/legislation/viewer/codigo-procesal-laboral-santa-fe.pdf?province=santa-fe" },
+            { title: "Cód. Procesal Laboral – Ley 13840 (mod.)", url: "/dashboard/legislation/viewer/codigo-procesal-laboral-13840-santa-fe.pdf?province=santa-fe" },
+            { title: "Código de Faltas – Ley 10703", url: "/dashboard/legislation/viewer/codigo-faltas-santa-fe.pdf?province=santa-fe" },
+            { title: "Código Procesal de Menores – Ley 11452", url: "/dashboard/legislation/viewer/codigo-procesal-menores-santa-fe.pdf?province=santa-fe" },
+            { title: "Código de Convivencia – Ley 13774", url: "/dashboard/legislation/viewer/codigo-convivencia-santa-fe.pdf?province=santa-fe" },
+            { title: "Código Fiscal – Ley 3456", url: "/dashboard/legislation/viewer/codigo-fiscal-santa-fe.pdf?province=santa-fe" },
+            { title: "Código Tributario Municipal – Ley 8173", url: "/dashboard/legislation/viewer/codigo-tributario-municipal-santa-fe.pdf?province=santa-fe" }
+        ],
+        "Santiago del Estero": [
+            { title: "Código Electoral – Ley 6908", url: "/dashboard/legislation/viewer/codigo-electoral-santiago.pdf?province=santiago-del-estero" },
+            { title: "Código de Faltas – Ley 6906", url: "/dashboard/legislation/viewer/codigo-faltas-santiago.pdf?province=santiago-del-estero" },
+            { title: "Código Fiscal – Ley 6792", url: "/dashboard/legislation/viewer/codigo-fiscal-santiago.pdf?province=santiago-del-estero" },
+            { title: "Cód. Procedimientos Minero – Ley 6920", url: "/dashboard/legislation/viewer/codigo-procedimientos-minero-santiago.pdf?province=santiago-del-estero" },
+            { title: "Cód. Procedimiento Laboral – Ley 3603", url: "/dashboard/legislation/viewer/codigo-procedimiento-laboral-3603-santiago.pdf?province=santiago-del-estero" },
+            { title: "Cód. Procedimiento Laboral – Ley 7049", url: "/dashboard/legislation/viewer/codigo-procedimiento-laboral-7049-santiago.pdf?province=santiago-del-estero" },
+            { title: "Cód. Procesal Civil y Comercial – Ley 6910", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-santiago.pdf?province=santiago-del-estero" },
+            { title: "Código Procesal Penal – Ley 1733", url: "/dashboard/legislation/viewer/codigo-procesal-penal-1733-santiago.pdf?province=santiago-del-estero" },
+            { title: "Código Procesal Penal – Ley 6941", url: "/dashboard/legislation/viewer/codigo-procesal-penal-6941-santiago.pdf?province=santiago-del-estero" },
+            { title: "Cód. Procesal Penal Transición – Ley 6986", url: "/dashboard/legislation/viewer/codigo-procesal-penal-6986-santiago.pdf?province=santiago-del-estero" },
+            { title: "Cód. Proc. Contencioso Administrativo – Ley 2297", url: "/dashboard/legislation/viewer/codigo-contencioso-administrativo-santiago.pdf?province=santiago-del-estero" },
+            { title: "Código Trámite Administrativo – Ley 2296", url: "/dashboard/legislation/viewer/codigo-tramite-administrativo-santiago.pdf?province=santiago-del-estero" }
+        ],
+        "Tierra del Fuego": [
+            { title: "Cód. Proc. Civil, Comercial, Laboral, Rural y Minero – Ley 147", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-laboral-tdf.pdf?province=tierra-del-fuego" },
+            { title: "Código Procesal Penal – Ley 168", url: "/dashboard/legislation/viewer/codigo-procesal-penal-tdf.pdf?province=tierra-del-fuego" },
+            { title: "Cód. Contencioso Administrativo – Ley 133", url: "/dashboard/legislation/viewer/codigo-contencioso-administrativo-tdf.pdf?province=tierra-del-fuego" },
+            { title: "Código Contravencional – Ley 1024", url: "/dashboard/legislation/viewer/codigo-contravencional-tdf.pdf?province=tierra-del-fuego" },
+            { title: "Ley de Procedimiento Administrativo – Ley 141", url: "/dashboard/legislation/viewer/codigo-procedimiento-administrativo-tdf.pdf?province=tierra-del-fuego" },
+            { title: "Régimen Electoral – Ley 201", url: "/dashboard/legislation/viewer/codigo-electoral-tdf.pdf?province=tierra-del-fuego" },
+            { title: "Ley de Registro de Propiedad Inmueble – Ley 532", url: "/dashboard/legislation/viewer/codigo-registro-propiedad-tdf.pdf?province=tierra-del-fuego" }
+        ],
+        "Tucumán": [
+            { title: "Código Procesal Civil y Comercial – Ley 6176", url: "/dashboard/legislation/viewer/codigo-procesal-civil-comercial-tucuman.pdf?province=tucuman" },
+            { title: "Código Procesal Laboral – Ley 6204 (TO)", url: "/dashboard/legislation/viewer/codigo-procesal-laboral-tucuman.pdf?province=tucuman" },
+            { title: "Código Procesal Penal – Ley 6203 (TO 8268)", url: "/dashboard/legislation/viewer/codigo-procesal-penal-6203-tucuman.pdf?province=tucuman" },
+            { title: "Nuevo Código Procesal Penal – Ley 8933", url: "/dashboard/legislation/viewer/codigo-procesal-penal-8933-tucuman.pdf?province=tucuman" },
+            { title: "Implementación Nuevo CPP – Ley 9675", url: "/dashboard/legislation/viewer/codigo-implementacion-cpp-tucuman.pdf?province=tucuman" },
+            { title: "Código Procesal Constitucional – Ley 6944", url: "/dashboard/legislation/viewer/codigo-procesal-constitucional-tucuman.pdf?province=tucuman" },
+            { title: "Código Procesal Administrativo – Ley 6205", url: "/dashboard/legislation/viewer/codigo-procesal-administrativo-tucuman.pdf?province=tucuman" }
         ]
     };
 
