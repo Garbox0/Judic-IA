@@ -69,7 +69,14 @@ export async function middleware(request) {
         return new NextResponse(null, { status: 400 })
     }
 
+    // 🚀 EARLY RETURN: Skip middleware for API routes (webhooks, etc.)
+    // This prevents 307 redirects on webhook endpoints
+    if (pathname.startsWith('/api/')) {
+        return NextResponse.next({ request: { headers: requestHeaders } })
+    }
+
     // 🔀 SUBDOMAIN REDIRECT LOGIC
+
     // A. Main domain accessing /consultas/* → Redirect to client subdomain
     if (isMainDomain && pathname.startsWith('/consultas')) {
         const clientUrl = new URL(pathname.replace('/consultas', ''), 'https://consultas.judic-ia.com')
