@@ -70,9 +70,16 @@ export async function POST(req) {
         return NextResponse.json({ ok: true });
     }
 
+    // 🧪 GUARD: Skip test/invalid IDs (real preapproval IDs are long strings)
+    const mpIdStr = String(mpId);
+    if (mpIdStr.length < 15 || mpIdStr === '123456') {
+        console.log(`ℹ️ Test/invalid preapproval ID, skipping fetch: ${mpIdStr}`);
+        return NextResponse.json({ ok: true, test: true });
+    }
 
     // 2) Consultar a MP el estado REAL de la suscripción
     const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+
 
     try {
         const r = await fetch(`https://api.mercadopago.com/preapproval/${mpId}`, {
