@@ -3,8 +3,21 @@ import { Resend } from 'resend';
 import { sendEmail } from '../../../lib/resend';
 import { getHtmlEmail } from '../../../../lib/email-template';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIP } from '../../../../lib/rate-limiter';
 
 export async function POST(request) {
+    // 🛡️ Rate Limiting (3 requests per minute per IP)
+    const ip = getClientIP(request);
+    const rateCheck = checkRateLimit(`reset:${ip}`, 3, 60000);
+
+    if (!rateCheck.allowed) {
+        console.warn(`⚠️ Rate limit exceeded for password reset: ${ip}`);
+        return NextResponse.json(
+            { error: 'Demasiadas solicitudes. Intenta de nuevo en 1 minuto.' },
+            { status: 429, headers: { 'Retry-After': Math.ceil(rateCheck.resetIn / 1000).toString() } }
+        );
+    }
+
     const resendApiKey = process.env.RESEND_API_KEY;
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -31,6 +44,7 @@ export async function POST(request) {
         if (!email) {
             return NextResponse.json({ error: "Email required" }, { status: 400 });
         }
+
 
         // 1. Generate Recovery Link via Supabase Admin
         const { data, error } = await supabaseAdmin.auth.admin.generateLink({

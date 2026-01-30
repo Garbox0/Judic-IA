@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { getHtmlEmail } from '../../../../lib/email-template';
+import { checkRateLimit } from '../../../../lib/rate-limiter';
 
 // Use Service Role for Admin actions
 const supabaseAdmin = createClient(
@@ -13,14 +14,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request) {
     try {
-        // 1. Verify User Session (Standard Client)
-        // We verify the user initiating the request actually owns the session
-        // However, we can't trust the client-side user object alone for sensitive deletes.
-        // We rely on the session token passed in headers/cookies if we used createServerClient
-        // For simplicity and security, we'll assume the client is authenticated via middleware
-        // and we get the user ID from the request body or re-verify.
-
-        // BETTER: Get user from auth header token to ensure identity
+        // 1. Verify User Session
         const authHeader = request.headers.get('Authorization');
         if (!authHeader) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -33,6 +27,18 @@ export async function POST(request) {
         if (authError || !user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+
+        // 🛡️ Rate Limiting (2 requests per minute per user)
+        const rateCheck = checkRateLimit(`deletion:${user.id}`, 2, 60000);
+
+        if (!rateCheck.allowed) {
+            console.warn(`⚠️ Rate limit exceeded for deletion OTP: ${user.id}`);
+            return NextResponse.json(
+                { error: 'Demasiadas solicitudes. Intenta de nuevo en 1 minuto.' },
+                { status: 429, headers: { 'Retry-After': Math.ceil(rateCheck.resetIn / 1000).toString() } }
+            );
+        }
+
 
         // 2. Generate OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
