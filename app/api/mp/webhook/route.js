@@ -61,7 +61,7 @@ export async function POST(req) {
         return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    console.log("🔔 Webhook received (signature valid):", body);
+    // console.log("🔔 Webhook received (signature valid):", body);
 
     const mpId = body?.data?.id || body?.id || body?.data?.id;
 
@@ -92,7 +92,7 @@ export async function POST(req) {
             return NextResponse.json({ error: sub }, { status: 500 });
         }
 
-        console.log("✅ Subscription details:", sub);
+        // console.log("✅ Subscription details:", sub);
 
         // 3) Linkear con tu usuario
         const userId = sub.external_reference;
