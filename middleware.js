@@ -31,15 +31,7 @@ export async function middleware(request) {
     if (country && country !== 'AR' && !isWebhook) {
         const ip = request.headers.get('x-forwarded-for') || request.ip
         console.warn(`⛔ BLOCKED ACCESS from ${country} (IP: ${ip})`)
-
-        const blockedResponse = new NextResponse(JSON.stringify({
-            error: 'Access Denied',
-            message: `Judic-IA is currently only available in Argentina. (Detected: ${country})`,
-            code: 'GEO_BLOCK'
-        }), { status: 403, headers: { 'Content-Type': 'application/json' } })
-
-        blockedResponse.headers.set('X-Geo-Country', country)
-        return blockedResponse
+        return BLOCKED_COUNTRY_RESPONSE
     }
 
     // 🛡️ 0. SEGURIDAD (CSP Relaxed for Debugging)
@@ -52,7 +44,7 @@ export async function middleware(request) {
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vercel.live;
         img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live;
         font-src 'self' https://fonts.gstatic.com data: https://vercel.live;
-        connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live https://vitals.vercel-insights.com;
+        connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live https://vitals.vercel-insights.com https://cloudflareinsights.com https://static.cloudflareinsights.com;
         frame-src 'self' https://accounts.google.com https://*.mercadopago.com https://vercel.live https://*.vercel.live;
         object-src 'self';
         worker-src 'self' blob:;
@@ -207,9 +199,6 @@ export async function middleware(request) {
         finalResponse.headers.set('Content-Security-Policy', cspHeader)
         finalResponse.headers.set('x-nonce', nonce)
     }
-
-    // 🌍 DEBUG: Geo-Country Header for all responses
-    finalResponse.headers.set('X-Geo-Country', country || 'unknown')
 
     return finalResponse
 }
