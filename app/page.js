@@ -5,7 +5,7 @@ import styles from "./page.module.css";
 import Link from "next/link";
 import Image from "next/image";
 import SafeChatWidget from "./components/SafeChatWidget";
-import { Clock, Shield, Zap, Scale, BookOpen, Users, FolderOpen, Calculator, Calendar, FileText, BarChart2 } from 'lucide-react';
+import { Clock, Shield, Zap, Scale, BookOpen, Users, FolderOpen, Calculator, Calendar, FileText, BarChart2, PlayCircle } from 'lucide-react';
 import "./landing.css"; // Version 3.0 Styles
 
 export default function Home() {
@@ -126,7 +126,7 @@ export default function Home() {
                 Comenzar Ahora <span>→</span>
               </Link>
               <Link href="/demo" className="btn-secondary-v3">
-                Ver Demo
+                <PlayCircle size={20} /> Ver Demo
               </Link>
             </div>
           </div>
