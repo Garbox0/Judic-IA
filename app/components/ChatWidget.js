@@ -83,7 +83,7 @@ export default function ChatWidget({
                 // FETCH HISTORY FROM API (Persistence)
                 // Only if sessionId is UUID (avoid fetching for mock 'auth-' ids which cause 500 errors)
                 // AND not 'demo' mode (which is ephemeral/non-persistent start)
-                if (activeSessionId.length > 20 && !activeSessionId.startsWith('auth-') && mode !== 'demo') {
+                if (activeSessionId.length > 20 && !activeSessionId.startsWith('auth-') && mode !== 'demo' && mode !== 'lawyer_login') {
                     try {
                         const res = await fetch(`/api/chat?sessionId=${activeSessionId}`);
                         if (res.status === 404) {
