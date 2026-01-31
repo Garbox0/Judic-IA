@@ -30,7 +30,7 @@ export const supabase = (() => {
         const isClientSubdomain = hostname.startsWith('consultas.');
         const cookieName = isClientSubdomain ? 'sb-judicia-client' : 'sb-judicia-auth';
 
-        console.log(`🍪 Initializing Supabase Client. Zone: ${isClientSubdomain ? 'CLIENT' : 'LAWYER'}, Cookie: ${cookieName}`);
+
 
         supabaseInstance = createBrowserClient(supabaseUrl, supabaseAnonKey, {
             cookieOptions: { name: cookieName }
