@@ -88,8 +88,8 @@ export default function ChatWidget({
                         const res = await fetch(`/api/chat?sessionId=${activeSessionId}`);
                         if (res.status === 404) {
                             // Session expired or new. Clean up if needed.
-                            if (mode !== 'demo') {
-                                console.log("Session not found (fresh start).");
+                            if (mode !== 'demo' && mode !== 'lawyer_login') {
+                                // console.log("Session not found (fresh start).");
                             }
                             return;
                         }

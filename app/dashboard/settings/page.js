@@ -342,7 +342,7 @@ export default function SettingsPage({ isDemo = false }) {
 
     // Realtime Payment Listener
     useEffect(() => {
-        if (!user) return;
+        if (!user || isDemo) return;
 
         console.log("🔌 Conectando listener de pagos para:", user.id);
         const channel = supabase
@@ -936,12 +936,14 @@ export default function SettingsPage({ isDemo = false }) {
             </div>
 
 
-            <Script
-                src="https://sdk.mercadopago.com/js/v2"
-                onLoad={() => {
-                    console.log("Mercado Pago SDK Loaded");
-                }}
-            />
+            {!isDemo && (
+                <Script
+                    src="https://sdk.mercadopago.com/js/v2"
+                    onLoad={() => {
+                        console.log("Mercado Pago SDK Loaded");
+                    }}
+                />
+            )}
         </div>
     );
 }
