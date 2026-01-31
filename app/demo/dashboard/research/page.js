@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import '@/app/dashboard/research/research.css';
 
-import UsageGuide from '@/app/components/UsageGuide';
+import UsageGuideDemo from '@/app/components/UsageGuideDemo';
 import { demoManuals } from '@/app/lib/demoManuals';
 
 export default function DemoResearchPage() {
@@ -269,7 +269,7 @@ export default function DemoResearchPage() {
                             </div>
                         </div>
 
-                        <UsageGuide content={demoManuals.research} />
+                        <UsageGuideDemo content={demoManuals.research} />
                     </header>
 
                     <div className="search-box-container glass-panel">

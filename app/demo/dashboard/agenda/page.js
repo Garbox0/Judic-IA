@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { demoDeadlines } from '@/app/lib/demoData';
 import '@/app/dashboard/agenda/agenda.css';
-import UsageGuide from '@/app/components/UsageGuide';
+import UsageGuideDemo from '@/app/components/UsageGuideDemo';
 import { demoManuals } from '@/app/lib/demoManuals';
 
 // Helper to get days in month
@@ -233,7 +233,7 @@ export default function DemoAgendaPage() {
                 <button className="btn-primary" onClick={() => showToast("Crear evento deshabilitado en Demo")}>
                     + Nuevo Evento
                 </button>
-                <UsageGuide content={demoManuals.agenda} />
+                <UsageGuideDemo content={demoManuals.agenda} />
             </header>
 
             <div className="agenda-grid">

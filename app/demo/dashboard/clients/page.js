@@ -2,6 +2,29 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { demoClients } from '@/app/lib/demoData';
+import {
+    Users,
+    Link2,
+    Copy,
+    Check,
+    Inbox,
+    Trash2,
+    Phone,
+    ArrowRight,
+    X,
+    MessageSquare,
+    Zap,
+    Folder,
+    Calendar,
+    AlertTriangle,
+    RefreshCw,
+    ChevronLeft,
+    ChevronRight,
+    Search,
+    Mail,
+    Scale,
+    FileText
+} from 'lucide-react';
 
 /* --------------------------------------------------------------------------------
  * DEMO TOAST COMPONENT (Redesigned: Dark Glass + Premium Accents)
@@ -14,10 +37,10 @@ const DemoToast = ({ message, type = 'info', onClose }) => {
 
     // Premium Dark Glass Theme
     const themes = {
-        info: { border: '#3b82f6', icon: 'ℹ️' },
-        success: { border: '#10b981', icon: '✅' },
-        warning: { border: '#f59e0b', icon: '⚠️' },
-        error: { border: '#ef4444', icon: '🚨' }
+        info: { border: '#3b82f6', icon: <Search size={20} style={{ color: '#3b82f6' }} /> },
+        success: { border: '#10b981', icon: <Check size={20} style={{ color: '#10b981' }} /> },
+        warning: { border: '#f59e0b', icon: <AlertTriangle size={20} style={{ color: '#f59e0b' }} /> },
+        error: { border: '#ef4444', icon: <X size={20} style={{ color: '#ef4444' }} /> }
     };
 
     const theme = themes[type] || themes.info;
@@ -119,12 +142,14 @@ const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
                 @keyframes popIn { from { transform: scale(0.9) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
 
                 .confirm-icon {
-                    font-size: 3rem; margin-bottom: 1.5rem;
+                    display: flex; align-items: center; justify-content: center;
+                    margin-bottom: 1.5rem;
                     background: rgba(239, 68, 68, 0.1);
                     width: 80px; height: 80px;
-                    line-height: 80px; border-radius: 50%;
+                    border-radius: 50%;
                     margin: 0 auto 1.5rem;
                     border: 1px solid rgba(239, 68, 68, 0.3);
+                    color: #ef4444;
                 }
                 .confirm-title { color: white; margin-bottom: 0.8rem; font-size: 1.4rem; font-weight: 700; }
                 .confirm-message { color: #94a3b8; font-size: 1rem; line-height: 1.6; margin-bottom: 2rem; }
@@ -151,7 +176,7 @@ const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
     );
 };
 
-import UsageGuide from '@/app/components/UsageGuide';
+import UsageGuideDemo from '@/app/components/UsageGuideDemo';
 import { demoManuals } from '@/app/lib/demoManuals';
 
 export default function DemoClientsPage() {
@@ -267,33 +292,33 @@ export default function DemoClientsPage() {
 
             <header className="clients-header">
                 <div className="header-flex">
-                    <div className="header-icon-box">👥</div>
+                    <div className="header-icon-box"><Users size={32} /></div>
                     <div className="header-text">
                         <h1 className="dashboard-page-title">Mis Clientes</h1>
                         <p>Gestiona tus expedientes y consultas entrantes.</p>
                     </div>
                 </div>
 
-                <UsageGuide content={demoManuals.clients} />
-            </header >
+                <UsageGuideDemo content={demoManuals.clients} />
+            </header>
 
             {/* SMART LINK CARD */}
-            < div className="smart-link-card glass-panel" >
+            <div className="smart-link-card glass-panel">
                 <div className="link-info">
-                    <h3>🔗 Tu Enlace de Consulta Inteligente</h3>
+                    <h3><Link2 size={24} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.8rem', color: '#fbbf24' }} /> Tu Enlace de Consulta Inteligente</h3>
                     <p>Comparte este link con tus clientes para que la IA tome sus datos automáticamente.</p>
                 </div>
                 <button onClick={copySmartLink} className={`btn-copy ${copied ? 'copied' : ''}`} disabled={copied}>
-                    {copied ? '✅ Enlace Copiado' : 'Copiar Enlace'}
+                    {copied ? <><Check size={18} /> Enlace Copiado</> : <><Copy size={18} /> Copiar Enlace</>}
                 </button>
-            </div >
+            </div>
 
             {/* CLIENTS LIST */}
-            < div className="clients-grid" >
+            <div className="clients-grid">
                 {
                     clients.length === 0 ? (
                         <div className="empty-state">
-                            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
+                            <div style={{ fontSize: '3rem', marginBottom: '1rem', color: '#64748b' }}><Inbox size={64} /></div>
                             <h3 style={{ color: 'var(--muted)', marginBottom: '1rem' }}>No hay consultas visibles</h3>
                             <p style={{ color: '#64748b', fontSize: '0.9rem' }}>En esta sesión de demo, has eliminado todos los clientes de prueba.</p>
                             <button
@@ -306,16 +331,20 @@ export default function DemoClientsPage() {
                                     padding: '0.6rem 1.2rem',
                                     borderRadius: '8px',
                                     cursor: 'pointer',
-                                    fontWeight: 600
+                                    fontWeight: 600,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    margin: '1.5rem auto 0'
                                 }}>
-                                ↻ Reiniciar Demo
+                                <RefreshCw size={18} /> Reiniciar Demo
                             </button>
                         </div>
                     ) : (
                         clients.map(client => (
                             <div key={client.id} className="client-card glass-panel" onClick={() => openClientModal(client)}>
-                                <button className="btn-delete" onClick={(e) => requestDelete(client.id, e)} title="Eliminar Expediente" style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', fontSize: '1rem' }}>
-                                    🗑️
+                                <button className="btn-delete" onClick={(e) => requestDelete(client.id, e)} title="Eliminar Expediente" style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Trash2 size={14} />
                                 </button>
 
                                 <h3 className="client-id" style={{ marginTop: '1.5rem', fontSize: '1.1rem' }}>
@@ -327,11 +356,11 @@ export default function DemoClientsPage() {
                                 )}
 
                                 {client.contact_phone && (
-                                    <p style={{ color: '#fbbf24', fontSize: '0.9rem', marginBottom: '0.5rem' }}>📞 {client.contact_phone}</p>
+                                    <p style={{ color: '#fbbf24', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}><Phone size={14} /> {client.contact_phone}</p>
                                 )}
 
                                 <p className="client-date">{new Date(client.created_at).toLocaleDateString()}</p>
-                                <div className="client-footer">Ver Conversación →</div>
+                                <div className="client-footer">Ver Conversación <ArrowRight size={14} /></div>
                             </div>
                         ))
                     )
@@ -343,7 +372,6 @@ export default function DemoClientsPage() {
                 selectedClient && (
                     <div className="modal-overlay" onClick={closeModal}>
                         <div className="modal-content glass-panel" onClick={e => e.stopPropagation()}>
-
                             {/* HEADER */}
                             <div className="modal-header">
                                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -354,33 +382,36 @@ export default function DemoClientsPage() {
                                         className={`btn-toggle-details ${showDetails ? 'active' : ''}`}
                                         onClick={() => setShowDetails(!showDetails)}
                                         title={showDetails ? "Ocultar Detalles" : "Ver Datos del Cliente"}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                                     >
-                                        {showDetails ? '▶ Cerrar Datos' : '◀ Ver Datos'}
+                                        {showDetails ? <><ChevronRight size={16} /> Cerrar Datos</> : <><ChevronLeft size={16} /> Ver Datos</>}
                                     </button>
 
                                     <div className="divider-vertical"></div>
 
-                                    <button className="btn-delete" onClick={(e) => requestDelete(selectedClient.id, e)} title="Eliminar Expediente">
-                                        🗑️
+                                    <button className="btn-delete" onClick={(e) => requestDelete(selectedClient.id, e)} title="Eliminar Expediente" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Trash2 size={16} />
                                     </button>
 
                                     <button
                                         className="btn-generate-action"
                                         onClick={() => handleRestrictedAction("Generar Escrito")}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                                     >
-                                        ⚡ Generar Escrito
+                                        <Zap size={16} /> Generar Escrito
                                     </button>
                                     <button
                                         className="btn-convert-action"
                                         onClick={() => handleRestrictedAction("Convertir a Expediente")}
                                         title="Convertir esta consulta en un expediente formal del estudio"
+                                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                                     >
-                                        📁 Convertir en Expediente
+                                        <Folder size={16} /> Convertir en Expediente
                                     </button>
-                                    <button className="btn-agenda-action" onClick={() => handleRestrictedAction("Crear Plazo")} title="Agendar Plazo">
-                                        📅 Crear Plazo
+                                    <button className="btn-agenda-action" onClick={() => handleRestrictedAction("Crear Plazo")} title="Agendar Plazo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Calendar size={16} /> Crear Plazo
                                     </button>
-                                    <button onClick={closeModal} className="close-btn">×</button>
+                                    <button onClick={closeModal} className="close-btn"><X size={24} /></button>
                                 </div>
                             </div>
 
@@ -389,7 +420,7 @@ export default function DemoClientsPage() {
 
                                 {/* CHAT SECTION (CENTRAL) */}
                                 <div className="chat-section">
-                                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#fbbf24' }}>💬 Historial de Conversación</h3>
+                                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '8px' }}><MessageSquare size={18} /> Historial de Conversación</h3>
                                     <div className="chat-viewer">
                                         {loadingChat ? <p>Cargando chat...</p> : (
                                             chatHistory.length === 0 ? <p className="no-msgs">No hay mensajes aún.</p> :
@@ -412,23 +443,23 @@ export default function DemoClientsPage() {
                                         <div className="details-card">
                                             <div className="details-content">
                                                 <div className="detail-row">
-                                                    <span className="label">🆔 ID</span>
+                                                    <span className="label">ID</span>
                                                     <span className="value" title={selectedClient.id}>{selectedClient.id.slice(0, 8)}...</span>
                                                 </div>
                                                 <div className="detail-row">
-                                                    <span className="label">📞 Teléfono</span>
+                                                    <span className="label"><Phone size={14} style={{ marginRight: '5px' }} /> Teléfono</span>
                                                     <span className="value highlight">{selectedClient.contact_phone || '-'}</span>
                                                 </div>
                                                 <div className="detail-row">
-                                                    <span className="label">📧 Email</span>
+                                                    <span className="label"><Mail size={14} style={{ marginRight: '5px' }} /> Email</span>
                                                     <span className="value">{selectedClient.contact_email || '-'}</span>
                                                 </div>
                                                 <div className="detail-row">
-                                                    <span className="label">⚖️ Caso</span>
+                                                    <span className="label"><Scale size={14} style={{ marginRight: '5px' }} /> Caso</span>
                                                     <span className="value badge-text">{selectedClient.case_type || 'General'}</span>
                                                 </div>
                                                 <div className="detail-row" style={{ flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start', marginTop: '0.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '0.5rem' }}>
-                                                    <span className="label">📝 Resumen IA</span>
+                                                    <span className="label"><FileText size={14} style={{ marginRight: '5px' }} /> Resumen IA</span>
                                                     <p style={{ fontSize: '0.8rem', lineHeight: '1.4', lineClamp: 3, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', color: 'var(--muted)', margin: 0 }}>
                                                         {selectedClient.ai_summary || 'Sin resumen disponible.'}
                                                     </p>

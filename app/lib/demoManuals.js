@@ -8,15 +8,10 @@ Esta herramienta simula el motor de inteligencia artificial de Judic-IA, diseña
 1.  **Selecciona una Jurisdicción:** Elige entre "Nación" o una provincia específica para ajustar el contexto legal.
 2.  **Define el Caso:** Escribe una consulta natural, por ejemplo: *"Jurisprudencia sobre despido sin causa en CABA hace 2 años"* o seleccióna una categoría rápida.
 3.  **Ejecuta la Búsqueda:** Haz clic en "Generar Estrategia IA".
-4.  **Analiza los Resultados:**
-    *   **Normativa:** Leyes aplicables detectadas automáticamente.
-    *   **Jurisprudencia:** Fallos similares con resúmenes clave.
-    *   **Estrategia:** Sugerencias tácticas para tu demanda o contestación.
-    *   **Liquidación:** Un cálculo estimativo preliminar.
 
-### Notas del Sandbox
-*   En esta demo, la IA no procesa texto en tiempo real; devuelve resultados pre-generados para mostrar el formato y la calidad de la respuesta.
-*   La función de "Exportar PDF" está deshabilitada.
+### ⚖️ Demo vs. Versión Full
+*   **En esta Demo:** Los resultados son pre-generados basados en ejemplos reales para mostrar la estructura y profundidad de respuesta. La exportación a PDF está deshabilitada.
+*   **En el Gabinete Real:** La IA procesa tus consultas en tiempo real sobre una base de datos de millones de fallos actualizados al día. Puedes generar escritos completos (Demandas, Cédulas) y exportarlos en formato .docx o .pdf listos para presentar.
 `,
 
     cases: `
@@ -24,16 +19,13 @@ Esta herramienta simula el motor de inteligencia artificial de Judic-IA, diseña
 
 Organiza tus casos activos, monitorea estados procesales y mantén el control de tu cartera de litigios.
 
-### Funcionalidades Clave
-1.  **Tablero de Control:** Vista rápida de expedientes por estado (Abiertos, En Curso, Cerrados).
-2.  **Listado Inteligente:** Tabla ordenable con carátula, número de expediente, fuero y estado.
-3.  **Acciones Rápidas:**
-    *   **Ver Carpeta:** Acceso al detalle completo del caso.
-    *   **Chat:** Acceso directo a la conversación con el cliente.
-    *   **Eliminar:** Borrado lógico del expediente.
+### ¿Cómo usar esta demo?
+1.  **Explora el Tablero:** Mira el estado de los expedientes cargados (Abiertos, en Curso, etc.).
+2.  **Gestión Manual:** Puedes simular el cambio de estado de un caso o ver su carpeta digital.
 
-### Archivo
-Utiliza la sección "Archivos del Estudio" para consultar causas terminadas sin saturar tu vista principal.
+### ⚖️ Demo vs. Versión Full
+*   **En esta Demo:** Los expedientes son ficticios y la gestión es exclusivamente manual y local.
+*   **En el Gabinete Real:** Sincronización automática con el PJN y fueros provinciales. Recibes alertas en tiempo real sobre nuevos movimientos, notificaciones del sistema de gestión judicial y puedes vincular documentos directamente desde la nube.
 `,
 
     clients: `
@@ -41,76 +33,82 @@ Utiliza la sección "Archivos del Estudio" para consultar causas terminadas sin 
 
 Centraliza la comunicación con tus clientes y automatiza la toma de datos iniciales.
 
-### Flujo de Trabajo
-1.  **Enlace Inteligente:** Copia tu Link de Consulta y envíalo a tus clientes. La IA los entrevistará por ti.
-2.  **Revisión de Consultas:** Cada nueva interacción aparece como una tarjeta en el grid.
-3.  **Detalle del Cliente:** Haz clic en una tarjeta para ver datos de contacto, historial de chat y resumen del caso.
+### ¿Cómo usar esta demo?
+1.  **Enlace Inteligente:** Prueba el botón de copiar para ver el flujo de captación.
+2.  **Ficha del Cliente:** Haz clic en una tarjeta para ver el resumen generado por IA tras la entrevista inicial.
 
-### Acciones Demo
-*   Puedes intentar eliminar un cliente para ver el modal de confirmación.
-*   Los botones de "Generar Escrito" o "Convertir a Expediente" muestran un aviso de restricción en este entorno.
+### ⚖️ Demo vs. Versión Full
+*   **En esta Demo:** Interactúas con "clientes de prueba" para entender cómo la IA resume los conflictos legales.
+*   **En el Gabinete Real:** El enlace es único para tu estudio. Los clientes conversan con un asistente legal IA por WhatsApp o Web, y tú recibes la carpeta completa armada, con la liquidación preliminar y documentos adjuntos sin haber movido un dedo.
 `,
 
     calculators: `
 ## Calculadoras Jurídicas
 
-Herramientas matemáticas precisas para el cálculo de plazos y liquidaciones laborales preliminares.
+Herramientas matemáticas precisas para el cálculo de plazos y liquidaciones laborales.
 
-### 1. Calculadora de Plazos
-*   **Fecha de Notificación:** Ingresa cuando recibió la cédula tu cliente.
-*   **Días:** Cantidad de días del plazo legal.
-*   **Tipo:** Selección entre días hábiles (judiciales) o corridos.
-*   **Resultado:** Muestra el vencimiento exacto y las "Dos primeras horas".
+### ¿Cómo usar esta demo?
+1.  **Prueba los Cálculos:** Ingresa fechas de ingreso/egreso o plazos de notificación.
+2.  **Verifica Resultados:** La calculadora arroja resultados inmediatos basados en la normativa vigente.
 
-### 2. Indemnización (Art. 245 LCT)
-*   **Fechas:** Ingresa ingreso y egreso para calcular antigüedad.
-*   **Mejor Remuneración:** Bruto mensual más alto.
-*   **Resultado:** Calcula la indemnización por antigüedad considerando topes.
-
-> *Nota: Estas calculadoras funcionan con lógica de cliente y no consultan feriados en tiempo real.*
+### ⚖️ Demo vs. Versión Full
+*   **En esta Demo:** Las calculadoras usan lógica estática con tasas de interés estándar.
+*   **En el Gabinete Real:** Integración con Tasas de Interés oficiales actualizadas por el BNA y SCBA diariamente. Permite exportar informes periciales detallados con el desglose rubro por rubro para adjuntar como prueba.
 `,
 
     legislation: `
 ## Digesto Jurídico Unificado
 
-Acceso rápido a los códigos de fondo y forma más utilizados, organizados por jurisdicción.
+Acceso rápido a los códigos de fondo y forma, organizados por jurisdicción.
 
-### Navegación
-*   **Códigos de Fondo:** Normas nacionales disponibles siempre.
-*   **Leyes Especiales:** Selección de leyes complementarias frecuentes (LCT, Concursos, etc.).
-*   **Códigos de Forma:** Selecciona tu provincia para acceder a los códigos procesales locales.
+### ¿Cómo usar esta demo?
+1.  **Buscador InfoLeg:** Simula una búsqueda por número de norma o texto.
+2.  **Códigos Procesales:** Filtra por provincia para ver las normas locales disponibles.
 
-### Enlaces
-*   **Flecha:** Enlace externo a InfoLeg o fuentes oficiales.
-*   **Candado:** Documento PDF interno (Bloqueado en Demo).
+### ⚖️ Demo vs. Versión Full
+*   **En esta Demo:** Accedes a enlaces directos y visualización de normas estáticas.
+*   **En el Gabinete Real:** Buscador semántico avanzado. No solo buscas por número, sino por "concepto". Incluye control de concordancias, jurisprudencia vinculada a cada artículo y alertas de derogaciones o modificaciones.
 `,
 
     agenda: `
 ## Control de Plazos
 
-Agenda inteligente que calcula vencimientos y organiza tu calendario judicial.
+Agenda inteligente que organiza tu calendario judicial.
 
-### Funcionalidades
-1.  **Calendario Visual:** Vista mensual con indicadores de carga de trabajo.
-2.  **Próximos Vencimientos:** Lista priorizada de plazos inminentes (Semaforización).
-3.  **Nota:** En la versión completa, esta agenda se sincroniza con Google Calendar y notifica por WhatsApp.
+### ¿Cómo usar esta demo?
+1.  **Vista de Calendario:** Observa cómo se organizan los vencimientos por prioridad cromática.
+2.  **Semaforización:** Los plazos inminentes se destacan automáticamente.
 
-### Restricciones Demo
-*   Los eventos mostrados son ficticios.
-*   No se pueden crear nuevos eventos ni editar los existentes.
+### ⚖️ Demo vs. Versión Full
+*   **En esta Demo:** Los eventos son de muestra y no permiten edición real.
+*   **En el Gabinete Real:** Sincronización bidireccional con Google Calendar y Outlook. El asistente IA te envía recordatorios por WhatsApp 24hs antes de cada vencimiento crítico y te ayuda a recalcular plazos según ferias judiciales imprevistas.
 `,
 
     library: `
 ## Base de Conocimiento
 
-Repositorio centralizado de documentos, modelos de escritos y jurisprudencia propia del estudio.
+Repositorio de documentos, modelos de escritos y jurisprudencia propia.
 
-### Organización
-1.  **Carpetas Inteligentes:** Clasificación automática por fuero o tipo de documento.
-2.  **Búsqueda Semántica:** (En versión Full) Permite encontrar documentos por "concepto" y no solo por nombre.
+### ¿Cómo usar esta demo?
+1.  **Explora Carpetas:** Mira la estructura de organización sugerida para un estudio moderno.
+2.  **Búsqueda:** Prueba buscar conceptos clave entre los documentos de muestra.
 
-### Interacción Demo
-*   Navega por la estructura de carpetas de ejemplo.
-*   Los archivos son visuales; no se puede descargar contenido real en este entorno protegido.
+### ⚖️ Demo vs. Versión Full
+*   **En esta Demo:** Los documentos son visuales y el almacenamiento es limitado.
+*   **En el Gabinete Real:** IA "RAG" (Generación Aumentada). Puedes "chatear" con tu propia biblioteca; por ejemplo: *"Buscame todas mis demandas de accidentes donde haya citado el fallo 'Arias'"*. Almacenamiento ilimitado para toda la historia de tu estudio.
+`,
+
+    dashboard: `
+## Gabinete de Control (Demo)
+
+Este es tu centro de mando en el entorno Sandbox.
+
+### ¿Cómo usar esta demo?
+1.  **Navegación:** Utiliza las tarjetas para explorar cada módulo de Judic-IA.
+2.  **Garantía:** Es un entorno 100% seguro; nada de lo que borres o edites aquí afectará datos reales.
+
+### ⚖️ Demo vs. Versión Full
+*   **En esta Demo:** Experimentas con datos pre-cargados para conocer la interfaz y el alcance de las herramientas.
+*   **En el Gabinete Real:** Operas sobre tu verdadera cartera de clientes. El Dashboard te ofrece "Insights" predictivos sobre tu rentabilidad, carga horaria y probabilidad de éxito en tus litigios basándose en tu historial real.
 `
 };

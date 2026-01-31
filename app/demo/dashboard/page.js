@@ -10,6 +10,8 @@ import {
     BookOpen,
     Settings
 } from 'lucide-react';
+import UsageGuideDemo from '@/app/components/UsageGuideDemo';
+import { demoManuals } from '@/app/lib/demoManuals';
 
 export default function DemoDashboardHome() {
     const isDemo = true;
@@ -83,9 +85,10 @@ export default function DemoDashboardHome() {
             <header className="dashboard-header">
                 <h2>Hola, {user?.user_metadata?.first_name}</h2>
                 <div className="header-stats">
-                    <span>📅 <b>{stats.deadlines}</b> vencimientos hoy</span>
-                    <span>👥 <b>{stats.clients}</b> clientes activos</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Calendar size={16} /> <b>{stats.deadlines}</b> vencimientos hoy</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Users size={16} /> <b>{stats.clients}</b> clientes activos</span>
                 </div>
+                <UsageGuideDemo content={demoManuals.dashboard} />
             </header>
 
             <section className="dashboard-grid">

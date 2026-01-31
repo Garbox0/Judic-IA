@@ -1,16 +1,13 @@
 "use client";
 import { useState } from 'react';
-import { HelpCircle, X, ChevronRight, FileText, Scale, Calculator, Users, BookOpen } from 'lucide-react';
+import { HelpCircle, X, ChevronRight, BookOpen } from 'lucide-react';
 
 /**
- * UsageGuide Component for Lawyers Dashboard
- * Renders a floating help icon that opens a blurred modal with professional instructions.
+ * UsageGuideDemo Component specifically for Sandbox/Demo environment
+ * Renders a floating gold help icon that opens a blurred modal with demo-specific instructions.
  */
-export default function UsageGuide({ content }) {
+export default function UsageGuideDemo({ content }) {
     const [isOpen, setIsOpen] = useState(false);
-
-    // Determines icon based on content key or context (simplified for generalized usage)
-    const BulletIcon = ChevronRight;
 
     // Simple markdown renderer for the demo content
     const renderMarkdown = (text) => {
@@ -76,7 +73,7 @@ export default function UsageGuide({ content }) {
             <button
                 onClick={() => setIsOpen(true)}
                 className="usage-guide-trigger"
-                title="Ver Manual de Uso"
+                title="Guía de la Demo"
             >
                 <HelpCircle size={20} />
             </button>
@@ -92,7 +89,7 @@ export default function UsageGuide({ content }) {
                                 <div className="guide-icon">
                                     <BookOpen size={24} color="#fbbf24" />
                                 </div>
-                                <h2>Manual de Uso</h2>
+                                <h2 style={{ margin: 0, color: 'white', fontSize: '1.25rem', fontWeight: 600 }}>Guía de la Demo</h2>
                             </div>
                             <button onClick={() => setIsOpen(false)} className="guide-close-btn">
                                 <X size={24} />
@@ -101,6 +98,9 @@ export default function UsageGuide({ content }) {
 
                         {/* CONTENT */}
                         <div className="guide-content custom-scrollbar">
+                            <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(251, 191, 36, 0.1)', borderRadius: '12px', border: '1px solid rgba(251, 191, 36, 0.2)', color: '#fbbf24', fontSize: '0.85rem', fontWeight: '600', textAlign: 'center' }}>
+                                🔓 Entorno Sandbox: Explora todas las funciones sin riesgo.
+                            </div>
                             {renderMarkdown(content)}
                         </div>
 

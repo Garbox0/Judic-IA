@@ -140,8 +140,8 @@ export default function DashboardHome({ isDemo = false, basePath = '/dashboard' 
       <header className="dashboard-header">
         <h2>Hola, {user?.user_metadata?.first_name}</h2>
         <div className="header-stats">
-          <span>📅 <b>{stats.deadlines}</b> vencimientos hoy</span>
-          <span>👥 <b>{stats.clients}</b> clientes activos</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Calendar size={16} /> <b>{stats.deadlines}</b> vencimientos hoy</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Users size={16} /> <b>{stats.clients}</b> clientes activos</span>
         </div>
         <UsageGuide content={dashboardManuals.dashboard} />
       </header>

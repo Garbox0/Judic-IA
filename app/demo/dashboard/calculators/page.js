@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Calculator, AlertTriangle, RefreshCw, Calendar, Info } from 'lucide-react';
 import '@/app/dashboard/calculators/calculators.css'; // Reuse existing styles
 
-import UsageGuide from '@/app/components/UsageGuide';
+import UsageGuideDemo from '@/app/components/UsageGuideDemo';
 import { demoManuals } from '@/app/lib/demoManuals';
 
 export default function DemoCalculatorsPage() {
@@ -155,7 +155,7 @@ export default function DemoCalculatorsPage() {
                     <h1><Calculator size={48} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.8rem', color: '#8b5cf6' }} /> Calculadoras Jurídicas</h1>
                     <p>Herramientas de precisión para el ejercicio profesional.</p>
                 </div>
-                <UsageGuide content={demoManuals.calculators} />
+                <UsageGuideDemo content={demoManuals.calculators} />
             </header>
 
             <div className="tools-grid">

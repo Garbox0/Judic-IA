@@ -31,7 +31,7 @@ const DemoToast = ({ message, type = 'info', onClose }) => {
     );
 };
 
-import UsageGuide from '@/app/components/UsageGuide';
+import UsageGuideDemo from '@/app/components/UsageGuideDemo';
 import { demoManuals } from '@/app/lib/demoManuals';
 
 export default function DemoLegislationPage() {
@@ -470,20 +470,40 @@ export default function DemoLegislationPage() {
                         </div>
                     </form>
                 </div>
-                <UsageGuide content={demoManuals.legislation} />
+                <UsageGuideDemo content={demoManuals.legislation} />
             </header>
 
             <div className="legislation-layout">
+
+                {/* SECTION 1: CÓDIGOS DE FONDO */}
                 <section className="legislation-section">
                     <div className="section-head">
-                        <div className="icon-badge amber"><Book size={20} /></div>
-                        <div><h2>Códigos de Fondo</h2><p className="section-desc">Normas sustantivas de aplicación nacional.</p></div>
+                        <div className="icon-badge amber">
+                            <Book size={20} />
+                        </div>
+                        <div>
+                            <h2>Códigos de Fondo</h2>
+                            <p className="section-desc">Normativas sustantivas de aplicación nacional (InfoLeg).</p>
+                        </div>
                     </div>
+
                     <div className="codes-grid">
                         {codesFondo.map((code, index) => (
-                            <Link key={index} href={code.url} onClick={(e) => handleProtectedLink(e, code.url)} target={code.url.startsWith('/') ? "_self" : "_blank"} className="code-card glass-panel">
-                                <div className="card-top">{code.icon}<span className="arrow">{code.url.startsWith('/') ? "🔒" : "↗"}</span></div>
-                                <div className="code-info"><h3>{code.title}</h3><p>{code.desc}</p></div>
+                            <Link
+                                key={index}
+                                href={code.url}
+                                onClick={(e) => handleProtectedLink(e, code.url)}
+                                target={code.url.startsWith('/') ? "_self" : "_blank"}
+                                className="code-card glass-panel"
+                            >
+                                <div className="card-top">
+                                    {code.icon}
+                                    <span className="arrow">{code.url.startsWith('/') ? "🔒" : "↗"}</span>
+                                </div>
+                                <div className="code-info">
+                                    <h3>{code.title}</h3>
+                                    <p>{code.desc}</p>
+                                </div>
                             </Link>
                         ))}
                     </div>
@@ -491,17 +511,40 @@ export default function DemoLegislationPage() {
 
                 <div className="divider"></div>
 
+                {/* SECTION 2: LEYES ESPECIALES */}
                 <section className="legislation-section">
-                    <div className="section-head"><div className="icon-badge blue"><Scroll size={20} /></div><div><h2>Leyes Especiales</h2><p className="section-desc">Normativa complementaria.</p></div></div>
+                    <div className="section-head">
+                        <div className="icon-badge blue">
+                            <Scroll size={20} />
+                        </div>
+                        <div>
+                            <h2>Leyes Especiales</h2>
+                            <p className="section-desc">Normativa complementaria de uso frecuente.</p>
+                        </div>
+                    </div>
+
                     <div className="codes-grid">
                         {specialLaws.map((law, index) => (
-                            <Link key={index} href={law.url} onClick={(e) => handleProtectedLink(e, law.url)} target={law.url.startsWith('/') ? "_self" : "_blank"} className="code-card glass-panel">
-                                <div className="card-top">{law.icon}<span className="arrow">{law.url.startsWith('/') ? "🔒" : "↗"}</span></div>
-                                <div className="code-info"><h3>{law.title}</h3><p>{law.desc}</p></div>
+                            <Link
+                                key={index}
+                                href={law.url}
+                                onClick={(e) => handleProtectedLink(e, law.url)}
+                                target={law.url.startsWith('/') ? "_self" : "_blank"}
+                                className="code-card glass-panel"
+                            >
+                                <div className="card-top">
+                                    {law.icon}
+                                    <span className="arrow">{law.url.startsWith('/') ? "🔒" : "↗"}</span>
+                                </div>
+                                <div className="code-info">
+                                    <h3>{law.title}</h3>
+                                    <p>{law.desc}</p>
+                                </div>
                             </Link>
                         ))}
                     </div>
                 </section>
+
                 <div className="divider"></div>
 
                 {/* SECTION 3: CÓDIGOS DE FORMA (PROCESALES) */}

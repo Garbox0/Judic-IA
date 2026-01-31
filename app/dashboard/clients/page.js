@@ -22,7 +22,9 @@ import {
     PartyPopper,
     Link2,
     Copy,
-    Check
+    Check,
+    Mail,
+    Scale
 } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
@@ -560,23 +562,23 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                     <div className="details-card">
                                         <div className="details-content">
                                             <div className="detail-row">
-                                                <span className="label">🆔 ID</span>
+                                                <span className="label">ID</span>
                                                 <span className="value" title={selectedClient.id}>{selectedClient.id.slice(0, 8)}...</span>
                                             </div>
                                             <div className="detail-row">
-                                                <span className="label">📞 Teléfono</span>
+                                                <span className="label"><Phone size={14} style={{ display: 'inline', marginRight: '5px' }} /> Teléfono</span>
                                                 <span className="value highlight">{selectedClient.contact_phone || '-'}</span>
                                             </div>
                                             <div className="detail-row">
-                                                <span className="label">📧 Email</span>
+                                                <span className="label"><Mail size={14} style={{ display: 'inline', marginRight: '5px' }} /> Email</span>
                                                 <span className="value">{selectedClient.contact_email || '-'}</span>
                                             </div>
                                             <div className="detail-row">
-                                                <span className="label">⚖️ Caso</span>
+                                                <span className="label"><Scale size={14} style={{ display: 'inline', marginRight: '5px' }} /> Caso</span>
                                                 <span className="value badge-text">{selectedClient.case_type || 'General'}</span>
                                             </div>
                                             <div className="detail-row" style={{ flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start', marginTop: '0.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '0.5rem' }}>
-                                                <span className="label">📝 Resumen IA</span>
+                                                <span className="label"><FileText size={14} style={{ display: 'inline', marginRight: '5px' }} /> Resumen IA</span>
                                                 <p style={{ fontSize: '0.8rem', lineHeight: '1.4', lineClamp: 3, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', color: 'var(--muted)', margin: 0 }}>
                                                     {selectedClient.ai_summary || 'Sin resumen disponible.'}
                                                 </p>

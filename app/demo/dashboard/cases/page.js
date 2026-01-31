@@ -52,7 +52,7 @@ const DemoToast = ({ message, type = 'info', onClose }) => {
     );
 };
 
-import UsageGuide from '@/app/components/UsageGuide';
+import UsageGuideDemo from '@/app/components/UsageGuideDemo';
 import { demoManuals } from '@/app/lib/demoManuals';
 
 export default function DemoCasesPage() {
@@ -140,11 +140,11 @@ export default function DemoCasesPage() {
                     </div>
                 </div>
 
-                <UsageGuide content={demoManuals.cases} />
-            </header >
+                <UsageGuideDemo content={demoManuals.cases} />
+            </header>
 
             {/* STATS OVERVIEW */}
-            < div className="stats-grid" >
+            <div className="stats-grid">
                 <div className="stat-card glass-panel">
                     <span className="stat-label">Total Expedientes</span>
                     <span className="stat-value">{cases.length}</span>
@@ -157,7 +157,7 @@ export default function DemoCasesPage() {
                     <span className="stat-label">En Curso</span>
                     <span className="stat-value">{cases.filter(c => c.status === 'in_progress').length}</span>
                 </div>
-            </div >
+            </div>
 
             {/* CASES LIST */}
             < div className="cases-list-container" >

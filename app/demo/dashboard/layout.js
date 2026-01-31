@@ -108,13 +108,13 @@ export default function DemoDashboardLayout({ children }) {
                         <Book size={18} className="nav-icon" />
                         <span>Legislación</span>
                     </Link>
-                    <Link href={`${basePath}/settings`} className={`nav-item ${pathname.includes('/settings') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
-                        <Settings size={18} className="nav-icon" />
-                        <span>Ajustes</span>
-                    </Link>
                     <Link href={`${basePath}/library`} className={`nav-item ${pathname.includes('/library') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
                         <BookOpen size={18} className="nav-icon" />
                         <span>Biblioteca</span>
+                    </Link>
+                    <Link href={`${basePath}/settings`} className={`nav-item ${pathname.includes('/settings') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+                        <Settings size={18} className="nav-icon" />
+                        <span>Ajustes</span>
                     </Link>
                 </nav>
 

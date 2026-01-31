@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Brain, Library, ExternalLink, Copy, Search } from 'lucide-react';
 import { demoLibrary } from '@/app/lib/demoData';
 import '@/app/dashboard/library/library.css';
-import UsageGuide from '@/app/components/UsageGuide';
+import UsageGuideDemo from '@/app/components/UsageGuideDemo';
 import { demoManuals } from '@/app/lib/demoManuals';
 
 export default function DemoLibraryPage() {
@@ -66,7 +66,7 @@ export default function DemoLibraryPage() {
                     <h1><Brain size={48} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.8rem', color: '#ec4899' }} /> Base de Conocimiento</h1>
                     <p>Índice colaborativo de jurisprudencia y precedentes investigados.</p>
                 </div>
-                <UsageGuide content={demoManuals.library} />
+                <UsageGuideDemo content={demoManuals.library} />
 
                 <div className="search-bar-container glass-panel">
                     <input
