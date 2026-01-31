@@ -27,6 +27,8 @@ import {
     HelpCircle,
     Mail
 } from 'lucide-react';
+import UsageGuide from '@/app/components/UsageGuide';
+import { dashboardManuals } from '@/app/lib/dashboardManuals';
 import '../../globals.css';
 
 const SPECIALTIES_OPTIONS = [
@@ -38,7 +40,7 @@ const SPECIALTIES_OPTIONS = [
     'Derecho Penal', 'Derecho Real'
 ];
 
-export default function SettingsPage() {
+export default function SettingsPage({ isDemo = false }) {
     const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState('profile');
 
@@ -87,6 +89,26 @@ export default function SettingsPage() {
 
     useEffect(() => {
         const fetchProfile = async () => {
+            if (isDemo) {
+                // DEMO MODE MOCK DATA
+                setUser({ id: 'demo-user', email: 'demo@judic-ia.com' });
+                setFormData({
+                    full_name: 'Abogado Demo',
+                    especialidades: ['Derecho Civil', 'Derecho Laboral'],
+                    matricula: 'Tº 100 Fº 1',
+                    tomo: '100', folio: '1',
+                    jurisdiccion: 'CABA',
+                    biography: 'Perfil de demostración. Los cambios no se guardan.',
+                    phone: '+54 9 11 1234-5678',
+                    avatar_url: '',
+                    plan_tier: 'starter',
+                    subscription_status: 'inactive',
+                    subscription_expiry: null
+                });
+                setLoading(false);
+                return;
+            }
+
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setUser(user);
@@ -142,6 +164,10 @@ export default function SettingsPage() {
 
     // DROPZONE & EDITOR LOGIC
     const onDrop = useCallback((acceptedFiles) => {
+        if (isDemo) {
+            toast.error("🔒 La subida de archivos está desactivada en la Demo.");
+            return;
+        }
         const file = acceptedFiles[0];
         if (file) {
             const reader = new FileReader();
@@ -240,6 +266,10 @@ export default function SettingsPage() {
     }, [user, searchParams, formData.plan_tier]);
 
     const handleSaveProfile = async () => {
+        if (isDemo) {
+            toast.success("✅ Simulación: Perfil actualizado (No se guardan cambios)");
+            return;
+        }
         setSaving(true);
         try {
             let avatarUrlToSave = formData.avatar_url;
@@ -293,6 +323,10 @@ export default function SettingsPage() {
 
 
     const handleSaveSecurity = async () => {
+        if (isDemo) {
+            toast.success("✅ Simulación: Seguridad actualizada (No se guardan cambios)");
+            return;
+        }
         setSaving(true);
         try {
             const updates = { phone: formData.phone };
@@ -342,6 +376,10 @@ export default function SettingsPage() {
     }, [user]);
 
     const handleSaveBilling = async () => {
+        if (isDemo) {
+            toast.error("🔒 La suscripción real está desactivada en la Demo.");
+            return;
+        }
         setSaving(true);
         setPaymentPending(true); // UI State: Esperando...
 
@@ -402,11 +440,14 @@ export default function SettingsPage() {
             )}
             <div className="stg-container">
                 <nav className="breadcrumb">
-                    <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
+                    <Link href={isDemo ? "/demo/dashboard" : "/dashboard"} className="breadcrumb-item">Gabinete</Link>
                     <span className="breadcrumb-separator">/</span>
                     <span className="breadcrumb-current">Ajustes</span>
                 </nav>
-                <h1 className="dashboard-page-title">Configuración Profesional <Gem size={28} className="text-amber-400" style={{ display: 'inline', verticalAlign: 'middle', marginLeft: '0.5rem' }} /></h1>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <h1 className="dashboard-page-title" style={{ margin: 0 }}>Configuración Profesional <Gem size={28} className="text-amber-400" style={{ display: 'inline', verticalAlign: 'middle', marginLeft: '0.5rem' }} /></h1>
+                    <UsageGuide content={dashboardManuals.settings} />
+                </div>
 
                 <div className="stg-layout-split">
                     {/* Sidebar de Ajustes (Interno) */}
@@ -455,7 +496,13 @@ export default function SettingsPage() {
                                             </button>
                                             <button
                                                 className="stg-mini-btn primary"
-                                                onClick={open}
+                                                onClick={() => {
+                                                    if (isDemo) {
+                                                        toast.error("🔒 Función restringida en Demo");
+                                                        return;
+                                                    }
+                                                    open();
+                                                }}
                                             >
                                                 <Upload size={14} /> Subir
                                             </button>
@@ -767,7 +814,10 @@ export default function SettingsPage() {
                                     </div>
                                     <div className="stg-discrete-danger">
                                         <button
-                                            onClick={() => setDeleteModalOpen(true)}
+                                            onClick={() => {
+                                                if (isDemo) { toast.error("🔒 Función restringida en Demo"); return; }
+                                                setDeleteModalOpen(true);
+                                            }}
                                             className="stg-discrete-delete-btn"
                                         >
                                             Eliminar mi cuenta definitivamente

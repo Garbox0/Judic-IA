@@ -1,14 +1,13 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import Link from 'next/link';
-import { Brain, Library, ExternalLink, Copy, Search, Filter } from 'lucide-react';
-import { demoLibrary } from '../../lib/demoData';
+import { Brain, Library, ExternalLink, Copy, Search } from 'lucide-react';
+import { demoLibrary } from '@/app/lib/demoData';
+import '@/app/dashboard/library/library.css';
 import UsageGuide from '@/app/components/UsageGuide';
-import { dashboardManuals } from '@/app/lib/dashboardManuals';
-import './library.css';
+import { demoManuals } from '@/app/lib/demoManuals';
 
-export default function LibraryPage() {
+export default function DemoLibraryPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [jurisdictionFilter, setJurisdictionFilter] = useState('');
@@ -16,82 +15,49 @@ export default function LibraryPage() {
     const [jurisdictions, setJurisdictions] = useState([]);
 
     useEffect(() => {
+        // Load demo data
+        const unique = [...new Set(demoLibrary.map(item => item.jurisdiction))].filter(Boolean);
+        setJurisdictions(unique);
         fetchLibrary();
-        fetchJurisdictions();
     }, []);
 
     useEffect(() => {
+        // Debounce search
         const delayDebounceFn = setTimeout(() => {
             fetchLibrary();
         }, 500);
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm, jurisdictionFilter]);
 
-    const fetchJurisdictions = async () => {
-        const { data } = await supabase.from('case_library').select('jurisdiction');
-        if (data && data.length > 0) {
-            const unique = [...new Set(data.map(item => item.jurisdiction))].filter(Boolean);
-            setJurisdictions(unique);
-        } else {
-            // Demo fallback
-            const unique = [...new Set(demoLibrary.map(item => item.jurisdiction))].filter(Boolean);
-            setJurisdictions(unique);
-        }
-    };
-
-    const fetchLibrary = async () => {
+    const fetchLibrary = () => {
         setLoading(true);
-        try {
-            let query = supabase
-                .from('case_library')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (searchTerm) {
-                query = query.or(`autos.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`);
-            }
-
-            if (jurisdictionFilter) {
-                query = query.eq('jurisdiction', jurisdictionFilter);
-            }
-
-            const { data, error } = await query.limit(50);
-
-            // If error or empty, use demo data
-            if (error || !data || data.length === 0) {
-                // Filter demo data locally if needed
-                let filtered = demoLibrary;
-                if (searchTerm) {
-                    const lower = searchTerm.toLowerCase();
-                    filtered = filtered.filter(c =>
-                        c.autos.toLowerCase().includes(lower) ||
-                        c.summary.toLowerCase().includes(lower)
-                    );
-                }
-                if (jurisdictionFilter) {
-                    filtered = filtered.filter(c => c.jurisdiction === jurisdictionFilter);
-                }
-                setCases(filtered);
-            } else {
-                setCases(data);
-            }
-
-        } catch (error) {
-            console.error("Library fetch error:", error);
-            // Fallback on crash
-            setCases(demoLibrary);
-        } finally {
-            setLoading(false);
+        // Simulate local filtering
+        let filtered = demoLibrary;
+        if (searchTerm) {
+            const lower = searchTerm.toLowerCase();
+            filtered = filtered.filter(c =>
+                c.autos.toLowerCase().includes(lower) ||
+                c.summary.toLowerCase().includes(lower)
+            );
         }
+        if (jurisdictionFilter) {
+            filtered = filtered.filter(c => c.jurisdiction === jurisdictionFilter);
+        }
+
+        // Simulate delay
+        setTimeout(() => {
+            setCases(filtered);
+            setLoading(false);
+        }, 300);
     };
 
     return (
         <div className="library-container">
             <nav className="library-nav">
                 <div className="breadcrumb">
-                    <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
+                    <Link href="/demo/dashboard" className="breadcrumb-item">Gabinete</Link>
                     <span className="breadcrumb-separator">/</span>
-                    <span className="breadcrumb-current">Biblioteca del Estudio</span>
+                    <span className="breadcrumb-current">Biblioteca del Estudio (Demo)</span>
                 </div>
             </nav>
 
@@ -100,7 +66,7 @@ export default function LibraryPage() {
                     <h1><Brain size={48} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.8rem', color: '#ec4899' }} /> Base de Conocimiento</h1>
                     <p>Índice colaborativo de jurisprudencia y precedentes investigados.</p>
                 </div>
-                <UsageGuide content={dashboardManuals.library} />
+                <UsageGuide content={demoManuals.library} />
 
                 <div className="search-bar-container glass-panel">
                     <input
@@ -125,19 +91,19 @@ export default function LibraryPage() {
 
             <div className="library-grid">
                 {loading ? (
-                    <div className="loading-state">Cargando biblioteca...</div>
+                    <div className="loading-state">Cargando biblioteca (Demo)...</div>
                 ) : cases.length === 0 ? (
                     <div className="empty-state">
                         <span style={{ display: 'block', marginBottom: '1rem' }}><Library size={64} style={{ opacity: 0.5 }} /></span>
-                        <h3>Biblioteca Vacía</h3>
-                        <p>Realiza investigaciones en el módulo de Jurisprudencia para poblar este índice.</p>
+                        <h3>No hay resultados</h3>
+                        <p>Prueba con otros términos de búsqueda.</p>
                     </div>
                 ) : (
                     cases.map(item => (
                         <div key={item.id || item.url} className="library-card glass-panel">
                             <div className="card-header">
                                 <span className="jurisdiction-tag">{item.jurisdiction || 'General'}</span>
-                                <a href={item.url} target="_blank" rel="noopener noreferrer" className="card-link"><ExternalLink size={18} /></a>
+                                {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" className="card-link"><ExternalLink size={18} /></a>}
                             </div>
                             <h3 className="card-title">{item.autos}</h3>
                             <p className="card-summary">{item.summary}</p>
@@ -146,7 +112,7 @@ export default function LibraryPage() {
                                     className="btn-copy"
                                     onClick={() => {
                                         navigator.clipboard.writeText(`${item.autos} - ${item.url}`);
-                                        alert("Cita copiada al portapapeles");
+                                        alert("Cita copiada (Simulación)");
                                     }}
                                     style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                                 >
@@ -157,8 +123,6 @@ export default function LibraryPage() {
                     ))
                 )}
             </div>
-
-
         </div>
     );
 }

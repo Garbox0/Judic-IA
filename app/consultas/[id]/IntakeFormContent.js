@@ -141,22 +141,21 @@ export default function IntakeFormContent({ id }) {
                 .subscribe();
 
 
-            // 5. FETCH LAWYER PROFILE
+            // 5. FETCH LAWYER PROFILE (via Proxy to bypass RLS for Admin roles)
             if (!id) return;
-            const { data: lawyerData, error: lawyerError } = await supabase
-                .from('profiles')
-                .select('full_name, especialidades, matricula, avatar_url')
-                .eq('id', id)
-                .maybeSingle();
+            try {
+                const res = await fetch(`/api/intake/lawyer-profile?id=${id}`);
+                const lawyerData = await res.json();
 
-            if (lawyerError) {
-                console.warn("⚠️ Error fetching lawyer profile:", lawyerError);
-                setError(`Error técnico al cargar el perfil. Código: ${lawyerError.code}`);
-            } else if (!lawyerData) {
-                console.warn("⚠️ Lawyer profile not found for ID:", id);
-                setError("El perfil del profesional no se encuentra disponible. Es posible que el enlace sea antiguo o incorrecto.");
-            } else {
-                setLawyer(lawyerData);
+                if (!res.ok) {
+                    console.warn("⚠️ Lawyer profile fetch error:", lawyerData.error);
+                    setError(lawyerData.error || "Perfil no disponible");
+                } else {
+                    setLawyer(lawyerData);
+                }
+            } catch (err) {
+                console.error("❌ Network error fetching lawyer profile:", err);
+                setError("No se pudo conectar con el servidor para cargar el perfil.");
             }
             setLoading(false);
 

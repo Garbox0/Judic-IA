@@ -24,6 +24,8 @@ import {
     Copy,
     Check
 } from 'lucide-react';
+import UsageGuide from '@/app/components/UsageGuide';
+import { dashboardManuals } from '@/app/lib/dashboardManuals';
 import './clients.css';
 
 export default function ClientsPage({ isDemo = false, basePath = '/dashboard' }) {
@@ -57,7 +59,8 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                 return;
             }
 
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user }, error: authError } = await supabase.auth.getUser();
+            console.log("🔍 ClientsPage Init - User:", user?.id, "Error:", authError);
             if (user) {
                 setLawyerId(user.id);
                 const { data, error } = await supabase
@@ -67,7 +70,10 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                     .neq('status', 'link_generated')
                     .order('created_at', { ascending: false });
 
+                if (error) console.error("❌ Error fetching inquiries:", error);
                 if (!error) setClients(data || []);
+            } else {
+                console.warn("⚠️ No user found in ClientsPage init");
             }
             setLoading(false);
         };
@@ -225,6 +231,23 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     };
 
     const copySmartLink = async () => {
+        console.log("🖱️ copySmartLink clicked. Current lawyerId:", lawyerId);
+        if (!lawyerId && !isDemo) {
+            console.error("❌ lawyerId is null! Attempting emergency fetch...");
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                console.log("✅ Recovered lawyerId:", user.id);
+                setLawyerId(user.id);
+                // Continue with local variable to avoid race condition with state update
+                var currentLawyerId = user.id;
+            } else {
+                alert("Error de sesión: No se pudo identificar al abogado. Por favor, recarga la página.");
+                return;
+            }
+        } else {
+            var currentLawyerId = lawyerId;
+        }
+
         if (isDemo) {
             navigator.clipboard.writeText("https://judic-ia.com/consultas/dr-martinez/link-demo");
             setCopied(true);
@@ -233,14 +256,16 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
         }
 
         try {
+            console.log("📡 Sending to API /api/intake/create-link with lawyerId:", currentLawyerId);
             const res = await fetch("/api/intake/create-link", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ lawyerId: lawyerId })
+                body: JSON.stringify({ lawyerId: currentLawyerId })
             });
 
             const data = await res.json();
             if (data.link) {
+                console.log("✅ Link generated successfully:", data.link);
                 navigator.clipboard.writeText(data.link);
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
@@ -356,6 +381,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                         <h1 className="dashboard-page-title">Mis Clientes</h1>
                         <p>Gestiona tus expedientes y consultas entrantes.</p>
                     </div>
+                    <UsageGuide content={dashboardManuals.clients} />
                 </div>
             </header>
 

@@ -16,6 +16,8 @@ import {
     XCircle,
     Clock
 } from 'lucide-react';
+import UsageGuide from '@/app/components/UsageGuide';
+import { dashboardManuals } from '@/app/lib/dashboardManuals';
 import './agenda.css';
 
 // Helper to get days in month
@@ -248,6 +250,7 @@ export default function AgendaPage() {
                 <button className="btn-primary" onClick={() => setModalOpen(true)}>
                     + Nuevo Evento
                 </button>
+                <UsageGuide content={dashboardManuals.agenda} />
             </header>
 
             <div className="agenda-grid">

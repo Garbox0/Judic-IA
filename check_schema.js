@@ -1,53 +1,33 @@
-const https = require('https');
+const { createClient } = require('@supabase/supabase-js');
 
-const PROJECT_REF = 'aeecmwzmarjzliwctqcx';
-const TOKEN = process.env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_TOKEN_HERE';
+// Config
+const supabaseUrl = 'https://aeecmwzmarjzliwctqcx.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFlZWNtd3ptYXJqemxpd2N0cWN4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzAyMTA3MywiZXhwIjoyMDgyNTk3MDczfQ.AMb83OnihJyeVFMHpCwat1BQ5qS1XXxDPk3RKbh0v1U';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-function runSql(sql) {
-    return new Promise((resolve, reject) => {
-        const req = https.request({
-            hostname: 'api.supabase.com',
-            path: `/v1/projects/${PROJECT_REF}/database/query`,
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${TOKEN}`,
-                'Content-Type': 'application/json'
-            }
-        }, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                if (res.statusCode >= 200 && res.statusCode < 300) {
-                    resolve(JSON.parse(data));
-                } else {
-                    reject(`Error ${res.statusCode}: ${data}`);
-                }
-            });
-        });
-
-        req.on('error', (e) => reject(e));
-        req.write(JSON.stringify({ query: sql }));
-        req.end();
-    });
-}
-
-async function main() {
-    console.log("🔍 Inspeccionando columnas para afinar RLS...");
-
-    const query = `
-        SELECT table_name, column_name, data_type 
-        FROM information_schema.columns 
-        WHERE table_schema = 'public' 
-        AND table_name IN ('inquiries', 'messages', 'attachments')
-        ORDER BY table_name, ordinal_position;
-    `;
-
+async function checkSchema() {
     try {
-        const res = await runSql(query);
-        console.table(res);
-    } catch (error) {
-        console.error("❌ Error:", error);
+        console.log("Checking columns...");
+        // Fetch one row to see keys
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .limit(1);
+
+        if (error) {
+            console.error("Error fetching:", error);
+            return;
+        }
+
+        if (data && data.length > 0) {
+            console.log("Columns found:", Object.keys(data[0]));
+        } else {
+            console.log("No rows found, cannot infer columns easily via select *");
+        }
+
+    } catch (e) {
+        console.error(e);
     }
 }
 
-main();
+checkSchema();

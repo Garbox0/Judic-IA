@@ -14,6 +14,8 @@ import {
   Calculator,
   Book
 } from 'lucide-react';
+import UsageGuide from '@/app/components/UsageGuide';
+import { dashboardManuals } from '@/app/lib/dashboardManuals';
 
 export default function DashboardHome({ isDemo = false, basePath = '/dashboard' }) {
   const [user, setUser] = useState(isDemo ? { user_metadata: { first_name: 'Dr. Martínez' } } : null);
@@ -141,6 +143,7 @@ export default function DashboardHome({ isDemo = false, basePath = '/dashboard' 
           <span>📅 <b>{stats.deadlines}</b> vencimientos hoy</span>
           <span>👥 <b>{stats.clients}</b> clientes activos</span>
         </div>
+        <UsageGuide content={dashboardManuals.dashboard} />
       </header>
 
       <section className="dashboard-grid">

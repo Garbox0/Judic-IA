@@ -151,6 +151,9 @@ const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
     );
 };
 
+import UsageGuide from '@/app/components/UsageGuide';
+import { demoManuals } from '@/app/lib/demoManuals';
+
 export default function DemoClientsPage() {
     const isDemo = true;
     const basePath = '/demo/dashboard';
@@ -270,10 +273,12 @@ export default function DemoClientsPage() {
                         <p>Gestiona tus expedientes y consultas entrantes.</p>
                     </div>
                 </div>
-            </header>
+
+                <UsageGuide content={demoManuals.clients} />
+            </header >
 
             {/* SMART LINK CARD */}
-            <div className="smart-link-card glass-panel">
+            < div className="smart-link-card glass-panel" >
                 <div className="link-info">
                     <h3>🔗 Tu Enlace de Consulta Inteligente</h3>
                     <p>Comparte este link con tus clientes para que la IA tome sus datos automáticamente.</p>
@@ -281,167 +286,171 @@ export default function DemoClientsPage() {
                 <button onClick={copySmartLink} className={`btn-copy ${copied ? 'copied' : ''}`} disabled={copied}>
                     {copied ? '✅ Enlace Copiado' : 'Copiar Enlace'}
                 </button>
-            </div>
+            </div >
 
             {/* CLIENTS LIST */}
-            <div className="clients-grid">
-                {clients.length === 0 ? (
-                    <div className="empty-state">
-                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
-                        <h3 style={{ color: 'var(--muted)', marginBottom: '1rem' }}>No hay consultas visibles</h3>
-                        <p style={{ color: '#64748b', fontSize: '0.9rem' }}>En esta sesión de demo, has eliminado todos los clientes de prueba.</p>
-                        <button
-                            onClick={() => window.location.reload()}
-                            style={{
-                                marginTop: '1.5rem',
-                                background: 'rgba(251, 191, 36, 0.1)',
-                                border: '1px solid #fbbf24',
-                                color: '#fbbf24',
-                                padding: '0.6rem 1.2rem',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontWeight: 600
-                            }}>
-                            ↻ Reiniciar Demo
-                        </button>
-                    </div>
-                ) : (
-                    clients.map(client => (
-                        <div key={client.id} className="client-card glass-panel" onClick={() => openClientModal(client)}>
-                            <button className="btn-delete" onClick={(e) => requestDelete(client.id, e)} title="Eliminar Expediente" style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', fontSize: '1rem' }}>
-                                🗑️
+            < div className="clients-grid" >
+                {
+                    clients.length === 0 ? (
+                        <div className="empty-state">
+                            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
+                            <h3 style={{ color: 'var(--muted)', marginBottom: '1rem' }}>No hay consultas visibles</h3>
+                            <p style={{ color: '#64748b', fontSize: '0.9rem' }}>En esta sesión de demo, has eliminado todos los clientes de prueba.</p>
+                            <button
+                                onClick={() => window.location.reload()}
+                                style={{
+                                    marginTop: '1.5rem',
+                                    background: 'rgba(251, 191, 36, 0.1)',
+                                    border: '1px solid #fbbf24',
+                                    color: '#fbbf24',
+                                    padding: '0.6rem 1.2rem',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontWeight: 600
+                                }}>
+                                ↻ Reiniciar Demo
                             </button>
-
-                            <h3 className="client-id" style={{ marginTop: '1.5rem', fontSize: '1.1rem' }}>
-                                {client.contact_name || `Consulta #${client.id.slice(0, 8)}`}
-                            </h3>
-
-                            {client.contact_name && (
-                                <p style={{ color: 'var(--muted)', fontSize: '0.8rem', marginBottom: '0.2rem' }}>ID: {client.id.slice(0, 8)}...</p>
-                            )}
-
-                            {client.contact_phone && (
-                                <p style={{ color: '#fbbf24', fontSize: '0.9rem', marginBottom: '0.5rem' }}>📞 {client.contact_phone}</p>
-                            )}
-
-                            <p className="client-date">{new Date(client.created_at).toLocaleDateString()}</p>
-                            <div className="client-footer">Ver Conversación →</div>
                         </div>
-                    ))
-                )}
-            </div>
-
-            {/* MODAL */}
-            {selectedClient && (
-                <div className="modal-overlay" onClick={closeModal}>
-                    <div className="modal-content glass-panel" onClick={e => e.stopPropagation()}>
-
-                        {/* HEADER */}
-                        <div className="modal-header">
-                            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                {selectedClient.contact_name ? selectedClient.contact_name : `Consulta #${selectedClient.id.slice(0, 6)}`}
-                            </h2>
-                            <div className="modal-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                <button
-                                    className={`btn-toggle-details ${showDetails ? 'active' : ''}`}
-                                    onClick={() => setShowDetails(!showDetails)}
-                                    title={showDetails ? "Ocultar Detalles" : "Ver Datos del Cliente"}
-                                >
-                                    {showDetails ? '▶ Cerrar Datos' : '◀ Ver Datos'}
-                                </button>
-
-                                <div className="divider-vertical"></div>
-
-                                <button className="btn-delete" onClick={(e) => requestDelete(selectedClient.id, e)} title="Eliminar Expediente">
+                    ) : (
+                        clients.map(client => (
+                            <div key={client.id} className="client-card glass-panel" onClick={() => openClientModal(client)}>
+                                <button className="btn-delete" onClick={(e) => requestDelete(client.id, e)} title="Eliminar Expediente" style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', fontSize: '1rem' }}>
                                     🗑️
                                 </button>
 
-                                <button
-                                    className="btn-generate-action"
-                                    onClick={() => handleRestrictedAction("Generar Escrito")}
-                                >
-                                    ⚡ Generar Escrito
-                                </button>
-                                <button
-                                    className="btn-convert-action"
-                                    onClick={() => handleRestrictedAction("Convertir a Expediente")}
-                                    title="Convertir esta consulta en un expediente formal del estudio"
-                                >
-                                    📁 Convertir en Expediente
-                                </button>
-                                <button className="btn-agenda-action" onClick={() => handleRestrictedAction("Crear Plazo")} title="Agendar Plazo">
-                                    📅 Crear Plazo
-                                </button>
-                                <button onClick={closeModal} className="close-btn">×</button>
+                                <h3 className="client-id" style={{ marginTop: '1.5rem', fontSize: '1.1rem' }}>
+                                    {client.contact_name || `Consulta #${client.id.slice(0, 8)}`}
+                                </h3>
+
+                                {client.contact_name && (
+                                    <p style={{ color: 'var(--muted)', fontSize: '0.8rem', marginBottom: '0.2rem' }}>ID: {client.id.slice(0, 8)}...</p>
+                                )}
+
+                                {client.contact_phone && (
+                                    <p style={{ color: '#fbbf24', fontSize: '0.9rem', marginBottom: '0.5rem' }}>📞 {client.contact_phone}</p>
+                                )}
+
+                                <p className="client-date">{new Date(client.created_at).toLocaleDateString()}</p>
+                                <div className="client-footer">Ver Conversación →</div>
                             </div>
-                        </div>
+                        ))
+                    )
+                }
+            </div >
 
-                        {/* BODY ROW: CHAT (LEFT) | SIDEBAR (RIGHT) */}
-                        <div className="modal-body">
+            {/* MODAL */}
+            {
+                selectedClient && (
+                    <div className="modal-overlay" onClick={closeModal}>
+                        <div className="modal-content glass-panel" onClick={e => e.stopPropagation()}>
 
-                            {/* CHAT SECTION (CENTRAL) */}
-                            <div className="chat-section">
-                                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#fbbf24' }}>💬 Historial de Conversación</h3>
-                                <div className="chat-viewer">
-                                    {loadingChat ? <p>Cargando chat...</p> : (
-                                        chatHistory.length === 0 ? <p className="no-msgs">No hay mensajes aún.</p> :
-                                            chatHistory
-                                                .filter(msg => !msg.content.startsWith('[SISTEMA:') && !msg.content.startsWith('[SYSTEM:'))
-                                                .map(msg => (
-                                                    <div key={msg.id} className={`chat-msg ${msg.role}`}>
-                                                        <strong>{msg.role === 'user' ? 'Cliente' : 'Asistente'}:</strong> {msg.content}
-                                                    </div>
-                                                ))
-                                    )}
+                            {/* HEADER */}
+                            <div className="modal-header">
+                                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    {selectedClient.contact_name ? selectedClient.contact_name : `Consulta #${selectedClient.id.slice(0, 6)}`}
+                                </h2>
+                                <div className="modal-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                    <button
+                                        className={`btn-toggle-details ${showDetails ? 'active' : ''}`}
+                                        onClick={() => setShowDetails(!showDetails)}
+                                        title={showDetails ? "Ocultar Detalles" : "Ver Datos del Cliente"}
+                                    >
+                                        {showDetails ? '▶ Cerrar Datos' : '◀ Ver Datos'}
+                                    </button>
+
+                                    <div className="divider-vertical"></div>
+
+                                    <button className="btn-delete" onClick={(e) => requestDelete(selectedClient.id, e)} title="Eliminar Expediente">
+                                        🗑️
+                                    </button>
+
+                                    <button
+                                        className="btn-generate-action"
+                                        onClick={() => handleRestrictedAction("Generar Escrito")}
+                                    >
+                                        ⚡ Generar Escrito
+                                    </button>
+                                    <button
+                                        className="btn-convert-action"
+                                        onClick={() => handleRestrictedAction("Convertir a Expediente")}
+                                        title="Convertir esta consulta en un expediente formal del estudio"
+                                    >
+                                        📁 Convertir en Expediente
+                                    </button>
+                                    <button className="btn-agenda-action" onClick={() => handleRestrictedAction("Crear Plazo")} title="Agendar Plazo">
+                                        📅 Crear Plazo
+                                    </button>
+                                    <button onClick={closeModal} className="close-btn">×</button>
                                 </div>
                             </div>
 
-                            {/* DETAILS SIDEBAR (RIGHT) */}
-                            <div className={`details-sidebar ${showDetails ? 'open' : 'closed'}`}>
-                                <div className="details-inner-wrapper">
-                                    <h4 style={{ marginBottom: '1rem', color: '#e2e8f0', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Expediente</h4>
+                            {/* BODY ROW: CHAT (LEFT) | SIDEBAR (RIGHT) */}
+                            <div className="modal-body">
 
-                                    <div className="details-card">
-                                        <div className="details-content">
-                                            <div className="detail-row">
-                                                <span className="label">🆔 ID</span>
-                                                <span className="value" title={selectedClient.id}>{selectedClient.id.slice(0, 8)}...</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <span className="label">📞 Teléfono</span>
-                                                <span className="value highlight">{selectedClient.contact_phone || '-'}</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <span className="label">📧 Email</span>
-                                                <span className="value">{selectedClient.contact_email || '-'}</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <span className="label">⚖️ Caso</span>
-                                                <span className="value badge-text">{selectedClient.case_type || 'General'}</span>
-                                            </div>
-                                            <div className="detail-row" style={{ flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start', marginTop: '0.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '0.5rem' }}>
-                                                <span className="label">📝 Resumen IA</span>
-                                                <p style={{ fontSize: '0.8rem', lineHeight: '1.4', lineClamp: 3, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', color: 'var(--muted)', margin: 0 }}>
-                                                    {selectedClient.ai_summary || 'Sin resumen disponible.'}
-                                                </p>
+                                {/* CHAT SECTION (CENTRAL) */}
+                                <div className="chat-section">
+                                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#fbbf24' }}>💬 Historial de Conversación</h3>
+                                    <div className="chat-viewer">
+                                        {loadingChat ? <p>Cargando chat...</p> : (
+                                            chatHistory.length === 0 ? <p className="no-msgs">No hay mensajes aún.</p> :
+                                                chatHistory
+                                                    .filter(msg => !msg.content.startsWith('[SISTEMA:') && !msg.content.startsWith('[SYSTEM:'))
+                                                    .map(msg => (
+                                                        <div key={msg.id} className={`chat-msg ${msg.role}`}>
+                                                            <strong>{msg.role === 'user' ? 'Cliente' : 'Asistente'}:</strong> {msg.content}
+                                                        </div>
+                                                    ))
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* DETAILS SIDEBAR (RIGHT) */}
+                                <div className={`details-sidebar ${showDetails ? 'open' : 'closed'}`}>
+                                    <div className="details-inner-wrapper">
+                                        <h4 style={{ marginBottom: '1rem', color: '#e2e8f0', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Expediente</h4>
+
+                                        <div className="details-card">
+                                            <div className="details-content">
+                                                <div className="detail-row">
+                                                    <span className="label">🆔 ID</span>
+                                                    <span className="value" title={selectedClient.id}>{selectedClient.id.slice(0, 8)}...</span>
+                                                </div>
+                                                <div className="detail-row">
+                                                    <span className="label">📞 Teléfono</span>
+                                                    <span className="value highlight">{selectedClient.contact_phone || '-'}</span>
+                                                </div>
+                                                <div className="detail-row">
+                                                    <span className="label">📧 Email</span>
+                                                    <span className="value">{selectedClient.contact_email || '-'}</span>
+                                                </div>
+                                                <div className="detail-row">
+                                                    <span className="label">⚖️ Caso</span>
+                                                    <span className="value badge-text">{selectedClient.case_type || 'General'}</span>
+                                                </div>
+                                                <div className="detail-row" style={{ flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start', marginTop: '0.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '0.5rem' }}>
+                                                    <span className="label">📝 Resumen IA</span>
+                                                    <p style={{ fontSize: '0.8rem', lineHeight: '1.4', lineClamp: 3, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', color: 'var(--muted)', margin: 0 }}>
+                                                        {selectedClient.ai_summary || 'Sin resumen disponible.'}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <h4 style={{ marginTop: '1.5rem', marginBottom: '1rem', color: '#e2e8f0', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Adjuntos ({attachments.length})</h4>
+                                        <h4 style={{ marginTop: '1.5rem', marginBottom: '1rem', color: '#e2e8f0', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Adjuntos ({attachments.length})</h4>
 
-                                    <div className="details-card">
-                                        <div className="details-content">
-                                            <p style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>Sin archivos (Demo).</p>
+                                        <div className="details-card">
+                                            <div className="details-content">
+                                                <p style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>Sin archivos (Demo).</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             <style jsx>{`
                 .clients-container { padding: 0 3rem 3rem; max-width: 1200px; margin: 0 auto; color: white; }
@@ -516,6 +525,6 @@ export default function DemoClientsPage() {
                     .btn-toggle-details span { display: none; }
                 }
             `}</style>
-        </div>
+        </div >
     );
 }

@@ -75,6 +75,7 @@ export default function Home() {
 
           <div className="landing-nav-links">
             <Link href="#features" className="link-item">Servicios</Link>
+            <Link href="/demo" className="link-item">Demo</Link>
             <Link href="#pricing" className="link-item">Precios</Link>
             <Link href="https://consultas.judic-ia.com" className="btn-login-premium">Acceso Clientes</Link>
             <Link href="/login" className="btn-login-premium">Acceso Abogados</Link>
@@ -94,6 +95,7 @@ export default function Home() {
           </button>
 
           <Link href="#features" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Servicios</Link>
+          <Link href="/demo" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Demo Interactiva</Link>
           <Link href="#pricing" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Precios</Link>
 
           <div className="mobile-access-row">
@@ -123,8 +125,8 @@ export default function Home() {
               <Link href="/register" className="btn-primary-v3">
                 Comenzar Ahora <span>→</span>
               </Link>
-              <Link href="#features" className="btn-secondary-v3">
-                Explorar Soluciones
+              <Link href="/demo" className="btn-secondary-v3">
+                Ver Demo
               </Link>
             </div>
           </div>

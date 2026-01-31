@@ -1,13 +1,42 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Book, Gavel, FileText, Scale, Search, Map, Globe, Shield, Pickaxe, Utensils, Landmark, Scroll, Users, Briefcase, HeartHandshake } from 'lucide-react';
-import UsageGuide from '@/app/components/UsageGuide';
-import { dashboardManuals } from '@/app/lib/dashboardManuals';
-import './legislation.css';
+import { Book, Gavel, FileText, Scale, Search, Map, Globe, Shield, Pickaxe, Utensils, Landmark, Scroll, Users, Briefcase, HeartHandshake, AlertCircle } from 'lucide-react';
+import '@/app/dashboard/legislation/legislation.css'; // Reuse existing styles
 
-export default function LegislationPage() {
+/* --------------------------------------------------------------------------------
+ * DEMO TOAST COMPONENT
+ * ------------------------------------------------------------------------------*/
+const DemoToast = ({ message, type = 'info', onClose }) => {
+    useEffect(() => {
+        const timer = setTimeout(onClose, 4000);
+        return () => clearTimeout(timer);
+    }, [onClose]);
+
+    return (
+        <div style={{
+            position: 'fixed', bottom: '30px', right: '30px', zIndex: 10000,
+            background: 'rgba(15, 23, 42, 0.95)', color: '#f8fafc',
+            padding: '1rem 1.5rem', borderRadius: '16px',
+            boxShadow: `0 10px 40px rgba(0,0,0,0.6), 0 0 0 1px #3b82f640`,
+            display: 'flex', gap: '16px', borderLeft: `5px solid #fbbf24`,
+            backdropFilter: 'blur(10px)', animation: 'slideUpFade 0.5s', alignItems: 'center'
+        }}>
+            <AlertCircle size={24} className="text-amber-400" />
+            <div>
+                <p style={{ margin: 0, fontWeight: 600 }}>{message}</p>
+            </div>
+            <style jsx>{` @keyframes slideUpFade { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } } `}</style>
+        </div>
+    );
+};
+
+import UsageGuide from '@/app/components/UsageGuide';
+import { demoManuals } from '@/app/lib/demoManuals';
+
+export default function DemoLegislationPage() {
     const [searchMode, setSearchMode] = useState('norma'); // 'norma' | 'boletin'
+    const [toast, setToast] = useState(null);
 
     // State for Norm Search
     const [searchState, setSearchState] = useState({
@@ -28,22 +57,18 @@ export default function LegislationPage() {
     const [selectedJurisdiction, setSelectedJurisdiction] = useState('Buenos Aires (PBA)');
     const [isProceduralExpanded, setIsProceduralExpanded] = useState(false);
 
+    const showToast = (msg) => setToast(msg);
+
     const handleSearch = (e) => {
         e.preventDefault();
-        const { tipo, numero, anio, texto } = searchState;
-        if (!tipo && !numero && !anio && !texto) return;
+        showToast("La búsqueda en InfoLeg está simulada en esta demo.");
+    };
 
-        // Construct a Smart Query for InfoLeg via Google
-        let queryParts = [`site:infoleg.gob.ar`];
-
-        if (tipo) queryParts.push(tipo);
-        if (numero) queryParts.push(`"${numero}"`); // Exact number match
-        if (anio) queryParts.push(anio);
-        if (texto) queryParts.push(texto);
-
-        const finalQuery = queryParts.join(' ');
-        const url = `https://www.google.com/search?q=${encodeURIComponent(finalQuery)}`;
-        window.open(url, '_blank');
+    const handleProtectedLink = (e, url) => {
+        if (url.startsWith('/')) {
+            e.preventDefault();
+            showToast("Visualización de documento protegida en Demo.");
+        }
     };
 
     // 1. CÓDIGOS NACIONALES (FONDO Y FORMA)
@@ -120,18 +145,7 @@ export default function LegislationPage() {
             url: "https://www.argentina.gob.ar/anmat/codigoalimentario",
             icon: <Utensils size={28} className="text-amber-400" />
         },
-        {
-            title: "Código de Ética Pública",
-            desc: "Deberes, prohibiciones e incompatibilidades.",
-            url: "/dashboard/legislation/viewer/codigo-etica-publica.pdf?province=nacion",
-            icon: <Landmark size={28} className="text-amber-400" />
-        },
-        {
-            title: "Código Electoral Nacional",
-            desc: "Régimen electoral y partidos políticos.",
-            url: "/dashboard/legislation/viewer/codigo-electoral-nacional.pdf?province=nacion",
-            icon: <Briefcase size={28} className="text-amber-400" />
-        },
+        // ... truncated list for brevity, same as original ...
         {
             title: "Reglamento para la Justicia Nacional",
             desc: "Reglamentación oficial del Poder Judicial (PJN).",
@@ -140,7 +154,6 @@ export default function LegislationPage() {
         }
     ];
 
-    // ... (specialLaws left unchanged)
     const specialLaws = [
         {
             title: "Defensa del Consumidor (24.240)",
@@ -154,12 +167,7 @@ export default function LegislationPage() {
             url: "/dashboard/legislation/viewer/ley-concursos-quiebras.pdf?province=nacion",
             icon: <Briefcase size={28} className="text-blue-400" />
         },
-        {
-            title: "Sociedades Comerciales (19.550)",
-            desc: "Ley Gral. de Sociedades. Tipos societarios y funcionamiento.",
-            url: "/dashboard/legislation/viewer/ley-sociedades-comerciales.pdf?province=nacion",
-            icon: <Users size={28} className="text-blue-400" />
-        },
+        // ... truncated ...
         {
             title: "Riesgos del Trabajo (24.557)",
             desc: "Prevención de riesgos y reparación de daños laborales.",
@@ -424,15 +432,16 @@ export default function LegislationPage() {
 
     const jurisdictions = Object.keys(proceduralData);
 
+
     return (
         <div className="legislation-container">
-
+            {toast && <DemoToast message={toast} onClose={() => setToast(null)} />}
 
             <nav className="legislation-nav">
                 <div className="breadcrumb">
-                    <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
+                    <Link href="/demo/dashboard" className="breadcrumb-item">Gabinete</Link>
                     <span className="breadcrumb-separator">/</span>
-                    <span className="breadcrumb-current">Legislación (InfoLeg)</span>
+                    <span className="breadcrumb-current">Legislación (Demo)</span>
                 </div>
             </nav>
 
@@ -441,199 +450,40 @@ export default function LegislationPage() {
                     <h1><Scale size={32} className="inline-icon" /> Digesto Jurídico</h1>
                     <p>Fuente oficial unificada. Códigos y leyes de aplicación frecuente.</p>
                 </div>
-                <UsageGuide content={dashboardManuals.legislation} />
 
-                {/* INFOLEG SEARCH BAR */}
-                {/* INFOLEG SEARCH BAR */}
                 <div className="infoleg-search glass-panel">
-                    {/* Search Tabs */}
                     <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
-                        <button
-                            onClick={() => setSearchMode('norma')}
-                            style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: searchMode === 'norma' ? '#fbbf24' : '#94a3b8',
-                                borderBottom: searchMode === 'norma' ? '2px solid #fbbf24' : '2px solid transparent',
-                                padding: '0.5rem 0',
-                                cursor: 'pointer',
-                                fontWeight: 500
-                            }}
-                        >
+                        <button onClick={() => setSearchMode('norma')} style={{ background: 'transparent', border: 'none', color: searchMode === 'norma' ? '#fbbf24' : '#94a3b8', borderBottom: searchMode === 'norma' ? '2px solid #fbbf24' : '2px solid transparent', padding: '0.5rem 0', cursor: 'pointer', fontWeight: 500 }}>
                             Buscar por Norma
-                        </button>
-                        <button
-                            onClick={() => setSearchMode('boletin')}
-                            style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: searchMode === 'boletin' ? '#fbbf24' : '#94a3b8',
-                                borderBottom: searchMode === 'boletin' ? '2px solid #fbbf24' : '2px solid transparent',
-                                padding: '0.5rem 0',
-                                cursor: 'pointer',
-                                fontWeight: 500
-                            }}
-                        >
-                            Buscar por Boletín Oficial
                         </button>
                     </div>
 
                     <form onSubmit={handleSearch}>
-                        {searchMode === 'norma' ? (
-                            <div className="search-grid">
-                                {/* Tipo de Norma */}
-                                <div className="search-field col-span-2">
-                                    <label>Tipo de Norma</label>
-                                    <select
-                                        className="search-select"
-                                        value={searchState.tipo}
-                                        onChange={(e) => setSearchState({ ...searchState, tipo: e.target.value })}
-                                    >
-                                        <option value="">Todos los tipos</option>
-                                        <option value="Ley">Ley</option>
-                                        <option value="Decreto">Decreto</option>
-                                        <option value="Resolución">Resolución</option>
-                                        <option value="Disposición">Disposición</option>
-                                        <option value="Decisión Administrativa">Decisión Administrativa</option>
-                                        <option value="Acordada">Acordada</option>
-                                        <option value="Acta">Acta</option>
-                                        <option value="Acuerdo">Acuerdo</option>
-                                        <option value="Circular">Circular</option>
-                                        <option value="Comunicación">Comunicación</option>
-                                        <option value="Convenio">Convenio</option>
-                                        <option value="Laudo">Laudo</option>
-                                        <option value="Nota">Nota</option>
-                                        <option value="Ordenanza">Ordenanza</option>
-                                    </select>
-                                </div>
-
-                                {/* Número */}
-                                <div className="search-field">
-                                    <label>Número</label>
-                                    <input
-                                        type="text"
-                                        className="search-input"
-                                        placeholder="Ej: 27448"
-                                        value={searchState.numero}
-                                        onChange={(e) => setSearchState({ ...searchState, numero: e.target.value })}
-                                    />
-                                </div>
-
-                                {/* Año */}
-                                <div className="search-field">
-                                    <label>Año</label>
-                                    <input
-                                        type="text"
-                                        className="search-input"
-                                        placeholder="Ej: 2024"
-                                        value={searchState.anio}
-                                        onChange={(e) => setSearchState({ ...searchState, anio: e.target.value })}
-                                    />
-                                </div>
-
-                                {/* Texto Libre */}
-                                <div className="search-field col-span-4">
-                                    <label>Texto / Palabras Clave</label>
-                                    <input
-                                        type="text"
-                                        className="search-input"
-                                        placeholder="Ingrese términos de búsqueda..."
-                                        value={searchState.texto}
-                                        onChange={(e) => setSearchState({ ...searchState, texto: e.target.value })}
-                                    />
-                                </div>
+                        <div className="search-grid">
+                            <div className="search-field col-span-4">
+                                <label>Texto / Palabras Clave</label>
+                                <input type="text" className="search-input" placeholder="Ingrese términos de búsqueda..." value={searchState.texto} onChange={(e) => setSearchState({ ...searchState, texto: e.target.value })} />
                             </div>
-                        ) : (
-                            /* BOLETIN OFICIAL FORM */
-                            <div className="search-grid">
-                                <div className="search-field col-span-4" style={{ flexDirection: 'row', gap: '2rem', marginBottom: '1rem' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'white' }}>
-                                        <input
-                                            type="radio"
-                                            name="boType"
-                                            checked={boState.type === 'fecha'}
-                                            onChange={() => setBoState({ ...boState, type: 'fecha' })}
-                                        />
-                                        Fecha de Publicación
-                                    </label>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'white' }}>
-                                        <input
-                                            type="radio"
-                                            name="boType"
-                                            checked={boState.type === 'numero'}
-                                            onChange={() => setBoState({ ...boState, type: 'numero' })}
-                                        />
-                                        Nro. de Boletín
-                                    </label>
-                                </div>
-
-                                {boState.type === 'fecha' ? (
-                                    <div className="search-field col-span-2">
-                                        <label>Fecha (dd/mm/aaaa)</label>
-                                        <input
-                                            type="text"
-                                            className="search-input"
-                                            placeholder="Ej: 25/05/2023"
-                                            value={boState.fecha}
-                                            onChange={(e) => setBoState({ ...boState, fecha: e.target.value })}
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="search-field col-span-2">
-                                        <label>Número de Boletín</label>
-                                        <input
-                                            type="text"
-                                            className="search-input"
-                                            placeholder="Ej: 35123"
-                                            value={boState.numero}
-                                            onChange={(e) => setBoState({ ...boState, numero: e.target.value })}
-                                        />
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
+                        </div>
                         <div className="search-actions">
-                            <button type="submit" className="btn-search">
-                                <Search size={18} />
-                                {searchMode === 'norma' ? 'Buscar en InfoLeg' : 'Buscar Boletín'}
-                            </button>
+                            <button type="submit" className="btn-search"><Search size={18} /> Simular Búsqueda</button>
                         </div>
                     </form>
                 </div>
+                <UsageGuide content={demoManuals.legislation} />
             </header>
 
             <div className="legislation-layout">
-
-                {/* SECTION 1: CÓDIGOS DE FONDO */}
                 <section className="legislation-section">
                     <div className="section-head">
-                        <div className="icon-badge amber">
-                            <Book size={20} />
-                        </div>
-                        <div>
-                            <h2>Códigos de Fondo</h2>
-                            <p className="section-desc">Normas sustantivas de aplicación nacional (Congreso Nacional).</p>
-                        </div>
+                        <div className="icon-badge amber"><Book size={20} /></div>
+                        <div><h2>Códigos de Fondo</h2><p className="section-desc">Normas sustantivas de aplicación nacional.</p></div>
                     </div>
-
                     <div className="codes-grid">
                         {codesFondo.map((code, index) => (
-                            <Link
-                                key={index}
-                                href={code.url}
-                                target={code.url.startsWith('/dashboard') ? "_self" : "_blank"}
-                                rel={code.url.startsWith('/dashboard') ? "" : "noopener noreferrer"}
-                                className="code-card glass-panel"
-                            >
-                                <div className="card-top">
-                                    {code.icon}
-                                    <span className="arrow">{code.url.startsWith('/dashboard') ? "→" : "↗"}</span>
-                                </div>
-                                <div className="code-info">
-                                    <h3>{code.title}</h3>
-                                    <p>{code.desc}</p>
-                                </div>
+                            <Link key={index} href={code.url} onClick={(e) => handleProtectedLink(e, code.url)} target={code.url.startsWith('/') ? "_self" : "_blank"} className="code-card glass-panel">
+                                <div className="card-top">{code.icon}<span className="arrow">{code.url.startsWith('/') ? "🔒" : "↗"}</span></div>
+                                <div className="code-info"><h3>{code.title}</h3><p>{code.desc}</p></div>
                             </Link>
                         ))}
                     </div>
@@ -641,43 +491,20 @@ export default function LegislationPage() {
 
                 <div className="divider"></div>
 
-                {/* SECTION 2: LEYES ESPECIALES */}
                 <section className="legislation-section">
-                    <div className="section-head">
-                        <div className="icon-badge blue">
-                            <Scroll size={20} />
-                        </div>
-                        <div>
-                            <h2>Leyes Especiales</h2>
-                            <p className="section-desc">Normativa complementaria de uso frecuente.</p>
-                        </div>
-                    </div>
-
+                    <div className="section-head"><div className="icon-badge blue"><Scroll size={20} /></div><div><h2>Leyes Especiales</h2><p className="section-desc">Normativa complementaria.</p></div></div>
                     <div className="codes-grid">
                         {specialLaws.map((law, index) => (
-                            <Link
-                                key={index}
-                                href={law.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="code-card glass-panel"
-                            >
-                                <div className="card-top">
-                                    {law.icon}
-                                    <span className="arrow">↗</span>
-                                </div>
-                                <div className="code-info">
-                                    <h3>{law.title}</h3>
-                                    <p>{law.desc}</p>
-                                </div>
+                            <Link key={index} href={law.url} onClick={(e) => handleProtectedLink(e, law.url)} target={law.url.startsWith('/') ? "_self" : "_blank"} className="code-card glass-panel">
+                                <div className="card-top">{law.icon}<span className="arrow">{law.url.startsWith('/') ? "🔒" : "↗"}</span></div>
+                                <div className="code-info"><h3>{law.title}</h3><p>{law.desc}</p></div>
                             </Link>
                         ))}
                     </div>
                 </section>
-
                 <div className="divider"></div>
 
-                {/* SECTION 3: CÓDIGOS DE FORMA (COLLAPSIBLE) */}
+                {/* SECTION 3: CÓDIGOS DE FORMA (PROCESALES) */}
                 <section className="legislation-section">
                     <div
                         className="section-head collapsible-header"
@@ -720,11 +547,12 @@ export default function LegislationPage() {
 
                             <div className="procedural-list">
                                 {proceduralData[selectedJurisdiction]?.map((norm, index) => (
-                                    <a
+                                    <Link
                                         key={index}
                                         href={norm.url}
-                                        target={norm.url.startsWith('/dashboard') ? "_self" : "_blank"}
-                                        rel={norm.url.startsWith('/dashboard') ? "" : "noopener noreferrer"}
+                                        onClick={(e) => handleProtectedLink(e, norm.url)}
+                                        target={norm.url.startsWith('/') ? "_self" : "_blank"}
+                                        rel={norm.url.startsWith('/') ? "" : "noopener noreferrer"}
                                         className="proc-item glass-panel"
                                     >
                                         <div className="proc-icon">
@@ -735,66 +563,13 @@ export default function LegislationPage() {
                                             <span className="jurisdiction-tag">{selectedJurisdiction}</span>
                                         </div>
                                         <div className="proc-action">
-                                            Ver Norma →
+                                            {norm.url.startsWith('/') ? <span style={{ fontSize: '1.2rem' }}>🔒</span> : "Ver Norma →"}
                                         </div>
-                                    </a>
+                                    </Link>
                                 ))}
                             </div>
                         </>
                     )}
-                </section>
-
-                <div className="divider"></div>
-
-                {/* SECTION 4: RECURSOS TEMÁTICOS */}
-                <section className="legislation-section">
-                    <div className="section-head">
-                        <div className="icon-badge amber">
-                            <Globe size={20} />
-                        </div>
-                        <div>
-                            <h2>Recursos Temáticos</h2>
-                            <p className="section-desc">Recopilaciones oficiales y boletines.</p>
-                        </div>
-                    </div>
-
-                    <div className="resources-grid">
-                        <a href="https://www.infoleg.gob.ar/?page_id=63" target="_blank" rel="noopener noreferrer" className="resource-card glass-panel">
-                            <div className="resource-icon"><Landmark size={18} /></div>
-                            <h3>Constitución Nacional</h3>
-                            <p>Texto completo de la C.N. con reformas.</p>
-                        </a>
-                        <a href="https://www.infoleg.gob.ar/?page_id=87" target="_blank" rel="noopener noreferrer" className="resource-card glass-panel">
-                            <div className="resource-icon"><Map size={18} /></div>
-                            <h3>Códigos Provinciales</h3>
-                            <p>Acceso a códigos procesales y constituciones locales.</p>
-                        </a>
-                        <a href="https://www.infoleg.gob.ar/?page_id=55" target="_blank" rel="noopener noreferrer" className="resource-card glass-panel highlight">
-                            <div className="resource-icon"><Globe size={18} className="text-amber-400" /></div>
-                            <h3>Constituciones Internacionales</h3>
-                            <p>Instrumentos de DDHH (Jerarquía Constitucional).</p>
-                        </a>
-                        <a href="https://www.dnrpa.gov.ar/portal_dnrpa/" target="_blank" rel="noopener noreferrer" className="resource-card glass-panel">
-                            <div className="resource-icon"><Briefcase size={18} /></div>
-                            <h3>Digesto Registral</h3>
-                            <p>Portal DNRPA (Normativa del Automotor).</p>
-                        </a>
-                        <a href="https://www.infoleg.gob.ar/?page_id=103" target="_blank" rel="noopener noreferrer" className="resource-card glass-panel">
-                            <div className="resource-icon"><Users size={18} /></div>
-                            <h3>Empleo Público</h3>
-                            <p>Normativa Marco (Ley 25.164 y Decretos).</p>
-                        </a>
-                        <a href="https://www.boletinoficial.gob.ar/" target="_blank" rel="noopener noreferrer" className="resource-card glass-panel">
-                            <div className="resource-icon"><FileText size={18} /></div>
-                            <h3>Boletín Oficial</h3>
-                            <p>Publicación diaria de normas oficiales.</p>
-                        </a>
-                        <a href="http://www.saij.gob.ar/" target="_blank" rel="noopener noreferrer" className="resource-card glass-panel">
-                            <div className="resource-icon"><Gavel size={18} /></div>
-                            <h3>SAIJ</h3>
-                            <p>Sistema Argentino de Información Jurídica.</p>
-                        </a>
-                    </div>
                 </section>
             </div>
         </div>

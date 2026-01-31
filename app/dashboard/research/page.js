@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { demoResearchHistory, demoFullResearchResult } from '../../lib/demoData'; // [NEW] Mock Data
 import SafeChatWidget from '../../components/SafeChatWidget';
-import TetrisLoader from '../../components/TetrisLoader';
+
 import {
     Briefcase,
     Gavel,
@@ -18,8 +18,11 @@ import {
     ExternalLink,
     Eye,
     FileText,
-    ClipboardCopy
+    ClipboardCopy,
+    Loader2
 } from 'lucide-react';
+import UsageGuide from '@/app/components/UsageGuide';
+import { dashboardManuals } from '@/app/lib/dashboardManuals';
 import './research.css';
 
 export default function ResearchPage({ isDemo: isDemoProp = false }) {
@@ -428,6 +431,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                 <h1 className="dashboard-page-title">Terminal de Estrategia Jurídica</h1>
                                 <p>Investigación avanzada, Ratio Decidendi y generación de estrategia blindada.</p>
                             </div>
+                            <UsageGuide content={dashboardManuals.research} />
                         </div>
                     </header>
 
@@ -532,7 +536,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                 }}
                             >
                                 <div style={{ textAlign: 'center' }}>
-                                    <TetrisLoader />
+                                    <Loader2 className="spin-animation text-amber-400" size={48} />
                                     <p style={{
                                         marginTop: '1.5rem',
                                         color: '#fbbf24',

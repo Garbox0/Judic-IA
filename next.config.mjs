@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false, // Hide "X-Powered-By: Next.js"
-  skipTrailingSlashRedirect: true, // Prevent 307 redirects on API routes (webhooks)
+  skipTrailingSlashRedirect: true, // Prevent 307 redirects on API routes (webhooks) - Forced Update
   async rewrites() {
 
     return [

@@ -2,11 +2,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Calculator, AlertTriangle, RefreshCw, Calendar, Info } from 'lucide-react';
-import UsageGuide from '@/app/components/UsageGuide';
-import { dashboardManuals } from '@/app/lib/dashboardManuals';
-import './calculators.css';
+import '@/app/dashboard/calculators/calculators.css'; // Reuse existing styles
 
-export default function CalculatorsPage() {
+import UsageGuide from '@/app/components/UsageGuide';
+import { demoManuals } from '@/app/lib/demoManuals';
+
+export default function DemoCalculatorsPage() {
     // STATE: Indemnización
     const [ingreso, setIngreso] = useState('');
     const [egreso, setEgreso] = useState('');
@@ -66,28 +67,6 @@ export default function CalculatorsPage() {
         // Empezamos a contar desde el día SIGUIENTE a la notificación
         curDate.setDate(curDate.getDate() + 1);
 
-        // Ajuste inicial si el día siguiente cae en fin de semana (aunque la lógica del while lo maneja,
-        // es conceptualmente correcto empezar el conteo en día hábil? 
-        // Normalmente: se cuenta el día, si es inhábil no se cuenta.
-
-        while (count < days) {
-            const day = curDate.getDay();
-            if (day !== 0 && day !== 6) { // 0=Sun, 6=Sat
-                count++;
-            }
-            if (count < days) { // Solo avanzamos si no hemos terminado
-                curDate.setDate(curDate.getDate() + 1);
-            }
-        }
-
-        // Si caemos en fin de semana AL FINAL, feriado judicial? 
-        // Simplificación: Si cae sábado o domingo, pasa al lunes.
-        // OJO: La lógica del while avanza HASTA completar los días hábiles.
-        // Si el último día agregado fue Viernes (count llegó a days), curDate es Viernes.
-        // Si el último conteo cayó en un día válido, ahí nos quedamos.
-        // Pero el loop anterior tiene un pequeño bug lógico común "fencepost".
-
-        // CORRECCIÓN LÓGICA ROBUSTA:
         // Reset
         let daysAdded = 0;
         const d = new Date(startDate);
@@ -121,13 +100,7 @@ export default function CalculatorsPage() {
 
     const addCalendarDays = (startDate, days) => {
         const d = new Date(startDate);
-        d.setDate(d.getDate() + 1 + parseInt(days)); // Empezamos a contar mañana, así que +1 y +dias? 
-        // No, plazos corridos: fecha + dias. Pero art 6 CCyC: "día siguiente".
-        // Entonces fecha + dias (si fecha es hoy, mañana es dia 1). 
-        // Ejemplo: Notificado Lunes 1. Plazo 5 días. Vence Sábado 6 (que se pasa al Lunes 8).
-        // Corrección: Fecha + Dias. Lunes 1 + 5 = 6.
-        // Verificación de cargo: Si vence Sábado/Do, pasa a Lunes.
-
+        d.setDate(d.getDate() + 1 + parseInt(days));
         // Vamos a usar setDate(notif + dias).
         const result = new Date(startDate);
         result.setDate(result.getDate() + parseInt(days));
@@ -171,9 +144,9 @@ export default function CalculatorsPage() {
         <div className="tools-container">
             <nav className="tools-nav">
                 <div className="breadcrumb">
-                    <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
+                    <Link href="/demo/dashboard" className="breadcrumb-item">Gabinete</Link>
                     <span className="breadcrumb-separator">/</span>
-                    <span className="breadcrumb-current">Calculadoras</span>
+                    <span className="breadcrumb-current">Calculadoras (Demo)</span>
                 </div>
             </nav>
 
@@ -182,7 +155,7 @@ export default function CalculatorsPage() {
                     <h1><Calculator size={48} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.8rem', color: '#8b5cf6' }} /> Calculadoras Jurídicas</h1>
                     <p>Herramientas de precisión para el ejercicio profesional.</p>
                 </div>
-                <UsageGuide content={dashboardManuals.calculators} />
+                <UsageGuide content={demoManuals.calculators} />
             </header>
 
             <div className="tools-grid">

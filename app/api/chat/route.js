@@ -229,49 +229,10 @@ export async function POST(request) {
 
             if (!lawyerId) return NextResponse.json({ reply: "Error: Falta ID del Abogado." }, { status: 400 });
         } else if (mode === 'demo') {
-            systemPrompt = INTAKE_SYSTEM_PROMPT; // Reuse Intake Prompt for Demo
-            caseType = 'DEMO';
-
-            // DEMO LIMIT CHECK (IP BASED)
-            // Use x-forwarded-for from Vercel/Next.js or fallback for localhost
-            const forwardedFor = request.headers.get('x-forwarded-for');
-            let ip = forwardedFor ? forwardedFor.split(',')[0] : null;
-
-            // Localhost Fallback
-            if (!ip) {
-                const realIp = request.headers.get('x-real-ip');
-                ip = realIp || '127.0.0.1'; // Default to localhost ID for testing
-            }
-
-            if (ip) {
-                // 1. Check Limit in DB
-                const { data: limitData, error: limitError } = await db
-                    .from('demo_limits')
-                    .select('message_count')
-                    .eq('ip_address', ip)
-                    .single();
-
-                let currentCount = 0;
-                if (limitData) {
-                    currentCount = limitData.message_count;
-                }
-
-                // 2. Reject if Limit Exceeded
-                if (currentCount >= 5) {
-                    return NextResponse.json({ reply: "🔒 **Fin de la Demo**\n\nAlcanzaste el límite de interacciones gratuitas por hoy para esta IP. \n\n¡La IA real tiene un costo, pero para tus clientes será ilimitada! 😉 Contactanos." });
-                }
-
-                // 3. Increment Limit
-                const { error: upsertError } = await db
-                    .from('demo_limits')
-                    .upsert({
-                        ip_address: ip,
-                        message_count: currentCount + 1,
-                        last_interaction: new Date().toISOString()
-                    }, { onConflict: 'ip_address' });
-
-                if (upsertError) console.error("Limit DB Error:", upsertError);
-            }
+            return NextResponse.json({
+                error: "DEMO_MODE_DISABLED",
+                message: "La demo opera en modo sandbox (mock) y no debe realizar llamadas a la API real."
+            }, { status: 403 });
         } else {
             systemPrompt = SALES_SYSTEM_PROMPT;
         }
@@ -492,12 +453,43 @@ export async function POST(request) {
 
 
         // 5. SUPABASE: SAVE BOT RESPONSE (Cleaned)
-        if (effectiveSessionId) {
-            await db.from('messages').insert({
-                inquiry_id: effectiveSessionId,
-                role: 'assistant',
-                content: replyContent
+        await db.from('messages').insert({
+            inquiry_id: effectiveSessionId,
+            role: 'assistant',
+            content: replyContent
+        });
+
+        // 6. INCREMENT USAGE COUNTER (Fix for Admin Panel)
+        // We need to find the lawyer associated with this inquiry to charge the usage
+        const { data: inquiryData } = await db
+            .from('inquiries')
+            .select('assigned_lawyer_id')
+            .eq('id', effectiveSessionId)
+            .single();
+
+        if (inquiryData?.assigned_lawyer_id) {
+            // RPC call is better for concurrency, but a simple fetch+update works for MVP
+            // Optimistic increment:
+            const { error: incError } = await db.rpc('increment_message_count', {
+                user_id: inquiryData.assigned_lawyer_id,
+                amount: 1
             });
+
+            // Fallback if RPC doesn't exist (likely): Manual Fetch + Update
+            if (incError) {
+                // console.warn("RPC increment failed, falling back to manual update", incError);
+                const { data: lawyerProfile } = await db
+                    .from('profiles')
+                    .select('ai_messages_used')
+                    .eq('id', inquiryData.assigned_lawyer_id)
+                    .single();
+
+                if (lawyerProfile) {
+                    await db.from('profiles').update({
+                        ai_messages_used: (lawyerProfile.ai_messages_used || 0) + 1
+                    }).eq('id', inquiryData.assigned_lawyer_id);
+                }
+            }
         }
 
         return NextResponse.json({ reply: replyContent });

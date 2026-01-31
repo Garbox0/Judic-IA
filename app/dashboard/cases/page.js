@@ -13,6 +13,8 @@ import {
     ChevronDown,
     ChevronUp
 } from 'lucide-react';
+import UsageGuide from '@/app/components/UsageGuide';
+import { dashboardManuals } from '@/app/lib/dashboardManuals';
 import './cases.css';
 
 export default function CasesPage() {
@@ -147,6 +149,7 @@ export default function CasesPage() {
                         <h1 className="dashboard-page-title">Expedientes del Estudio</h1>
                         <p>Gestión centralizada de casos oficiales y carpetas legales.</p>
                     </div>
+                    <UsageGuide content={dashboardManuals.cases} />
                 </div>
             </header>
 

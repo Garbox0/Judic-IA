@@ -15,7 +15,9 @@ import {
     ShieldCheck,
     Menu,
     Crown,
-    Sparkles
+    Sparkles,
+    Book,
+    Calculator
 } from 'lucide-react';
 import SafeChatWidget from '../../components/SafeChatWidget'; // Corrected path
 
@@ -97,6 +99,14 @@ export default function DemoDashboardLayout({ children }) {
                     <Link href={`${basePath}/agenda`} className={`nav-item ${pathname.includes('/agenda') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
                         <CalendarClock size={18} className="nav-icon" />
                         <span>Plazos</span>
+                    </Link>
+                    <Link href={`${basePath}/calculators`} className={`nav-item ${pathname.includes('/calculators') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+                        <Calculator size={18} className="nav-icon" />
+                        <span>Calculadoras</span>
+                    </Link>
+                    <Link href={`${basePath}/legislation`} className={`nav-item ${pathname.includes('/legislation') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+                        <Book size={18} className="nav-icon" />
+                        <span>Legislación</span>
                     </Link>
                     <Link href={`${basePath}/settings`} className={`nav-item ${pathname.includes('/settings') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
                         <Settings size={18} className="nav-icon" />
