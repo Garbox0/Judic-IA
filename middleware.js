@@ -31,8 +31,15 @@ export async function middleware(request) {
     if (country && country !== 'AR' && !isWebhook) {
         const ip = request.headers.get('x-forwarded-for') || request.ip
         console.warn(`⛔ BLOCKED ACCESS from ${country} (IP: ${ip})`)
-        return BLOCKED_COUNTRY_RESPONSE
-        // console.log(`⚠️ GEO-BLOCK DISABLED TEMPORARILY: Access allowed from ${country}`);
+
+        const blockedResponse = new NextResponse(JSON.stringify({
+            error: 'Access Denied',
+            message: `Judic-IA is currently only available in Argentina. (Detected: ${country})`,
+            code: 'GEO_BLOCK'
+        }), { status: 403, headers: { 'Content-Type': 'application/json' } })
+
+        blockedResponse.headers.set('X-Geo-Country', country)
+        return blockedResponse
     }
 
     // 🛡️ 0. SEGURIDAD (CSP Relaxed for Debugging)
@@ -200,6 +207,9 @@ export async function middleware(request) {
         finalResponse.headers.set('Content-Security-Policy', cspHeader)
         finalResponse.headers.set('x-nonce', nonce)
     }
+
+    // 🌍 DEBUG: Geo-Country Header for all responses
+    finalResponse.headers.set('X-Geo-Country', country || 'unknown')
 
     return finalResponse
 }
