@@ -951,36 +951,78 @@ body::before {
     color: var(--accent);
 }
 
-.cloudflare-badge {
+/* 🛡️ TRUST BADGES SYSTEM */
+.trust-badges-container {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 14px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 99px;
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    font-weight: 600;
-    text-decoration: none;
-    transition: 0.3s;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-end;
 }
 
-.cloudflare-badge:hover {
-    background: rgba(251, 191, 36, 0.08);
-    border-color: rgba(251, 191, 36, 0.3);
-    transform: translateY(-1px);
+.trust-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 99px;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    backdrop-filter: blur(5px);
+    width: 200px;
+    /* Fixed width for perfect alignment */
+    justify-content: flex-start;
+}
+
+.trust-badge:hover {
+    background: rgba(251, 191, 36, 0.05);
+    border-color: rgba(251, 191, 36, 0.2);
+    transform: translateX(-5px);
+    color: var(--text-secondary);
+}
+
+.badge-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--accent);
+    opacity: 0.8;
 }
 
 .cf-icon {
-    width: 16px;
-    opacity: 0.7;
+    width: 18px;
+    height: 18px;
 }
 
-.cloudflare-badge strong {
+.trust-badge strong {
     color: var(--text-secondary);
-    margin-left: 4px;
+    margin-left: auto;
+    /* Push the strong text to the right for a clean "grid" feel */
 }
+
+@media (max-width: 1024px) {
+    .trust-badges-container {
+        align-items: center;
+        width: 100%;
+        margin-top: 2rem;
+        order: 3;
+    }
+
+    .trust-badge {
+        justify-content: center;
+        width: 100%;
+        max-width: 280px;
+    }
+
+    .trust-badge strong {
+        margin-left: 4px;
+    }
+}
+
 
 /* FISCAL INFO ROW */
 .footer-fiscal-row {

@@ -5,7 +5,7 @@ import styles from "./page.module.css";
 import Link from "next/link";
 import Image from "next/image";
 import SafeChatWidget from "./components/SafeChatWidget";
-import { Clock, Shield, Zap, Scale, BookOpen, Users, FolderOpen, Calculator, Calendar, FileText, BarChart2, PlayCircle } from 'lucide-react';
+import { Clock, Shield, Zap, Scale, BookOpen, Users, FolderOpen, Calculator, Calendar, FileText, BarChart2, PlayCircle, Lock } from 'lucide-react';
 import "./landing.css"; // Version 3.0 Styles
 
 export default function Home() {
@@ -322,12 +322,29 @@ export default function Home() {
             <a href="mailto:Soporte@judic-ia.com">Soporte</a>
           </div>
 
-          <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer" className="cloudflare-badge">
-            <svg className="cf-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M23.53 13.1c-.26-1.55-1.42-2.73-2.92-3a5.5 5.5 0 00-10.42-2c-1.8.1-3.32 1.4-3.7 3.14a4 4 0 00-2.43 7.33A4 4 0 008 22h11a5 5 0 004.53-8.9zM19 20H8a2 2 0 01-1-3.74v-.01a2 2 0 011-3.75 3.5 3.5 0 016.71-1.25l.13.43.45-.06a3.5 3.5 0 013.71 3.49v.14a3 3 0 010 5.75z" />
-            </svg>
-            Protected by <strong>Cloudflare</strong>
-          </a>
+          <div className="trust-badges-container">
+            <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer" className="trust-badge">
+              <svg className="badge-icon cf-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.53 13.1c-.26-1.55-1.42-2.73-2.92-3a5.5 5.5 0 00-10.42-2c-1.8.1-3.32 1.4-3.7 3.14a4 4 0 00-2.43 7.33A4 4 0 008 22h11a5 5 0 004.53-8.9zM19 20H8a2 2 0 01-1-3.74v-.01a2 2 0 011-3.75 3.5 3.5 0 016.71-1.25l.13.43.45-.06a3.5 3.5 0 013.71 3.49v.14a3 3 0 010 5.75z" />
+              </svg>
+              Protected by <strong>Cloudflare</strong>
+            </a>
+
+            <div className="trust-badge">
+              <Shield className="badge-icon" size={14} />
+              AES-256 <strong>Encrypted</strong>
+            </div>
+
+            <div className="trust-badge">
+              <Lock className="badge-icon" size={14} />
+              ISO 27001 <strong>Ready</strong>
+            </div>
+
+            <div className="trust-badge">
+              <Scale className="badge-icon" size={14} />
+              Ley 25.326 <strong>Compliant</strong>
+            </div>
+          </div>
         </div>
 
         {/* FISCAL INFO ROW */}
