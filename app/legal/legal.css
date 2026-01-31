@@ -384,17 +384,15 @@
     }
 
     /* Logo & Button adjustments */
-    .nav-brand .nav-title {
-        display: none;
-        /* Hide text to save space, keep logo */
-    }
+    /* Logo & Button adjustments */
+    /* .nav-brand .nav-title { display: none; } removed to show text */
 
     .nav-logo {
         height: 48px;
     }
 
     .btn-login-premium {
-        padding: 0.6rem;
+        padding: 0;
         width: 48px;
         height: 48px;
         display: flex;
@@ -405,7 +403,7 @@
         font-size: 1.2rem;
     }
 
-    .btn-login-premium span {
+    .btn-login-premium .nav-btn-text {
         display: none !important;
         /* Force hide text */
     }
@@ -414,6 +412,9 @@
         content: "←";
         font-weight: 900;
         font-size: 1.4rem;
+        line-height: 1;
+        margin-bottom: 2px;
+        /* Visual center adjustment */
     }
 
     /* Stack Layout */

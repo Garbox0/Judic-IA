@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import "../landing.css";
+import Image from "next/image"; // Added import
 import "./legal.css";
 
 import { Lock, ShieldCheck, Cloud, FileText, User, Shield } from 'lucide-react';
@@ -38,12 +39,21 @@ export default function LegalPage() {
       <nav className="glass-navbar">
         <div className="nav-container">
           <Link href="/" className="nav-brand">
-            <img src="/logo.png" alt="Logo" className="nav-logo" />
-            <span className="nav-title">Judic-IA</span>
+            <Image
+              src="/judic-ia-mark.png"
+              alt="Judic-IA Logo"
+              className="nav-logo"
+              width={48}
+              height={64}
+              priority
+            />
+            <span className="nav-title text-glow">Judic-IA</span>
           </Link>
-          <Link href="/" className="btn-login-premium">← Volver al Inicio</Link>
-        </div>
-      </nav>
+          <Link href="/" className="btn-login-premium">
+            <span className="nav-btn-text">← Volver al Inicio</span>
+          </Link>
+        </div >
+      </nav >
 
       <section className="hero-section" style={{ padding: '160px 0 40px' }}>
         <div className="section-header reveal active">
@@ -210,6 +220,6 @@ export default function LegalPage() {
           <div>© 2026 Judic-IA Legal Intelligence. Todos los derechos reservados.</div>
         </div>
       </footer>
-    </main>
+    </main >
   );
 }
