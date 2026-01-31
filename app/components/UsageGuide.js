@@ -118,7 +118,7 @@ export default function UsageGuide({ content }) {
             <style jsx>{`
                 /* TRIGGER STYLES */
                 .usage-guide-trigger {
-                    position: absolute;
+                    position: fixed; /* Changed from absolute to fixed */
                     top: 20px;
                     right: 20px;
                     background: rgba(251, 191, 36, 0.1);
