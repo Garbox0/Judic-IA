@@ -19,7 +19,7 @@ export async function POST(req) {
         external_reference: userId,
         statement_descriptor: "JUDIC-IA PRO",
         notification_url: `${appUrl}/api/mp/webhook`,
-        auto_return: "approved",
+        auto_return: appUrl.includes("localhost") ? undefined : "approved",
 
         // 🔑 ITEM OBLIGATORIO (dummy para validación de MP)
         items: [
