@@ -41,12 +41,12 @@ export async function middleware(request) {
     // CSP Relajada: permitimos unsafe-inline/eval para hidratación de Next.js y SDKs externos
     const cspHeader = `
         default-src 'self';
-        script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://sdk.mercadopago.com https://static.cloudflareinsights.com https://www.googletagmanager.com;
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-        img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com;
-        font-src 'self' https://fonts.gstatic.com data:;
-        connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com;
-        frame-src 'self' https://accounts.google.com https://*.mercadopago.com;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://sdk.mercadopago.com https://static.cloudflareinsights.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vercel.live;
+        img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live;
+        font-src 'self' https://fonts.gstatic.com data: https://vercel.live;
+        connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live https://vitals.vercel-insights.com;
+        frame-src 'self' https://accounts.google.com https://*.mercadopago.com https://vercel.live https://*.vercel.live;
         object-src 'self';
         worker-src 'self' blob:;
         base-uri 'self';
