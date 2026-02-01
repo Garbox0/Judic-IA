@@ -1,16 +1,21 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Calculator, AlertTriangle, RefreshCw, Calendar, Info } from 'lucide-react';
+import { Calculator, AlertTriangle, RefreshCw, Calendar, Info, Clock, CheckCircle2 } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
+import { isJudicialBusinessDay, addJudicialBusinessDays } from '../../lib/dateUtils';
 import './calculators.css';
 
 export default function CalculatorsPage() {
+    // ... items above ...
     // STATE: Indemnización
     const [ingreso, setIngreso] = useState('');
     const [egreso, setEgreso] = useState('');
     const [remuneracion, setRemuneracion] = useState('');
+    const [includeSAC, setIncludeSAC] = useState(false);
+    const [includeVacations, setIncludeVacations] = useState(false);
+    const [includePreaviso, setIncludePreaviso] = useState(false);
     const [resultadoIndem, setResultadoIndem] = useState(null);
 
     // STATE: Plazos
@@ -20,35 +25,80 @@ export default function CalculatorsPage() {
     const [resultadoPlazo, setResultadoPlazo] = useState(null);
 
     // --- LOGIC: INDEMNIZACION ---
+    useEffect(() => {
+        calcularIndemnizacion();
+    }, [ingreso, egreso, remuneracion, includeSAC, includeVacations, includePreaviso]);
+
     const calcularIndemnizacion = (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
 
         const fechaIngreso = new Date(ingreso);
         const fechaEgreso = new Date(egreso);
         const mejorRemuneracion = parseFloat(remuneracion);
 
-        if (!ingreso || !egreso || !remuneracion) return;
-
-        // Calcular Antigüedad en años
-        const diffTime = Math.abs(fechaEgreso - fechaIngreso);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        let antiguedad = Math.floor(diffDays / 365);
-
-        const fraccionMeses = (diffDays % 365) / 30;
-
-        // Regla: Fracción mayor a 3 meses cuenta como año extra
-        if (fraccionMeses > 3) {
-            antiguedad += 1;
+        if (!ingreso || !egreso || !remuneracion) {
+            setResultadoIndem(null);
+            return;
         }
 
-        // Mínimo 1 año de sueldo (Piso art 245)
-        if (antiguedad < 1) antiguedad = 1;
+        // --- 1. Antigüedad Art. 245 ---
+        const diffTime = Math.abs(fechaEgreso - fechaIngreso);
+        const diffDaysTotal = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        let antiguedadAnos = Math.floor(diffDaysTotal / 365);
+        const fraccionMeses = (diffDaysTotal % 365) / 30;
+        if (fraccionMeses > 3) antiguedadAnos += 1;
+        if (antiguedadAnos < 1) antiguedadAnos = 1;
 
-        const indemnizacion = mejorRemuneracion * antiguedad;
+        const monto245 = mejorRemuneracion * antiguedadAnos;
+
+        // --- 2. Preaviso (Indemnización Substitutiva) ---
+        let montoPreaviso = 0;
+        let sacSobrePreaviso = 0;
+        if (includePreaviso) {
+            // Lógica simplificada: 1 mes si < 5 años, 2 meses si > 5 años.
+            const mesesPreaviso = antiguedadAnos >= 5 ? 2 : 1;
+            montoPreaviso = mejorRemuneracion * mesesPreaviso;
+            sacSobrePreaviso = montoPreaviso / 12;
+        }
+
+        // --- 3. SAC Proporcional ---
+        let montoSAC = 0;
+        if (includeSAC) {
+            const currentYear = fechaEgreso.getFullYear();
+            const semesterStart = fechaEgreso.getMonth() < 6 ? new Date(currentYear, 0, 1) : new Date(currentYear, 6, 1);
+            const daysInSemester = Math.max(0, Math.ceil((fechaEgreso - Math.max(fechaIngreso, semesterStart)) / (1000 * 60 * 60 * 24)));
+            montoSAC = (mejorRemuneracion / 2) * (daysInSemester / 182.5);
+        }
+
+        // --- 4. Vacaciones Proporcionales ---
+        let montoVacaciones = 0;
+        let sacSobreVacaciones = 0;
+        if (includeVacations) {
+            // Días según antigüedad
+            let diasVacaciones = 14;
+            if (antiguedadAnos >= 5) diasVacaciones = 21;
+            if (antiguedadAnos >= 10) diasVacaciones = 28;
+            if (antiguedadAnos >= 20) diasVacaciones = 35;
+
+            const startOfLastYear = new Date(fechaEgreso.getFullYear(), 0, 1);
+            const workedInYear = Math.max(0, Math.ceil((fechaEgreso - Math.max(fechaIngreso, startOfLastYear)) / (1000 * 60 * 60 * 24)));
+
+            const diasProporcionales = (diasVacaciones * workedInYear) / 365;
+            montoVacaciones = (mejorRemuneracion / 25) * diasProporcionales;
+            sacSobreVacaciones = montoVacaciones / 12;
+        }
+
+        const totalFinal = monto245 + montoPreaviso + sacSobrePreaviso + montoSAC + montoVacaciones + sacSobreVacaciones;
 
         setResultadoIndem({
-            antiguedadComputable: antiguedad,
-            monto: indemnizacion
+            antiguedad: antiguedadAnos,
+            monto245,
+            montoPreaviso,
+            sacSobrePreaviso,
+            montoSAC,
+            montoVacaciones,
+            sacSobreVacaciones,
+            total: totalFinal
         });
     };
 
@@ -56,84 +106,23 @@ export default function CalculatorsPage() {
         setIngreso('');
         setEgreso('');
         setRemuneracion('');
+        setIncludeSAC(false);
+        setIncludeVacations(false);
+        setIncludePreaviso(false);
         setResultadoIndem(null);
     };
 
     // --- LOGIC: PLAZOS ---
-    const addBusinessDays = (startDate, days) => {
-        let count = 0;
-        const curDate = new Date(startDate);
-        // Empezamos a contar desde el día SIGUIENTE a la notificación
-        curDate.setDate(curDate.getDate() + 1);
-
-        // Ajuste inicial si el día siguiente cae en fin de semana (aunque la lógica del while lo maneja,
-        // es conceptualmente correcto empezar el conteo en día hábil? 
-        // Normalmente: se cuenta el día, si es inhábil no se cuenta.
-
-        while (count < days) {
-            const day = curDate.getDay();
-            if (day !== 0 && day !== 6) { // 0=Sun, 6=Sat
-                count++;
-            }
-            if (count < days) { // Solo avanzamos si no hemos terminado
-                curDate.setDate(curDate.getDate() + 1);
-            }
-        }
-
-        // Si caemos en fin de semana AL FINAL, feriado judicial? 
-        // Simplificación: Si cae sábado o domingo, pasa al lunes.
-        // OJO: La lógica del while avanza HASTA completar los días hábiles.
-        // Si el último día agregado fue Viernes (count llegó a days), curDate es Viernes.
-        // Si el último conteo cayó en un día válido, ahí nos quedamos.
-        // Pero el loop anterior tiene un pequeño bug lógico común "fencepost".
-
-        // CORRECCIÓN LÓGICA ROBUSTA:
-        // Reset
-        let daysAdded = 0;
-        const d = new Date(startDate);
-        d.setDate(d.getDate() + 1); // Start counting tomorrow
-
-        while (daysAdded < days) {
-            // Avanzar día por día checkeando si es hábil
-            // Si es hábil, increments daysAdded.
-            // Si llegamos a daysAdded === days, ese es el día final (si es hábil).
-
-            const day = d.getDay();
-            const isWeekend = (day === 6 || day === 0);
-
-            if (!isWeekend) {
-                daysAdded++;
-            }
-
-            if (daysAdded < days) {
-                d.setDate(d.getDate() + 1);
-            }
-        }
-
-        // Si TERMINAMOS en un día inhábil (imposible con la lógica arriba salvo feriados manuales que no tenemos),
-        // pero chequear por si acaso si cayó Sábado/Domingo (e.g. si days=0)
-        while (d.getDay() === 6 || d.getDay() === 0) {
-            d.setDate(d.getDate() + 1);
-        }
-
-        return d;
-    };
+    useEffect(() => {
+        calcularPlazo();
+    }, [fechaNotif, diasPlazo, tipoPlazo]);
 
     const addCalendarDays = (startDate, days) => {
-        const d = new Date(startDate);
-        d.setDate(d.getDate() + 1 + parseInt(days)); // Empezamos a contar mañana, así que +1 y +dias? 
-        // No, plazos corridos: fecha + dias. Pero art 6 CCyC: "día siguiente".
-        // Entonces fecha + dias (si fecha es hoy, mañana es dia 1). 
-        // Ejemplo: Notificado Lunes 1. Plazo 5 días. Vence Sábado 6 (que se pasa al Lunes 8).
-        // Corrección: Fecha + Dias. Lunes 1 + 5 = 6.
-        // Verificación de cargo: Si vence Sábado/Do, pasa a Lunes.
-
-        // Vamos a usar setDate(notif + dias).
         const result = new Date(startDate);
         result.setDate(result.getDate() + parseInt(days));
 
-        // CHECK FIN DE SEMANA (Prorroga automática)
-        while (result.getDay() === 6 || result.getDay() === 0) {
+        // CHECK IF IT ENDS ON NON-BUSINESS DAY (Prorroga automática / Cargo)
+        while (!isJudicialBusinessDay(result)) {
             result.setDate(result.getDate() + 1);
         }
 
@@ -141,8 +130,11 @@ export default function CalculatorsPage() {
     };
 
     const calcularPlazo = (e) => {
-        e.preventDefault();
-        if (!fechaNotif || !diasPlazo) return;
+        if (e) e.preventDefault();
+        if (!fechaNotif || !diasPlazo) {
+            setResultadoPlazo(null);
+            return;
+        }
 
         // Parse local date strictly to avoid timezone shifts
         const [y, m, d] = fechaNotif.split('-');
@@ -152,7 +144,7 @@ export default function CalculatorsPage() {
         const dias = parseInt(diasPlazo);
 
         if (tipoPlazo === 'habiles') {
-            fechaVencimiento = addBusinessDays(startDate, dias);
+            fechaVencimiento = addJudicialBusinessDays(startDate, dias);
         } else {
             fechaVencimiento = addCalendarDays(startDate, dias);
         }
@@ -247,34 +239,37 @@ export default function CalculatorsPage() {
                             <button type="button" onClick={resetPlazo} className="btn-reset">
                                 <RefreshCw size={16} /> Limpiar
                             </button>
-                            <button type="submit" className="btn-calculate violet">
-                                Calcular Vencimiento
-                            </button>
                         </div>
                     </form>
 
                     {resultadoPlazo && (
                         <div className="result-panel fade-in violet-theme">
-                            <div className="result-row total">
-                                <span>Vencimiento:</span>
-                                <strong>
-                                    {resultadoPlazo.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                                </strong>
+                            <div className="result-label">VENCIMIENTO PROCESAL</div>
+                            <div className="result-main-date">
+                                {resultadoPlazo.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                             </div>
-                            <div className="result-sub">
-                                <Info size={14} />
-                                <span>
-                                    + Dos primeras horas del día hábil siguiente:
-                                    <strong> {(() => {
+
+                            <div className="grace-period-box">
+                                <div className="grace-head">
+                                    <Clock size={16} />
+                                    <span>Plazo de Gracia (Cargo)</span>
+                                </div>
+                                <div className="grace-body">
+                                    Hasta el <strong>{(() => {
                                         const nextDay = new Date(resultadoPlazo);
-                                        nextDay.setDate(nextDay.getDate() + 1); // Get real next calendar day
-                                        while (nextDay.getDay() === 6 || nextDay.getDay() === 0) { // Skip weekend if grace period falls there
+                                        nextDay.setDate(nextDay.getDate() + 1);
+                                        // Use the robust utility to find the next business day
+                                        while (!isJudicialBusinessDay(nextDay)) {
                                             nextDay.setDate(nextDay.getDate() + 1);
                                         }
-                                        return nextDay.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric' });
-                                    })()} 9:30 AM
-                                    </strong>
-                                </span>
+                                        return nextDay.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'short' });
+                                    })()} de 7:30 a 9:30 hs</strong>
+                                </div>
+                            </div>
+
+                            <div className="disclaimer-mini" style={{ marginTop: '1.5rem' }}>
+                                <Info size={14} />
+                                <span>El cómputo contempla fines de semana, feriados nacionales y periodos de feria judicial argentina 2026.</span>
                             </div>
                         </div>
                     )}
@@ -324,29 +319,86 @@ export default function CalculatorsPage() {
                             </div>
                         </div>
 
+                        <div className="form-group full">
+                            <label>Rubros Adicionales (Opcionales)</label>
+                            <div className="checkbox-grid">
+                                <label className={`check-option ${includePreaviso ? 'active' : ''}`}>
+                                    <input type="checkbox" checked={includePreaviso} onChange={() => setIncludePreaviso(!includePreaviso)} />
+                                    <span>Indemnización por Preaviso</span>
+                                </label>
+                                <label className={`check-option ${includeSAC ? 'active' : ''}`}>
+                                    <input type="checkbox" checked={includeSAC} onChange={() => setIncludeSAC(!includeSAC)} />
+                                    <span>SAC Proporcional</span>
+                                </label>
+                                <label className={`check-option ${includeVacations ? 'active' : ''}`}>
+                                    <input type="checkbox" checked={includeVacations} onChange={() => setIncludeVacations(!includeVacations)} />
+                                    <span>Vacaciones Proporcionales</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <div className="form-actions">
                             <button type="button" onClick={resetIndem} className="btn-reset">
                                 <RefreshCw size={16} /> Limpiar
-                            </button>
-                            <button type="submit" className="btn-calculate">
-                                Calcular Estimación
                             </button>
                         </div>
                     </form>
 
                     {resultadoIndem && (
-                        <div className="result-panel fade-in">
-                            <div className="result-row">
-                                <span>Antigüedad Computable:</span>
-                                <strong>{resultadoIndem.antiguedadComputable} años</strong>
+                        <div className="result-panel breakdown fade-in amber-theme">
+                            <div className="result-header">Desglose de la Liquidación</div>
+                            <div className="result-breakdown">
+                                <div className="result-row">
+                                    <span>Antigüedad computable:</span>
+                                    <span>{resultadoIndem.antiguedad} años</span>
+                                </div>
+                                <div className="result-row standout">
+                                    <span>Indemnización por Antigüedad (Art. 245):</span>
+                                    <span>$ {resultadoIndem.monto245.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                                </div>
+
+                                {includePreaviso && (
+                                    <div className="rubric-group">
+                                        <div className="result-row">
+                                            <span>Sustitutiva del Preaviso:</span>
+                                            <span>$ {resultadoIndem.montoPreaviso.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                                        </div>
+                                        <div className="result-row ind">
+                                            <span>+ SAC sobre Preaviso:</span>
+                                            <span>$ {resultadoIndem.sacSobrePreaviso.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {includeSAC && (
+                                    <div className="result-row">
+                                        <span>SAC Proporcional:</span>
+                                        <span>$ {resultadoIndem.montoSAC.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                                    </div>
+                                )}
+
+                                {includeVacations && (
+                                    <div className="rubric-group">
+                                        <div className="result-row">
+                                            <span>Vacaciones No Gozadas:</span>
+                                            <span>$ {resultadoIndem.montoVacaciones.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                                        </div>
+                                        <div className="result-row ind">
+                                            <span>+ SAC sobre Vacaciones:</span>
+                                            <span>$ {resultadoIndem.sacSobreVacaciones.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
+
                             <div className="result-row total">
-                                <span>Indemnización Estimada:</span>
-                                <strong>${resultadoIndem.monto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</strong>
+                                <span>TOTAL INDEMNIZATORIO:</span>
+                                <strong>$ {resultadoIndem.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</strong>
                             </div>
+
                             <div className="disclaimer-mini">
                                 <AlertTriangle size={12} />
-                                <span>Cálculo meramente estimativo. No reemplaza liquidación contable.</span>
+                                <span>Estimación basada en LCT. No incluye multas (Ley 24.013, 25.323, etc.)</span>
                             </div>
                         </div>
                     )}

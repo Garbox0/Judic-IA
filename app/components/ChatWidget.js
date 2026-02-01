@@ -49,12 +49,10 @@ export default function ChatWidget({
         const initSession = async () => {
             let activeSessionId = null;
 
-            // Internal Support: Auth User
+            // Internal Support: Ephemeral (Per User Request: Fresh start on refresh)
             if (mode === 'internal') {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    activeSessionId = `auth-${user.id}-${mode}`;
-                }
+                // Fix: Only generate if not already set to prevent infinite loop
+                activeSessionId = sessionId || crypto.randomUUID();
             } else {
                 // Public Intake: Check for Unique Client ID (cid)
                 // SKIP for client_help mode - it should have its own session, not use the inquiry CID
@@ -63,8 +61,6 @@ export default function ChatWidget({
                     activeSessionId = cid;
                 } else if (mode === 'demo') {
                     // Demo Mode: Always Fresh Session (No Persistence)
-                    // Fix: Use existing sessionId state if available to prevent infinite loop
-                    // Fix: Use clean UUID (no prefix) for Postgres compatibility
                     activeSessionId = sessionId || crypto.randomUUID();
                 } else {
                     // Fallback: Browser LocalStorage (Persistence for returning clients)
@@ -82,8 +78,8 @@ export default function ChatWidget({
 
                 // FETCH HISTORY FROM API (Persistence)
                 // Only if sessionId is UUID (avoid fetching for mock 'auth-' ids which cause 500 errors)
-                // AND not 'demo' mode (which is ephemeral/non-persistent start)
-                if (activeSessionId.length > 20 && !activeSessionId.startsWith('auth-') && mode !== 'demo' && mode !== 'lawyer_login') {
+                // AND not 'demo'/'internal' mode (which are ephemeral)
+                if (activeSessionId.length > 20 && !activeSessionId.startsWith('auth-') && mode !== 'demo' && mode !== 'lawyer_login' && mode !== 'internal') {
                     try {
                         const res = await fetch(`/api/chat?sessionId=${activeSessionId}`);
                         if (res.status === 404) {
@@ -109,7 +105,7 @@ export default function ChatWidget({
             }
         };
         initSession();
-    }, [mode, searchParams, sessionId]);
+    }, [mode, searchParams]); // Removed sessionId to prevent infinite loop
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -158,7 +154,19 @@ export default function ChatWidget({
                     lawyerSpecialties: lawyerSpecialties || [] // [NEW] Pass specialties to AI logic
                 }),
             });
+
             const data = await res.json();
+
+            // [NEW] QUOTA LIMIT HANDLER
+            if (res.status === 403 && data.code === 'LIMIT_REACHED') {
+                // Remove user message to not confuse them? Or leave it?
+                // Current UX: Leave it, show modal.
+                setShowLimitModal(true);
+                // Optional: Add a system message in chat history too?
+                setMessages(prev => [...prev, { role: "assistant", content: "⛔ **Límite Mensual Alcanzado.** Contacta al profesional para más información." }]);
+                return;
+            }
+
             setMessages(prev => [...prev, { role: "assistant", content: data.reply }]);
         } catch (e) {
             setMessages(prev => [...prev, { role: "assistant", content: "Lo siento, tuve un error de conexión." }]);
@@ -180,6 +188,7 @@ export default function ChatWidget({
     const botConfig = getBotConfig();
 
     const [isBubbleHidden, setIsBubbleHidden] = useState(false);
+    const [showLimitModal, setShowLimitModal] = useState(false);
 
     // Auto-hide bubble on mobile by default
     useEffect(() => {
@@ -197,8 +206,47 @@ export default function ChatWidget({
             display: "flex", flexDirection: "column", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "12px",
             overflow: "hidden", fontFamily: 'var(--font-outfit)'
         } : {}}>
+            {/* LIMIT REACHED MODAL */}
+            {showLimitModal && (
+                <div style={{
+                    position: 'absolute', inset: 0, zIndex: 100,
+                    background: 'rgba(2, 6, 23, 0.85)', backdropFilter: 'blur(8px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem'
+                }}>
+                    <div style={{
+                        background: '#0f172a', border: '1px solid rgba(251, 191, 36, 0.3)',
+                        borderRadius: '24px', padding: '2rem', textAlign: 'center',
+                        boxShadow: '0 20px 50px -10px rgba(0,0,0,0.8)', maxWidth: '320px'
+                    }}>
+                        <div style={{
+                            width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(251, 191, 36, 0.1)',
+                            border: '1px solid rgba(251, 191, 36, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            margin: '0 auto 1.5rem auto'
+                        }}>
+                            <span style={{ fontSize: '1.8rem' }}>👑</span>
+                        </div>
+                        <h3 style={{ color: 'white', fontWeight: '800', fontSize: '1.25rem', marginBottom: '0.5rem' }}>Límite Alcanzado</h3>
+                        <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
+                            El profesional ha agotado su cupo mensual de consultas gratuitas.
+                        </p>
+                        <button
+                            onClick={() => setShowLimitModal(false)}
+                            style={{
+                                width: '100%', padding: '0.75rem', borderRadius: '12px',
+                                background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
+                                color: 'black', fontWeight: '800', border: 'none', cursor: 'pointer',
+                                fontSize: '0.9rem', boxShadow: '0 4px 12px rgba(251, 191, 36, 0.3)'
+                            }}
+                        >
+                            Entendido
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {!isOpen && !embedded && (
                 <>
+
                     {/* STANDARD BUBBLE (Visible) */}
                     {!isBubbleHidden && (
                         <div className="chat-toggle-wrapper">

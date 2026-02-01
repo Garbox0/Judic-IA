@@ -16,7 +16,7 @@ function applyCookies(srcResponse, destResponse) {
 // 🌍 GEO-BLOCK CONFIGURATION
 const BLOCKED_COUNTRY_RESPONSE = new NextResponse(JSON.stringify({
     error: 'Access Denied',
-    message: 'We are sorry, but Judic-IA is currently only available in Argentina due to regulatory compliance.',
+    message: 'We are sorry, but Judic-IA is not available in your country.',
     code: 'GEO_BLOCK'
 }), { status: 403, headers: { 'Content-Type': 'application/json' } })
 
@@ -171,7 +171,7 @@ export async function middleware(request) {
         }
     }
     else if (isDashboardPath) {
-        if (!user) {
+        if (!user || !role) {
             finalResponse = applyCookies(response, NextResponse.redirect(new URL('/login', request.url)))
         } else if (role === 'client') {
             const loginUrl = new URL('/consultas/auth/login', request.url)

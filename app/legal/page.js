@@ -6,12 +6,33 @@ import "../landing.css";
 import Image from "next/image"; // Added import
 import "./legal.css";
 
-import { Lock, ShieldCheck, Cloud, FileText, User, Shield } from 'lucide-react';
+import { Lock, ShieldCheck, Cloud, FileText, User, Shield, Sun, Moon } from 'lucide-react';
 
 export default function LegalPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('terminos');
+  const [theme, setTheme] = useState('dark');
+
+  // Load theme from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('app-theme') || 'dark';
+    setTheme(savedTheme);
+  }, []);
+
+  // Update body class when theme changes
+  useEffect(() => {
+    if (theme === 'light') {
+      document.body.classList.add('light-theme');
+    } else {
+      document.body.classList.remove('light-theme');
+    }
+    localStorage.setItem('app-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -49,9 +70,18 @@ export default function LegalPage() {
             />
             <span className="nav-title text-glow">Judic-IA</span>
           </Link>
-          <Link href="/" className="btn-login-premium">
-            <span className="nav-btn-text">← Volver al Inicio</span>
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <Link href="/" className="btn-login-premium">
+              <span className="nav-btn-text">← Volver al Inicio</span>
+            </Link>
+            <button
+              onClick={toggleTheme}
+              className="theme-toggle-landing"
+              aria-label="Alternar tema"
+            >
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+          </div>
         </div >
       </nav >
 

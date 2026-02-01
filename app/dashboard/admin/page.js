@@ -64,31 +64,48 @@ export default function AdminPage() {
         }
     }, [searchQuery, users]);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            checkLatency();
+        }, 5000);
+        return () => clearInterval(interval);
+    }, []);
+
     const checkAuth = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            router.push('/login');
-            return;
+        const { data: { user } } = await supabase.auth.getSession();
+        if (!user || !user.session) {
+            // Check session strictly
+            const { data: { user: dbUser } } = await supabase.auth.getUser();
+            if (!dbUser) {
+                router.push('/login');
+                return;
+            }
+            setCurrentUser(dbUser);
+            initialFetch(dbUser.id);
+        } else {
+            setCurrentUser(user);
+            initialFetch(user.id);
         }
-        setCurrentUser(user);
-        initialFetch(user.id);
+    };
+
+    const checkLatency = async () => {
+        try {
+            const start = performance.now();
+            await supabase.from('profiles').select('id', { count: 'exact', head: true });
+            const end = performance.now();
+            const latencyVal = Math.round(end - start);
+            setHealth(prev => ({ ...prev, latency: `${latencyVal}ms`, database: 'connected' }));
+        } catch (e) {
+            setHealth(prev => ({ ...prev, latency: 'ERR', database: 'disconnected' }));
+        }
     };
 
     const initialFetch = async (userId) => {
         setLoading(true);
+        // Trigger ping immediately
+        checkLatency();
+
         try {
-            const start = performance.now();
-            // Ping DB (Simple head request to check connectivity)
-            await supabase.from('profiles').select('id', { count: 'exact', head: true });
-            const end = performance.now();
-            const latencyVal = Math.round(end - start);
-
-            setHealth({
-                status: 'healthy',
-                latency: `${latencyVal}ms`,
-                database: 'connected'
-            });
-
             const { data: profiles, error } = await supabase
                 .from('profiles')
                 .select('*')
@@ -168,6 +185,18 @@ export default function AdminPage() {
                 });
                 if (!res.ok) throw new Error('Error en API');
                 showNotification('success', 'Cuota actualizada correctamente.');
+            } else if (action === 'set-usage') {
+                const { data: { session } } = await supabase.auth.getSession();
+                const res = await fetch('/api/admin/update-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session?.access_token}`
+                    },
+                    body: JSON.stringify({ userId, updates: { ai_messages_used: parseInt(payload.usage) } })
+                });
+                if (!res.ok) throw new Error('Error en API');
+                showNotification('success', 'Consumo actualizado correctamente.');
             } else if (action === 'reset-usage') {
                 const { error } = await supabase.from('profiles').update({ ai_messages_used: 0 }).eq('id', userId);
                 if (error) throw error;
@@ -206,6 +235,7 @@ export default function AdminPage() {
                         };
                     }
                     if (action === 'update-credits') return { ...u, ai_message_quota: parseInt(payload.quota) };
+                    if (action === 'set-usage') return { ...u, ai_messages_used: parseInt(payload.usage) };
                     if (action === 'reset-usage') return { ...u, ai_messages_used: 0 };
                     if (action === 'revoke-access') {
                         return {
@@ -251,53 +281,74 @@ export default function AdminPage() {
     return (
         <AdminGuard>
             <div className="admin-page-root">
-                <div className="max-w-7xl mx-auto space-y-12 pb-24">
+                <div className="max-w-[1600px] mx-auto space-y-12 pb-24 px-6">
                     {/* --- HEADER --- */}
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-4">
-                                <div className="px-4 py-1.5 bg-black/40 border border-white/5 rounded-full flex items-center gap-3 text-[10px] font-black">
+                    <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8">
+                        <div className="space-y-4 max-w-2xl">
+                            <div className="flex items-center gap-4 flex-wrap">
+                                <div className="px-4 py-1.5 bg-slate-900/80 border border-emerald-500/30 rounded-full flex items-center gap-3 text-[10px] font-black shadow-[0_0_10px_rgba(16,185,129,0.1)]">
                                     <Activity size={12} className={health?.status === 'healthy' ? 'text-emerald-400' : 'text-red-400'} />
-                                    <span className="opacity-40 uppercase tracking-widest">Latencia:</span>
-                                    <span className="text-white">{health?.latency || '--'}</span>
+                                    <span className="opacity-60 text-slate-400 uppercase tracking-widest">Latencia:</span>
+                                    <span className="text-white font-mono">{health?.latency}</span>
                                 </div>
-                                <div className="px-4 py-1.5 bg-black/40 border border-white/5 rounded-full flex items-center gap-3 text-[10px] font-black">
+                                <div className="px-4 py-1.5 bg-slate-900/80 border border-blue-500/30 rounded-full flex items-center gap-3 text-[10px] font-black shadow-[0_0_10px_rgba(59,130,246,0.1)]">
                                     <CheckCircle2 size={12} className={health?.database === 'connected' ? 'text-emerald-400' : 'text-blue-400'} />
-                                    <span className="opacity-40 uppercase tracking-widest">Base de Datos:</span>
-                                    <span className="text-white underline decoration-gold/50">{health?.database === 'connected' ? 'ONLINE' : 'CHECKING'}</span>
+                                    <span className="opacity-60 text-slate-400 uppercase tracking-widest">Base de Datos:</span>
+                                    <span className="text-blue-100">{health?.database === 'connected' ? 'ONLINE' : 'CHECKING'}</span>
                                 </div>
                             </div>
-                            <h1 className="text-6xl font-black text-white tracking-tighter">Panel <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Judic-IA</span></h1>
-                            <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.2em] border-l border-gold/40 pl-4 mt-2">Centro de Mando Administrativo</p>
+                            <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter drop-shadow-2xl">
+                                Panel <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-500 to-amber-600 filter drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]">Judic-IA</span>
+                            </h1>
+                            <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.3em] border-l-2 border-amber-500 pl-4 mt-2">
+                                Centro de Mando Administrativo
+                            </p>
                         </div>
 
-                        <div className="flex gap-4">
-                            <button onClick={() => initialFetch(currentUser?.id)} className="p-4 glass-card hover:bg-white/10 transition-all active:scale-95">
-                                <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+                        <div className="flex gap-4 flex-wrap items-center">
+                            {/* Refresh Button */}
+                            <button
+                                onClick={() => initialFetch(currentUser?.id)}
+                                className="w-14 h-14 flex-shrink-0 flex items-center justify-center rounded-2xl bg-slate-800/50 border border-slate-700 text-slate-400 hover:text-white hover:border-amber-400/50 hover:bg-amber-400/10 hover:shadow-[0_0_15px_rgba(251,191,36,0.2)] transition-all active:scale-95"
+                                title="Refrescar Datos"
+                            >
+                                <RefreshCw size={22} className={loading ? 'animate-spin text-amber-400' : ''} />
                             </button>
-                            <button onClick={async () => {
-                                setLoading(true);
-                                try {
-                                    const { data: { session } } = await supabase.auth.getSession();
-                                    const res = await fetch('/api/admin/sync-usage', {
-                                        method: 'POST',
-                                        headers: { 'Authorization': `Bearer ${session?.access_token}` }
-                                    });
-                                    if (!res.ok) throw new Error('Falló la sincronización');
-                                    const data = await res.json();
-                                    showNotification('success', `Datos Sincronizados (${data.stats.updated} perfiles)`);
-                                    initialFetch(currentUser?.id); // Refresh UI
-                                } catch (e) {
-                                    showNotification('error', 'Error al sincronizar');
-                                    console.error(e);
-                                } finally {
-                                    setLoading(false);
-                                }
-                            }} className="px-6 py-5 glass-card bg-emerald-500/5 text-emerald-400 font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-500/10 transition-all border-emerald-500/20">
-                                <Cloud size={16} className="inline mr-2" /> Sync Datos
+
+                            {/* Sync Button */}
+                            <button
+                                onClick={async () => {
+                                    setLoading(true);
+                                    try {
+                                        const { data: { session } } = await supabase.auth.getSession();
+                                        const res = await fetch('/api/admin/sync-usage', {
+                                            method: 'POST',
+                                            headers: { 'Authorization': `Bearer ${session?.access_token}` }
+                                        });
+                                        if (!res.ok) throw new Error('Falló la sincronización');
+                                        const data = await res.json();
+                                        showNotification('success', `Datos Sincronizados (${data.stats.updated} perfiles)`);
+                                        initialFetch(currentUser?.id); // Refresh UI
+                                    } catch (e) {
+                                        showNotification('error', 'Error al sincronizar');
+                                        console.error(e);
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }}
+                                className="group relative h-14 px-8 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-500/20 hover:border-emerald-400/60 hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all overflow-hidden flex items-center flex-shrink-0"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-700" />
+                                <div className="flex items-center gap-3">
+                                    <Cloud size={18} className="group-hover:scale-110 transition-transform" />
+                                    <span>Sync Datos</span>
+                                </div>
                             </button>
-                            <button className="px-10 py-5 glass-card bg-gold/5 text-gold font-black text-xs uppercase tracking-[0.2em] hover:bg-gold/10 transition-all border-gold/20">
-                                <Download size={16} className="inline mr-2" /> Exportar Base
+
+                            {/* Export Button */}
+                            <button className="h-14 px-8 rounded-2xl border border-amber-500/30 bg-amber-500/5 text-amber-400 font-black text-xs uppercase tracking-[0.2em] hover:bg-amber-500/10 hover:border-amber-400/60 hover:shadow-[0_0_20px_rgba(251,191,36,0.2)] transition-all flex items-center gap-3 flex-shrink-0">
+                                <Download size={18} />
+                                <span>Exportar</span>
                             </button>
                         </div>
                     </div>
@@ -347,18 +398,18 @@ export default function AdminPage() {
                                 </div>
 
                                 {filteredUsers.map(user => (
-                                    <div key={user.id} className="user-table-grid group transition-all hover:bg-white/[0.02]">
+                                    <div key={user.id} className="user-table-grid group transition-all hover:bg-white/[0.05] border-b border-white/[0.02] last:border-0">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs border
-                                                        ${user.subscription_status === 'active' ? 'bg-gold text-black border-gold/50 shadow-[0_0_20px_rgba(251,191,36,0.1)]' : 'bg-slate-900 text-slate-600 border-white/5'}`}>
+                                                        ${user.subscription_status === 'active' ? 'bg-amber-400 text-black border-amber-400/50 shadow-[0_0_20px_rgba(251,191,36,0.2)]' : 'bg-slate-800 text-slate-500 border-white/5'}`}>
                                                 {user.email[0].toUpperCase()}
                                             </div>
                                             <span className="font-bold text-white text-base tracking-tight">{user.full_name !== 'N/A' ? user.full_name : 'No asignado'}</span>
                                         </div>
 
                                         <div className="flex items-center gap-2">
-                                            <Mail size={12} className="text-slate-700" />
-                                            <span className="text-[11px] font-mono text-slate-400 opacity-60 italic">{user.email}</span>
+                                            <Mail size={12} className="text-slate-600 group-hover:text-slate-400 transition-colors" />
+                                            <span className="text-[11px] font-mono text-slate-500 group-hover:text-slate-300 transition-colors opacity-80 italic">{user.email}</span>
                                         </div>
 
                                         <div className="flex flex-col gap-1.5">
@@ -401,13 +452,26 @@ export default function AdminPage() {
                                             <button onClick={() => {
                                                 setActiveModal({
                                                     title: 'Ajustar Cuota',
-                                                    message: `Ingresar nueva cuota de mensajes para ${user.full_name || user.email}:`,
+                                                    message: `Nueva cuota mensual para ${user.full_name || user.email}:`,
                                                     userInput: true,
+                                                    inputType: 'number',
                                                     defaultValue: user.ai_message_quota,
                                                     onConfirm: (val) => handleAction(user.id, 'update-credits', { quota: val }, true)
                                                 });
                                             }} className="action-btn" title="Ajustar Cuota">
                                                 <Edit3 size={15} />
+                                            </button>
+                                            <button onClick={() => {
+                                                setActiveModal({
+                                                    title: 'Ajustar Consumo',
+                                                    message: `Modificar consumo actual para ${user.full_name || user.email} (Testing):`,
+                                                    userInput: true,
+                                                    inputType: 'number',
+                                                    defaultValue: user.ai_messages_used,
+                                                    onConfirm: (val) => handleAction(user.id, 'set-usage', { usage: val }, true)
+                                                });
+                                            }} className="action-btn" title="Forzar Consumo (Test)">
+                                                <Activity size={15} />
                                             </button>
                                             <button onClick={() => handleAction(user.id, 'reset-usage')} className="action-btn" title="Limpiar Uso Mensual">
                                                 <RefreshCw size={14} />
@@ -505,16 +569,16 @@ function StatBox({ label, value, delta, icon: Icon, color }) {
         purple: 'text-purple-400 bg-purple-400/10 border-purple-400/20',
     };
     return (
-        <div className="glass-card p-8 flex flex-col gap-8 group hover:border-white/20 transition-all">
+        <div className={`glass-card p-8 flex flex-col gap-8 group border border-white/5 hover:border-${color === 'gold' ? 'amber-400' : colors[color].split(' ')[0].replace('text-', '')}/50 transition-all duration-300 hover:shadow-2xl hover:bg-white/[0.02]`}>
             <div className="flex justify-between items-start">
-                <div className={`p-4 rounded-2xl ${colors[color]}`}>
+                <div className={`p-4 rounded-2xl ${colors[color]} shadow-lg`}>
                     <Icon size={28} strokeWidth={2.5} />
                 </div>
-                <div className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">{delta}</div>
+                <div className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] group-hover: text-white transition-colors">{delta}</div>
             </div>
             <div>
-                <div className={`text-5xl font-black text-white tracking-tighter ${color === 'gold' ? 'gold-glow' : ''}`}>{value || 0}</div>
-                <div className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 mt-2 leading-none">{label}</div>
+                <div className={`text-5xl font-black text-white tracking-tighter ${color === 'gold' ? 'gold-glow' : ''} group-hover:scale-105 transition-transform origin-left`}>{value || 0}</div>
+                <div className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 mt-2 leading-none group-hover:text-slate-400 transition-colors">{label}</div>
             </div>
         </div>
     );

@@ -34,6 +34,7 @@ export default function DashboardHome({ isDemo = false, basePath = '/dashboard' 
           .from('inquiries')
           .select('*', { count: 'exact', head: true })
           .neq('status', 'link_generated')
+          .neq('source', 'manual')
           .eq('assigned_lawyer_id', user.id);
 
         if (!inquiryError) {

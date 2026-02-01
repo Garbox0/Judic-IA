@@ -93,13 +93,17 @@ export async function POST(request) {
 
         // 2. DELETE MESSAGES (Cascade Manual)
         if (inquiryId) {
+            // Also delete associated case if exists
+            const { error: caseErr } = await adminClient.from('cases').delete().eq('inquiry_id', inquiryId);
+            if (caseErr) console.error(`⚠️ Case Delete failed (non-fatal): ${caseErr.message}`);
+
             const { error: msgErr } = await adminClient.from('messages').delete().eq('inquiry_id', inquiryId);
             if (msgErr) throw new Error(`Msg Delete Failed: ${msgErr.message}`);
 
             // 3. DELETE INQUIRY
             const { error: inqErr } = await adminClient.from('inquiries').delete().eq('id', inquiryId);
             if (inqErr) throw new Error(`Inquiry Delete Failed: ${inqErr.message}`);
-            console.log(`   ✅ INQUIRY DELETED`);
+            console.log(`   ✅ INQUIRY & CASE DATA DELETED`);
         }
 
         // 4. DELETE USER DATA & AUTH

@@ -70,6 +70,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                     .select('*')
                     .eq('assigned_lawyer_id', user.id)
                     .neq('status', 'link_generated')
+                    .neq('source', 'manual')
                     .order('created_at', { ascending: false });
 
                 if (error) console.error("❌ Error fetching inquiries:", error);

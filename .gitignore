@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+#Supabase
+/supabase   
+
 # testing
 /coverage
 
@@ -19,6 +22,12 @@
 
 # verificaciones (archivos usados para testear o verificar funcionalidades)
 /Verificaciones
+
+# Migraciones
+/migrations
+
+# DNDA_Delivery
+/DNDA_Delivery
 
 # production
 /build
@@ -54,3 +63,6 @@ manage_admin.js
 test_db.js
 *.sql
 *.txt
+
+#mejoras&sugerencias
+/mejoras&sugerencias   

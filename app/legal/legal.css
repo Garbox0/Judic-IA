@@ -529,3 +529,115 @@
         transform: translateY(0);
     }
 }
+
+/* =========================================
+   LIGHT THEME OVERRIDES (Ivory & Ink)
+   Fix for Legal Page Contrast
+========================================= */
+
+.light-theme .legal-portal {
+    background: var(--bg);
+    /* Ivory/Marfil */
+}
+
+/* Sidebar Tabs Light */
+.light-theme .legal-tabs-vertical {
+    background: var(--surface-1);
+    border-color: var(--stroke-2);
+}
+
+.light-theme .legal-tab-nav-btn {
+    color: var(--text-secondary);
+}
+
+.light-theme .legal-tab-nav-btn:hover:not(.active) {
+    background: rgba(15, 23, 42, 0.04);
+    color: var(--text-primary);
+}
+
+.light-theme .legal-tab-nav-btn.active {
+    background: rgba(183, 121, 31, 0.08);
+    /* Gold hint */
+    border-color: rgba(183, 121, 31, 0.2);
+    color: var(--accent);
+}
+
+/* Main Content Card Light */
+.light-theme .legal-content-card-v3 {
+    background: var(--surface-1);
+    border-color: var(--stroke-2);
+    box-shadow: var(--shadow-soft);
+}
+
+.light-theme .lead-text {
+    color: var(--text-secondary);
+}
+
+.light-theme .section-title-v3 {
+    color: var(--text-primary);
+}
+
+/* Feature Items Light */
+.light-theme .legal-feature-item {
+    background: var(--surface-2);
+    border-color: var(--stroke-2);
+}
+
+.light-theme .legal-feature-item:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(183, 121, 31, 0.3);
+}
+
+.light-theme .feature-text {
+    color: var(--text-secondary);
+}
+
+.light-theme .feature-text strong {
+    color: var(--text-primary);
+}
+
+/* Privacy Pills Light */
+.light-theme .privacy-pill-item {
+    background: var(--surface-2);
+    border-color: var(--stroke-2);
+    color: var(--text-secondary);
+}
+
+/* Security Visual Cards Light */
+.light-theme .security-v-card {
+    background: var(--surface-2);
+    border-color: var(--stroke-2);
+}
+
+.light-theme .security-v-card h3 {
+    color: var(--text-primary);
+}
+
+.light-theme .security-v-card p {
+    color: var(--text-secondary);
+}
+
+/* Footer Box Light */
+.light-theme .legal-contact-footer {
+    background: var(--surface-3);
+    border-color: var(--stroke-2);
+}
+
+.light-theme .contact-box-premium {
+    background: var(--surface-2);
+    border-color: var(--stroke-2);
+}
+
+.light-theme .contact-box-premium:hover {
+    background: white;
+    border-color: var(--accent);
+    box-shadow: var(--shadow-soft);
+}
+
+.light-theme .box-label {
+    color: var(--text-dim);
+}
+
+.light-theme .contact-footer-header h3 {
+    color: var(--text-primary);
+}

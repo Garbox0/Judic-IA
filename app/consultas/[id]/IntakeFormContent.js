@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import SafeChatWidget from '../../components/SafeChatWidget';
+import SessionGuard from '../../components/SessionGuard';
 import styles from '../../page.module.css';
 import { useSearchParams, useRouter } from 'next/navigation';
 import './IntakeFormContent.css';
@@ -18,6 +19,7 @@ export default function IntakeFormContent({ id }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [restricted, setRestricted] = useState(false);
+    const [activeInquiryId, setActiveInquiryId] = useState(null); // For SessionGuard
     const [isDeleted, setIsDeleted] = useState(false); // New state for Zombie UI
 
     useEffect(() => {
@@ -121,6 +123,7 @@ export default function IntakeFormContent({ id }) {
             }
             sessionStorage.removeItem('intake_retries');
             console.log("✅ Inquiry found:", inquiryData.id);
+            setActiveInquiryId(inquiryData.id);
 
             // 4. REALTIME KILL SWITCH
             // Listen for deletion of MY inquiry
@@ -159,35 +162,8 @@ export default function IntakeFormContent({ id }) {
             }
             setLoading(false);
 
-            // 6. ROBUST POLLING (BACKUP FOR REALTIME)
-            // Polling every 4 seconds ensures that if Realtime misses the DELETE event (common with RLS),
-            // we typically catch it within seconds regardless.
-            const zombieInterval = setInterval(async () => {
-                if (!inquiryData?.id) return;
-
-                const { error: checkError } = await supabase
-                    .from('inquiries')
-                    .select('id')
-                    .eq('id', inquiryData.id)
-                    .single(); // Will throw error if not found
-
-                if (checkError) {
-                    // Logic: If error is "PGRST116" (not found), it's deleted.
-                    console.warn("💀 POLLING DETECTED ZOMBIE: Inquiry gone.");
-                    setIsDeleted(true);
-                    clearInterval(zombieInterval);
-
-                    // Force a harder exit
-                    setTimeout(async () => {
-                        await supabase.auth.signOut();
-                        window.location.href = "https://judic-ia.com/?public=true";
-                    }, 5000);
-                }
-            }, 4000);
-
             return () => {
                 supabase.removeChannel(channel);
-                clearInterval(zombieInterval);
             };
         }
         checkAuthAndFetchLawyer();
@@ -251,6 +227,9 @@ export default function IntakeFormContent({ id }) {
 
     return (
         <main className={`${styles.main} intake-main`}>
+            {/* SESSION HEARTBEAT (Kills session if profile is deleted) */}
+            <SessionGuard targetId={activeInquiryId} tableName="inquiries" />
+
             {/* Navbar Minimal */}
             <nav className="glass-navbar" style={{ justifyContent: 'center' }}>
                 <div className="nav-brand">

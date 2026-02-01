@@ -5,13 +5,34 @@ import styles from "./page.module.css";
 import Link from "next/link";
 import Image from "next/image";
 import SafeChatWidget from "./components/SafeChatWidget";
-import { Clock, Shield, Zap, Scale, BookOpen, Users, FolderOpen, Calculator, Calendar, FileText, BarChart2, PlayCircle, Lock } from 'lucide-react';
+import { Clock, Shield, Zap, Scale, BookOpen, Users, FolderOpen, Calculator, Calendar, FileText, BarChart2, PlayCircle, Lock, Sun, Moon } from 'lucide-react';
 import "./landing.css"; // Version 3.0 Styles
 
 export default function Home() {
   const router = useRouter();
   const [authError, setAuthError] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [theme, setTheme] = useState('dark');
+
+  // Load theme from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('app-theme') || 'dark';
+    setTheme(savedTheme);
+  }, []);
+
+  // Update body class when theme changes
+  useEffect(() => {
+    if (theme === 'light') {
+      document.body.classList.add('light-theme');
+    } else {
+      document.body.classList.remove('light-theme');
+    }
+    localStorage.setItem('app-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
 
   const services = [
     { title: "IA Jurídica Avanzada", desc: "Consultas analizadas con modelos entrenados en normativa legal actualizada.", icon: <Scale size={42} /> },
@@ -73,17 +94,27 @@ export default function Home() {
             <span className="nav-title text-glow">Judic-IA</span>
           </div>
 
-          <div className="landing-nav-links">
-            <Link href="/demo" className="link-item">Demo</Link>
-            <Link href="#features" className="link-item">Servicios</Link>
-            <Link href="#pricing" className="link-item">Precios</Link>
-            <Link href="https://consultas.judic-ia.com" className="btn-login-premium">Acceso Clientes</Link>
-            <Link href="/login" className="btn-login-premium">Acceso Abogados</Link>
-          </div>
+          <div className="nav-actions-group">
+            <div className="landing-nav-links">
+              <Link href="/demo" className="link-item">Demo</Link>
+              <Link href="#features" className="link-item">Servicios</Link>
+              <Link href="#pricing" className="link-item">Precios</Link>
+              <Link href="https://consultas.judic-ia.com" className="btn-login-premium">Acceso Clientes</Link>
+              <Link href="/login" className="btn-login-premium">Acceso Abogados</Link>
+            </div>
 
-          <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(true)}>
-            ☰
-          </button>
+            <button
+              onClick={toggleTheme}
+              className="theme-toggle-landing"
+              aria-label="Alternar tema"
+            >
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+
+            <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(true)}>
+              ☰
+            </button>
+          </div>
         </div>
       </nav>
 

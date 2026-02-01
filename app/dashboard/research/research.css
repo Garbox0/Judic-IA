@@ -79,7 +79,7 @@
 
 .radio-btn {
     padding: 0.7rem 1.4rem;
-    background: rgba(15, 23, 42, 0.4);
+    background: var(--glass-medium);
     border: 1px solid var(--border);
     border-radius: 99px;
     cursor: pointer;
@@ -103,9 +103,9 @@
 }
 
 .province-select {
-    background: rgba(15, 23, 42, 0.6);
+    background: var(--glass-medium);
     border: 1px solid var(--border);
-    color: white;
+    color: var(--foreground);
     padding: 0.6rem 1.2rem;
     border-radius: 10px;
     font-size: 0.95rem;
@@ -199,10 +199,10 @@
 .search-box input {
     flex: 3;
     padding: 1.2rem;
-    background: rgba(15, 23, 42, 0.5);
+    background: var(--secondary);
     border: 1px solid var(--border);
     border-radius: 12px;
-    color: white;
+    color: var(--foreground);
     font-size: 1rem;
     transition: all 0.2s;
 }
@@ -244,15 +244,15 @@
 
 .result-card {
     padding: 2.2rem;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--glass-strong);
+    border: 1px solid var(--border);
     border-radius: 16px;
     transition: all 0.3s ease;
 }
 
 .result-card:hover {
     border-color: rgba(255, 255, 255, 0.15);
-    background: rgba(15, 23, 42, 0.7);
+    background: var(--glass-medium);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
@@ -343,8 +343,8 @@
     padding: 2.2rem 1.8rem;
     text-align: center;
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--glass-soft);
+    border: 1px solid var(--border);
     border-radius: 20px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
@@ -408,7 +408,7 @@
 .pdf-modal-content {
     width: 90vw;
     height: 90vh;
-    background: #0f172a;
+    background: var(--secondary);
     border: 1px solid var(--border);
     border-radius: 12px;
     display: flex;
@@ -428,7 +428,7 @@
 
 .pdf-header h4 {
     margin: 0;
-    color: white;
+    color: var(--foreground);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -503,7 +503,7 @@
 }
 
 .category-card h4 {
-    color: white;
+    color: var(--foreground);
     margin-bottom: 0.8rem;
     font-size: 1.3rem;
     font-weight: 700;
@@ -538,7 +538,7 @@
     height: 100vh;
     width: 320px !important;
     z-index: 1000;
-    background: #0f172a;
+    background: var(--secondary);
     box-shadow: 10px 0 50px rgba(0, 0, 0, 0.5);
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -644,7 +644,7 @@
         height: 100vh;
         width: 280px !important;
         z-index: 100;
-        background: #0f172a;
+        background: var(--secondary);
         /* border-right: 1px solid var(--border); */
         box-shadow: 10px 0 50px rgba(0, 0, 0, 0.5);
         transform: translateX(-100%);

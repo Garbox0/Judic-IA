@@ -39,11 +39,11 @@
 
 .user-table-grid {
     display: grid;
-    grid-template-columns: 1.8fr 1.8fr 1.6fr 1.8fr 1fr;
+    grid-template-columns: minmax(250px, 2fr) minmax(200px, 1.5fr) minmax(140px, 1.2fr) minmax(180px, 1.5fr) 120px;
     align-items: center;
     padding: 1.5rem 2rem;
     border-bottom: 1px solid var(--stroke);
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 .user-table-header {

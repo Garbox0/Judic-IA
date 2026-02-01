@@ -67,16 +67,14 @@ export async function GET(request) {
             return NextResponse.redirect(`${origin}/dashboard`);
         } else {
             console.error('Auth Code Exchange Error:', error);
-            // KICK-OUT: If auth fails (e.g. user deleted), redirect to main landing page
-            // We don't want them to see the login screen at all.
-            return NextResponse.redirect('https://judic-ia.com');
+            // KICK-OUT: If auth fails, redirect to the main landing page of the current origin
+            return NextResponse.redirect(`${origin}`);
         }
     }
 
     // If no code or error, check if this is a client flow
     if (lawyerId || cid) {
-        // Also redirect to landing page on generic errors
-        return NextResponse.redirect('https://judic-ia.com');
+        return NextResponse.redirect(`${origin}`);
     }
 
     // Default: lawyer login failure

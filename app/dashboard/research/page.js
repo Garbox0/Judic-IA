@@ -43,6 +43,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const [timeLeft, setTimeLeft] = useState(0);
     const [searchStatus, setSearchStatus] = useState('');
     const [refreshQuota, setRefreshQuota] = useState(5);
+    const [quotaModalOpen, setQuotaModalOpen] = useState(false); // [NEW] Quota Modal State
 
 
     useEffect(() => {
@@ -121,7 +122,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         }
 
         if (refreshQuota <= 0) {
-            alert("⚠️ Has alcanzado el límite de 5 refrescos por investigación. Genera una nueva consulta para continuar.");
+            setQuotaModalOpen(true);
             return;
         }
 
@@ -308,9 +309,28 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                 })
             });
 
+            if (res.status === 402) {
+                setQuotaModalOpen(true);
+                setLoading(false);
+                return;
+            }
+
             if (!res.ok) throw new Error("Search failed");
             const data = await res.json();
             setResults(data);
+
+            // [FIX] Update History Immediately
+            if (data.report_meta) {
+                const newHistoryItem = {
+                    id: data.report_meta.id,
+                    created_at: data.report_meta.created_at,
+                    query: finalQuery,
+                    jurisdiction: scope === 'nacional' ? 'Nacional' : province,
+                    result_json: data
+                };
+                setHistory(prev => [newHistoryItem, ...prev]);
+            }
+
         } catch (error) {
             console.error("Search error:", error);
             setSearchStatus('Error en la investigación avanzada.');
@@ -614,7 +634,10 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                     <span>🦁 Brave Search Pro Activo</span>
                                     <span style={{ opacity: 0.6 }}>•</span>
                                     <span>Resultados en Tiempo Real</span>
-                                    {(!currentUser || userProfile?.subscription_status === 'demo') ? (
+                                    {/* DEBUG LOGIC */}
+                                    {console.log("🔍 Badge Debug:", { isDemoProp, status: userProfile?.subscription_status, fullProfile: userProfile })}
+                                    {/* STATUS BADGE LOGIC */}
+                                    {isDemoProp || (userProfile && userProfile.subscription_status === 'demo') ? (
                                         <>
                                             <span style={{ opacity: 0.6 }}>•</span>
                                             <span style={{ color: '#ef4444' }}>Refrescos Desactivados (Demo)</span>
@@ -786,7 +809,56 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                 </div>
             </div>
 
-
-        </div >
+            {/* QUOTA LIMIT MODAL */}
+            {quotaModalOpen && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 9999,
+                    background: 'rgba(2, 6, 23, 0.85)', backdropFilter: 'blur(8px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem'
+                }} onClick={() => setQuotaModalOpen(false)}>
+                    <div style={{
+                        background: '#0f172a', border: '1px solid rgba(251, 191, 36, 0.3)',
+                        borderRadius: '24px', padding: '2rem', textAlign: 'center',
+                        boxShadow: '0 20px 50px -10px rgba(0,0,0,0.8)', maxWidth: '360px',
+                        animation: 'zoomIn 0.2s ease-out'
+                    }} onClick={e => e.stopPropagation()}>
+                        <div style={{
+                            width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(251, 191, 36, 0.1)',
+                            border: '1px solid rgba(251, 191, 36, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            margin: '0 auto 1.5rem auto'
+                        }}>
+                            <span style={{ fontSize: '1.8rem' }}>👑</span>
+                        </div>
+                        <h3 style={{ color: 'white', fontWeight: '800', fontSize: '1.25rem', marginBottom: '0.5rem' }}>Límite Mensual Alcanzado</h3>
+                        <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
+                            Has utilizado todas tus consultas de alta potencia de este mes. Actualiza tu plan para acceso ilimitado.
+                        </p>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
+                            <button
+                                style={{
+                                    width: '100%', padding: '0.75rem', borderRadius: '12px',
+                                    background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
+                                    color: 'black', fontWeight: '800', border: 'none', cursor: 'pointer',
+                                    fontSize: '0.9rem', boxShadow: '0 4px 12px rgba(251, 191, 36, 0.3)'
+                                }}
+                            >
+                                Ver Planes PRO
+                            </button>
+                            <button
+                                onClick={() => setQuotaModalOpen(false)}
+                                style={{
+                                    width: '100%', padding: '0.75rem', borderRadius: '12px',
+                                    background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
+                                    color: '#cbd5e1', fontWeight: '600', cursor: 'pointer',
+                                    fontSize: '0.85rem'
+                                }}
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }

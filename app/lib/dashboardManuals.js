@@ -1,17 +1,16 @@
 export const dashboardManuals = {
     dashboard: `
-## Panel de Control (Dashboard)
+## Gabinete de Control
 
 Tu centro de comando jurídico inteligente. Desde aquí tienes una visión global de tu estudio.
 
 ### Secciones
-1.  **Métricas Clave:** Resumen de casos activos, vencimientos de hoy y nuevos clientes potenciales.
-2.  **Accesos Directos:** Navegación rápida a las herramientas más utilizadas (Investigación, Expedientes, etc.).
-3.  **Actividad Reciente:** Feed en tiempo real de lo último que ha sucedido en tus casos y consultas.
+1.  **Métricas Clave:** Resumen de casos activos, vencimientos de hoy y nuevos prospectos.
+2.  **Accesos Directos:** Navegación rápida a Investigación, Agenda y Expedientes.
+3.  **Actividad Reciente:** Feed en tiempo real de lo último que ha sucedido en tus casos.
 
 ### Consejos
 *   Usa el botón **"+"** en la esquina inferior derecha para acciones rápidas como cargar un nuevo cliente o iniciar una investigación.
-*   Personaliza los widgets visibles desde la configuración de usuario.
 `,
 
     research: `
@@ -33,16 +32,15 @@ Motor de inteligencia artificial conectado a jurisprudencia actualizada y normat
     cases: `
 ## Gestión de Expedientes
 
-Sistema integral de gestión de casos (Case Management System) sincronizado con el PJN (en beta).
+Sistema integral de gestión de casos para tu estudio jurídico. 
 
 ### Funcionalidades
-1.  **Organización:** Carpetas digitales completas con escritos, notificaciones y documentación.
-2.  **Estados Procesales:** Seguimiento automático del avance de cada causa.
-3.  **Colaboración:** Asigna tareas a otros miembros del equipo dentro de cada expediente.
+1.  **Organización:** Carpetas digitales completas con escritos, notificaciones y documentación vinculada.
+2.  **Identificación de Origen:** Diferenciación visual entre expedientes generados por IA (Robot) e ingresos manuales (Escudo).
+3.  **Estados Procesales:** Seguimiento automático del avance de cada causa.
 
 ### Acciones
-*   **Importar:** Trae expedientes desde sistemas externos mediante el ID de causa.
-*   **Archivar:** Mueve casos terminados al archivo histórico para limpiar tu vista.
+*   **Archivar/Eliminar:** Gestión segura del ciclo de vida del expediente con confirmaciones de seguridad.
 `,
 
     clients: `
@@ -60,17 +58,21 @@ Gestión de relaciones con clientes potenciada por IA para la toma de casos.
 `,
 
     calculators: `
-## Calculadoras Jurídicas
+## Calculadoras Jurídicas 2026
 
-Suite de herramientas matemáticas validadas para el ejercicio profesional.
+Suite de herramientas matemáticas de precisión adaptadas a la normativa argentina.
 
-### Disponibles
-1.  **Actualización de Montos:** Tasas de interés (Activa BNA, Pasiva, Tasa Mix, etc.) actualizadas diariamente.
-2.  **Liquidación Laboral:** Cálculos precisos de despido (245 LCT), multas y diferencias salariales.
-3.  **Plazos Procesales:** Descuenta feriados y ferias judiciales automáticamente según la jurisdicción.
+### 1. Liquidación por Despido (LCT)
+Cálculo integral del Art. 245 LCT incluyendo rubros opcionales:
+*   **Antigüedad:** Cálculo automático (fracción > 3 meses = año extra).
+*   **Preaviso:** Indemnización sustitutiva + SAC sobre preaviso.
+*   **SAC Proporcional:** Cálculo técnico basado en el semestre trabajado.
+*   **Vacaciones No Gozadas:** Proporción anual según escala + SAC sobre vacaciones.
 
-### Reportes
-*   Genera un informe detallado en PDF de cada cálculo para adjuntar al expediente.
+### 2. Plazos Procesales
+Motor de cálculo sincronizado con el **Calendario Judicial Argentino 2026**:
+*   **Días Hábiles:** Descuenta automáticamente feriados y periodos de Feria Judicial.
+*   **Plazo de Gracia (Cargo):** Determina las dos primeras horas hábiles del día siguiente al vencimiento.
 `,
 
     legislation: `
@@ -89,17 +91,18 @@ Biblioteca normativa inteligente con concordancias y análisis de vigencia.
 `,
 
     agenda: `
-## Agenda Inteligente
+## Agenda Jurídica 2026
 
-Calendario sincronizado diseñado para los plazos fatales del derecho.
+Calendario diseñado para plazos fatales, sincronizado con el calendario judicial oficial de Argentina.
 
-### Características
-1.  **Semaforización:** Alertas de colores según la urgencia del vencimiento (Crítico, Alto, Medio).
-2.  **Cálculo de Plazos:** Al crear un evento, la IA sugiere la fecha de vencimiento basándose en el tipo de notificación.
-3.  **Notificaciones:** Alertas por email y WhatsApp (si está configurado) antes de cada vencimiento.
+### Funciones Clave
+1.  **Semaforización:** Alertas de colores basadas en **días hábiles reales** (Crítico, Alto, Medio).
+2.  **Calendario Visual:** Identificación de días inhábiles resaltados en rojo. Pasa el mouse sobre ellos para ver el motivo (feriados o feria judicial).
+3.  **Filtro Inteligente:** Usa el interruptor "Solo críticos" para depurar la lista de vencimientos inminentes.
 
-### Integración
-*   Se sincroniza bidireccionalmente con Google Calendar y Outlook.
+### Gestión de Vencimientos
+*   **Historial:** Registra todas las tareas completadas o eliminadas para auditoría técnica.
+*   **Calculadora integrada:** Determina fechas exactas al crear nuevos eventos según el tipo de notificación.
 `,
 
     library: `

@@ -1,13 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap');
 
-:root {
-    --bg: #020617;
-    --panel: rgba(15, 23, 42, 0.55);
-    --panel-border: rgba(255, 255, 255, 0.06);
-    --gold: #fbbf24;
-    --muted: #94a3b8;
-    --foreground: white;
-}
+/* Using global variables from globals.css */
 
 * {
     box-sizing: border-box;
@@ -20,18 +13,19 @@
 .dashboard-layout {
     display: flex;
     height: 100vh;
-    background-color: var(--bg);
-    color: white;
+    background-color: var(--background);
+    color: var(--foreground);
     overflow: hidden;
     font-family: 'Outfit', sans-serif;
-    background: radial-gradient(circle at 50% 0%, rgba(251, 191, 36, 0.05), transparent 60%), var(--bg);
+    background: var(--bg-gradient);
 }
 
 /* --- SIDEBAR --- */
 .sidebar {
     width: 280px;
-    background: rgba(13, 18, 30, 0.9);
-    border-right: 1px solid var(--panel-border);
+    background: var(--glass-strong);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid var(--border);
     padding: 2rem 1.4rem;
     display: flex;
     flex-direction: column;
@@ -66,6 +60,38 @@
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
+}
+
+.theme-toggle-btn {
+    margin-top: 1.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    background: var(--primary-soft);
+    border: 1px solid var(--primary-glow);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.theme-toggle-btn:hover {
+    background: var(--primary-glow);
+    transform: translateY(-2px);
+}
+
+.light-theme .theme-toggle-btn {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+.light-theme .theme-toggle-btn:hover {
+    background: #e2e8f0;
 }
 
 .nav-links {
@@ -122,13 +148,14 @@
 }
 
 .nav-item:hover {
-    background: rgba(255, 255, 255, 0.04);
-    color: white;
+    background: var(--secondary-hover);
+    color: var(--foreground);
 }
 
 .nav-item.active {
-    background: rgba(251, 191, 36, 0.12);
-    color: var(--gold);
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 1px solid var(--primary-glow);
 }
 
 /* SIDEBAR USER PROFILE */
@@ -170,7 +197,7 @@
     display: block;
     font-size: 13px;
     font-weight: 700;
-    color: white;
+    color: var(--foreground);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -271,7 +298,7 @@
 }
 
 .breadcrumb-current {
-    color: white;
+    color: var(--foreground);
     font-weight: 600;
     letter-spacing: 0.02em;
 }
@@ -285,7 +312,7 @@
     font-family: var(--font-playfair);
     font-size: 2.2rem;
     font-weight: 700;
-    color: white;
+    color: var(--foreground);
     margin-bottom: 0.5rem;
     margin-top: 0;
 }
@@ -324,8 +351,8 @@
     min-height: 170px;
     padding: 2.2rem;
     border-radius: 24px;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.7), rgba(2, 6, 23, 0.9));
-    border: 1px solid var(--panel-border);
+    background: var(--glass-medium);
+    border: 1px solid var(--border);
     display: flex;
     align-items: center;
     gap: 1.5rem;
@@ -364,7 +391,7 @@
 .dashboard-card h3 {
     margin: 0;
     font-size: 1.3rem;
-    color: white;
+    color: var(--foreground);
 }
 
 .dashboard-card p {

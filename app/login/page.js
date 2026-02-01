@@ -20,35 +20,67 @@ export default function LoginPage() {
   // NEW: Loading state for session check
   const [checkingSession, setCheckingSession] = useState(false);
 
+  // NEW: Success state for confirmations
+  const [success, setSuccess] = useState(null);
+
   // Auto-redirect if already logged in and session is healthy
   useEffect(() => {
+    const validateProfileAndRedirect = async (userId) => {
+      if (!userId) return;
+
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle(); // Use maybeSingle to avoid throw errors on missing
+
+        if (profile) {
+          console.log("✅ Profile verified. Redirecting to dashboard...");
+          router.push('/dashboard');
+        } else {
+          console.warn("⚠️ User has session but no profile row. Staying on login.");
+        }
+      } catch (err) {
+        console.error("❌ Profile validation failed:", err);
+      }
+    };
+
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Double check session persistence
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', user.id)
-          .single();
-
-        if (profile) {
-          router.push('/dashboard');
-        }
+        await validateProfileAndRedirect(user.id);
       }
     };
     checkUser();
 
     // Listen for sign-in event specifically
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // Only auto-redirect if session is established and valid
-        router.push('/dashboard');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+        await validateProfileAndRedirect(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [router]);
+
+  // Handle URL fragments and search params for Auth UX
+  useEffect(() => {
+    // 1. Parse Hash Fragments (Supabase style: #error=...)
+    const hash = window.location.hash;
+    if (hash.includes('otp_expired')) {
+      setError("El enlace de confirmación ya fue utilizado o expiró. Si acabas de recibir el mail, es probable que tu antivirus lo haya validado automáticamente; intenta ingresar con tu contraseña.");
+    }
+
+    // 2. Parse Search Params
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('error') === 'auth_confirmation_error') {
+      setError("No pudimos validar el correo. Por favor, intenta de nuevo o solicita otro enlace.");
+    }
+    if (params.get('confirmed') === 'true') {
+      setSuccess("¡Cuenta confirmada con éxito! Ya puedes ingresar al panel.");
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -160,6 +192,7 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {success && <div className="success-msg">✅ {success}</div>}
           {error && <div className="error-msg">⚠️ {error}</div>}
 
           <button type="submit" disabled={loading}>

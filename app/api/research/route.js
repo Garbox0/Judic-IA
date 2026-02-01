@@ -156,10 +156,20 @@ export async function POST(request) {
             const isSuperUser = user?.email === 'gbrlescalada@gmail.com' && user?.id === '365cd259-4f1e-4004-a677-1eda06a5147e';
 
             if (!isSuperUser) {
-                const { data: quota } = await supabase.rpc("consume_ai_message", { p_user: effectiveUserId });
-                if (!quota?.ok) return NextResponse.json({ laws: "⚠️ CRÉDITOS AGOTADOS", cases: "Actualiza tu plan.", links: [] }, { status: 402 });
+                const { data: quota, error: rpcError } = await supabase.rpc("consume_ai_message", { p_user: effectiveUserId });
+
+                if (rpcError) {
+                    console.error("❌ RPC Fatal Error:", rpcError);
+                    // Fail open or closed? Let's fail OPEN to debug if it's just a signature issue, OR fail closed with specific error.
+                    // keeping original logic but logging error.
+                }
+
+                if (!quota?.ok) {
+                    console.warn("⚠️ Quota Check Failed:", quota);
+                    return NextResponse.json({ laws: "⚠️ CRÉDITOS AGOTADOS", cases: "Actualiza tu plan.", links: [] }, { status: 402 });
+                }
             } else {
-                // console.log("🛡️ SUPERUSER BYPASS ACTIVE");
+
             }
         }
 
@@ -831,14 +841,19 @@ ANÁLISIS DE LA CONSULTA:
         result.links = finalLinks;
 
         // --- PERSISTENCE (Higher threshold) ---
-        if (userId) {
+        // --- PERSISTENCE (Higher threshold) ---
+        if (secureUserId) {
             try {
-                await supabase.from('research_reports').insert({
-                    user_id: userId,
+                const { data: savedReport } = await supabase.from('research_reports').insert({
+                    user_id: secureUserId,
                     query,
                     jurisdiction: jurisdiction || 'Nacional',
                     result_json: result
-                });
+                }).select('id, created_at').single();
+
+                if (savedReport) {
+                    result.report_meta = savedReport;
+                }
 
                 // Persist only GOLD STANDARD results (score >= 60)
                 for (const r of searchResults) {

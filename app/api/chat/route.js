@@ -246,7 +246,10 @@ export async function POST(request) {
 
             console.log(`🛡️ Security Check | Session: ${sessionId} | History Length: ${history?.length || 0}`);
 
-            const isOngoingChat = history && history.length > 2; // Fixed: Allow Greeting + First Message (Len=2)
+            // Whitelist internal persistent modes from "Resurrection" check
+            // These modes use persistent IDs (auth-...) that should auto-recreate if missing
+            const isPersistentMode = mode === 'internal' || mode === 'lawyer_login';
+            const isOngoingChat = history && history.length > 2 && !isPersistentMode;
 
             if (isOngoingChat) {
                 // Check if it exists FIRST
@@ -364,7 +367,36 @@ export async function POST(request) {
             });
         }
 
-        // 4. GENERATE AI RESPONSE
+        // 4. CHECK QUOTA & CONSUME USAGE (Atomic RPC)
+        // We need to identify the lawyer to charge.
+        const { data: inquiryData } = await db
+            .from('inquiries')
+            .select('assigned_lawyer_id, contract_mode')
+            .eq('id', effectiveSessionId)
+            .single();
+
+        if (inquiryData?.assigned_lawyer_id) {
+            // RPC handles: Check Quota -> If OK, Increment -> Return New Usage
+            // If Limit Reached -> Return Error
+            const { data: rpcResult, error: rpcError } = await db.rpc('consume_ai_message', {
+                p_user: inquiryData.assigned_lawyer_id
+            });
+
+            // Handle "Quota exceeded" specifically check the error text wrapper
+            // The RPC returns a JSONB object, so we check rpcResult
+            if (rpcResult && rpcResult.ok === false) {
+                if (rpcResult.error === 'Quota exceeded') {
+                    console.warn(`⛔ QUOTA EXCEEDED for User ${inquiryData.assigned_lawyer_id}`);
+                    return NextResponse.json({
+                        reply: "⛔ **LÍMITE ALCANZADO**\n\nEl profesional ha alcanzado su límite de consultas mensuales.",
+                        error: "QUOTA_EXCEEDED",
+                        code: "LIMIT_REACHED"
+                    }, { status: 403 });
+                }
+            }
+        }
+
+        // 5. GENERATE AI RESPONSE
         let replyContent = "";
         if (openai) {
             try {
@@ -459,38 +491,9 @@ export async function POST(request) {
             content: replyContent
         });
 
-        // 6. INCREMENT USAGE COUNTER (Fix for Admin Panel)
-        // We need to find the lawyer associated with this inquiry to charge the usage
-        const { data: inquiryData } = await db
-            .from('inquiries')
-            .select('assigned_lawyer_id')
-            .eq('id', effectiveSessionId)
-            .single();
 
-        if (inquiryData?.assigned_lawyer_id) {
-            // RPC call is better for concurrency, but a simple fetch+update works for MVP
-            // Optimistic increment:
-            const { error: incError } = await db.rpc('increment_message_count', {
-                user_id: inquiryData.assigned_lawyer_id,
-                amount: 1
-            });
-
-            // Fallback if RPC doesn't exist (likely): Manual Fetch + Update
-            if (incError) {
-                // console.warn("RPC increment failed, falling back to manual update", incError);
-                const { data: lawyerProfile } = await db
-                    .from('profiles')
-                    .select('ai_messages_used')
-                    .eq('id', inquiryData.assigned_lawyer_id)
-                    .single();
-
-                if (lawyerProfile) {
-                    await db.from('profiles').update({
-                        ai_messages_used: (lawyerProfile.ai_messages_used || 0) + 1
-                    }).eq('id', inquiryData.assigned_lawyer_id);
-                }
-            }
-        }
+        // 6. USAGE ALREADY CONSUMED BY RPC ABOVE
+        // No further action needed.
 
         return NextResponse.json({ reply: replyContent });
 

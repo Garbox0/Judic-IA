@@ -66,52 +66,23 @@ export async function POST(request) {
                     .select('id', { count: 'exact', head: true })
                     .in('inquiry_id', inquiryIds)
                     .eq('role', 'assistant'); // Charging for AI responses
-                realUsage = msgCount || 0;
+                realUsage += (msgCount || 0);
             }
 
-            // Step 3.2: Determine Quota & Status
-            let quota = 20; // Default / Basic
-            let newTier = 'basic';
-            let newStatus = 'inactive';
+            // Step 3.1.5: Count Research Reports
+            const { count: researchCount } = await supabaseAdmin
+                .from('research_reports')
+                .select('id', { count: 'exact', head: true })
+                .eq('user_id', profile.id);
 
-            const now = new Date();
-            const expiry = profile.subscription_expiry ? new Date(profile.subscription_expiry) : null;
+            realUsage += (researchCount || 0);
 
-            // STATUS RECONCILIATION LOGIC
-            if (profile.plan_tier === 'professional' || (expiry && expiry > now)) {
-                // If they are marked Pro OR have valid time, we check validity
-                if (expiry && expiry > now) {
-                    // VALID PRO (Could be Active or Cancelled)
-                    quota = 1000;
-                    newTier = 'professional';
-                    // PRESERVE 'cancelled' if it was already cancelled (don't revive it to active blindly)
-                    if (profile.subscription_status === 'cancelled') {
-                        newStatus = 'cancelled';
-                    } else {
-                        newStatus = 'active';
-                    }
-                } else {
-                    // EXPIRED PRO
-                    quota = 20;
-                    newTier = 'basic';
-                    newStatus = 'inactive';
-                }
-            } else {
-                // BASIC / FREE
-                quota = 20;
-                newTier = 'basic';
-                newStatus = 'inactive'; // Basic users don't need 'active' status for billing? 
-                // Wait, if Basic is the default, maybe status doesn't matter, but let's be consistent.
-                // Assuming 'active' is only for Pro.
-            }
-
-            // Step 3.3: Update Profile
-            // We force update details to ensure consistency
+            // Step 3.2: Update Usage ONLY (Safety First)
+            // We do NOT touch subscription fields here to avoid accidental upgrades/downgrades.
+            // Billing reconciliation handles status changes.
             const updatePayload = {
-                ai_messages_used: realUsage,
-                ai_message_quota: quota,
-                plan_tier: newTier,
-                subscription_status: newStatus
+                ai_messages_used: realUsage
+                // Removed: Quota/Tier/Status updates (Dangerous without MP validation)
             };
 
             const { error: updateError } = await supabaseAdmin

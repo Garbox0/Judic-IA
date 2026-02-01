@@ -1,4 +1,5 @@
-/* --- JUDIC-IA 3.0 DESIGN SYSTEM --- */
+﻿/* --- JUDIC-IA 3.0 DESIGN SYSTEM --- */
+/* Fixed background-clip lint error */
 :root {
     --bg: #020617;
     --bg-darker: #010410;
@@ -19,19 +20,19 @@
     --shadow-premium: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
 }
 
-/* ✅ LIGHT THEME: "Ivory & Ink" (abogacía premium) */
+/* âœ… LIGHT THEME: "Ivory & Ink" (abogacÃ­a premium) */
 .light-theme {
-    /* Fondo marfil cálido (no blanco quirúrgico) */
+    /* Fondo marfil cÃ¡lido (no blanco quirÃºrgico) */
     --bg: #f6f3ee;
     --bg-darker: #efe9df;
 
-    /* Dorado más sobrio (menos “amarillo”) */
+    /* Dorado mÃ¡s sobrio (menos â€œamarilloâ€) */
     --accent: #b7791f;
     --accent-glow: rgba(183, 121, 31, 0.22);
     --accent-dim: rgba(183, 121, 31, 0.10);
     --accent-gradient: linear-gradient(135deg, #d09a3a 0%, #a16207 100%);
 
-    /* Tipografía “tinta” */
+    /* TipografÃ­a â€œtintaâ€ */
     --text-primary: #0b1220;
     --text-secondary: #334155;
     --text-dim: #64748b;
@@ -52,7 +53,7 @@ body {
     transition: background-color .25s ease, color .25s ease, border-color .25s ease, box-shadow .25s ease;
 }
 
-/* 🧬 EVOLVED BACKGROUND 3.0 */
+/* ðŸ§¬ EVOLVED BACKGROUND 3.0 */
 body::before {
     content: '';
     position: fixed;
@@ -82,7 +83,7 @@ body::before {
     animation: meshRotate 20s linear infinite;
 }
 
-/* ✅ Fondo claro más sutil, sin “neón” */
+/* âœ… Fondo claro mÃ¡s sutil, sin â€œneÃ³nâ€ */
 .light-theme body::before {
     background:
         radial-gradient(circle at 20% 15%, rgba(183, 121, 31, 0.10) 0%, transparent 45%),
@@ -90,7 +91,7 @@ body::before {
         radial-gradient(circle at 55% 110%, rgba(15, 23, 42, 0.05) 0%, transparent 50%);
 }
 
-/* ✅ Mesh claro más limpio */
+/* âœ… Mesh claro mÃ¡s limpio */
 .light-theme .bg-mesh {
     background:
         radial-gradient(circle at 18% 30%, rgba(148, 163, 184, 0.22) 0%, transparent 45%),
@@ -112,7 +113,7 @@ body::before {
     }
 }
 
-/* 💎 PREMIUM SCROLLBAR */
+/* ðŸ’Ž PREMIUM SCROLLBAR */
 ::-webkit-scrollbar {
     width: 10px;
 }
@@ -131,7 +132,7 @@ body::before {
     background: var(--accent);
 }
 
-/* 💎 NAVBAR REFINED */
+/* ðŸ’Ž NAVBAR REFINED */
 .glass-navbar {
     position: fixed;
     top: 0;
@@ -201,18 +202,11 @@ body::before {
     letter-spacing: -0.02em;
 }
 
-.nav-actions-group {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    /* Gap general entre bloques */
-}
-
 .landing-nav-links {
     display: flex;
     gap: 1.5rem;
+    /* Reduced from 2.5rem */
     align-items: center;
-    /* Removed negative margin */
 }
 
 .link-item {
@@ -268,8 +262,7 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: 0;
-    /* Reset margin */
+    margin-left: 1.5rem;
     transition: all 0.2s;
 }
 
@@ -283,7 +276,22 @@ body::before {
     /* Darker gold for visibility on light mode */
 }
 
-/* 🔥 ACCESS BUTTON COLD SMOKE */
+/* ACCESS BUTTONS OVERRIDE LIGHT THEME */
+.light-theme .btn-login-premium {
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+    box-shadow: none;
+}
+
+.light-theme .btn-login-premium:hover {
+    background: var(--accent-gradient);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 10px 25px rgba(217, 119, 6, 0.25);
+}
+
+/* ðŸ”¥ ACCESS BUTTON COLD SMOKE */
 .btn-login-premium {
     background: rgba(251, 191, 36, 0.08);
     color: var(--accent);
@@ -322,7 +330,7 @@ body::before {
     box-shadow: 0 10px 25px rgba(217, 119, 6, 0.25);
 }
 
-/* 🚀 HERO SECTION 3.0 */
+/* ðŸš€ HERO SECTION 3.0 */
 .hero-section {
     padding: 160px 0 40px;
     /* Reduced bottom padding from 100px to 40px */
@@ -337,8 +345,6 @@ body::before {
     grid-template-columns: 1.1fr 0.9fr;
     gap: 5rem;
     align-items: center;
-    padding-top: 2rem;
-    /* Bajar un poco todo el bloque */
 }
 
 .badge-new {
@@ -369,13 +375,19 @@ body::before {
     font-size: clamp(48px, 6.5vw, 82px);
     font-weight: 950;
     line-height: 1.05;
-    margin-bottom: 2.5rem;
-    /* Separar más del subtítulo */
+    margin-bottom: 2rem;
     letter-spacing: -0.02em;
 }
 
 .light-theme .hero-title {
     color: var(--text-primary);
+}
+
+.light-theme .gradient-text {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .italic-serif {
@@ -386,13 +398,6 @@ body::before {
 
 .gradient-text {
     background: linear-gradient(135deg, var(--accent) 0%, #fde047 50%, #d97706 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.light-theme .gradient-text {
-    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -465,6 +470,13 @@ body::before {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
+.light-theme .btn-secondary-v3 {
+    background: white;
+    border-color: #cbd5e1;
+    color: var(--text-primary);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
 .btn-secondary-v3:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(251, 191, 36, 0.5);
@@ -473,14 +485,7 @@ body::before {
     color: var(--accent);
 }
 
-.light-theme .btn-secondary-v3 {
-    background: rgba(255, 255, 255, 0.65);
-    border-color: rgba(15, 23, 42, 0.14);
-    box-shadow: 0 10px 28px -18px rgba(15, 23, 42, 0.18);
-    color: var(--text-primary);
-}
-
-/* 🖼️ MOCKUP CARD 3.0 */
+/* ðŸ–¼ï¸ MOCKUP CARD 3.0 */
 .hero-mockup-wrapper {
     position: relative;
     padding: 20px;
@@ -514,10 +519,22 @@ body::before {
 }
 
 .light-theme .hero-card-v3 {
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    box-shadow: 0 24px 55px -20px rgba(15, 23, 42, 0.22);
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.12);
+    border: 1px solid white;
 }
+
+.light-theme .mock-window {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+.light-theme .mock-input {
+    background: #f1f5f9;
+    color: var(--text-primary);
+}
+
+/* Fix missing closing bracket for light theme mock input if any issues arise */
 
 @keyframes float {
 
@@ -538,11 +555,6 @@ body::before {
     min-height: 380px;
     display: flex;
     flex-direction: column;
-}
-
-.light-theme .mock-window {
-    background: #f8fafc;
-    border-color: #e2e8f0;
 }
 
 .mock-header {
@@ -580,8 +592,7 @@ body::before {
 }
 
 .light-theme .mock-bubble {
-    background: rgba(15, 23, 42, 0.06);
-    border: 1px solid rgba(15, 23, 42, 0.05);
+    background: #e2e8f0;
     color: #1e293b;
 }
 
@@ -615,11 +626,6 @@ body::before {
     font-size: 0.85rem;
 }
 
-.light-theme .mock-input {
-    background: #f1f5f9;
-    color: var(--text-primary);
-}
-
 .mock-send {
     width: 32px;
     height: 32px;
@@ -627,7 +633,7 @@ body::before {
     border-radius: 8px;
 }
 
-/* 📊 STATS SECTION */
+/* ðŸ“Š STATS SECTION */
 .stats-grid {
     display: flex;
     /* Changed to Flex for better centering control */
@@ -667,11 +673,6 @@ body::before {
     transition: all 0.3s ease;
     min-height: 140px;
     /* Force a bit more height */
-}
-
-.light-theme .stat-item {
-    background: rgba(255, 255, 255, 0.65);
-    border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .stat-item:hover {
@@ -718,7 +719,7 @@ body::before {
     display: block;
 }
 
-/* 🏛️ FEATURES & PRICING COMMON */
+/* ðŸ›ï¸ FEATURES & PRICING COMMON */
 .section-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -745,7 +746,7 @@ body::before {
     font-size: 1.1rem;
 }
 
-/* 📦 CARDS 3.0 */
+/* ðŸ“¦ CARDS 3.0 */
 .grid4 {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -815,7 +816,7 @@ body::before {
     margin: 0;
 }
 
-/* 🏷️ PRICING 3.0 */
+/* ðŸ·ï¸ PRICING 3.0 */
 .grid2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -925,7 +926,7 @@ body::before {
 }
 
 .price-features li::before {
-    content: '✓';
+    content: 'âœ“';
     color: var(--accent);
     font-weight: 900;
 }
@@ -934,7 +935,7 @@ body::before {
     color: #fbbf24;
 }
 
-/* 📞 CTA 3.0 */
+/* ðŸ“ž CTA 3.0 */
 .cta-v3 {
     background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), transparent), #0f172a;
     border-radius: 48px;
@@ -986,7 +987,7 @@ body::before {
     color: var(--accent);
 }
 
-/* 📱 MOBILE NAVIGATION & FOOTER 3.0 */
+/* ðŸ“± MOBILE NAVIGATION & FOOTER 3.0 */
 .mobile-menu-btn {
     display: none;
     background: none;
@@ -1139,7 +1140,7 @@ body::before {
     color: var(--accent);
 }
 
-/* 🛡️ TRUST BADGES SYSTEM */
+/* ðŸ›¡ï¸ TRUST BADGES SYSTEM */
 .trust-badges-container {
     display: flex;
     flex-direction: column;
@@ -1457,7 +1458,7 @@ body::before {
     }
 }
 
-/* 🎭 ANIMATIONS */
+/* ðŸŽ­ ANIMATIONS */
 .reveal {
     opacity: 0;
     transform: translateY(30px);
@@ -1521,175 +1522,4 @@ body::before {
 .light-theme .stat-item {
     background: rgba(255, 255, 255, 0.65);
     border: 1px solid rgba(15, 23, 42, 0.06);
-}
-
-
-/* ==============================
-   LIGHT THEME — “Ivory & Ink” polish
-   Fix: botones / recuadros “más oscuros”
-   Pegar al FINAL del landing.css
-================================ */
-
-.light-theme {
-    /* Superficies claras consistentes */
-    --surface-1: rgba(255, 255, 255, 0.78);
-    /* cards */
-    --surface-2: rgba(255, 255, 255, 0.62);
-    /* pills / chips */
-    --surface-3: rgba(246, 243, 238, 0.85);
-    /* secciones grandes (footer/cta bg) */
-    --stroke-1: rgba(15, 23, 42, 0.10);
-    --stroke-2: rgba(15, 23, 42, 0.06);
-    --shadow-soft: 0 18px 45px -22px rgba(15, 23, 42, 0.28);
-}
-
-/* Botón primario: mantener premium pero con “ink” legible */
-/* Botón primario: mantener premium pero con “ink” legible */
-.light-theme .btn-primary-v3 {
-    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-    /* Brighter gold */
-    border: 1px solid rgba(183, 121, 31, 0.3);
-    /* Subtle border for definition */
-    color: #0b1220;
-    box-shadow: 0 14px 34px -18px rgba(217, 119, 6, 0.45);
-}
-
-/* Botón secundario: hoy te queda “bloque” o muy oscuro en algunas secciones */
-.light-theme .btn-secondary-v3 {
-    background: var(--surface-1);
-    border-color: var(--stroke-1);
-    box-shadow: var(--shadow-soft);
-}
-
-.light-theme .btn-secondary-v3:hover {
-    background: rgba(255, 255, 255, 0.92);
-    border-color: rgba(183, 121, 31, 0.28);
-    color: var(--accent);
-}
-
-/* Chips / pills del mock (Accidentes, etc.) */
-.light-theme .mock-chip {
-    background: rgba(183, 121, 31, 0.10);
-    border-color: rgba(183, 121, 31, 0.22);
-    color: #8a5a12;
-}
-
-/* Stats (los recuadros de abajo suelen verse “más oscuros”) */
-.light-theme .stat-item {
-    background: var(--surface-2);
-    border: 1px solid var(--stroke-2);
-    box-shadow: 0 10px 28px -22px rgba(15, 23, 42, 0.30);
-}
-
-.light-theme .stat-item:hover {
-    background: rgba(255, 255, 255, 0.88);
-    border-color: var(--stroke-1);
-}
-
-/* Cards (features / pricing) para que no viren a gris “sucio” */
-.light-theme .card-v3,
-.light-theme .price-card-v3 {
-    background: var(--surface-2);
-    border-color: var(--stroke-2);
-}
-
-.light-theme .card-v3:hover {
-    background: rgba(255, 255, 255, 0.92);
-}
-
-/* CTA pills (14 días / sin tarjeta / cancela) — hoy están dark */
-.light-theme .cta-pill {
-    background: var(--surface-2);
-    border: 1px solid var(--stroke-2);
-    color: rgba(15, 23, 42, 0.70);
-}
-
-.light-theme .cta-pill strong {
-    color: var(--accent);
-}
-
-/* Trust badges del footer — que no queden “apagados” o grises oscuros */
-.light-theme .trust-badge {
-    background: rgba(255, 255, 255, 0.70);
-    border-color: var(--stroke-2);
-    color: rgba(15, 23, 42, 0.62);
-}
-
-.light-theme .trust-badge strong {
-    color: rgba(15, 23, 42, 0.78);
-}
-
-/* CTA en claro (Faltaba este override para que no salga texto negro sobre fondo negro) */
-.light-theme .cta-v3 {
-    background: var(--surface-3);
-    /* Fondo marfil/papel */
-    border-color: var(--stroke-2);
-}
-
-/* Footer en claro: menos bloque oscuro (si lo querés claro de verdad) */
-.light-theme .footer-premium-v3 {
-    background: var(--surface-3);
-    border-top: 1px solid var(--stroke-2);
-}
-
-.light-theme .footer-fiscal-row {
-    border-top: 1px solid rgba(15, 23, 42, 0.06);
-}
-
-/* 🌟 GOLD ACCENTS BOOST (Texto, badges, iconos) */
-.light-theme .gradient-text,
-.light-theme .text-glow {
-    /* Más vibrante, menos “marrón” */
-    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.3));
-}
-
-.light-theme .badge-popular {
-    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-    color: #0b1220;
-    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
-}
-
-.light-theme .stat-icon-wrapper,
-.light-theme .feature-icon-wrapper {
-    background: rgba(251, 191, 36, 0.15);
-    color: #d97706;
-    border: 1px solid rgba(251, 191, 36, 0.25);
-}
-
-/* Chat flotante: botón enviar */
-.light-theme .mock-send {
-    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
-}
-
-.light-theme .italic-serif {
-    color: #d97706;
-    /* Fallback si no aplica gradient */
-}
-
-/* 🌟 PRICING CARD "GOLD" (Profesional) */
-.light-theme .price-card-v3.featured {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(251, 191, 36, 0.05) 100%);
-    border: 1px solid rgba(217, 119, 6, 0.3);
-    /* Gold border */
-    box-shadow: 0 20px 50px -20px rgba(217, 119, 6, 0.15);
-}
-
-.light-theme .price-card-v3.featured .plan-name {
-    color: #d97706;
-    /* Dark gold text */
-    text-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
-}
-
-.light-theme .price-badge {
-    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-    color: #0b1220;
-    box-shadow: 0 8px 20px rgba(217, 119, 6, 0.3);
-}
-
-.light-theme .fiscal-separator {
-    color: rgba(15, 23, 42, 0.18);
 }

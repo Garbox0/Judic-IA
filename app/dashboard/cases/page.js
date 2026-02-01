@@ -11,10 +11,17 @@ import {
     Trash2,
     AlertTriangle,
     ChevronDown,
-    ChevronUp
+    ChevronUp,
+    Plus,
+    RotateCcw,
+    Bot,
+    Shield,
+    X,
+    CheckCircle2
 } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
+import ManualCaseModal from './ManualCaseModal';
 import './cases.css';
 
 export default function CasesPage() {
@@ -23,6 +30,13 @@ export default function CasesPage() {
     const [stats, setStats] = useState({ open: 0, in_progress: 0, closed: 0 });
     const [caseToDelete, setCaseToDelete] = useState(null);
     const [showVault, setShowVault] = useState(false); // Vault toggle
+    const [showManualModal, setShowManualModal] = useState(false);
+    const [notification, setNotification] = useState(null);
+
+    const showNotification = (message, type = 'success') => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 4000);
+    };
 
     const activeCases = cases.filter(c => c.status !== 'archived');
     const archivedCases = cases.filter(c => c.status === 'archived');
@@ -57,12 +71,14 @@ export default function CasesPage() {
                     contact_name,
                     contact_phone,
                     contact_email,
-                    case_type
+                    case_type,
+                    source
                 )
             `);
 
             if (profile?.org_id) {
-                query = query.eq('org_id', profile.org_id);
+                // Show cases from the org OR cases assigned directly to me
+                query = query.or(`org_id.eq.${profile.org_id},assigned_to.eq.${user.id}`);
             } else {
                 query = query.eq('assigned_to', user.id);
             }
@@ -79,6 +95,7 @@ export default function CasesPage() {
                 throw error;
             }
             setCases(data || []);
+            console.log("📂 Casos cargados:", data);
 
             // Calculate stats
             const newStats = (data || []).reduce((acc, c) => {
@@ -97,20 +114,45 @@ export default function CasesPage() {
     const handleDeleteCase = async () => {
         if (!caseToDelete) return;
         try {
-            const { error } = await supabase
-                .from('cases')
-                .delete()
-                .eq('id', caseToDelete.id);
+            // DEFENITIVE DELETE: Clean up case AND linked inquiry data
+            const res = await fetch("/api/clients/delete", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    inquiryId: caseToDelete.inquiry_id
+                })
+            });
 
-            if (error) throw error;
+            if (!res.ok) {
+                // Fallback to only case delete if API fails
+                const { error } = await supabase.from('cases').delete().eq('id', caseToDelete.id);
+                if (error) throw error;
+            }
 
             setCases(prev => prev.filter(c => c.id !== caseToDelete.id));
             setCaseToDelete(null);
             fetchCases();
+            showNotification("Expediente eliminado definitivamente.");
 
         } catch (error) {
             console.error("Delete Error:", error);
-            alert("Error al eliminar el expediente. Verifica tus permisos.");
+            showNotification("Error al eliminar el expediente definitivamente.", "error");
+        }
+    };
+
+    const handleArchiveCase = async (id, toArchive) => {
+        try {
+            const { error } = await supabase
+                .from('cases')
+                .update({ status: toArchive ? 'archived' : 'open' })
+                .eq('id', id);
+
+            if (error) throw error;
+            fetchCases();
+            showNotification(toArchive ? "Expediente archivado." : "Expediente restaurado.");
+        } catch (error) {
+            console.error("Archive Error:", error);
+            showNotification("Error al actualizar el expediente.", "error");
         }
     };
 
@@ -149,7 +191,15 @@ export default function CasesPage() {
                         <h1 className="dashboard-page-title">Expedientes del Estudio</h1>
                         <p>Gestión centralizada de casos oficiales y carpetas legales.</p>
                     </div>
-                    <UsageGuide content={dashboardManuals.cases} />
+                    <div className="header-actions">
+                        <button
+                            className="btn-new-case"
+                            onClick={() => setShowManualModal(true)}
+                        >
+                            <Plus size={18} /> Nuevo Expediente
+                        </button>
+                        <UsageGuide content={dashboardManuals.cases} />
+                    </div>
                 </div>
             </header>
 
@@ -200,12 +250,22 @@ export default function CasesPage() {
                                     <tr key={item.id}>
                                         <td>
                                             <div className="case-title-cell">
-                                                <strong>{item.title}</strong>
+                                                <div className="title-with-icon">
+                                                    {item.inquiry?.source === 'manual' ? (
+                                                        <Shield size={14} className="source-icon manual" title="Caso Manual" />
+                                                    ) : (
+                                                        <Bot size={14} className="source-icon ia" title="Caso IA" />
+                                                    )}
+                                                    <strong>{item.title}</strong>
+                                                </div>
                                                 <small>{item.inquiry?.contact_email || 'Sin email'}</small>
                                             </div>
                                         </td>
                                         <td>
-                                            <span className="matter-badge">{item.matter}</span>
+                                            <span className="matter-badge">
+                                                <Briefcase size={12} style={{ marginRight: '4px', opacity: 0.7 }} />
+                                                {item.matter}
+                                            </span>
                                         </td>
                                         <td>
                                             <span className="status-badge" style={{ backgroundColor: `${getStatusColor(item.status)}20`, color: getStatusColor(item.status), border: `1px solid ${getStatusColor(item.status)}40` }}>
@@ -218,7 +278,12 @@ export default function CasesPage() {
                                         <td>
                                             <div className="action-cell">
                                                 <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Abrir Carpeta"><FolderOpen size={16} /></Link>
-                                                <Link href={`/dashboard/clients?id=${item.inquiry_id}`} className="btn-chat" title="Ver Chat Original"><MessageSquare size={16} /></Link>
+                                                <button onClick={() => handleArchiveCase(item.id, true)} className="btn-archive" title="Archivar"><Archive size={16} /></button>
+                                                {item.inquiry?.source !== 'manual' ? (
+                                                    <Link href={`/dashboard/clients?id=${item.inquiry_id}`} className="btn-chat" title="Ver Chat Original"><MessageSquare size={16} /></Link>
+                                                ) : (
+                                                    <button className="btn-chat disabled" title="Chat no disponible (Manual)" disabled><MessageSquare size={16} /></button>
+                                                )}
                                                 <button onClick={() => setCaseToDelete(item)} className="btn-delete" title="Eliminar Expediente"><Trash2 size={16} /></button>
                                             </div>
                                         </td>
@@ -268,7 +333,9 @@ export default function CasesPage() {
                                             <td style={{ opacity: 0.7 }}><span className="date-cell">{new Date(item.updated_at).toLocaleDateString()}</span></td>
                                             <td>
                                                 <div className="action-cell">
-                                                    <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Abrir y Recuperar"><FolderOpen size={16} /></Link>
+                                                    <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Ver Carpeta"><FolderOpen size={16} /></Link>
+                                                    <button onClick={() => handleArchiveCase(item.id, false)} className="btn-unarchive" title="Desarchivar / Recuperar"><RotateCcw size={16} /></button>
+                                                    <button onClick={() => setCaseToDelete(item)} className="btn-delete" title="Eliminar Definitivamente"><Trash2 size={16} /></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -284,18 +351,34 @@ export default function CasesPage() {
             {caseToDelete && (
                 <div className="modal-overlay">
                     <div className="modal-box glass-panel">
-                        <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}><AlertTriangle size={48} className="text-amber-500" /></div>
-                        <h2>¿Eliminar Expediente?</h2>
+                        <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}><AlertTriangle size={48} className="text-red-500" /></div>
+                        <h2>¿Eliminar Definitivamente?</h2>
                         <p>Se borrará la "Carpeta Legal" <strong>{caseToDelete.title}</strong>.</p>
-                        <p>El usuario y su chat NO se verán afectados.</p>
+                        <p>Se eliminará el expediente, toda su documentación y chats asociados de forma irreversible.</p>
                         <div className="modal-actions">
                             <button onClick={() => setCaseToDelete(null)} className="btn-cancel">Cancelar</button>
-                            <button onClick={handleDeleteCase} className="btn-confirm-delete">Sí, Eliminar</button>
+                            <button onClick={handleDeleteCase} className="btn-confirm-delete">Sí, Borrar Todo</button>
                         </div>
                     </div>
                 </div>
             )}
 
+            {/* NOTIFICATION UI */}
+            {notification && (
+                <div className={`notification-toast ${notification.type}`}>
+                    {notification.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
+                    <span>{notification.message}</span>
+                    <button onClick={() => setNotification(null)} className="btn-close-toast"><X size={14} /></button>
+                </div>
+            )}
+
+
+            {/* MANUAL CASE MODAL */}
+            <ManualCaseModal
+                isOpen={showManualModal}
+                onClose={() => setShowManualModal(false)}
+                onRefresh={fetchCases}
+            />
 
         </div>
     );

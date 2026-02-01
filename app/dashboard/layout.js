@@ -17,9 +17,12 @@ import {
   Crown,
   Sparkles,
   Book,
-  Calculator
+  Calculator,
+  Sun,
+  Moon
 } from 'lucide-react';
 import SafeChatWidget from '../components/SafeChatWidget';
+import SessionGuard from '../components/SessionGuard';
 
 import './dashboard.css';
 
@@ -30,6 +33,19 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
   const [user, setUser] = useState(isDemo ? { email: 'demo@judicia.com', id: 'demo' } : null);
   const [profile, setProfile] = useState(isDemo ? (mockProfile || demoProfile) : null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [theme, setTheme] = useState('dark');
+
+  // Load theme from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('app-theme') || 'dark';
+    setTheme(savedTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    localStorage.setItem('app-theme', newTheme);
+  };
 
   useEffect(() => {
     if (isDemo) return; // Skip Auth Check in Demo Mode
@@ -115,7 +131,7 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
   };
 
   return (
-    <div className={`dashboard-layout ${isDemo ? 'demo-mode' : ''}`}>
+    <div className={`dashboard-layout ${isDemo ? 'demo-mode' : ''} ${theme === 'light' ? 'light-theme' : ''}`}>
       {/* MOBILE OVERLAY */}
       {mobileSidebarOpen && (
         <div
@@ -157,6 +173,16 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
               <span className="plan-inline"><Scale size={14} /> PLAN STARTER</span>
             )}
           </div>
+
+          {/* THEME TOGGLE BUTTON */}
+          <button
+            className="theme-toggle-btn"
+            onClick={toggleTheme}
+            title={`Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`}
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            <span>Ambiente {theme === 'dark' ? 'Claro' : 'Oscuro'}</span>
+          </button>
         </div>
 
         <nav className="nav-links">
@@ -248,13 +274,15 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
         {children}
       </main>
 
-      {/* Only show support widget if NOT in Demo Mode */}
       {!isDemo && (
         <SafeChatWidget
           mode="internal"
           initialMessage="Hola. Soy tu asistente de soporte técnico. ¿En qué puedo ayudarte?"
         />
       )}
+
+      {/* SECURITY HEARTBEAT */}
+      {!isDemo && <SessionGuard targetId={user?.id} tableName="profiles" />}
     </div>
   );
 }

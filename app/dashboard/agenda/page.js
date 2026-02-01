@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
+import { countJudicialBusinessDays, isJudicialBusinessDay, getJudicialNonBusinessReason } from '../../lib/dateUtils';
 import './agenda.css';
 
 // Helper to get days in month
@@ -41,25 +42,34 @@ const toISODate = (d) => {
     return `${yy}-${mm}-${dd}`;
 };
 
-// devuelve: { level: 'overdue'|'critical'|'high'|'medium'|'ok', label: 'CRÍTICO', hoursLeft: number }
+// devuelve: { level: 'overdue'|'critical'|'high'|'medium'|'ok', label: 'CRÍTICO', hoursLeft: number, businessDaysLeft: number }
 const getUrgency = (dueDateStr) => {
     const due = new Date(dueDateStr);
     const now = new Date();
     const diffMs = due - now;
     const hoursLeft = Math.ceil(diffMs / (1000 * 60 * 60));
 
-    if (hoursLeft <= 0) return { level: "overdue", label: "VENCIDO", hoursLeft };
-    if (hoursLeft <= 24) return { level: "critical", label: "CRÍTICO", hoursLeft };
-    if (hoursLeft <= 72) return { level: "high", label: "ALTO", hoursLeft };
-    if (hoursLeft <= 168) return { level: "medium", label: "MEDIO", hoursLeft };
-    return { level: "ok", label: "OK", hoursLeft };
+    // Calculate judicial business days left
+    const businessDaysLeft = countJudicialBusinessDays(now, due);
+
+    if (hoursLeft <= 0) return { level: "overdue", label: "VENCIDO", hoursLeft, businessDaysLeft: 0 };
+
+    // Critical if 0 business days left (vence hoy hábil) or hours < 24
+    if (businessDaysLeft === 0 || hoursLeft <= 24) return { level: "critical", label: "CRÍTICO", hoursLeft, businessDaysLeft };
+    if (businessDaysLeft <= 2) return { level: "high", label: "ALTO", hoursLeft, businessDaysLeft };
+    if (businessDaysLeft <= 5) return { level: "medium", label: "MEDIO", hoursLeft, businessDaysLeft };
+
+    return { level: "ok", label: "OK", hoursLeft, businessDaysLeft };
 };
 
-const humanCountdown = (hoursLeft) => {
-    if (hoursLeft <= 0) return "vencido";
-    if (hoursLeft < 24) return `en ${hoursLeft}h`;
-    const days = Math.ceil(hoursLeft / 24);
-    return `en ${days}d`;
+const humanCountdown = (urgency) => {
+    if (urgency.hoursLeft <= 0) return "vencido";
+    if (urgency.hoursLeft < 24) return `en ${urgency.hoursLeft}h (Hoy)`;
+
+    const d = urgency.businessDaysLeft;
+    if (d === 0) return "vence hoy (hábil)";
+    if (d === 1) return "vence mañana (hábil)";
+    return `en ${d} días hábiles`;
 };
 
 
@@ -75,12 +85,12 @@ export default function AgendaPage() {
     const [showHistory, setShowHistory] = useState(false);
     const [hoverDay, setHoverDay] = useState(null);
 
-    const openHover = (e, dateStr, items) => {
-        if (!items || items.length === 0) return;
+    const openHover = (e, dateStr, items, reason = null) => {
+        if ((!items || items.length === 0) && !reason) return;
         const w = 340, h = 240, pad = 16;
         const x = Math.min(e.clientX + 14, window.innerWidth - w - pad);
         const y = Math.min(e.clientY + 14, window.innerHeight - h - pad);
-        setHoverDay({ dateStr, x, y, items });
+        setHoverDay({ dateStr, x, y, items, reason });
     };
 
     const moveHover = (e) => {
@@ -207,12 +217,14 @@ export default function AgendaPage() {
         const uniqueTypes = [...new Set(dayEvents.map((ev) => ev.type))].slice(0, 3);
         const extraCount = Math.max(0, dayEvents.length - uniqueTypes.length);
 
+        const nonBusinessReason = getJudicialNonBusinessReason(new Date(year, month, d));
+
         days.push(
             <div
                 key={d}
-                className={`calendar-day ${isToday ? 'today' : ''} ${hasEvents ? 'has-events' : ''}`}
-                onMouseEnter={(e) => openHover(e, dateStr, dayEvents)}
-                onMouseMove={hasEvents ? moveHover : undefined}
+                className={`calendar-day ${isToday ? 'today' : ''} ${hasEvents ? 'has-events' : ''} ${nonBusinessReason ? 'non-business' : ''}`}
+                onMouseEnter={(e) => openHover(e, dateStr, dayEvents, nonBusinessReason)}
+                onMouseMove={(hasEvents || nonBusinessReason) ? moveHover : undefined}
                 onMouseLeave={closeHover}
             >
                 <span className="day-number">{d}</span>
@@ -302,7 +314,7 @@ export default function AgendaPage() {
                                     checked={onlyCritical}
                                     onChange={(e) => setOnlyCritical(e.target.checked)}
                                 />
-                                Solo críticos
+                                <span>Solo críticos</span>
                             </label>
                         </div>
                     </div>
@@ -324,7 +336,7 @@ export default function AgendaPage() {
                                         <div className="card-main">
                                             <div className="card-top">
                                                 <div className="badge">{ev.urgency.label}</div>
-                                                <div className="countdown">{humanCountdown(ev.urgency.hoursLeft)}</div>
+                                                <div className="countdown">{humanCountdown(ev.urgency)}</div>
                                             </div>
 
                                             {ev.inquiries?.contact_name && (
@@ -355,7 +367,7 @@ export default function AgendaPage() {
                                         <div className="card-main">
                                             <div className="card-top">
                                                 <div className="badge">{ev.urgency.label}</div>
-                                                <div className="countdown">{humanCountdown(ev.urgency.hoursLeft)}</div>
+                                                <div className="countdown">{humanCountdown(ev.urgency)}</div>
                                             </div>
 
                                             {ev.inquiries?.contact_name && (
@@ -386,7 +398,7 @@ export default function AgendaPage() {
                                         <div className="card-main">
                                             <div className="card-top">
                                                 <div className="badge">{ev.urgency.label}</div>
-                                                <div className="countdown">{humanCountdown(ev.urgency.hoursLeft)}</div>
+                                                <div className="countdown">{humanCountdown(ev.urgency)}</div>
                                             </div>
 
                                             {ev.inquiries?.contact_name && (
@@ -424,8 +436,21 @@ export default function AgendaPage() {
                                 weekday: 'long', day: 'numeric', month: 'long'
                             })}
                         </div>
-                        <div className="tt-count">{hoverDay.items.length} plazos</div>
+                        <div className="tt-count">
+                            {hoverDay.reason && (
+                                <span className="reason-badge" style={{ background: '#ef4444', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '800', marginRight: '8px' }}>
+                                    {hoverDay.reason.toUpperCase()}
+                                </span>
+                            )}
+                            {hoverDay.items.length} plazos
+                        </div>
                     </div>
+
+                    {hoverDay.items.length === 0 && hoverDay.reason && (
+                        <div className="tt-empty" style={{ padding: '8px 0', fontSize: '0.85rem', color: '#94a3b8' }}>
+                            Día inhábil judicial. No se cuentan términos procesales.
+                        </div>
+                    )}
 
                     <div className="tt-list">
                         {hoverDay.items.slice(0, 6).map((ev) => (

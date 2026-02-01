@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { addJudicialBusinessDays } from '../../lib/dateUtils';
 
 export default function EventModal({ isOpen, onClose, onEventCreated, initialData }) {
     const [eventData, setEventData] = useState({
@@ -20,8 +21,10 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
     const [calcDays, setCalcDays] = useState(3);
 
     useEffect(() => {
-        if (showCalculator) {
-            const resultDate = addBusinessDays(calcStart, parseInt(calcDays) || 0);
+        if (showCalculator && calcStart) {
+            const [y, m, d] = calcStart.split('-');
+            const startDate = new Date(y, m - 1, d);
+            const resultDate = addJudicialBusinessDays(startDate, parseInt(calcDays) || 0);
             const isoDate = resultDate.toISOString().split('T')[0];
             setEventData(prev => ({ ...prev, date: isoDate }));
         }
@@ -264,18 +267,4 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
             `}</style>
         </div>
     );
-}
-
-// Helper for business days (skipping Sat/Sun)
-function addBusinessDays(startDate, days) {
-    let count = 0;
-    const curDate = new Date(startDate);
-    while (count < days) {
-        curDate.setDate(curDate.getDate() + 1);
-        const day = curDate.getDay();
-        if (day !== 0 && day !== 6) { // 0=Sun, 6=Sat
-            count++;
-        }
-    }
-    return curDate;
 }
