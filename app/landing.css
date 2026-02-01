@@ -1141,10 +1141,12 @@ body::before {
 
 /* 🛡️ TRUST BADGES SYSTEM */
 .trust-badges-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: flex-end;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+    align-items: center;
+    justify-items: end;
+    /* Keep them aligned to the right side generally */
 }
 
 .trust-badge {
