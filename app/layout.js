@@ -20,6 +20,9 @@ export const metadata = {
   description: "Asistente digital para abogados que automatiza y clasifica consultas legales con inteligencia artificial.",
   keywords: ["abogados", "inteligencia artificial", "jurisprudencia", "agenda legal", "gestión de clientes"],
   robots: "index, follow",
+  other: {
+    "norton-safeweb-site-verification": "9ZN9ZW25NIQ4-ROKBX9DNYYN4E8MJUSBQEHQXVNQ6E8BB5XK9BPWA3YJ5K30C27PP1NQJF-6-9lIJXQRGMXPRA3UZ-JGXINFMENUNTP2JADZTXSVR9OWRAX2Y8-8N6Y3",
+  },
 };
 
 export const viewport = {
