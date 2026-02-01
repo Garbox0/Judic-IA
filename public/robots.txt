@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Allow: /Gensw_f0ab04d1b03d401.html
 Disallow: /dashboard/
 Disallow: /api/
 Disallow: /admin/
