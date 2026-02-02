@@ -28,14 +28,6 @@ export async function GET(request) {
     const authCookieName = isClientContext ? 'sb-judicia-client' : 'sb-judicia-auth';
     const token = isClientContext ? cookieStore.get('sb-judicia-client-auth-token') : cookieStore.get('sb-judicia-auth-token');
 
-    // DEBUG LOGS
-    console.log(`🔍 [API/CHAT] Auth Debug:`, {
-        sessionId,
-        foundCookie: token?.name,
-        cookieValueSample: token?.value?.substring(0, 10) + '...',
-        allCookies: cookieStore.getAll().map(c => c.name)
-    });
-
     const authClient = createServerClient(supabaseUrl, anonKey, {
         cookies: {
             getAll() { return cookieStore.getAll() },
@@ -49,11 +41,6 @@ export async function GET(request) {
     });
 
     const { data: { user } } = await authClient.auth.getUser();
-
-    console.log(`👤 [API/CHAT] User Resolved:`, {
-        userId: user?.id,
-        email: user?.email
-    });
 
     let db = publicSupabase;
 
@@ -84,28 +71,10 @@ export async function GET(request) {
         const isUnclaimed = !inquiry.client_auth_id;
         const isOwner = (user && (user.id === inquiry.assigned_lawyer_id || user.id === inquiry.client_auth_id)) || isUnclaimed;
 
-        console.log(`🛡️ [API/CHAT] Auth Check:`, {
-            reqUser: user?.id,
-            inqLawyer: inquiry.assigned_lawyer_id,
-            inqClient: inquiry.client_auth_id,
-            isUnclaimed,
-            isOwner
-        });
-
         if (!isOwner) {
             console.warn(`🚫 UNAUTHORIZED HISTORY ATTEMPT: User ${user?.id} tried to read session ${sessionId} (Unclaimed: ${isUnclaimed})`);
             return NextResponse.json({
-                error: "No tienes permiso para ver este historial.",
-                debug: {
-                    userId: user?.id || 'null',
-                    authCookie: authCookieName,
-                    hasCookie: !!token,
-                    inquiryId: inquiry?.id,
-                    inqClient: inquiry.client_auth_id,
-                    inqLawyer: inquiry.assigned_lawyer_id,
-                    isUnclaimed,
-                    expectedClient: user?.id
-                }
+                error: "No tienes permiso para ver este historial."
             }, { status: 403 });
         }
 
@@ -141,7 +110,6 @@ export async function POST(request) {
 
     // Use Service Role Key if available to bypass RLS (Crucial for Public Intake)
     let db = publicSupabase;
-    console.log("🔑 Checking Permissions: Service Role Key is", serviceRoleKey ? "LOADED ✅" : "MISSING ❌");
 
     if (serviceRoleKey) {
         db = createClient(

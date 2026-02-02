@@ -55,10 +55,10 @@ export async function middleware(request) {
 
     // (Opcional) Norton Safe Web / Symantec scanner por User-Agent
     const ua = request.headers.get('user-agent') || '';
-    const isNortonScanner = /norton|safeweb|symantec|sitechecker|bot|crawler/i.test(ua);
+    const isNortonScanner = /norton|safeweb|symantec|sitechecker|bot|crawler|observatory/i.test(ua);
 
     // 🛡️ Norton whitelist por IP (si querés mantenerlo, pero ya no dependas solo de esto)
-    const isWhitelistedIP = ip && (ip === '172.174.7.55' || ip.startsWith('172.174.'));
+    const isWhitelistedIP = ip && (ip === '172.174.7.55' || ip.startsWith('172.174.') || ip === '34.168.125.223');
 
     if (country && country !== 'AR' && !isWebhook && !isWhitelistedIP && !isPublicScanPath && !isNortonScanner) {
         console.warn(`⛔ BLOCKED ACCESS from ${country} (IP: ${ip})`);
@@ -88,6 +88,12 @@ export async function middleware(request) {
     requestHeaders.set('x-nonce', nonce)
 
     const hostname = request.headers.get('host') || ''
+
+    // 🛡️ 0.1 HSTS & REDIRECT (Security Drill)
+    const protocol = request.headers.get('x-forwarded-proto');
+    if (protocol === 'http' && !hostname.includes('localhost')) {
+        return NextResponse.redirect(`https://${hostname}${pathname}`, 301);
+    }
 
     // 🌐 SUBDOMAIN ROUTING
     const isClientSubdomain = hostname.startsWith('consultas.')
@@ -230,6 +236,11 @@ export async function middleware(request) {
     }
 
     // 🛡️ 5. APLICACIÓN FINAL DE CABECERAS
+    finalResponse.headers.set('X-Content-Type-Options', 'nosniff')
+    finalResponse.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
+    finalResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+    finalResponse.headers.set('X-Frame-Options', 'SAMEORIGIN')
+
     // No aplicar CSP en rutas de API para evitar bloqueos innecesarios
     if (!pathname.startsWith('/api/')) {
         finalResponse.headers.set('Content-Security-Policy', cspHeader)

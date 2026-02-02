@@ -46,11 +46,8 @@ export default function IntakeFormContent({ id }) {
             }
 
             // 2. AUTH PROTECTION
-            console.log("🔍 Checking auth status...");
-            const { data: { user }, error: authError } = await supabase.auth.getUser();
 
             if (authError || !user) {
-                console.log("🔒 Usuario no autenticado o sesión inválida. Error:", authError);
                 const redirectUrl = `/consultas/auth?lawyerId=${id}${cid ? `&cid=${cid}` : ''}`;
                 router.push(redirectUrl);
                 return;
@@ -60,17 +57,8 @@ export default function IntakeFormContent({ id }) {
             setClientUserId(user.id);
             setClientName(user.user_metadata?.full_name || '');
             setClientPhone(user.user_metadata?.phone || '');
-            console.log("🔓 Usuario autenticado:", user.email, user.id, "Metadata:", user.user_metadata);
 
-            // 3. STRICT RELATIONSHIP CHECK (The "Zombie" Fix)
-            console.log("🔍 Fetching inquiry data for:", {
-                lawyerId: id,
-                userId: user.id,
-                email: user.email
-            });
-
-            const { data: inquiryRows, error: inquiryError } = await supabase
-                .from('inquiries')
+            const { data: inquiryRows, error: inquiryError } = await supabase.from('inquiries')
                 .select('id, status')
                 .eq('assigned_lawyer_id', id)
                 .or(`client_auth_id.eq.${user.id},contact_email.eq.${user.email}`)
@@ -109,8 +97,6 @@ export default function IntakeFormContent({ id }) {
                     // RETRY LOGIC (Max 5 times)
                     const retries = parseInt(sessionStorage.getItem('intake_retries') || '0');
                     if (retries < 5) {
-                        console.log(`⏳ Retry ${retries + 1}/5. Waiting for sync...`);
-                        sessionStorage.setItem('intake_retries', (retries + 1).toString());
                         setTimeout(checkAuthAndFetchLawyer, 3000);
                         return;
                     } else {
@@ -123,7 +109,6 @@ export default function IntakeFormContent({ id }) {
                 }
             }
             sessionStorage.removeItem('intake_retries');
-            console.log("✅ Inquiry found:", inquiryData.id);
             setActiveInquiryId(inquiryData.id);
 
             // 4. REALTIME KILL SWITCH
