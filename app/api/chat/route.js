@@ -23,8 +23,8 @@ export async function GET(request) {
     // 🛡️ Identify User (Unified Cookie Lane for Stability)
     // CHECK BOTH COOKIES (Lawyer & Client)
     const cookieStore = await cookies();
-    const token = cookieStore.get('sb-judicia-client') || cookieStore.get('sb-judicia-auth');
-    const authCookieName = token?.name || 'sb-judicia-auth';
+    const token = cookieStore.get('sb-judicia-client-auth-token') || cookieStore.get('sb-judicia-auth-token');
+    const authCookieName = token ? (token.name.replace('-auth-token', '')) : 'sb-judicia-auth';
 
     // DEBUG LOGS
     console.log(`🔍 [API/CHAT] Auth Debug:`, {
