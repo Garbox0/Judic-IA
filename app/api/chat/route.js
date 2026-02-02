@@ -21,8 +21,11 @@ export async function GET(request) {
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     // 🛡️ Identify User (Unified Cookie Lane for Stability)
-    const AUTH_COOKIE = 'sb-judicia-auth';
+    // CHECK BOTH COOKIES (Lawyer & Client)
     const cookieStore = await cookies();
+    const token = cookieStore.get('sb-judicia-client') || cookieStore.get('sb-judicia-auth');
+    const authCookieName = token?.name || 'sb-judicia-auth';
+
     const authClient = createServerClient(supabaseUrl, anonKey, {
         cookies: {
             getAll() { return cookieStore.getAll() },
@@ -32,7 +35,7 @@ export async function GET(request) {
                 )
             },
         },
-        cookieOptions: { name: AUTH_COOKIE }
+        cookieOptions: { name: authCookieName }
     });
 
     const { data: { user } } = await authClient.auth.getUser();
@@ -333,6 +336,21 @@ export async function POST(request) {
 
             // CRITICAL: Assign Lawyer and Link Client Auth
             if (mode === 'intake' && lawyerId) {
+                // [FK GUARD] Verify Lawyer Profile Exists (Prevent 500 FK Violation)
+                const { data: lawyerProfile } = await db
+                    .from('profiles')
+                    .select('id')
+                    .eq('id', lawyerId)
+                    .maybeSingle();
+
+                if (!lawyerProfile) {
+                    console.warn(`🚫 BLOCKED: Lawyer ID ${lawyerId} does not exist in profiles.`);
+                    return NextResponse.json({
+                        error: "El abogado asignado no tiene un perfil activo. Contacta a soporte.",
+                        code: "LAWYER_NOT_FOUND"
+                    }, { status: 404 });
+                }
+
                 upsertData.assigned_lawyer_id = lawyerId;
                 if (clientUserId) upsertData.client_auth_id = clientUserId;
                 if (clientEmail) upsertData.contact_email = clientEmail;

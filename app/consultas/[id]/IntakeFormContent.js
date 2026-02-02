@@ -233,7 +233,7 @@ export default function IntakeFormContent({ id }) {
             {/* Navbar Minimal */}
             <nav className="glass-navbar" style={{ justifyContent: 'center' }}>
                 <div className="nav-brand">
-                    <img src="/logo.png" alt="Logo" className="nav-logo" />
+                    <img src="/judic-ia-mark.png" alt="Logo" className="nav-logo" style={{ height: '32px', width: 'auto' }} />
                     <span className="nav-title">Judic-IA Intake</span>
                 </div>
             </nav>

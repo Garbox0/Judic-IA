@@ -19,7 +19,7 @@ const nextConfig = {
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       img-src 'self' blob: data: https: https://aeecmwzmarjzliwctqcx.supabase.co https://www.googletagmanager.com https://www.google-analytics.com;
       font-src 'self' data: https://fonts.gstatic.com;
-      connect-src 'self' https://aeecmwzmarjzliwctqcx.supabase.co https://www.google-analytics.com https://api.mercadopago.com https://events.mercadopago.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com;
+      connect-src 'self' https://aeecmwzmarjzliwctqcx.supabase.co wss://aeecmwzmarjzliwctqcx.supabase.co https://www.google-analytics.com https://api.mercadopago.com https://events.mercadopago.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com;
       frame-src 'self' https://www.google.com https://sandbox.mercadopago.com.ar https://www.mercadopago.com.ar;
       object-src 'none';
       base-uri 'self';
