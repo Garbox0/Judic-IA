@@ -169,8 +169,8 @@
     margin-bottom: 1.5rem;
 }
 
-.btn-back-premium {
-    position: absolute;
+.btn-back-auth-fixed {
+    position: fixed;
     top: 2rem;
     left: 2rem;
     color: #94a3b8;
@@ -178,9 +178,10 @@
     font-size: 0.85rem;
     font-weight: 500;
     transition: 0.3s;
+    z-index: 100;
 }
 
-.btn-back-premium:hover {
+.btn-back-auth-fixed:hover {
     color: #fbbf24;
 }
 
@@ -241,6 +242,7 @@
 /* PASSWORD RULES & TOGGLE */
 .pass-input-wrapper {
     position: relative;
+    width: 100%;
 }
 
 .eye-toggle-premium {
@@ -251,10 +253,12 @@
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 1.2rem;
-    opacity: 0.5;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
     transition: 0.3s;
-    color: white;
 }
 
 .eye-toggle-premium:hover {
@@ -286,4 +290,90 @@
 
 .password-checklist-premium p.invalid {
     color: #fca5a5;
+}
+
+.theme-toggle-auth-fixed {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    z-index: 100;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fbbf24;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle-auth-fixed:hover {
+    background: rgba(251, 191, 36, 0.1);
+    transform: scale(1.1);
+}
+
+/* LIGHT THEME OVERRIDES */
+.light-theme .auth-main {
+    background: radial-gradient(circle at 50% 10%, #f8fafc, #e2e8f0);
+}
+
+.light-theme .glass-premium {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: rgba(0, 0, 0, 0.05);
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.08);
+}
+
+.light-theme .brand-name-premium {
+    color: #d97706;
+}
+
+.light-theme .input-field input,
+.light-theme select {
+    background: white;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.light-theme .input-field label {
+    color: #64748b;
+}
+
+.light-theme .brand-status,
+.light-theme .brand-desc,
+.light-theme .confirmed-text,
+.light-theme .auth-nav-footer {
+    color: #64748b;
+}
+
+.light-theme .btn-back-auth-fixed {
+    color: #475569;
+}
+
+.light-theme .btn-back-auth-fixed:hover {
+    color: #d97706;
+}
+
+.light-theme .theme-toggle-auth-fixed {
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #0f172a;
+}
+
+.light-theme .theme-toggle-auth-fixed:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.light-theme .password-checklist-premium {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.light-theme .password-checklist-premium p.valid {
+    color: #16a34a;
+}
+
+.light-theme .password-checklist-premium p.invalid {
+    color: #dc2626;
 }

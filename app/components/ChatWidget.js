@@ -88,10 +88,7 @@ export default function ChatWidget({
                             credentials: 'include'
                         });
                         if (res.status === 404) {
-                            // Session expired or new. Clean up if needed.
-                            if (mode !== 'demo' && mode !== 'lawyer_login') {
-                                // console.log("Session not found (fresh start).");
-                            }
+                            // Session new or not found. Silent return.
                             return;
                         }
                         if (!res.ok) throw new Error(`API Error: ${res.status}`);

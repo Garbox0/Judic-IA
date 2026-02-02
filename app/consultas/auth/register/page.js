@@ -2,6 +2,8 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
+import { Sun, Moon } from 'lucide-react';
 import SafeChatWidget from '../../../components/SafeChatWidget';
 import { supabase } from '../../../lib/supabase';
 import '../../../globals.css';
@@ -28,6 +30,39 @@ function RegisterContent() {
     const [confirmedSession, setConfirmedSession] = useState(null);
 
     const [redirectCountdown, setRedirectCountdown] = useState(null);
+    const [theme, setTheme] = useState('light');
+
+    // Load theme from cookies
+    useEffect(() => {
+        const themeCookie = document.cookie.split('; ').find(row => row.startsWith('app-theme='));
+        const savedTheme = themeCookie ? themeCookie.split('=')[1] : 'light';
+        setTheme(savedTheme);
+    }, []);
+
+    // Update body class and cookie when theme changes
+    useEffect(() => {
+        if (theme === 'light') {
+            document.body.classList.add('light-theme');
+        } else {
+            document.body.classList.remove('light-theme');
+        }
+        // Save to cookie for SSR/Middleware (shared across subdomains)
+        const expiry = new Date();
+        expiry.setFullYear(expiry.getFullYear() + 1);
+        document.cookie = `app-theme=${theme}; path=/; domain=.judic-ia.com; expires=${expiry.toUTCString()}; SameSite=Lax`;
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+    };
+
+    const [homeUrl, setHomeUrl] = useState('https://judic-ia.com/?public=true');
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
+            setHomeUrl('/');
+        }
+    }, []);
 
     const lawyerId = searchParams.get('lawyerId') || searchParams.get('lawyer');
     const cid = searchParams.get('cid');
@@ -247,206 +282,242 @@ function RegisterContent() {
     };
 
     return (
-        <div className="auth-card glass-premium fade-in">
-            <a href="https://judic-ia.com/?public=true" className="btn-back-premium">← Volver al Inicio</a>
+        <>
+            <a href={homeUrl} className="btn-back-auth-fixed">← Volver al Inicio</a>
 
-            {isConfirmed ? (
-                <div className="confirmed-ui fade-in">
-                    <div className="success-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
-                    <h1 className="brand-name-premium">¡Email Confirmado!</h1>
-                    <p className="confirmed-text">Tu privacidad ha sido asegurada. Ya puedes ingresar a la consulta.</p>
-                    <button onClick={enterIntake} className="btn-gold-action" disabled={loading}>
-                        {loading ? 'Preparando Chat...' : 'Ingresar al Chat Ahora'}
-                    </button>
-                </div>
-            ) : (
-                <>
-                    <header className="brand-header">
-                        <img src="/logo.png" alt="Judic-IA Logo" className="brand-logo-premium" />
-                        <h1 className="brand-name-premium">Judic-IA <span className="justice-emoji">⚖️</span></h1>
-                        <div className="brand-status">Acceso Seguro • Clientes</div>
-                        <p className="brand-desc">Crea una clave de acceso temporal para proteger tu privacidad y documentos durante esta sesión.</p>
-                    </header>
+            <button
+                onClick={toggleTheme}
+                className="theme-toggle-auth-fixed"
+                aria-label="Alternar tema"
+            >
+                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
 
-                    <form onSubmit={handleRegister} className="premium-form">
-                        <div className="input-field">
-                            <label>Tu Email</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="tu@email.com"
-                                required
+            <div className="auth-card glass-premium fade-in">
+                {!lawyerId ? (
+                    <div className="confirmed-ui slide-up">
+                        <div className="success-icon-premium error" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5', borderColor: 'rgba(239, 68, 68, 0.2)', boxShadow: 'none' }}>
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        </div>
+                        <h1 className="brand-name-premium" style={{ color: '#fca5a5' }}>Acceso Invalido</h1>
+                        <p className="confirmed-text" style={{ color: '#94a3b8' }}>
+                            No hemos podido identificar al profesional asociado a este enlace.
+                        </p>
+                        <div className="password-checklist-premium" style={{ marginBottom: '2rem', textAlign: 'left' }}>
+                            <p>• El enlace puede estar incompleto.</p>
+                            <p>• Intenta escanear el código QR nuevamente.</p>
+                            <p>• O solicita un nuevo link a tu abogado.</p>
+                        </div>
+                        <button onClick={() => window.location.reload()} className="btn-gold-action">
+                            Reintentar Carga
+                        </button>
+                    </div>
+                ) : isConfirmed ? (
+                    <div className="confirmed-ui fade-in">
+                        <div className="success-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                        <h1 className="brand-name-premium">¡Email Confirmado!</h1>
+                        <p className="confirmed-text">Tu privacidad ha sido asegurada. Ya puedes ingresar a la consulta.</p>
+                        <button onClick={enterIntake} className="btn-gold-action" disabled={loading}>
+                            {loading ? 'Preparando Chat...' : 'Ingresar al Chat Ahora'}
+                        </button>
+                    </div>
+                ) : (
+                    <>
+                        <header className="brand-header">
+                            <Image
+                                src="/judic-ia-mark.png"
+                                alt="Judic-IA Logo"
+                                className="brand-logo-premium"
+                                width={48}
+                                height={64}
+                                style={{ objectFit: 'contain' }}
+                                priority
                             />
-                        </div>
+                            <h1 className="brand-name-premium">Judic-IA <span className="justice-emoji">⚖️</span></h1>
+                            <div className="brand-status">Acceso Seguro • Clientes</div>
+                            <p className="brand-desc">Crea una clave de acceso temporal para proteger tu privacidad y documentos durante esta sesión.</p>
+                        </header>
 
-                        <div className="input-field">
-                            <label>Confirmar Email</label>
-                            <input
-                                type="email"
-                                value={confirmEmail}
-                                onChange={(e) => setConfirmEmail(e.target.value)}
-                                placeholder="Repite tu email"
-                                required
-                                style={{ borderColor: (confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase()) ? '#ef4444' : '' }}
-                            />
-                            {confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase() && (
-                                <div style={{ color: '#fca5a5', fontSize: '0.8rem', marginTop: '0.3rem' }}>No coinciden</div>
-                            )}
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '1rem' }}>
-                            <div className="input-field" style={{ flex: 1 }}>
-                                <label>Nombre</label>
+                        <form onSubmit={handleRegister} className="premium-form">
+                            <div className="input-field">
+                                <label>Tu Email</label>
                                 <input
-                                    type="text"
-                                    value={firstName}
-                                    onChange={(e) => setFirstName(e.target.value)}
-                                    placeholder="Juan"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="tu@email.com"
                                     required
                                 />
                             </div>
-                            <div className="input-field" style={{ flex: 1 }}>
-                                <label>Apellido</label>
+
+                            <div className="input-field">
+                                <label>Confirmar Email</label>
                                 <input
-                                    type="text"
-                                    value={lastName}
-                                    onChange={(e) => setLastName(e.target.value)}
-                                    placeholder="Pérez"
+                                    type="email"
+                                    value={confirmEmail}
+                                    onChange={(e) => setConfirmEmail(e.target.value)}
+                                    placeholder="Repite tu email"
                                     required
+                                    style={{ borderColor: (confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase()) ? '#ef4444' : '' }}
                                 />
-                            </div>
-                        </div>
-
-                        <div className="input-field">
-                            <label>Celular</label>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <select
-                                    value={countryCode}
-                                    onChange={(e) => setCountryCode(e.target.value)}
-                                    style={{
-                                        width: '130px',
-                                        padding: '1rem 0.5rem',
-                                        background: '#020617',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                                        borderRadius: '14px',
-                                        color: 'white',
-                                        fontSize: '0.9rem',
-                                        outline: 'none'
-                                    }}
-                                >
-                                    <option value="+54 9">+54 9 (AR)</option>
-                                    <option value="+598">+598 (UY)</option>
-                                    <option value="+56">+56 (CL)</option>
-                                    <option value="+55">+55 (BR)</option>
-                                    <option value="+57">+57 (CO)</option>
-                                    <option value="+1">+1 (US/CA)</option>
-                                </select>
-                                <input
-                                    type="tel"
-                                    style={{ flex: 1 }}
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value)}
-                                    placeholder="11 1234 5678"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="input-field">
-                            <label>Crear Clave de Acceso</label>
-                            <div className="pass-input-wrapper">
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    required
-                                />
-                                <button type="button" className="eye-toggle-premium" onClick={() => setShowPassword(!showPassword)}>
-                                    {showPassword ? (
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                    ) : (
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="input-field">
-                            <label>Repetir Clave</label>
-                            <div className="pass-input-wrapper">
-                                <input
-                                    type={showConfirmPassword ? "text" : "password"}
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    required
-                                />
-                                <button type="button" className="eye-toggle-premium" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                                    {showConfirmPassword ? (
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                    ) : (
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* PASSWORD RULES */}
-                        <div className="password-checklist-premium">
-                            <p className={passwordValidations.length ? 'valid' : ''}>
-                                {passwordValidations.length ? '✓' : '✗'} Mínimo 8 caracteres
-                            </p>
-                            <p className={passwordValidations.uppercase ? 'valid' : ''}>
-                                {passwordValidations.uppercase ? '✓' : '✗'} Al menos 1 Mayúscula
-                            </p>
-                            <p className={passwordValidations.number ? 'valid' : ''}>
-                                {passwordValidations.number ? '✓' : '✗'} Al menos 1 Número
-                            </p>
-                            <p className={passwordValidations.symbol ? 'valid' : ''}>
-                                {passwordValidations.symbol ? '✓' : '✗'} Al menos 1 Símbolo
-                            </p>
-                            {confirmPassword && (
-                                <p className={passwordsMatch ? 'valid' : 'invalid'}>
-                                    {passwordsMatch ? '✓' : '✗'} Las contraseñas coinciden
-                                </p>
-                            )}
-                        </div>
-
-                        {error && <div className="error-premium">{error}</div>}
-                        {message && (
-                            <div className="success-premium">
-                                {message}
-                                <br />
-                                <small style={{ color: '#fff', display: 'block', marginTop: '5px' }}>
-                                    Si no lo ves, <strong>revisá SPAM</strong>.
-                                </small>
-                                {redirectCountdown !== null && (
-                                    <div style={{ marginTop: '0.8rem', fontWeight: 700, color: '#white' }}>
-                                        Redirigiendo al login en {redirectCountdown} segundos...
-                                    </div>
+                                {confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase() && (
+                                    <div style={{ color: '#fca5a5', fontSize: '0.8rem', marginTop: '0.3rem' }}>No coinciden</div>
                                 )}
                             </div>
-                        )}
 
-                        <button type="submit" className="btn-gold-action" disabled={loading || !isPasswordStrong || !passwordsMatch || !emailsMatch || message}>
-                            {loading ? 'Creando Acceso...' : 'Comenzar Consulta Segura'}
-                        </button>
-                    </form>
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <div className="input-field" style={{ flex: 1 }}>
+                                    <label>Nombre</label>
+                                    <input
+                                        type="text"
+                                        value={firstName}
+                                        onChange={(e) => setFirstName(e.target.value)}
+                                        placeholder="Juan"
+                                        required
+                                    />
+                                </div>
+                                <div className="input-field" style={{ flex: 1 }}>
+                                    <label>Apellido</label>
+                                    <input
+                                        type="text"
+                                        value={lastName}
+                                        onChange={(e) => setLastName(e.target.value)}
+                                        placeholder="Pérez"
+                                        required
+                                    />
+                                </div>
+                            </div>
 
-                    <div className="divider-premium"><span>o</span></div>
+                            <div className="input-field">
+                                <label>Celular</label>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <select
+                                        value={countryCode}
+                                        onChange={(e) => setCountryCode(e.target.value)}
+                                        style={{
+                                            width: '130px',
+                                            padding: '1rem 0.5rem',
+                                            background: '#020617',
+                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            borderRadius: '14px',
+                                            color: 'white',
+                                            fontSize: '0.9rem',
+                                            outline: 'none'
+                                        }}
+                                    >
+                                        <option value="+54 9">+54 9 (AR)</option>
+                                        <option value="+598">+598 (UY)</option>
+                                        <option value="+56">+56 (CL)</option>
+                                        <option value="+55">+55 (BR)</option>
+                                        <option value="+57">+57 (CO)</option>
+                                        <option value="+1">+1 (US/CA)</option>
+                                    </select>
+                                    <input
+                                        type="tel"
+                                        style={{ flex: 1 }}
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        placeholder="11 1234 5678"
+                                        required
+                                    />
+                                </div>
+                            </div>
 
-                    <footer className="auth-nav-footer">
-                        <p>¿Ya tienes una clave?
-                            <button type="button" className="btn-text-gold" onClick={() => router.push(`/consultas/auth/login?${searchParams.toString()}`)}>
-                                Ingresar
+                            <div className="input-field">
+                                <label>Crear Clave de Acceso</label>
+                                <div className="pass-input-wrapper">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        required
+                                    />
+                                    <button type="button" className="eye-toggle-premium" onClick={() => setShowPassword(!showPassword)}>
+                                        {showPassword ? (
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                        ) : (
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="input-field">
+                                <label>Repetir Clave</label>
+                                <div className="pass-input-wrapper">
+                                    <input
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        required
+                                    />
+                                    <button type="button" className="eye-toggle-premium" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                        {showConfirmPassword ? (
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                        ) : (
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* PASSWORD RULES */}
+                            <div className="password-checklist-premium">
+                                <p className={passwordValidations.length ? 'valid' : ''}>
+                                    {passwordValidations.length ? '✓' : '✗'} Mínimo 8 caracteres
+                                </p>
+                                <p className={passwordValidations.uppercase ? 'valid' : ''}>
+                                    {passwordValidations.uppercase ? '✓' : '✗'} Al menos 1 Mayúscula
+                                </p>
+                                <p className={passwordValidations.number ? 'valid' : ''}>
+                                    {passwordValidations.number ? '✓' : '✗'} Al menos 1 Número
+                                </p>
+                                <p className={passwordValidations.symbol ? 'valid' : ''}>
+                                    {passwordValidations.symbol ? '✓' : '✗'} Al menos 1 Símbolo
+                                </p>
+                                {confirmPassword && (
+                                    <p className={passwordsMatch ? 'valid' : 'invalid'}>
+                                        {passwordsMatch ? '✓' : '✗'} Las contraseñas coinciden
+                                    </p>
+                                )}
+                            </div>
+
+                            {error && <div className="error-premium">{error}</div>}
+                            {message && (
+                                <div className="success-premium">
+                                    {message}
+                                    <br />
+                                    <small style={{ color: '#fff', display: 'block', marginTop: '5px' }}>
+                                        Si no lo ves, <strong>revisá SPAM</strong>.
+                                    </small>
+                                    {redirectCountdown !== null && (
+                                        <div style={{ marginTop: '0.8rem', fontWeight: 700, color: '#white' }}>
+                                            Redirigiendo al login en {redirectCountdown} segundos...
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <button type="submit" className="btn-gold-action" disabled={loading || !isPasswordStrong || !passwordsMatch || !emailsMatch || message}>
+                                {loading ? 'Creando Acceso...' : 'Comenzar Consulta Segura'}
                             </button>
-                        </p>
-                    </footer>
-                </>
-            )}
-        </div>
+                        </form>
+
+                        <div className="divider-premium"><span>o</span></div>
+
+                        <footer className="auth-nav-footer">
+                            <p>¿Ya tienes una clave?
+                                <button type="button" className="btn-text-gold" onClick={() => router.push(`/consultas/auth/login?${searchParams.toString()}`)}>
+                                    Ingresar
+                                </button>
+                            </p>
+                        </footer>
+                    </>
+                )}
+            </div>
+        </>
     );
 }
 
@@ -471,7 +542,6 @@ function LoadingFallback() {
 export default function ClientRegisterPage() {
     return (
         <main className="auth-main">
-
             <div className="auth-container">
                 <Suspense fallback={<LoadingFallback />}>
                     <RegisterContent />

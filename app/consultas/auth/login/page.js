@@ -27,20 +27,24 @@ function LoginContent() {
     const [confirmationMessage, setConfirmationMessage] = useState(null);
     const [theme, setTheme] = useState('light');
 
-    // Load theme from localStorage
+    // Load theme from cookies
     useEffect(() => {
-        const savedTheme = localStorage.getItem('app-theme') || 'light';
+        const themeCookie = document.cookie.split('; ').find(row => row.startsWith('app-theme='));
+        const savedTheme = themeCookie ? themeCookie.split('=')[1] : 'light';
         setTheme(savedTheme);
     }, []);
 
-    // Update body class when theme changes
+    // Update body class and cookie when theme changes
     useEffect(() => {
         if (theme === 'light') {
             document.body.classList.add('light-theme');
         } else {
             document.body.classList.remove('light-theme');
         }
-        localStorage.setItem('app-theme', theme);
+        // Save to cookie for SSR/Middleware (shared across subdomains)
+        const expiry = new Date();
+        expiry.setFullYear(expiry.getFullYear() + 1);
+        document.cookie = `app-theme=${theme}; path=/; domain=.judic-ia.com; expires=${expiry.toUTCString()}; SameSite=Lax`;
     }, [theme]);
 
     const toggleTheme = () => {
@@ -298,36 +302,36 @@ function LoginContent() {
 
     return (
         <>
-            <a href={homeUrl} className="btn-back-premium">← Volver al Inicio</a>
+            <a href={homeUrl} className="btn-back-auth-fixed">← Volver al Inicio</a>
 
             <button
                 onClick={toggleTheme}
-                className="theme-toggle-auth"
+                className="theme-toggle-auth-fixed"
                 aria-label="Alternar tema"
-                style={{
-                    position: 'fixed',
-                    top: '2rem',
-                    right: '2rem',
-                    zIndex: 100,
-                    background: 'transparent',
-                    border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
-                    color: theme === 'dark' ? '#fbbf24' : '#0f172a',
-                    borderRadius: '50%',
-                    width: '36px',
-                    height: '36px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                }}
             >
                 {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
 
             <div className="auth-card glass-premium fade-in">
-
-                {isConfirmed ? (
+                {!lawyerId ? (
+                    <div className="confirmed-ui slide-up">
+                        <div className="success-icon-premium error" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5', borderColor: 'rgba(239, 68, 68, 0.2)', boxShadow: 'none' }}>
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        </div>
+                        <h1 className="brand-name-premium" style={{ color: '#fca5a5' }}>Acceso Invalido</h1>
+                        <p className="confirmed-text" style={{ color: '#94a3b8' }}>
+                            No hemos podido identificar al profesional asociado a este enlace.
+                        </p>
+                        <div className="password-checklist-premium" style={{ marginBottom: '2rem', textAlign: 'left' }}>
+                            <p>• El enlace puede estar incompleto.</p>
+                            <p>• Intenta escanear el código QR nuevamente.</p>
+                            <p>• O solicita un nuevo link a tu abogado.</p>
+                        </div>
+                        <button onClick={() => window.location.reload()} className="btn-gold-action">
+                            Reintentar Carga
+                        </button>
+                    </div>
+                ) : isConfirmed ? (
                     <div className="confirmed-ui slide-up">
                         <div className="success-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
                         <h1 className="brand-name-premium">¡Bienvenido!</h1>
@@ -349,6 +353,7 @@ function LoginContent() {
                                 width={48}
                                 height={64}
                                 style={{ objectFit: 'contain' }}
+                                priority
                             />
                             <h1 className="brand-name-premium">Judic-IA <span className="justice-emoji">⚖️</span></h1>
                             <div className="brand-status">Acceso Seguro • Clientes</div>
@@ -431,7 +436,6 @@ function LoadingFallback() {
 export default function ClientLoginPage() {
     return (
         <main className="auth-main">
-
             <div className="auth-container">
                 <Suspense fallback={<LoadingFallback />}>
                     <LoginContent />

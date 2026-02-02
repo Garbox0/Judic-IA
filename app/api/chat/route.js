@@ -138,6 +138,35 @@ export async function POST(request) {
             lawyerSpecialties, syncOnly // NEW: Skip AI response if just syncing
         } = body;
 
+        // 🛡️ SECURITY: Identify Authenticated User (Unified Cookie Lane)
+        const cookieStore = await cookies();
+        const hostname = request.headers.get('host') || '';
+        const isClientSubdomain = hostname.startsWith('consultas.');
+        const authCookieName = isClientSubdomain ? 'sb-judicia-client' : 'sb-judicia-auth';
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        const authClient = createServerClient(supabaseUrl, anonKey, {
+            cookies: {
+                getAll() { return cookieStore.getAll() },
+                setAll(cookiesToSet) {
+                    cookiesToSet.forEach(({ name, value, options }) =>
+                        cookieStore.set(name, value, options)
+                    )
+                },
+            },
+            cookieOptions: { name: authCookieName }
+        });
+
+        const { data: { user } } = await authClient.auth.getUser();
+
+        // [STRICT OWNERSHIP CHECK] 
+        // If clientUserId is provided, it MUST match the authenticated user's ID
+        if (clientUserId && user && user.id !== clientUserId) {
+            console.warn(`🚫 UNAUTHORIZED POST ATTEMPT: Authenticated user ${user.id} tried to act as ${clientUserId}`);
+            return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+        }
+
         let effectiveSessionId = sessionId;
 
         // [NEW] GLOBAL REVOCATION CHECK (The Kill Switch)
@@ -245,41 +274,42 @@ export async function POST(request) {
 
         // 2. SUPABASE: CREATE/UPDATE INQUIRY
         if (sessionId) {
-            // [SECURITY CHECK] PREVENT RESURRECTION OF DELETED CHATS
-            // If the client sends SIGNIFICANT history (implying an ongoing chat) but the inquiry is gone, block it.
-            // New clients have: 1 (Greeting) + 1 (User Message) = 2. 
-            // So we allow history <= 2. Only block if > 2.
+            // [SECURITY & DATA CONSOLIDATION] 
+            // Fetch inquiry once to check existence, ownership, and current metadata
+            const { data: currentInquiry } = await db
+                .from('inquiries')
+                .select('id, contact_name, contact_phone, client_auth_id, assigned_lawyer_id')
+                .eq('id', sessionId)
+                .maybeSingle();
 
-            console.log(`🛡️ Security Check | Session: ${sessionId} | History Length: ${history?.length || 0}`);
-
-            // Whitelist internal persistent modes from "Resurrection" check
-            // These modes use persistent IDs (auth-...) that should auto-recreate if missing
-            const isPersistentMode = mode === 'internal' || mode === 'lawyer_login';
-            const isOngoingChat = history && history.length > 2 && !isPersistentMode;
-
-            if (isOngoingChat) {
-                // Check if it exists FIRST
-                const { data: existingInquiry } = await db
-                    .from('inquiries')
-                    .select('id')
-                    .eq('id', sessionId)
-                    .maybeSingle();
-
-                if (!existingInquiry) {
-                    console.warn(`🚫 BLOCKED RESURRECTION: Session ${sessionId} was deleted.`);
+            // [STRICT OWNERSHIP CHECK]
+            // If the inquiry is already claimed by a client, only that client or the assigned lawyer can POST
+            if (currentInquiry && currentInquiry.client_auth_id) {
+                const isAuthorized = user && (user.id === currentInquiry.client_auth_id || user.id === currentInquiry.assigned_lawyer_id);
+                if (!isAuthorized) {
+                    console.warn(`🚫 UNAUTHORIZED SESSION ACCESS: user ${user?.id} tried to post to inquiry ${sessionId} owned by ${currentInquiry.client_auth_id}`);
                     return NextResponse.json({
-                        reply: "⛔ **SESIÓN REVOCADA**\n\nEl profesional ha cerrado este expediente. No es posible enviar más mensajes.",
-                        error: "SESSION_REVOKED"
+                        reply: "⛔ **ACCESO DENEGADO**\n\nNo tienes permiso para enviar mensajes en esta sesión.",
+                        error: "UNAUTHORIZED_SESSION_ACCESS"
                     }, { status: 403 });
                 }
             }
 
-            // [SMART UPSERT] Only overwrite name/phone if they are empty or "Nuevo Cliente"
-            const { data: currentInquiry } = await db
-                .from('inquiries')
-                .select('contact_name, contact_phone, id')
-                .eq('id', sessionId)
-                .maybeSingle();
+            // [SECURITY CHECK] PREVENT RESURRECTION OF DELETED CHATS
+            // ...
+            console.log(`🛡️ Security Check | Session: ${sessionId} | History Length: ${history?.length || 0}`);
+
+            // Whitelist internal persistent modes from "Resurrection" check
+            const isPersistentMode = mode === 'internal' || mode === 'lawyer_login';
+            const isOngoingChat = history && history.length > 2 && !isPersistentMode;
+
+            if (isOngoingChat && !currentInquiry) {
+                console.warn(`🚫 BLOCKED RESURRECTION: Session ${sessionId} was deleted.`);
+                return NextResponse.json({
+                    reply: "⛔ **SESIÓN REVOCADA**\n\nEl profesional ha cerrado este expediente. No es posible enviar más mensajes.",
+                    error: "SESSION_REVOKED"
+                }, { status: 403 });
+            }
 
             // [ZOMBIE REBIRTH PREVENTION 2.2]
             const isSystemSync = message.includes('[SISTEMA:');
