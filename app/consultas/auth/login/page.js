@@ -397,39 +397,40 @@ function LoginContent() {
                     </>
                 )}
             </div>
-            );
+        </>
+    );
 }
 
-            function LoadingFallback() {
+function LoadingFallback() {
     return (
-            <div className="auth-card glass-premium">
-                <header className="brand-header">
-                    <div className="brand-logo-premium" style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }}></div>
-                    <div style={{ height: '30px', width: '60%', margin: '0 auto 10px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
-                    <div style={{ height: '20px', width: '40%', margin: '0 auto', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
-                </header>
-                <div className="premium-form" style={{ gap: '2rem' }}>
-                    <div style={{ height: '50px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '14px' }}></div>
-                    <div style={{ height: '50px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '14px' }}></div>
-                    <div style={{ height: '50px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '14px' }}></div>
-                </div>
+        <div className="auth-card glass-premium">
+            <header className="brand-header">
+                <div className="brand-logo-premium" style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }}></div>
+                <div style={{ height: '30px', width: '60%', margin: '0 auto 10px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
+                <div style={{ height: '20px', width: '40%', margin: '0 auto', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
+            </header>
+            <div className="premium-form" style={{ gap: '2rem' }}>
+                <div style={{ height: '50px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '14px' }}></div>
+                <div style={{ height: '50px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '14px' }}></div>
+                <div style={{ height: '50px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '14px' }}></div>
             </div>
-            );
+        </div>
+    );
 }
 
-            export default function ClientLoginPage() {
+export default function ClientLoginPage() {
     return (
-            <main className="auth-main">
+        <main className="auth-main">
 
-                <div className="auth-container">
-                    <Suspense fallback={<LoadingFallback />}>
-                        <LoginContent />
-                    </Suspense>
-                </div>
-                {/* Global Fixed Widget */}
-                <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999 }}>
-                    <SafeChatWidget mode="client_help" initialMessage="¿Problemas para ingresar? Pregúntame." />
-                </div>
-            </main>
-            );
+            <div className="auth-container">
+                <Suspense fallback={<LoadingFallback />}>
+                    <LoginContent />
+                </Suspense>
+            </div>
+            {/* Global Fixed Widget */}
+            <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999 }}>
+                <SafeChatWidget mode="client_help" initialMessage="¿Problemas para ingresar? Pregúntame." />
+            </div>
+        </main>
+    );
 }
