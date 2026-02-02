@@ -21,6 +21,7 @@ export default function IntakeFormContent({ id }) {
     const [restricted, setRestricted] = useState(false);
     const [activeInquiryId, setActiveInquiryId] = useState(null); // For SessionGuard
     const [isDeleted, setIsDeleted] = useState(false); // New state for Zombie UI
+    const [isLightMode, setIsLightMode] = useState(false); // [FIX] Moved to top to satisfy Rules of Hooks
 
     useEffect(() => {
         async function checkAuthAndFetchLawyer() {
@@ -224,8 +225,6 @@ export default function IntakeFormContent({ id }) {
         // Redirect explicitly to login to avoid potential loops or wrong redirects
         window.location.href = '/auth/login';
     }
-
-    const [isLightMode, setIsLightMode] = useState(false);
 
     const toggleTheme = () => {
         setIsLightMode(prev => !prev);

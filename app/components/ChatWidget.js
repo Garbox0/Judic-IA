@@ -14,7 +14,10 @@ export default function ChatWidget({
     clientUserId = null,
     clientName = null,
     clientPhone = null,
-    lawyerSpecialties = []
+    clientName = null,
+    clientPhone = null,
+    lawyerSpecialties = [],
+    lawyerAvatar = null // [NEW] Accept avatar from props
 }) {
     const [isOpen, setIsOpen] = useState(startOpen || embedded);
     const [messages, setMessages] = useState([
@@ -23,13 +26,13 @@ export default function ChatWidget({
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
     const [sessionId, setSessionId] = useState(null);
-    const [lawyerAvatar, setLawyerAvatar] = useState(null);
+    const [activeAvatar, setActiveAvatar] = useState(lawyerAvatar);
     const messagesEndRef = useRef(null);
     const searchParams = useSearchParams();
 
-    // Fetch Lawyer Avatar if applicable
+    // Fetch Lawyer Avatar ONLY if not provided via props
     useEffect(() => {
-        if (lawyerId && mode === 'intake') {
+        if (!lawyerAvatar && lawyerId && mode === 'intake') {
             const fetchLawyerAvatar = async () => {
                 const { data } = await supabase
                     .from('profiles')
@@ -37,12 +40,14 @@ export default function ChatWidget({
                     .eq('id', lawyerId)
                     .single();
                 if (data?.avatar_url) {
-                    setLawyerAvatar(data.avatar_url);
+                    setActiveAvatar(data.avatar_url);
                 }
             };
             fetchLawyerAvatar();
+        } else if (lawyerAvatar) {
+            setActiveAvatar(lawyerAvatar);
         }
-    }, [lawyerId, mode]);
+    }, [lawyerId, mode, lawyerAvatar]);
 
     // Generate Session ID on Client & Fetch History (Persistence)
     useEffect(() => {
