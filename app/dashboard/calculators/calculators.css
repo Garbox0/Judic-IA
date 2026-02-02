@@ -446,7 +446,81 @@ input:focus {
     color: #e2e8f0;
 }
 
-.grace-body strong {
-    color: #fff;
-    font-weight: 700;
+
+/* --------------------------------------------------------------------------------
+ * LIGHT THEME OVERRIDES (Calculators)
+ * ------------------------------------------------------------------------------*/
+body.light-theme .result-panel {
+    background: #fffbeb !important;
+    /* amber-50 */
+    border-color: #fcd34d !important;
+}
+
+body.light-theme .result-panel.violet-theme {
+    background: #f5f3ff !important;
+    /* violet-50 */
+    border-color: #ddd6fe !important;
+}
+
+body.light-theme .result-row,
+body.light-theme .result-row span {
+    color: #334155 !important;
+    /* slate-700 - Much darker than #e2e8f0 */
+    font-weight: 500;
+}
+
+body.light-theme .result-row strong {
+    color: #0f172a !important;
+    /* slate-900 */
+}
+
+body.light-theme .result-row.total {
+    color: #d97706 !important;
+    /* amber-700 */
+    border-top-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+body.light-theme .violet-theme .result-row.total {
+    color: #7c3aed !important;
+    /* violet-700 */
+}
+
+body.light-theme .disclaimer-mini {
+    color: #64748b !important;
+}
+
+body.light-theme .result-label {
+    color: #7c3aed !important;
+}
+
+body.light-theme .result-main-date {
+    color: #1e1b4b !important;
+}
+
+body.light-theme .grace-period-box {
+    background: #ffffff !important;
+    border-color: #ddd6fe !important;
+}
+
+body.light-theme .grace-head {
+    color: #6d28d9 !important;
+}
+
+body.light-theme .grace-body {
+    color: #334155 !important;
+}
+
+body.light-theme .grace-body strong {
+    color: #6d28d9 !important;
+}
+
+body.light-theme .result-breakdown {
+    background: transparent !important;
+}
+
+body.light-theme .result-header {
+    background: rgba(251, 191, 36, 0.2) !important;
+    color: #b45309 !important;
+    /* amber-700 */
+    border-bottom-color: rgba(251, 191, 36, 0.3) !important;
 }
