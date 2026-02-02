@@ -26,6 +26,14 @@ export async function GET(request) {
     const token = cookieStore.get('sb-judicia-client') || cookieStore.get('sb-judicia-auth');
     const authCookieName = token?.name || 'sb-judicia-auth';
 
+    // DEBUG LOGS
+    console.log(`🔍 [API/CHAT] Auth Debug:`, {
+        sessionId,
+        foundCookie: token?.name,
+        cookieValueSample: token?.value?.substring(0, 10) + '...',
+        allCookies: cookieStore.getAll().map(c => c.name)
+    });
+
     const authClient = createServerClient(supabaseUrl, anonKey, {
         cookies: {
             getAll() { return cookieStore.getAll() },
@@ -39,6 +47,11 @@ export async function GET(request) {
     });
 
     const { data: { user } } = await authClient.auth.getUser();
+
+    console.log(`👤 [API/CHAT] User Resolved:`, {
+        userId: user?.id,
+        email: user?.email
+    });
 
     let db = publicSupabase;
 
@@ -68,6 +81,14 @@ export async function GET(request) {
         // B) The inquiry is UNCLAIMED (No client_auth_id yet) - SessionUUID acts as Bearer Token for the guest client.
         const isUnclaimed = !inquiry.client_auth_id;
         const isOwner = (user && (user.id === inquiry.assigned_lawyer_id || user.id === inquiry.client_auth_id)) || isUnclaimed;
+
+        console.log(`🛡️ [API/CHAT] Auth Check:`, {
+            reqUser: user?.id,
+            inqLawyer: inquiry.assigned_lawyer_id,
+            inqClient: inquiry.client_auth_id,
+            isUnclaimed,
+            isOwner
+        });
 
         if (!isOwner) {
             console.warn(`🚫 UNAUTHORIZED HISTORY ATTEMPT: User ${user?.id} tried to read session ${sessionId} (Unclaimed: ${isUnclaimed})`);
