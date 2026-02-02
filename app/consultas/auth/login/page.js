@@ -107,8 +107,15 @@ function LoginContent() {
     // ... (existing code) ...
 
     const enterIntake = async () => {
-        if (!confirmedSession || !lawyerId) return;
+        // Check for missing lawyerId explicitly
+        if (!lawyerId) {
+            setError("Error: No se identifica al abogado. Intenta escanear el QR nuevamentte o usar el link original.");
+            return;
+        }
+        if (!confirmedSession) return;
+
         setLoading(true);
+        setError(null); // Clear previous errors
         try {
             const currentCid = cid || crypto.randomUUID();
             console.log("🚀 Syncing session with database...", { cid: currentCid, lawyer: lawyerId });
@@ -325,6 +332,9 @@ function LoginContent() {
                         <div className="success-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
                         <h1 className="brand-name-premium">¡Bienvenido!</h1>
                         <p className="confirmed-text">Tu sesión jurídica está activa y verificada.</p>
+
+                        {error && <div className="error-premium" style={{ marginBottom: '1rem', padding: '0.8rem' }}>{error}</div>}
+
                         <button onClick={enterIntake} className="btn-gold-action" disabled={loading}>
                             {loading ? 'Preparando Sala...' : 'Continuar a Consulta'}
                         </button>
