@@ -92,7 +92,19 @@ export async function GET(request) {
 
         if (!isOwner) {
             console.warn(`🚫 UNAUTHORIZED HISTORY ATTEMPT: User ${user?.id} tried to read session ${sessionId} (Unclaimed: ${isUnclaimed})`);
-            return NextResponse.json({ error: "No tienes permiso para ver este historial." }, { status: 403 });
+            return NextResponse.json({
+                error: "No tienes permiso para ver este historial.",
+                debug: {
+                    userId: user?.id || 'null',
+                    authCookie: authCookieName,
+                    hasCookie: !!token,
+                    inquiryId: inquiry?.id,
+                    inqClient: inquiry.client_auth_id,
+                    inqLawyer: inquiry.assigned_lawyer_id,
+                    isUnclaimed,
+                    expectedClient: user?.id
+                }
+            }, { status: 403 });
         }
 
         const { data: messages, error } = await db
