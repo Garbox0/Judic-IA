@@ -968,3 +968,132 @@
         gap: 0.5rem;
     }
 }
+
+/* --------------------------------------------------------------------------------
+ * LIGHT THEME OVERRIDES (Fix for White Text on White Background)
+ * ------------------------------------------------------------------------------*/
+body.light-theme .research-container {
+    color: #1e293b !important;
+}
+
+body.light-theme .research-header p {
+    color: #475569 !important;
+}
+
+/* Result Cards (Strategy, Calculation, etc.) */
+body.light-theme .result-card {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+body.light-theme .result-card h3 {
+    border-bottom-color: rgba(251, 191, 36, 0.3);
+    color: #d97706 !important;
+    /* Amber-700 */
+}
+
+body.light-theme .result-card .content {
+    color: #334155 !important;
+}
+
+/* Override Inline Styles for Content Elements */
+body.light-theme .result-card .content p,
+body.light-theme .result-card .content li span,
+body.light-theme .result-card .content strong,
+body.light-theme .result-card .content h4,
+body.light-theme .result-card .content h5 {
+    color: #334155 !important;
+    /* Dark Slate for readability */
+}
+
+/* Specific Card Types Backgrounds */
+body.light-theme .strategy {
+    background: #fffbeb !important;
+    /* amber-50 */
+    border-color: #fcd34d !important;
+}
+
+body.light-theme .calculation {
+    background: #ecfdf5 !important;
+    /* emerald-50 */
+    border-color: #6ee7b7 !important;
+}
+
+body.light-theme .evidence {
+    background: #eef2ff !important;
+    /* indigo-50 */
+    border-color: #a5b4fc !important;
+}
+
+/* Jurisprudence / Cases Cards */
+body.light-theme .case-item-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .case-item-card:hover {
+    background: #f8fafc !important;
+    border-color: #fbbf24 !important;
+}
+
+body.light-theme .case-title {
+    color: #0f172a !important;
+}
+
+body.light-theme .case-summary-text {
+    color: #64748b !important;
+}
+
+body.light-theme .case-source {
+    color: #d97706 !important;
+    /* Darker amber */
+}
+
+/* Links & Categories */
+body.light-theme .link-item {
+    background: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    color: #334155 !important;
+}
+
+body.light-theme .link-item:hover {
+    background: #fbbf24 !important;
+    color: #fff !important;
+}
+
+body.light-theme .category-card {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+}
+
+body.light-theme .category-card h4 {
+    color: #1e293b !important;
+}
+
+body.light-theme .category-card p {
+    color: #64748b !important;
+}
+
+body.light-theme .category-card.active {
+    background: #fffbeb !important;
+    border-color: #fbbf24 !important;
+}
+
+/* Input Fields */
+body.light-theme .search-box input {
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+body.light-theme .search-box input::placeholder {
+    color: #94a3b8 !important;
+}
+
+body.light-theme .province-select {
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}

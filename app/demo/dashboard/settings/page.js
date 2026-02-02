@@ -1,7 +1,11 @@
-"use client";
-import React from 'react';
-import SettingsPage from '@/app/dashboard/settings/page';
+
+import DemoSettingsContent from './DemoSettingsContent';
+
+export const metadata = {
+    title: 'Demo Configuración | Judic-IA',
+    description: 'Simulación de panel de configuración y preferencias de usuario.',
+};
 
 export default function DemoSettingsPage() {
-    return <SettingsPage isDemo={true} basePath="/demo/dashboard" />;
+    return <DemoSettingsContent />;
 }
