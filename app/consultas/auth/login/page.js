@@ -3,6 +3,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Sun, Moon } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import SafeChatWidget from '../../../components/SafeChatWidget';
 import '../../../globals.css';
@@ -24,6 +25,27 @@ function LoginContent() {
     const [lawyerId, setLawyerId] = useState(null);
     const [cid, setCid] = useState(null);
     const [confirmationMessage, setConfirmationMessage] = useState(null);
+    const [theme, setTheme] = useState('light');
+
+    // Load theme from localStorage
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('app-theme') || 'light';
+        setTheme(savedTheme);
+    }, []);
+
+    // Update body class when theme changes
+    useEffect(() => {
+        if (theme === 'light') {
+            document.body.classList.add('light-theme');
+        } else {
+            document.body.classList.remove('light-theme');
+        }
+        localStorage.setItem('app-theme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+    };
 
     useEffect(() => {
         const urlLawyer = searchParams.get('lawyerId') || searchParams.get('lawyer');
@@ -259,9 +281,38 @@ function LoginContent() {
         }
     };
 
+    const [homeUrl, setHomeUrl] = useState('https://judic-ia.com/?public=true');
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
+            setHomeUrl('/');
+        }
+    }, []);
+
     return (
         <div className="auth-card glass-premium fade-in">
-            <a href="https://judic-ia.com/?public=true" className="btn-back-premium">← Volver al Inicio</a>
+            <div className="auth-header-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <a href={homeUrl} className="btn-back-premium">← Volver al Inicio</a>
+                <button
+                    onClick={toggleTheme}
+                    className="theme-toggle-auth"
+                    aria-label="Alternar tema"
+                    style={{
+                        background: 'transparent',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        color: theme === 'dark' ? '#fbbf24' : '#0f172a',
+                        borderRadius: '50%',
+                        width: '36px',
+                        height: '36px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer'
+                    }}
+                >
+                    {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                </button>
+            </div>
 
             {isConfirmed ? (
                 <div className="confirmed-ui slide-up">

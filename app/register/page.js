@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Sun, Moon } from 'lucide-react';
 import SafeChatWidget from '../components/SafeChatWidget';
 import './register.css';
 
@@ -43,6 +44,27 @@ export default function RegisterPage() {
     const [customJurisdiccion, setCustomJurisdiccion] = useState('');
 
     const [redirectCountdown, setRedirectCountdown] = useState(null);
+    const [theme, setTheme] = useState('light');
+
+    // Load theme from localStorage
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('app-theme') || 'light';
+        setTheme(savedTheme);
+    }, []);
+
+    // Update body class when theme changes
+    useEffect(() => {
+        if (theme === 'light') {
+            document.body.classList.add('light-theme');
+        } else {
+            document.body.classList.remove('light-theme');
+        }
+        localStorage.setItem('app-theme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+    };
 
     // Password Validations
     const passwordValidations = {
@@ -171,6 +193,26 @@ export default function RegisterPage() {
         <main className="register-main">
             <div className="back-wrapper">
                 <Link href="/home" className="back">← Volver al inicio</Link>
+                <button
+                    onClick={toggleTheme}
+                    className="theme-toggle-auth"
+                    aria-label="Alternar tema"
+                    style={{
+                        background: 'transparent',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        color: theme === 'dark' ? '#fbbf24' : '#0f172a',
+                        borderRadius: '50%',
+                        width: '36px',
+                        height: '36px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        marginLeft: 'auto'
+                    }}
+                >
+                    {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                </button>
             </div>
 
             <div className="register-container expanded">
