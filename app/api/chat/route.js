@@ -344,7 +344,10 @@ export async function POST(request) {
 
             if (upsertError) {
                 console.error("❌ Supabase Upsert Error:", upsertError);
-                return NextResponse.json({ error: "Error al registrar la sesión de consulta." }, { status: 500 });
+                return NextResponse.json({
+                    error: `Error al registrar la sesión de consulta: ${upsertError.message}`,
+                    details: upsertError.details || upsertError.hint
+                }, { status: 500 });
             }
 
             // SYNC ONLY MODE: Return immediately without AI response (saves tokens)
