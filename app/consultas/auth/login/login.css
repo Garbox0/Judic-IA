@@ -171,7 +171,7 @@
 }
 
 .btn-back-premium {
-    position: absolute;
+    position: fixed;
     top: 2rem;
     left: 2rem;
     color: #94a3b8;
@@ -179,6 +179,7 @@
     font-size: 0.85rem;
     font-weight: 500;
     transition: 0.3s;
+    z-index: 100;
 }
 
 .btn-back-premium:hover {
@@ -302,7 +303,69 @@
     color: #64748b;
 }
 
+/* FOOTER STYLES */
+.footer-link-wrapper {
+    margin-bottom: 1.2rem;
+}
+
+.footer-link {
+    font-size: 0.85rem;
+    font-weight: 500;
+    opacity: 0.8;
+    color: #fbbf24;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.footer-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.footer-note-wrapper {
+    opacity: 0.8;
+    font-style: italic;
+    font-size: 0.8rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1.2rem;
+    transition: 0.3s;
+}
+
+.highlight-gold {
+    color: #fbbf24;
+}
+
+/* LIGHT THEME OVERRIDES */
+.light-theme .auth-nav-footer {
+    color: #64748b;
+}
+
+.light-theme .footer-link {
+    color: #d97706;
+    /* Darker amber */
+    opacity: 1;
+}
+
+.light-theme .footer-note-wrapper {
+    border-top-color: rgba(0, 0, 0, 0.1);
+    color: #475569;
+    /* Slate 600 */
+    opacity: 1;
+}
+
+.light-theme .highlight-gold {
+    color: #d97706;
+}
+
 .light-theme .brand-status,
 .light-theme .brand-desc {
     color: #64748b;
+}
+
+.light-theme .btn-back-premium {
+    color: #475569;
+}
+
+.light-theme .btn-back-premium:hover {
+    color: #d97706;
 }

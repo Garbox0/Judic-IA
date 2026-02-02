@@ -385,13 +385,13 @@ function LoginContent() {
                         </form>
 
                         <footer className="auth-nav-footer">
-                            <p style={{ marginBottom: '1.2rem' }}>
-                                <Link href="/auth/forgot-password" className="link-gold" style={{ fontSize: '0.85rem', fontWeight: 500, opacity: 0.8 }}>
+                            <p className="footer-link-wrapper">
+                                <Link href="/auth/forgot-password" className="link-gold footer-link">
                                     ¿Olvidaste tu clave?
                                 </Link>
                             </p>
-                            <p style={{ opacity: 0.8, fontStyle: 'italic', fontSize: '0.8rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.2rem' }}>
-                                ¿Aún no tienes una clave? <span style={{ color: '#fbbf24' }}>Solicita el enlace de acceso a tu abogado profesional.</span>
+                            <p className="footer-note-wrapper">
+                                ¿Aún no tienes una clave? <span className="highlight-gold">Solicita el enlace de acceso a tu abogado profesional.</span>
                             </p>
                         </footer>
                     </>
