@@ -55,7 +55,7 @@ export async function middleware(request) {
 
     // (Opcional) Norton Safe Web / Symantec scanner por User-Agent
     const ua = request.headers.get('user-agent') || '';
-    const isNortonScanner = /norton|safeweb|symantec/i.test(ua);
+    const isNortonScanner = /norton|safeweb|symantec|sitechecker|bot|crawler/i.test(ua);
 
     // 🛡️ Norton whitelist por IP (si querés mantenerlo, pero ya no dependas solo de esto)
     const isWhitelistedIP = ip && (ip === '172.174.7.55' || ip.startsWith('172.174.'));

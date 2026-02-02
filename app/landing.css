@@ -112,6 +112,7 @@ body::before {
     }
 }
 
+
 /* 💎 PREMIUM SCROLLBAR */
 ::-webkit-scrollbar {
     width: 10px;
@@ -181,6 +182,11 @@ body::before {
     /* Optically center with text */
 }
 
+/* Light theme logo fix: Remove yellow glow, add subtle dark shadow */
+.light-theme .nav-logo {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
 @media (min-width: 1024px) {
     .nav-logo {
         width: auto;
@@ -201,6 +207,11 @@ body::before {
     letter-spacing: -0.02em;
 }
 
+/* Light theme title: Use dark text instead of dark gold */
+.light-theme .nav-title {
+    color: var(--text-primary);
+}
+
 .nav-actions-group {
     display: flex;
     align-items: center;
@@ -215,46 +226,46 @@ body::before {
     /* Removed negative margin */
 }
 
+
+/* 3.0 BUTTON-LIKE LINKS FOR LIGHT THEME */
 .link-item {
     color: var(--text-secondary);
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 800;
+    /* Match btn-login-premium */
     font-size: 0.95rem;
-    transition: color 0.3s ease;
-    position: relative;
-    white-space: nowrap;
-    /* Prevent truncation */
-    flex-shrink: 0;
-    /* Prevent shrinking */
+    /* Keep slightly smaller or match? Let's keep 0.95 for now but bold */
+    transition: all 0.3s ease;
+    padding: 0.7rem 1.2rem;
+    /* Match btn-login-premium padding */
+    border-radius: 14px;
+    /* Match btn-login-premium radius */
     white-space: nowrap !important;
-    min-width: fit-content;
-}
-
-.link-item::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: var(--accent);
-    transition: width 0.3s ease;
 }
 
 .link-item:hover {
-    color: var(--text-primary);
+    color: white;
 }
 
+/* Light Theme: Make them look like white cards (similar to Access buttons) */
 .light-theme .link-item {
-    color: var(--text-secondary);
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    color: var(--text-primary);
+    border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .light-theme .link-item:hover {
-    color: var(--accent);
+    background: #e2e8f0;
+    /* Slight gray on hover */
+    color: #0f172a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .light-theme .link-item::after {
-    background: var(--accent);
+    display: none;
+    /* Remove underline */
 }
 
 .theme-toggle-landing {
@@ -279,8 +290,8 @@ body::before {
 }
 
 .light-theme .theme-toggle-landing {
-    color: #d97706;
-    /* Darker gold for visibility on light mode */
+    color: var(--text-secondary);
+    border-color: rgba(0, 0, 0, 0.1);
 }
 
 /* 🔥 ACCESS BUTTON COLD SMOKE */
@@ -309,17 +320,19 @@ body::before {
 
 /* ACCESS BUTTONS OVERRIDE LIGHT THEME */
 .light-theme .btn-login-premium {
-    background: transparent;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: white;
+    /* Clean white background */
+    border: 1px solid rgba(0, 0, 0, 0.08);
     color: var(--text-primary);
-    box-shadow: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .light-theme .btn-login-premium:hover {
-    background: var(--accent-gradient);
+    background: #0f172a;
+    /* Navy background on hover */
     color: white;
     border-color: transparent;
-    box-shadow: 0 10px 25px rgba(217, 119, 6, 0.25);
+    box-shadow: 0 5px 15px rgba(15, 23, 42, 0.2);
 }
 
 /* 🚀 HERO SECTION 3.0 */
@@ -389,6 +402,8 @@ body::before {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    padding-right: 0.1em;
+    /* Prevent italic clipping */
 }
 
 .light-theme .gradient-text {

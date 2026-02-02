@@ -17,11 +17,13 @@ import {
     Crown,
     Sparkles,
     Book,
-    Calculator
+    Calculator,
+    Sun,
+    Moon
 } from 'lucide-react';
 import SafeChatWidget from '../../components/SafeChatWidget'; // Corrected path
 
-import './demo.css'; // Renamed css
+import '../../dashboard/dashboard.css'; // Shared styles
 
 export default function DemoDashboardLayout({ children }) {
     const router = useRouter();
@@ -34,8 +36,28 @@ export default function DemoDashboardLayout({ children }) {
     const [user, setUser] = useState({ email: 'demo@judicia.com', id: 'demo' });
     const [profile, setProfile] = useState(demoProfile);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+    const [theme, setTheme] = useState('light');
 
-    // No Auth Check effect needed for Demo
+    // Load theme from localStorage
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('app-theme') || 'light';
+        setTheme(savedTheme);
+    }, []);
+
+    const toggleTheme = () => {
+        const newTheme = theme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+        localStorage.setItem('app-theme', newTheme);
+    };
+
+    // Sync theme with body class
+    useEffect(() => {
+        if (theme === 'light') {
+            document.body.classList.add('light-theme');
+        } else {
+            document.body.classList.remove('light-theme');
+        }
+    }, [theme]);
 
     // Helper to get display name
     const getDisplayName = () => "Dr. Martínez";
@@ -49,7 +71,7 @@ export default function DemoDashboardLayout({ children }) {
     };
 
     return (
-        <div className="dashboard-layout demo-mode">
+        <div className={`dashboard-layout demo-mode ${theme === 'light' ? 'light-theme' : ''}`}>
             {/* MOBILE OVERLAY */}
             {mobileSidebarOpen && (
                 <div
@@ -69,6 +91,16 @@ export default function DemoDashboardLayout({ children }) {
                 </button>
                 <span className="mobile-brand">Judic-IA <span className="demo-badge">DEMO</span></span>
             </div>
+
+            {/* FLOATING THEME TOGGLE */}
+            <button
+                className="floating-theme-toggle"
+                onClick={toggleTheme}
+                title={`Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`}
+                aria-label="Alternar tema"
+            >
+                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
 
             {/* SIDEBAR */}
             <aside className={`sidebar ${mobileSidebarOpen ? 'open' : ''}`}>

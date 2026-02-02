@@ -28,10 +28,12 @@
 .light-theme {
   --background: #f8fafc;
   --foreground: #0f172a;
-  --primary: #b48a2d;
-  --primary-glow: rgba(180, 138, 45, 0.2);
-  --primary-soft: rgba(180, 138, 45, 0.1);
-  --primary-hover: #9c7826;
+  --primary: #fbbf24;
+  /* Brighter Gold (Amber 400) */
+  --primary-glow: rgba(251, 191, 36, 0.4);
+  --primary-soft: rgba(251, 191, 36, 0.15);
+  --primary-hover: #f59e0b;
+  /* Amber 500 */
   --secondary: #ffffff;
   --secondary-hover: #f1f5f9;
   --accent: #0ea5e9;

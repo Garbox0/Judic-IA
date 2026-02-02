@@ -422,3 +422,87 @@ option {
         width: 100%;
     }
 }
+
+/* LIGHT THEME OVERRIDES */
+.light-theme .legislation-container {
+    color: var(--foreground);
+}
+
+.light-theme .legislation-header p {
+    color: var(--muted);
+}
+
+.light-theme .infoleg-search {
+    background: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.light-theme .search-field label {
+    color: var(--muted);
+}
+
+.light-theme .header-content h1 {
+    background: linear-gradient(to right, #0f172a, #334155);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.light-theme .search-input,
+.light-theme .search-select {
+    background: #f8fafc;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    color: #0f172a;
+}
+
+.light-theme .search-input::placeholder {
+    color: #94a3b8;
+}
+
+.light-theme .code-card {
+    background: white;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
+}
+
+.light-theme .code-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1);
+    border-color: var(--primary);
+    background: white;
+}
+
+.light-theme .code-info h3 {
+    color: var(--foreground);
+}
+
+.light-theme .resource-card {
+    background: white;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.03);
+}
+
+.light-theme .resource-card:hover {
+    background: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08);
+}
+
+.light-theme .resource-card h3 {
+    color: var(--foreground);
+}
+
+.light-theme .proc-item {
+    background: white;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.light-theme .proc-item:hover {
+    background: #f8fafc;
+    border-color: #3b82f6;
+}
+
+.light-theme .proc-content h3 {
+    color: var(--foreground);
+}

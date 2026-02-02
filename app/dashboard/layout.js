@@ -33,11 +33,11 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
   const [user, setUser] = useState(isDemo ? { email: 'demo@judicia.com', id: 'demo' } : null);
   const [profile, setProfile] = useState(isDemo ? (mockProfile || demoProfile) : null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
 
   // Load theme from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('app-theme') || 'dark';
+    const savedTheme = localStorage.getItem('app-theme') || 'light';
     setTheme(savedTheme);
   }, []);
 
@@ -46,6 +46,15 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
     setTheme(newTheme);
     localStorage.setItem('app-theme', newTheme);
   };
+
+  // Sync theme with body class for global scope (Modals, Portals, etc.)
+  useEffect(() => {
+    if (theme === 'light') {
+      document.body.classList.add('light-theme');
+    } else {
+      document.body.classList.remove('light-theme');
+    }
+  }, [theme]);
 
   useEffect(() => {
     if (isDemo) return; // Skip Auth Check in Demo Mode
@@ -152,6 +161,16 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
         <span className="mobile-brand">Judic-IA {isDemo && <span className="demo-badge">DEMO</span>}</span>
       </div>
 
+      {/* FLOATING THEME TOGGLE */}
+      <button
+        className="floating-theme-toggle"
+        onClick={toggleTheme}
+        title={`Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`}
+        aria-label="Alternar tema"
+      >
+        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+      </button>
+
       {/* SIDEBAR */}
       <aside className={`sidebar ${mobileSidebarOpen ? 'open' : ''}`}>
         <div className="logo-section">
@@ -173,16 +192,6 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
               <span className="plan-inline"><Scale size={14} /> PLAN STARTER</span>
             )}
           </div>
-
-          {/* THEME TOGGLE BUTTON */}
-          <button
-            className="theme-toggle-btn"
-            onClick={toggleTheme}
-            title={`Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`}
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            <span>Ambiente {theme === 'dark' ? 'Claro' : 'Oscuro'}</span>
-          </button>
         </div>
 
         <nav className="nav-links">

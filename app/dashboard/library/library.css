@@ -198,3 +198,81 @@
         flex-direction: column;
     }
 }
+
+/* LIGHT THEME OVERRIDES */
+body.light-theme .library-container {
+    color: #0f172a;
+}
+
+body.light-theme .header-content p,
+body.light-theme .breadcrumb-item {
+    color: #64748b;
+}
+
+/* Header & Breadcrumbs */
+body.light-theme .header-content h1 {
+    color: #0f172a;
+}
+
+/* Search Bar */
+body.light-theme .search-bar-container {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .search-input {
+    color: #0f172a;
+}
+
+body.light-theme .search-input::placeholder {
+    color: #94a3b8;
+}
+
+body.light-theme .jurisdiction-select {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+/* Cards */
+body.light-theme .library-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
+}
+
+body.light-theme .library-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08);
+    border-color: #fbbf24;
+    transform: translateY(-3px);
+}
+
+body.light-theme .card-title {
+    color: #0f172a;
+}
+
+body.light-theme .card-summary {
+    color: #64748b;
+}
+
+body.light-theme .card-footer {
+    border-top-color: #f1f5f9;
+}
+
+body.light-theme .btn-copy {
+    color: #b45309;
+    border-color: rgba(251, 191, 36, 0.3);
+    background: rgba(251, 191, 36, 0.05);
+    font-weight: 600;
+}
+
+body.light-theme .btn-copy:hover {
+    background: #fbbf24;
+    color: #ffffff;
+    border-color: #fbbf24;
+}
+
+body.light-theme .empty-state h3 {
+    color: #0f172a;
+}

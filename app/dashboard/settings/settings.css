@@ -798,9 +798,161 @@
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     justify-content: center;
-    align-items: center;
-    width: 100%;
 }
+
+/* LIGHT THEME OVERRIDES (GLOBAL) */
+/* Requires body.light-theme from globals.css */
+body.light-theme .stg-root {
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+body.light-theme .stg-main-content {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.05);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .stg-tabs-nav {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.05);
+}
+
+body.light-theme .stg-tab-btn {
+    color: #64748b;
+}
+
+body.light-theme .stg-tab-btn:hover {
+    background: rgba(15, 23, 42, 0.03);
+    color: #0f172a;
+}
+
+body.light-theme .stg-tab-btn.active {
+    background: rgba(251, 191, 36, 0.1);
+    color: #b45309;
+    border-color: #fbbf24;
+}
+
+body.light-theme .stg-sec-title,
+body.light-theme .stg-header-title,
+body.light-theme h1,
+body.light-theme h2,
+body.light-theme h3,
+body.light-theme h4 {
+    color: #0f172a !important;
+}
+
+body.light-theme .stg-label {
+    color: #64748b !important;
+}
+
+body.light-theme .stg-dark-input {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+body.light-theme .stg-dark-input:focus {
+    border-color: #fbbf24 !important;
+    background: #ffffff !important;
+}
+
+body.light-theme .stg-avatar-box {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+body.light-theme .stg-chip {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #64748b;
+}
+
+body.light-theme .stg-chip:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+body.light-theme .stg-current-status-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+
+body.light-theme .stg-current-status-card .stg-status-info h4 {
+    color: #0f172a;
+}
+
+body.light-theme .stg-support-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .stg-support-card:hover {
+    background: #ffffff;
+    border-color: #fbbf24;
+}
+
+body.light-theme .stg-support-card h4 {
+    color: #0f172a;
+}
+
+body.light-theme .stg-support-card p {
+    color: #64748b;
+}
+
+body.light-theme .stg-val {
+    color: #0f172a;
+}
+
+body.light-theme .stg-plan-card {
+    background: #ffffff;
+    border-color: #fbbf24;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .stg-plan-name {
+    color: #0f172a;
+}
+
+/* LOADING SCREEN */
+.stg-loading-screen {
+    background: #020617;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fbbf24;
+}
+
+body.light-theme .stg-loading-screen {
+    background: #ffffff;
+    color: #b45309;
+}
+
+/* FIX: Mercado Pago Logo in Light Mode */
+body.light-theme img[src*="logo_white.svg"] {
+    filter: invert(1) brightness(0.5);
+}
+
+/* FIX: Support Icons Background */
+body.light-theme .icon-circle {
+    background: rgba(251, 191, 36, 0.1);
+    color: #b45309;
+    border-color: rgba(251, 191, 36, 0.2);
+}
+
+/* FIX: Identity Cabinet Box (Gabinete de Identidad) */
+body.light-theme .stg-bg-box {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+body.light-theme .stg-hint {
+    color: #64748b;
+}
+
+
 
 .stg-discrete-delete-btn {
     background: none;

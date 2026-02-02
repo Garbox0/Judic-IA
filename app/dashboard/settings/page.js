@@ -426,7 +426,7 @@ export default function SettingsPage({ isDemo = false }) {
         }
     };
 
-    if (loading) return <div style={{ background: '#020617', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fbbf24' }}>Cargando Gabinete...</div>;
+    if (loading) return <div className="stg-loading-screen">Cargando Gabinete...</div>;
 
     return (
         <div className="stg-root">
@@ -692,7 +692,7 @@ export default function SettingsPage({ isDemo = false }) {
                                         <h3 style={{ margin: 0, color: '#fbbf24' }}>¡Ya eres Profesional!</h3>
                                         <p style={{ color: '#94a3b8' }}>Estás aprovechando al máximo el Gabinete Jurídico.</p>
 
-                                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
+                                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem', marginBottom: '2.5rem' }}>
                                             {formData.subscription_status === 'cancelled' ? (
                                                 <div className="stg-badge-v2" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                     <ShieldOff size={14} className="text-red-400" /> CANCELADA (Expira el {formData.subscription_expiry ? new Date(formData.subscription_expiry).toLocaleDateString() : 'fin de mes'})
@@ -707,6 +707,26 @@ export default function SettingsPage({ isDemo = false }) {
                                                     {saving ? 'Cancelando...' : 'Cancelar Suscripción'}
                                                 </button>
                                             )}
+                                        </div>
+
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '24px',
+                                            width: '100%',
+                                            opacity: 0.7,
+                                            paddingTop: '1.5rem',
+                                            borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+                                        }}>
+                                            <img src="/mercadopago/logo_white.svg" alt="Mercado Pago" style={{ height: '20px' }} />
+                                            <div style={{ height: '14px', width: '1px', background: 'rgba(148, 163, 184, 0.3)' }}></div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <Shield size={14} className="text-emerald-500" />
+                                                <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                                                    PAGO SEGURO
+                                                </span>
+                                            </div>
                                         </div>
 
                                         {/* Custom Confirmation Modal */}

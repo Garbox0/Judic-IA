@@ -638,6 +638,14 @@
     color: var(--text-dim);
 }
 
+
 .light-theme .contact-footer-header h3 {
     color: var(--text-primary);
+}
+
+.light-theme .content-num {
+    color: rgba(183, 121, 31, 1);
+    /* Gold strong */
+    opacity: 0.5;
+    /* Maintain transparency effect but on gold */
 }

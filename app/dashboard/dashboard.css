@@ -615,6 +615,47 @@
    USAGE GUIDE COMPONENT GLOBAL STYLES
    ========================================= */
 
+/* FLOATING THEME TOGGLE */
+.floating-theme-toggle {
+    position: fixed;
+    top: 40px;
+    right: 90px;
+    /* Next to Usage Guide (40px) + Gap */
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    color: var(--gold);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2000;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(4px);
+}
+
+.floating-theme-toggle:hover {
+    background: var(--gold);
+    color: #0f172a;
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(251, 191, 36, 0.3);
+}
+
+/* Light Mode Overrides for Toggle */
+.light-theme .floating-theme-toggle {
+    background: rgba(183, 121, 31, 0.1);
+    border-color: rgba(183, 121, 31, 0.3);
+    color: var(--primary);
+}
+
+.light-theme .floating-theme-toggle:hover {
+    background: var(--primary);
+    color: white;
+}
+
 /* TRIGGER STYLES */
 .usage-guide-trigger {
     position: fixed;
@@ -823,4 +864,134 @@
     .guide-title-box h2 {
         font-size: 1.1rem;
     }
+}
+
+/* =========================================
+   LIGHT THEME OVERRIDES — "Ivory & Ink"
+   ========================================= */
+
+.light-theme .dashboard-layout {
+    background: var(--background);
+}
+
+.light-theme .sidebar {
+    background: rgba(255, 255, 255, 0.75);
+    border-right: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.light-theme .logo-section h1 {
+    color: #0f172a;
+    /* Navy (cleaner than dark gold) */
+}
+
+.light-theme .logo-link {
+    color: var(--foreground);
+}
+
+.light-theme .plan-badge,
+.light-theme .nav-item {
+    color: var(--muted);
+}
+
+.light-theme .nav-item:hover {
+    background: rgba(15, 23, 42, 0.05);
+    color: var(--primary);
+}
+
+.light-theme .nav-item.active {
+    background: rgba(245, 158, 11, 0.1);
+    /* Brighter Gold (Amber 500) */
+    color: #d97706;
+    /* Text Gold (Amber 600) */
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.light-theme .user-profile {
+    background: rgba(15, 23, 42, 0.03);
+    border-color: rgba(15, 23, 42, 0.06);
+}
+
+.light-theme .user-name {
+    color: var(--foreground);
+}
+
+.light-theme .btn-logout {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.light-theme .btn-logout:hover {
+    background: #fee2e2;
+}
+
+/* Main Content */
+.light-theme .dashboard-header h2 {
+    color: var(--foreground);
+}
+
+.light-theme .header-stats {
+    background: rgba(255, 255, 255, 0.6);
+    border-color: rgba(15, 23, 42, 0.08);
+    color: var(--muted);
+    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
+}
+
+.light-theme .dashboard-card {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(15, 23, 42, 0.06);
+    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
+}
+
+.light-theme .dashboard-card h3 {
+    color: var(--foreground);
+}
+
+.light-theme .dashboard-card p {
+    color: var(--muted);
+}
+
+.light-theme .dashboard-card:hover {
+    background: #ffffff;
+    box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+.light-theme .card-icon {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.25);
+    color: #d97706;
+}
+
+.light-theme .dashboard-card.primary {
+    background: radial-gradient(circle at top right, rgba(245, 158, 11, 0.08), transparent 60%), #ffffff;
+    border-color: rgba(245, 158, 11, 0.5);
+}
+
+/* Breadcrumbs */
+.light-theme .breadcrumb-item {
+    color: var(--muted);
+}
+
+.light-theme .breadcrumb-item:hover {
+    color: var(--primary);
+}
+
+.light-theme .breadcrumb-current {
+    color: var(--foreground);
+}
+
+/* Mobile */
+.light-theme .mobile-header {
+    background: rgba(248, 250, 252, 0.9);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.light-theme .mobile-toggle-btn {
+    color: var(--foreground);
+}
+
+.light-theme .sidebar {
+    background: #f8fafc;
+    /* Solid for mobile off-canvas if needed, but sidebar class handles it */
 }

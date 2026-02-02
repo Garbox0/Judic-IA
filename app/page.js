@@ -12,11 +12,11 @@ export default function Home() {
   const router = useRouter();
   const [authError, setAuthError] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
 
   // Load theme from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('app-theme') || 'dark';
+    const savedTheme = localStorage.getItem('app-theme') || 'light';
     setTheme(savedTheme);
   }, []);
 

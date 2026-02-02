@@ -786,3 +786,141 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* LIGHT THEME OVERRIDES */
+body.light-theme .agenda-header h1 {
+    color: #0f172a;
+}
+
+body.light-theme .calendar-panel,
+body.light-theme .upcoming-panel {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .calendar-controls h2 {
+    color: #0f172a;
+}
+
+body.light-theme .calendar-weekdays {
+    color: #64748b;
+}
+
+body.light-theme .calendar-day {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+body.light-theme .calendar-day:hover {
+    background: #f1f5f9;
+}
+
+body.light-theme .calendar-grid .day-number {
+    color: #94a3b8;
+    /* Darker than the original 0.5 opacity */
+}
+
+body.light-theme .upcoming-sticky {
+    background: rgba(255, 255, 255, 0.9);
+    border-bottom-color: #e2e8f0;
+}
+
+body.light-theme .section-title {
+    color: #64748b;
+}
+
+body.light-theme .deadline-card {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+body.light-theme .deadline-card:hover {
+    background: #ffffff;
+    border-color: #fbbf24;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .card-title {
+    color: #0f172a;
+}
+
+body.light-theme .card-meta {
+    color: #64748b;
+}
+
+body.light-theme .countdown {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+/* Tooltip Light Theme */
+body.light-theme .day-tooltip {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .tt-date {
+    color: #0f172a;
+}
+
+body.light-theme .tt-head {
+    border-bottom-color: #e2e8f0;
+}
+
+body.light-theme .tt-title {
+    color: #334155;
+}
+
+body.light-theme .tt-meta {
+    color: #64748b;
+}
+
+body.light-theme .badge {
+    color: #475569;
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+}
+
+body.light-theme .pill {
+    color: #475569;
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+
+/* History Panel Light Override */
+body.light-theme .history-panel {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+
+body.light-theme .history-head {
+    background: #f8fafc;
+}
+
+body.light-theme .history-head:hover {
+    background: #f1f5f9;
+}
+
+body.light-theme .history-title h3 {
+    color: #0f172a;
+}
+
+body.light-theme .history-title .count {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+body.light-theme .history-body {
+    border-top-color: #e2e8f0;
+}
+
+body.light-theme .history-card {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+body.light-theme .card-info h4 {
+    color: #0f172a;
+}
