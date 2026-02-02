@@ -232,70 +232,70 @@
 }
 
 /* --- LIGHT THEME OVERRIDES --- */
-:global(.light-theme) .intake-main {
+body.light-theme .intake-main {
     background-color: #f8fafc;
     background-image:
         radial-gradient(circle at 10% 20%, rgba(251, 191, 36, 0.1) 0%, transparent 40%),
         radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.05) 0%, transparent 40%);
 }
 
-:global(.light-theme) .unified-card {
+body.light-theme .unified-card {
     background: rgba(255, 255, 255, 0.85);
     border: 1px solid rgba(0, 0, 0, 0.06);
     box-shadow: 0 25px 50px -12px rgba(148, 163, 184, 0.25);
 }
 
-:global(.light-theme) .lawyer-side {
+body.light-theme .lawyer-side {
     background: rgba(248, 250, 252, 0.5);
     border-right: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-:global(.light-theme) .lawyer-name {
+body.light-theme .lawyer-name {
     color: #0f172a;
     /* Slate 900 */
 }
 
-:global(.light-theme) .lawyer-matricula {
+body.light-theme .lawyer-matricula {
     color: #64748b;
     /* Slate 500 */
 }
 
-:global(.light-theme) .welcome-text {
+body.light-theme .welcome-text {
     color: #475569;
     /* Slate 600 */
 }
 
-:global(.light-theme) .chat-side {
+body.light-theme .chat-side {
     background: rgba(255, 255, 255, 0.5);
     border-left: 1px solid rgba(0, 0, 0, 0.03);
     /* Subtle separation */
 }
 
-:global(.light-theme) .glass-navbar {
+body.light-theme .glass-navbar {
     background: rgba(255, 255, 255, 0.85);
     border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-:global(.light-theme) .nav-title {
+body.light-theme .nav-title {
     color: #0f172a;
 }
 
-:global(.light-theme) .session-info {
+body.light-theme .session-info {
     color: #64748b;
 }
 
-:global(.light-theme) .logout-btn-mini {
+body.light-theme .logout-btn-mini {
     color: #d97706;
     /* Amber 600 */
 }
 
-:global(.light-theme) .user-session {
+body.light-theme .user-session {
     border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 /* Mobile Adjustments for Light Theme */
 @media (max-width: 768px) {
-    :global(.light-theme) .lawyer-side {
+    body.light-theme .lawyer-side {
         border-right: none;
         border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     }
