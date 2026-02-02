@@ -46,6 +46,7 @@ export default function IntakeFormContent({ id }) {
             }
 
             // 2. AUTH PROTECTION
+            const { data: { user }, error: authError } = await supabase.auth.getUser();
 
             if (authError || !user) {
                 const redirectUrl = `/consultas/auth?lawyerId=${id}${cid ? `&cid=${cid}` : ''}`;
