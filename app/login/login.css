@@ -220,3 +220,33 @@ button:disabled {
         transform: translateY(0);
     }
 }
+
+/* LIGHT THEME OVERRIDES */
+.light-theme .auth-body {
+    background: radial-gradient(circle at 50% 10%, #f8fafc, #e2e8f0);
+    color: #0f172a;
+}
+
+.light-theme .login-card {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(0, 0, 0, 0.05);
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.1);
+}
+
+.light-theme .login-field input {
+    background: white;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.light-theme .subtitle,
+.light-theme .login-field label,
+.light-theme .back {
+    color: #64748b;
+}
+
+.light-theme .login-header h1,
+.light-theme .back:hover {
+    color: #d97706;
+    /* Darker amber */
+}

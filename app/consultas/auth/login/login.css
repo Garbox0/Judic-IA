@@ -275,3 +275,34 @@
     opacity: 1;
     color: #fbbf24;
 }
+
+/* LIGHT THEME OVERRIDES */
+.light-theme .auth-main {
+    background: radial-gradient(circle at 50% 10%, #f8fafc, #e2e8f0);
+}
+
+.light-theme .glass-premium {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: rgba(0, 0, 0, 0.05);
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.08);
+}
+
+.light-theme .brand-name-premium {
+    color: #d97706;
+    /* Darker amber for better contrast on white */
+}
+
+.light-theme .input-field input {
+    background: white;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.light-theme .input-field label {
+    color: #64748b;
+}
+
+.light-theme .brand-status,
+.light-theme .brand-desc {
+    color: #64748b;
+}

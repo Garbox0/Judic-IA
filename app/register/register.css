@@ -362,3 +362,53 @@
     align-items: center;
     gap: 0.5rem;
 }
+
+/* LIGHT THEME OVERRIDES */
+.light-theme .register-main {
+    background: radial-gradient(circle at 50% 10%, #f8fafc, #e2e8f0);
+}
+
+.light-theme .register-brand {
+    color: #d97706;
+}
+
+.light-theme .register-card {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(0, 0, 0, 0.05);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.08);
+}
+
+.light-theme .register-field input,
+.light-theme .register-field select,
+.light-theme .register-field-row input {
+    background: white;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.light-theme .tags-container .tag-btn {
+    background: #f1f5f9;
+    color: #475569;
+    border-color: #cbd5e1;
+}
+
+.light-theme .tags-container .tag-btn.selected {
+    background: #fbbf24;
+    color: #0f172a;
+    border-color: #fbbf24;
+}
+
+.light-theme .password-checklist {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+.light-theme .divider span {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.light-theme .back,
+.light-theme .consent-check {
+    color: #64748b;
+}

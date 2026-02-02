@@ -193,27 +193,32 @@ export default function RegisterPage() {
         <main className="register-main">
             <div className="back-wrapper">
                 <Link href="/home" className="back">← Volver al inicio</Link>
-                <button
-                    onClick={toggleTheme}
-                    className="theme-toggle-auth"
-                    aria-label="Alternar tema"
-                    style={{
-                        background: 'transparent',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        color: theme === 'dark' ? '#fbbf24' : '#0f172a',
-                        borderRadius: '50%',
-                        width: '36px',
-                        height: '36px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        marginLeft: 'auto'
-                    }}
-                >
-                    {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-                </button>
             </div>
+
+            <button
+                onClick={toggleTheme}
+                className="theme-toggle-auth"
+                aria-label="Alternar tema"
+                style={{
+                    position: 'fixed',
+                    top: '2rem',
+                    right: '2rem',
+                    zIndex: 100,
+                    background: 'transparent',
+                    border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
+                    color: theme === 'dark' ? '#fbbf24' : '#0f172a',
+                    borderRadius: '50%',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                }}
+            >
+                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
 
             <div className="register-container expanded">
                 <div className="register-card fade-in">
