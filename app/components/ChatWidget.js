@@ -14,8 +14,6 @@ export default function ChatWidget({
     clientUserId = null,
     clientName = null,
     clientPhone = null,
-    clientName = null,
-    clientPhone = null,
     lawyerSpecialties = [],
     lawyerAvatar = null // [NEW] Accept avatar from props
 }) {
@@ -283,7 +281,7 @@ export default function ChatWidget({
                                         transition: 'transform 0.2s'
                                     }}
                                 >
-                                    <img src={lawyerAvatar || "/bot-icon.png"} alt="Bot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img src={activeAvatar || "/bot-icon.png"} alt="Bot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 </button>
                             </div>
                         </div>
@@ -344,7 +342,7 @@ export default function ChatWidget({
                                     width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden',
                                     border: `1px solid ${botConfig.color}`
                                 }}>
-                                    <img src={lawyerAvatar || "/bot-icon.png"} alt="Bot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img src={activeAvatar || "/bot-icon.png"} alt="Bot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 </div>
                                 <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{botConfig.name}</span>
                             </div>
