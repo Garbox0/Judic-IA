@@ -178,11 +178,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #020617;
+    color: #ffffff;
+    /* Default to White for Dark Mode (if gradient fails or bg is dark) */
     font-weight: 800;
     font-size: 0.9rem;
     flex-shrink: 0;
     box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+}
+
+.light-theme .user-avatar {
+    color: #020617;
+    /* Black text for Light Mode (Gold background) */
 }
 
 .profile-info {
