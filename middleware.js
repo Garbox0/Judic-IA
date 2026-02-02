@@ -147,7 +147,13 @@ export async function middleware(request) {
         process.env.NEXT_PUBLIC_SUPABASE_URL,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
         {
-            cookieOptions: { name: AUTH_COOKIE },
+            cookieOptions: {
+                name: AUTH_COOKIE,
+                domain: '.judic-ia.com',
+                path: '/',
+                sameSite: 'Lax',
+                secure: true
+            },
             cookies: {
                 getAll() { return request.cookies.getAll() },
                 setAll(cookiesToSet) {

@@ -84,7 +84,9 @@ export default function ChatWidget({
                 // AND not 'demo'/'internal' mode (which are ephemeral)
                 if (activeSessionId.length > 20 && !activeSessionId.startsWith('auth-') && mode !== 'demo' && mode !== 'lawyer_login' && mode !== 'internal') {
                     try {
-                        const res = await fetch(`/api/chat?sessionId=${activeSessionId}`);
+                        const res = await fetch(`/api/chat?sessionId=${activeSessionId}`, {
+                            credentials: 'include'
+                        });
                         if (res.status === 404) {
                             // Session expired or new. Clean up if needed.
                             if (mode !== 'demo' && mode !== 'lawyer_login') {
@@ -144,6 +146,7 @@ export default function ChatWidget({
             const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: 'include',
                 body: JSON.stringify({
                     message: userMsg,
                     history: messages,
@@ -430,6 +433,7 @@ export default function ChatWidget({
                                             const apiRes = await fetch("/api/chat", {
                                                 method: "POST",
                                                 headers: { "Content-Type": "application/json" },
+                                                credentials: 'include',
                                                 body: JSON.stringify({
                                                     message: `[SISTEMA: El usuario subió un archivo real: ${file.name} (${publicUrl}). Confirma la recepción.]`,
                                                     history: messages,
