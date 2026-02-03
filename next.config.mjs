@@ -17,16 +17,15 @@ const nextConfig = {
       default-src 'self';
       script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://www.googletagmanager.com https://www.google-analytics.com https://sdk.mercadopago.com https://js.stripe.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-      img-src 'self' blob: data: https: https://aeecmwzmarjzliwctqcx.supabase.co https://www.googletagmanager.com https://www.google-analytics.com;
+      img-src 'self' blob: data: https: https://aeecmwzmarjzliwctqcx.supabase.co https://www.googletagmanager.com https://www.google-analytics.com http://147.93.9.185:9000;
       font-src 'self' data: https://fonts.gstatic.com;
-      connect-src 'self' https://aeecmwzmarjzliwctqcx.supabase.co wss://aeecmwzmarjzliwctqcx.supabase.co https://www.google-analytics.com https://api.mercadopago.com https://events.mercadopago.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com;
+      connect-src 'self' https://aeecmwzmarjzliwctqcx.supabase.co wss://aeecmwzmarjzliwctqcx.supabase.co https://www.google-analytics.com https://api.mercadopago.com https://events.mercadopago.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com http://147.93.9.185:9000;
       frame-src 'self' https://www.google.com https://sandbox.mercadopago.com.ar https://www.mercadopago.com.ar;
       object-src 'none';
       base-uri 'self';
       form-action 'self';
       frame-ancestors 'self';
       block-all-mixed-content;
-      upgrade-insecure-requests;
     `.replace(/\s{2,}/g, ' ').trim();
 
     return [

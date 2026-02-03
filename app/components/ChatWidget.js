@@ -258,6 +258,7 @@ export default function ChatWidget({
                                 className="chat-hide-btn"
                                 onClick={(e) => { e.stopPropagation(); setIsBubbleHidden(true); }}
                                 title="Ocultar temporalmente"
+                                aria-label="Ocultar asistente"
                             >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
@@ -350,7 +351,7 @@ export default function ChatWidget({
                                 setIsOpen(false);
                                 // On mobile, go directly back to minimized tab
                                 if (window.innerWidth <= 768) setIsBubbleHidden(true);
-                            }} style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: '1.2rem', cursor: 'pointer' }}>×</button>
+                            }} style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: '1.2rem', cursor: 'pointer' }} aria-label="Cerrar chat">×</button>
                         </div>
                     )}
 
@@ -381,8 +382,8 @@ export default function ChatWidget({
                     }}>
                         {/* 🔒 SECURITY: Only allow attachments in 'intake' mode to reduce attack surface */}
                         {(mode === 'intake' || mode === 'client') && (
-                            <label style={{ cursor: 'pointer', padding: '0.5rem', color: 'var(--muted)', transition: '0.2s', paddingBottom: '0.8rem' }} className="hover-icon">
-                                <input type="file" style={{ display: 'none' }} onChange={async (e) => {
+                            <label htmlFor="chat_file_upload" style={{ cursor: 'pointer', padding: '0.5rem', color: 'var(--muted)', transition: '0.2s', paddingBottom: '0.8rem' }} className="hover-icon">
+                                <input id="chat_file_upload" name="chat_attachment" type="file" style={{ display: 'none' }} onChange={async (e) => {
                                     if (e.target.files?.[0]) {
                                         const file = e.target.files[0];
 
@@ -474,7 +475,10 @@ export default function ChatWidget({
                             </label>
                         )}
                         <div style={{ flex: 1, position: 'relative' }}>
+                            <label htmlFor="chat_input" className="sr-only">Escribe tu consulta</label>
                             <textarea
+                                id="chat_input"
+                                name="chat_message"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => {
@@ -495,7 +499,7 @@ export default function ChatWidget({
                         <button onClick={sendMessage} className="btn-primary" style={{
                             width: '50px', height: '50px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontSize: '1.2rem', padding: 0
-                        }}>➤</button>
+                        }} aria-label="Enviar mensaje">➤</button>
                     </div>
                 </div>
             )}

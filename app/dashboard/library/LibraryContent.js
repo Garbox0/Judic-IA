@@ -104,6 +104,10 @@ export default function LibraryPage() {
 
                 <div className="search-bar-container glass-panel">
                     <input
+                        id="library-search"
+                        name="library-search"
+                        aria-label="Buscar en biblioteca"
+                        autoComplete="off"
                         type="text"
                         placeholder="Buscar por autos, tema o fallo..."
                         value={searchTerm}
@@ -111,6 +115,10 @@ export default function LibraryPage() {
                         className="search-input"
                     />
                     <select
+                        id="jurisdiction-filter"
+                        name="jurisdiction-filter"
+                        aria-label="Filtrar por jurisdicción"
+                        autoComplete="off"
                         value={jurisdictionFilter}
                         onChange={(e) => setJurisdictionFilter(e.target.value)}
                         className="jurisdiction-select"
@@ -137,7 +145,12 @@ export default function LibraryPage() {
                         <div key={item.id || item.url} className="library-card glass-panel">
                             <div className="card-header">
                                 <span className="jurisdiction-tag">{item.jurisdiction || 'General'}</span>
-                                <a href={item.url} target="_blank" rel="noopener noreferrer" className="card-link"><ExternalLink size={18} /></a>
+                                <Link
+                                    href={`/dashboard/legislation/viewer/knowledge-base?url=${encodeURIComponent(item.url)}&title=${encodeURIComponent(item.autos || 'Fallo de Base de Conocimiento')}`}
+                                    className="card-link"
+                                >
+                                    <ExternalLink size={18} />
+                                </Link>
                             </div>
                             <h3 className="card-title">{item.autos}</h3>
                             <p className="card-summary">{item.summary}</p>

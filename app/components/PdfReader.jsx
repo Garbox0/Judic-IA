@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 
-// Configuración del worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// Configuración del worker (Hosted locally to avoid unpkg issues)
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 export default function PdfReader({ url }) {
     const [numPages, setNumPages] = useState(null);

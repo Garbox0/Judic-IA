@@ -483,8 +483,11 @@ export default function LegislationPage() {
                             <div className="search-grid">
                                 {/* Tipo de Norma */}
                                 <div className="search-field col-span-2">
-                                    <label>Tipo de Norma</label>
+                                    <label htmlFor="leg_tipo">Tipo de Norma</label>
                                     <select
+                                        id="leg_tipo"
+                                        name="tipo_norma"
+                                        autoComplete="off"
                                         className="search-select"
                                         value={searchState.tipo}
                                         onChange={(e) => setSearchState({ ...searchState, tipo: e.target.value })}
@@ -509,8 +512,11 @@ export default function LegislationPage() {
 
                                 {/* Número */}
                                 <div className="search-field">
-                                    <label>Número</label>
+                                    <label htmlFor="leg_numero">Número</label>
                                     <input
+                                        id="leg_numero"
+                                        name="numero_norma"
+                                        autoComplete="off"
                                         type="text"
                                         className="search-input"
                                         placeholder="Ej: 27448"
@@ -521,8 +527,11 @@ export default function LegislationPage() {
 
                                 {/* Año */}
                                 <div className="search-field">
-                                    <label>Año</label>
+                                    <label htmlFor="leg_anio">Año</label>
                                     <input
+                                        id="leg_anio"
+                                        name="anio_norma"
+                                        autoComplete="off"
                                         type="text"
                                         className="search-input"
                                         placeholder="Ej: 2024"
@@ -533,8 +542,11 @@ export default function LegislationPage() {
 
                                 {/* Texto Libre */}
                                 <div className="search-field col-span-4">
-                                    <label>Texto / Palabras Clave</label>
+                                    <label htmlFor="leg_texto">Texto / Palabras Clave</label>
                                     <input
+                                        id="leg_texto"
+                                        name="texto_busqueda"
+                                        autoComplete="off"
                                         type="text"
                                         className="search-input"
                                         placeholder="Ingrese términos de búsqueda..."
@@ -547,8 +559,9 @@ export default function LegislationPage() {
                             /* BOLETIN OFICIAL FORM */
                             <div className="search-grid">
                                 <div className="search-field col-span-4" style={{ flexDirection: 'row', gap: '2rem', marginBottom: '1rem' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'white' }}>
+                                    <label htmlFor="bo_type_fecha" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'white' }}>
                                         <input
+                                            id="bo_type_fecha"
                                             type="radio"
                                             name="boType"
                                             checked={boState.type === 'fecha'}
@@ -556,8 +569,9 @@ export default function LegislationPage() {
                                         />
                                         Fecha de Publicación
                                     </label>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'white' }}>
+                                    <label htmlFor="bo_type_numero" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'white' }}>
                                         <input
+                                            id="bo_type_numero"
                                             type="radio"
                                             name="boType"
                                             checked={boState.type === 'numero'}
@@ -569,8 +583,10 @@ export default function LegislationPage() {
 
                                 {boState.type === 'fecha' ? (
                                     <div className="search-field col-span-2">
-                                        <label>Fecha (dd/mm/aaaa)</label>
+                                        <label htmlFor="bo_fecha">Fecha (dd/mm/aaaa)</label>
                                         <input
+                                            id="bo_fecha"
+                                            name="bo_fecha"
                                             type="text"
                                             className="search-input"
                                             placeholder="Ej: 25/05/2023"
@@ -580,8 +596,10 @@ export default function LegislationPage() {
                                     </div>
                                 ) : (
                                     <div className="search-field col-span-2">
-                                        <label>Número de Boletín</label>
+                                        <label htmlFor="bo_numero">Número de Boletín</label>
                                         <input
+                                            id="bo_numero"
+                                            name="bo_numero"
                                             type="text"
                                             className="search-input"
                                             placeholder="Ej: 35123"
@@ -709,7 +727,10 @@ export default function LegislationPage() {
                         <>
                             {/* JURISDICTION SELECTOR */}
                             <div className="jurisdiction-select-wrapper" style={{ marginBottom: '1.5rem' }}>
+                                <label htmlFor="leg_jurisdiction_select" className="sr-only">Seleccionar Jurisdicción de Códigos de Forma</label>
                                 <select
+                                    id="leg_jurisdiction_select"
+                                    name="jurisdiction"
                                     value={selectedJurisdiction}
                                     onChange={(e) => setSelectedJurisdiction(e.target.value)}
                                     className="jurisdiction-select"
@@ -789,7 +810,7 @@ export default function LegislationPage() {
                             <h3>Boletín Oficial</h3>
                             <p>Publicación diaria de normas oficiales.</p>
                         </a>
-                        <a href="http://www.saij.gob.ar/" target="_blank" rel="noopener noreferrer" className="resource-card glass-panel">
+                        <a href="https://www.saij.gob.ar/" target="_blank" rel="noopener noreferrer" className="resource-card glass-panel">
                             <div className="resource-icon"><Gavel size={18} /></div>
                             <h3>SAIJ</h3>
                             <p>Sistema Argentino de Información Jurídica.</p>

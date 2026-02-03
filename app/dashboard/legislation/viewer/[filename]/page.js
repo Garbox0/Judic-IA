@@ -17,17 +17,27 @@ export default function LegislationViewerPage() {
     const filename = params.filename;
     // Default to 'entre-rios' for backward compatibility, but allow override
     const province = searchParams.get('province') || 'entre-rios';
+    // Support external URLs (e.g. from Knowledge Base)
+    const externalUrl = searchParams.get('url');
+    const externalTitle = searchParams.get('title');
 
     // We can infer the title from the filename or pass it via query, 
     // but for now let's make it look clean.
-    const displayTitle = filename
+    const displayTitle = externalTitle || filename
         ?.replace(/-/g, ' ')
         .replace(/\.pdf$/i, '')
         .split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 
-    const pdfPath = `/legislation/${province}/${filename}`;
+    // 🔒 VPS MIGRATION: Serve files from MinIO (Legislation Bucket)
+    // Using Env Var to avoid exposing hardcoded IP, preparing for future HTTPS domain.
+    const VPS_BASE_URL = process.env.NEXT_PUBLIC_LEGISLATION_URL || 'http://localhost:3000/legislation';
+
+    // If external URL (e.g. KB) use it, otherwise construct VPS path for legislation
+    const pdfPath = externalUrl
+        ? decodeURIComponent(externalUrl)
+        : `${VPS_BASE_URL}/${province}/${filename}`;
 
     return (
         <div className="viewer-container">
@@ -202,6 +212,41 @@ export default function LegislationViewerPage() {
                 .retry-link:hover {
                     background: #f59e0b;
                     transform: translateY(-2px);
+                }
+
+                /* LIGHT THEME OVERRIDES */
+                :global(.light-theme) .viewer-container {
+                    background: #cbd5e1; /* Slate 300 - Comfortable Gray */
+                    color: #0f172a;
+                }
+
+                :global(.light-theme) .viewer-header {
+                    background: white;
+                    border-color: rgba(15, 23, 42, 0.1);
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+                }
+
+                :global(.light-theme) .title-wrapper h1 {
+                    background: linear-gradient(to right, #0f172a, #334155);
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+                :global(.light-theme) .back-btn {
+                    background: white;
+                    border: 1px solid rgba(15, 23, 42, 0.1);
+                    color: #0f172a;
+                }
+
+                :global(.light-theme) .back-btn:hover {
+                    background: #f1f5f9;
+                    border-color: #f59e0b;
+                }
+
+                :global(.light-theme) .pdf-wrapper {
+                    background: #94a3b8; /* Darker slate frame for contrast against white PDF */
+                    border-color: rgba(15, 23, 42, 0.1);
                 }
             `}</style>
         </div>

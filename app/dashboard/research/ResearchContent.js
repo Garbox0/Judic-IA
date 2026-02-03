@@ -457,8 +457,9 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
                     <div className="search-box-container glass-panel">
                         <div className="jurisdiction-selector">
-                            <label className={`radio-btn ${scope === 'nacional' ? 'active' : ''}`}>
+                            <label htmlFor="res_scope_nacional" className={`radio-btn ${scope === 'nacional' ? 'active' : ''}`}>
                                 <input
+                                    id="res_scope_nacional"
                                     type="radio"
                                     name="scope"
                                     value="nacional"
@@ -467,8 +468,9 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                 />
                                 🇦🇷 Justicia Nacional / Federal
                             </label>
-                            <label className={`radio-btn ${scope === 'provincial' ? 'active' : ''}`}>
+                            <label htmlFor="res_scope_provincial" className={`radio-btn ${scope === 'provincial' ? 'active' : ''}`}>
                                 <input
+                                    id="res_scope_provincial"
                                     type="radio"
                                     name="scope"
                                     value="provincial"
@@ -479,13 +481,17 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                             </label>
 
                             {scope === 'provincial' && (
-                                <select
-                                    className="province-select"
-                                    value={province}
-                                    onChange={(e) => setProvince(e.target.value)}
-                                >
-                                    {provinces.map(p => <option key={p} value={p}>{p}</option>)}
-                                </select>
+                                <>
+                                    <label htmlFor="res_province_select" className="sr-only">Seleccionar Provincia</label>
+                                    <select
+                                        id="res_province_select"
+                                        className="province-select"
+                                        value={province}
+                                        onChange={(e) => setProvince(e.target.value)}
+                                    >
+                                        {provinces.map(p => <option key={p} value={p}>{p}</option>)}
+                                    </select>
+                                </>
                             )}
                         </div>
 
@@ -533,7 +539,10 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         </details>
 
                         <form onSubmit={handleSearch} className="search-box">
+                            <label htmlFor="research_input" className="sr-only">Consulta de investigación jurídica</label>
                             <input
+                                id="research_input"
+                                name="query"
                                 type="text"
                                 placeholder={placeholder}
                                 value={query}

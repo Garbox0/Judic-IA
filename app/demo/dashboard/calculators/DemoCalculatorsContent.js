@@ -187,8 +187,10 @@ export default function DemoCalculatorsContent() {
 
                     <form onSubmit={calcularPlazo} className="tool-form">
                         <div className="form-group">
-                            <label>Fecha de Notificación</label>
+                            <label htmlFor="demo_plazo_fecha">Fecha de Notificación</label>
                             <input
+                                id="demo_plazo_fecha"
+                                name="fecha_notificacion"
                                 type="date"
                                 value={fechaNotif}
                                 onChange={(e) => setFechaNotif(e.target.value)}
@@ -197,8 +199,10 @@ export default function DemoCalculatorsContent() {
                         </div>
 
                         <div className="form-group">
-                            <label>Plazo (Días)</label>
+                            <label htmlFor="demo_plazo_dias">Plazo (Días)</label>
                             <input
+                                id="demo_plazo_dias"
+                                name="dias_plazo"
                                 type="number"
                                 min="1"
                                 placeholder="Ej: 5, 10, 15"
@@ -208,11 +212,12 @@ export default function DemoCalculatorsContent() {
                             />
                         </div>
 
-                        <div className="form-group full">
-                            <label>Tipo de Cómputo</label>
+                        <fieldset className="form-group full" style={{ border: 'none', padding: 0, margin: '0 0 1.5rem 0' }}>
+                            <legend style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Tipo de Cómputo</legend>
                             <div className="radio-group">
-                                <label className={`radio-option ${tipoPlazo === 'habiles' ? 'active' : ''}`}>
+                                <label htmlFor="demo_plazo_habiles" className={`radio-option ${tipoPlazo === 'habiles' ? 'active' : ''}`}>
                                     <input
+                                        id="demo_plazo_habiles"
                                         type="radio"
                                         name="tipoPlazo"
                                         value="habiles"
@@ -221,8 +226,9 @@ export default function DemoCalculatorsContent() {
                                     />
                                     Días Hábiles (Judiciales)
                                 </label>
-                                <label className={`radio-option ${tipoPlazo === 'corridos' ? 'active' : ''}`}>
+                                <label htmlFor="demo_plazo_corridos" className={`radio-option ${tipoPlazo === 'corridos' ? 'active' : ''}`}>
                                     <input
+                                        id="demo_plazo_corridos"
                                         type="radio"
                                         name="tipoPlazo"
                                         value="corridos"
@@ -232,7 +238,7 @@ export default function DemoCalculatorsContent() {
                                     Días Corridos (Civiles)
                                 </label>
                             </div>
-                        </div>
+                        </fieldset>
 
                         <div className="form-actions">
                             <button type="button" onClick={resetPlazo} className="btn-reset">
@@ -284,8 +290,10 @@ export default function DemoCalculatorsContent() {
 
                     <form onSubmit={calcularIndemnizacion} className="tool-form">
                         <div className="form-group">
-                            <label>Fecha de Ingreso</label>
+                            <label htmlFor="demo_indem_ingreso">Fecha de Ingreso</label>
                             <input
+                                id="demo_indem_ingreso"
+                                name="fecha_ingreso"
                                 type="date"
                                 value={ingreso}
                                 onChange={(e) => setIngreso(e.target.value)}
@@ -294,8 +302,10 @@ export default function DemoCalculatorsContent() {
                         </div>
 
                         <div className="form-group">
-                            <label>Fecha de Egreso</label>
+                            <label htmlFor="demo_indem_egreso">Fecha de Egreso</label>
                             <input
+                                id="demo_indem_egreso"
+                                name="fecha_egreso"
                                 type="date"
                                 value={egreso}
                                 onChange={(e) => setEgreso(e.target.value)}
@@ -304,10 +314,12 @@ export default function DemoCalculatorsContent() {
                         </div>
 
                         <div className="form-group full">
-                            <label>Mejor Remuneración (Bruta)</label>
+                            <label htmlFor="demo_indem_remuneracion">Mejor Remuneración (Bruta)</label>
                             <div className="input-prefix">
                                 <span>$</span>
                                 <input
+                                    id="demo_indem_remuneracion"
+                                    name="remuneracion_bruta"
                                     type="number"
                                     placeholder="0.00"
                                     value={remuneracion}
@@ -318,23 +330,23 @@ export default function DemoCalculatorsContent() {
                             </div>
                         </div>
 
-                        <div className="form-group full">
-                            <label>Rubros Adicionales (Opcionales)</label>
+                        <fieldset className="form-group full" style={{ border: 'none', padding: 0, margin: '0 0 1.5rem 0' }}>
+                            <legend style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Rubros Adicionales (Opcionales)</legend>
                             <div className="checkbox-grid">
-                                <label className={`check-option ${includePreaviso ? 'active' : ''}`}>
-                                    <input type="checkbox" checked={includePreaviso} onChange={() => setIncludePreaviso(!includePreaviso)} />
+                                <label htmlFor="demo_indem_check_preaviso" className={`check-option ${includePreaviso ? 'active' : ''}`}>
+                                    <input id="demo_indem_check_preaviso" name="check_preaviso_demo" type="checkbox" checked={includePreaviso} onChange={() => setIncludePreaviso(!includePreaviso)} />
                                     <span>Indemnización por Preaviso</span>
                                 </label>
-                                <label className={`check-option ${includeSAC ? 'active' : ''}`}>
-                                    <input type="checkbox" checked={includeSAC} onChange={() => setIncludeSAC(!includeSAC)} />
+                                <label htmlFor="demo_indem_check_sac" className={`check-option ${includeSAC ? 'active' : ''}`}>
+                                    <input id="demo_indem_check_sac" name="check_sac_demo" type="checkbox" checked={includeSAC} onChange={() => setIncludeSAC(!includeSAC)} />
                                     <span>SAC Proporcional</span>
                                 </label>
-                                <label className={`check-option ${includeVacations ? 'active' : ''}`}>
-                                    <input type="checkbox" checked={includeVacations} onChange={() => setIncludeVacations(!includeVacations)} />
+                                <label htmlFor="demo_indem_check_vac" className={`check-option ${includeVacations ? 'active' : ''}`}>
+                                    <input id="demo_indem_check_vac" name="check_vac_demo" type="checkbox" checked={includeVacations} onChange={() => setIncludeVacations(!includeVacations)} />
                                     <span>Vacaciones Proporcionales</span>
                                 </label>
                             </div>
-                        </div>
+                        </fieldset>
 
                         <div className="form-actions">
                             <button type="button" onClick={resetIndem} className="btn-reset">

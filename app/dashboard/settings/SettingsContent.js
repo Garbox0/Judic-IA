@@ -472,10 +472,10 @@ export default function SettingsPage({ isDemo = false }) {
                             <div className="stg-tab-pane">
                                 <div className="stg-profile-header">
                                     <div className="stg-photo-col">
-                                        <label className="stg-label">Imagen 4x4</label>
+                                        <label htmlFor="avatar_upload" className="stg-label">Imagen 4x4</label>
 
                                         <div {...getRootProps()} className={`stg-avatar-box ${isDragActive ? 'drag-active' : ''}`}>
-                                            <input {...getInputProps()} />
+                                            <input {...getInputProps({ id: 'avatar_upload', autoComplete: 'off' })} />
                                             {(previewUrl || formData.avatar_url) ? (
                                                 <img src={previewUrl || formData.avatar_url} alt="Profile" />
                                             ) : (
@@ -511,33 +511,34 @@ export default function SettingsPage({ isDemo = false }) {
                                     <div className="stg-fields-col">
                                         <div className="stg-field-row">
                                             <div className="stg-f-group">
-                                                <label className="stg-label">Nombre Completo</label>
-                                                <input name="full_name" className="stg-dark-input readonly" value={formData.full_name} readOnly disabled />
+                                                <label htmlFor="full_name" className="stg-label">Nombre Completo</label>
+                                                <input id="full_name" name="full_name" autoComplete="name" className="stg-dark-input readonly" value={formData.full_name} readOnly disabled />
                                             </div>
                                         </div>
                                         <div className="stg-field-row multi">
                                             <div className="stg-f-group flex-2">
-                                                <label className="stg-label">Colegio / Jurisdicción</label>
-                                                <input name="jurisdiccion" className="stg-dark-input readonly" value={formData.jurisdiccion} readOnly disabled />
+                                                <label htmlFor="jurisdiccion" className="stg-label">Colegio / Jurisdicción</label>
+                                                <input id="jurisdiccion" name="jurisdiccion" autoComplete="organization" className="stg-dark-input readonly" value={formData.jurisdiccion} readOnly disabled />
                                             </div>
                                             <div className="stg-f-group flex-1">
-                                                <label className="stg-label">Tomo</label>
-                                                <input className="stg-dark-input readonly" value={formData.tomo} readOnly disabled />
+                                                <label htmlFor="tomo" className="stg-label">Tomo</label>
+                                                <input id="tomo" name="tomo" autoComplete="off" className="stg-dark-input readonly" value={formData.tomo} readOnly disabled />
                                             </div>
                                             <div className="stg-f-group flex-1">
-                                                <label className="stg-label">Folio</label>
-                                                <input className="stg-dark-input readonly" value={formData.folio} readOnly disabled />
+                                                <label htmlFor="folio" className="stg-label">Folio</label>
+                                                <input id="folio" name="folio" autoComplete="off" className="stg-dark-input readonly" value={formData.folio} readOnly disabled />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="stg-f-group" style={{ marginTop: '1.5rem' }}>
-                                    <label className="stg-label">Especialidades Profesionales</label>
+                                <fieldset className="stg-f-group" style={{ marginTop: '1.5rem', border: 'none', padding: 0 }}>
+                                    <legend className="stg-label" style={{ width: '100%', marginBottom: '0.5rem' }}>Especialidades Profesionales</legend>
                                     <div className="stg-chips-grid">
                                         {SPECIALTIES_OPTIONS.map(spec => (
                                             <button
                                                 key={spec}
+                                                type="button"
                                                 className={`stg-chip ${formData.especialidades.includes(spec) ? 'selected' : ''}`}
                                                 onClick={() => toggleSpecialty(spec)}
                                             >
@@ -545,11 +546,11 @@ export default function SettingsPage({ isDemo = false }) {
                                             </button>
                                         ))}
                                     </div>
-                                </div>
+                                </fieldset>
 
                                 <div className="stg-f-group" style={{ marginTop: '1.5rem' }}>
-                                    <label className="stg-label">Biografía / Extracto</label>
-                                    <textarea name="biography" className="stg-dark-input underline" rows="3" value={formData.biography} onChange={handleChange} />
+                                    <label htmlFor="biography" className="stg-label">Biografía / Extracto</label>
+                                    <textarea id="biography" name="biography" autoComplete="off" className="stg-dark-input underline" rows="3" value={formData.biography} onChange={handleChange} />
                                 </div>
 
                                 <div className="stg-actions-footer">
@@ -565,20 +566,20 @@ export default function SettingsPage({ isDemo = false }) {
                                 <div className="stg-alert-card"><Shield size={16} className="text-emerald-400" style={{ display: 'inline', marginRight: '0.5rem' }} /> Sus datos están bajo la protección cifrada de Judic-IA.</div>
                                 <div className="stg-field-row multi">
                                     <div className="stg-f-group flex-2">
-                                        <label className="stg-label">Email de Acceso</label>
-                                        <input className="stg-dark-input readonly" value={user?.email || ''} readOnly />
+                                        <label htmlFor="email_access" className="stg-label">Email de Acceso</label>
+                                        <input id="email_access" name="email" autoComplete="email" className="stg-dark-input readonly" value={user?.email || ''} readOnly />
                                     </div>
                                     <div className="stg-f-group flex-1">
-                                        <label className="stg-label">Enlace Telefónico</label>
-                                        <input name="phone" className="stg-dark-input" value={formData.phone} onChange={handleChange} placeholder="+54 9..." />
+                                        <label htmlFor="phone" className="stg-label">Enlace Telefónico</label>
+                                        <input id="phone" name="phone" autoComplete="tel" className="stg-dark-input" value={formData.phone} onChange={handleChange} placeholder="+54 9..." />
                                     </div>
                                 </div>
                                 <div className="stg-divider"></div>
                                 <h3 className="stg-sec-title">Gabinete de Identidad</h3>
                                 <div className="stg-field-row multi stg-bg-box" style={{ alignItems: 'flex-end' }}>
                                     <div className="stg-f-group flex-2">
-                                        <label className="stg-label">Credencial de Acceso</label>
-                                        <input type="password" className="stg-dark-input readonly" value="********" readOnly />
+                                        <label htmlFor="fake_credential" className="stg-label">Credencial de Acceso</label>
+                                        <input id="fake_credential" name="credential" autoComplete="off" type="password" className="stg-dark-input readonly" value="********" readOnly />
                                         <p className="stg-hint">Solo puede ser restablecida por email oficial.</p>
                                     </div>
                                     <div className="flex-1">
@@ -599,7 +600,7 @@ export default function SettingsPage({ isDemo = false }) {
                             <div className="stg-tab-pane">
                                 {/* Plan Actual Section */}
                                 <div className="stg-current-plan-box">
-                                    <label className="stg-label">Tu Plan Actual</label>
+                                    <h3 className="stg-label" style={{ fontSize: '0.875rem', marginBottom: '0.75rem' }}>Tu Plan Actual</h3>
                                     <div className="stg-current-status-card">
                                         <div className="stg-status-info">
                                             <span className="stg-status-icon">{formData.plan_tier === 'professional' ? <Crown size={24} className="text-amber-400" /> : <Scale size={24} className="text-slate-400" />}</span>

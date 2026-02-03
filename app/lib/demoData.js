@@ -137,7 +137,7 @@ export const demoFullResearchResult = {
     strategy: "**Estrategia Ofensiva**:\nSe recomienda iniciar SECLO reclamando la totalidad de los rubros, incluyendo multas de la Ley 24.013 si el registro era defectuoso. La jurisprudencia reciente de la Sala V es favorable en cuanto a la carga probatoria de las horas extras.",
     links: [
         { title: "Calculadora de Indemnizaciones", url: "https://calculator.example.com" },
-        { title: "Texto completo Ley 20.744", url: "http://servicios.infoleg.gob.ar/infolegInternet/anexos/25000-29999/25552/texact.htm" }
+        { title: "Texto completo Ley 20.744", url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/25000-29999/25552/texact.htm" }
     ],
     brave_used: true
 };

@@ -461,8 +461,16 @@ export default function DemoLegislationPage() {
                     <form onSubmit={handleSearch}>
                         <div className="search-grid">
                             <div className="search-field col-span-4">
-                                <label>Texto / Palabras Clave</label>
-                                <input type="text" className="search-input" placeholder="Ingrese términos de búsqueda..." value={searchState.texto} onChange={(e) => setSearchState({ ...searchState, texto: e.target.value })} />
+                                <label htmlFor="demo_leg_texto">Texto / Palabras Clave</label>
+                                <input
+                                    id="demo_leg_texto"
+                                    name="texto_busqueda"
+                                    type="text"
+                                    className="search-input"
+                                    placeholder="Ingrese términos de búsqueda..."
+                                    value={searchState.texto}
+                                    onChange={(e) => setSearchState({ ...searchState, texto: e.target.value })}
+                                />
                             </div>
                         </div>
                         <div className="search-actions">
@@ -579,7 +587,10 @@ export default function DemoLegislationPage() {
                         <>
                             {/* JURISDICTION SELECTOR */}
                             <div className="jurisdiction-select-wrapper" style={{ marginBottom: '1.5rem' }}>
+                                <label htmlFor="demo_leg_jurisdiction_select" className="sr-only">Seleccionar Jurisdicción de Códigos de Forma</label>
                                 <select
+                                    id="demo_leg_jurisdiction_select"
+                                    name="jurisdiction_demo"
                                     value={selectedJurisdiction}
                                     onChange={(e) => setSelectedJurisdiction(e.target.value)}
                                     className="jurisdiction-select"
@@ -612,9 +623,10 @@ export default function DemoLegislationPage() {
                                 ))}
                             </div>
                         </>
-                    )}
-                </section>
-            </div>
-        </div>
+                    )
+                    }
+                </section >
+            </div >
+        </div >
     );
 }
