@@ -49,8 +49,14 @@ export async function middleware(request) {
         pathname.startsWith('/legal') ||
         pathname.startsWith('/privacy') ||
         pathname.startsWith('/terms') ||
-        pathname.startsWith('/terms') ||
         pathname.startsWith('/security') ||
+        pathname.startsWith('/demo') ||
+        pathname.startsWith('/login') ||
+        pathname.startsWith('/register') ||
+        pathname.startsWith('/auth') ||
+        pathname.startsWith('/forgot-password') ||
+        pathname.startsWith('/update-password') ||
+        pathname.startsWith('/reset-password') ||
         pathname.startsWith('/Gensw_');
 
     // (Opcional) Norton Safe Web / Symantec scanner por User-Agent

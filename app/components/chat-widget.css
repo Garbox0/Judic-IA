@@ -1,16 +1,19 @@
 /* chat-widget.css */
 .chat-widget-wrapper {
-    position: relative;
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
     width: 100%;
     max-width: 450px;
-    height: 100%;
-    margin: 0 auto;
+    height: 70vh;
+    max-height: 700px;
     display: flex;
     flex-direction: column;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    border-radius: 12px;
+    border-radius: 20px;
     overflow: hidden;
     font-family: var(--font-outfit);
+    z-index: 9999;
 }
 
 .limit-modal-overlay {
@@ -99,7 +102,18 @@
     object-fit: cover;
 }
 
+.chat-toggle-wrapper {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 9998;
+}
+
 .chat-minimized-tab-v3 {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 9998;
     background: rgba(2, 6, 23, 0.95);
     display: flex;
     flex-direction: column;
@@ -107,6 +121,7 @@
     gap: 4px;
     padding: 10px 8px;
     cursor: pointer;
+    border-radius: 12px 12px 0 0;
 }
 
 .chat-ia-label {
