@@ -41,9 +41,21 @@ export default async function RootLayout({ children }) {
 
   return (
     <html lang="es" suppressHydrationWarning>
+      <head>
+        {/* [SECURITY] Propagate nonce via style to satisfy A+ strict mode if enabled */}
+        <style nonce={nonce} suppressHydrationWarning>{`:root { --nonce-safe: 1; }`}</style>
+      </head>
       <body className={`${outfit.variable} ${playfair.variable}`} suppressHydrationWarning>
+        {/* [SECURITY] Global Nonce for Client Components */}
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `window.judicNonce = "${nonce}";`
+          }}
+        />
         {children}
-        <GoogleAnalytics gaId="G-YGHD9G2S0R" />
+        <GoogleAnalytics gaId="G-YGHD9G2S0R" nonce={nonce} />
       </body>
     </html>
   );
