@@ -340,8 +340,10 @@ function RegisterContent() {
 
                         <form onSubmit={handleRegister} className="premium-form">
                             <div className="input-field">
-                                <label>Tu Email</label>
+                                <label htmlFor="email">Tu Email</label>
                                 <input
+                                    id="email"
+                                    name="email"
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -351,8 +353,10 @@ function RegisterContent() {
                             </div>
 
                             <div className="input-field">
-                                <label>Confirmar Email</label>
+                                <label htmlFor="confirmEmail">Confirmar Email</label>
                                 <input
+                                    id="confirmEmail"
+                                    name="confirmEmail"
                                     type="email"
                                     value={confirmEmail}
                                     onChange={(e) => setConfirmEmail(e.target.value)}
@@ -367,8 +371,10 @@ function RegisterContent() {
 
                             <div style={{ display: 'flex', gap: '1rem' }}>
                                 <div className="input-field" style={{ flex: 1 }}>
-                                    <label>Nombre</label>
+                                    <label htmlFor="firstName">Nombre</label>
                                     <input
+                                        id="firstName"
+                                        name="firstName"
                                         type="text"
                                         value={firstName}
                                         onChange={(e) => setFirstName(e.target.value)}
@@ -377,8 +383,10 @@ function RegisterContent() {
                                     />
                                 </div>
                                 <div className="input-field" style={{ flex: 1 }}>
-                                    <label>Apellido</label>
+                                    <label htmlFor="lastName">Apellido</label>
                                     <input
+                                        id="lastName"
+                                        name="lastName"
                                         type="text"
                                         value={lastName}
                                         onChange={(e) => setLastName(e.target.value)}
@@ -389,9 +397,10 @@ function RegisterContent() {
                             </div>
 
                             <div className="input-field">
-                                <label>Celular</label>
+                                <label htmlFor="phone">Celular</label>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <select
+                                        name="countryCode"
                                         value={countryCode}
                                         onChange={(e) => setCountryCode(e.target.value)}
                                         style={{
@@ -413,6 +422,8 @@ function RegisterContent() {
                                         <option value="+1">+1 (US/CA)</option>
                                     </select>
                                     <input
+                                        id="phone"
+                                        name="phone"
                                         type="tel"
                                         style={{ flex: 1 }}
                                         value={phone}
@@ -424,9 +435,11 @@ function RegisterContent() {
                             </div>
 
                             <div className="input-field">
-                                <label>Crear Clave de Acceso</label>
+                                <label htmlFor="password">Crear Clave de Acceso</label>
                                 <div className="pass-input-wrapper">
                                     <input
+                                        id="password"
+                                        name="password"
                                         type={showPassword ? "text" : "password"}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
@@ -444,9 +457,11 @@ function RegisterContent() {
                             </div>
 
                             <div className="input-field">
-                                <label>Repetir Clave</label>
+                                <label htmlFor="confirmPassword">Repetir Clave</label>
                                 <div className="pass-input-wrapper">
                                     <input
+                                        id="confirmPassword"
+                                        name="confirmPassword"
                                         type={showConfirmPassword ? "text" : "password"}
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}

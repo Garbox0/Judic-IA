@@ -362,8 +362,10 @@ function LoginContent() {
 
                         <form onSubmit={handleLogin} className="premium-form">
                             <div className="input-field">
-                                <label>Tu Email</label>
+                                <label htmlFor="email">Tu Email</label>
                                 <input
+                                    id="email"
+                                    name="email"
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -372,9 +374,11 @@ function LoginContent() {
                                 />
                             </div>
                             <div className="input-field">
-                                <label>Tu Clave de Acceso</label>
+                                <label htmlFor="password">Tu Clave de Acceso</label>
                                 <div className="pass-input-wrapper">
                                     <input
+                                        id="password"
+                                        name="password"
                                         type={showPassword ? "text" : "password"}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}

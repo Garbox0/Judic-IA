@@ -240,62 +240,76 @@ export default function RegisterPage() {
                     <form onSubmit={handleSignUp} className="register-form">
                         <div className="register-grid">
                             <div className="register-field">
-                                <label>Nombre</label>
-                                <input type="text" placeholder="Juan" value={firstName} onChange={e => setFirstName(e.target.value)} required />
+                                <label htmlFor="firstName">Nombre</label>
+                                <input id="firstName" name="firstName" autoComplete="given-name" type="text" placeholder="Juan" value={firstName} onChange={e => setFirstName(e.target.value)} required />
                             </div>
                             <div className="register-field">
-                                <label>Apellido</label>
-                                <input type="text" placeholder="Pérez" value={lastName} onChange={e => setLastName(e.target.value)} required />
+                                <label htmlFor="lastName">Apellido</label>
+                                <input id="lastName" name="lastName" autoComplete="family-name" type="text" placeholder="Pérez" value={lastName} onChange={e => setLastName(e.target.value)} required />
                             </div>
 
                             <div className="register-field full-width">
-                                <label>CUIT / CUIL</label>
-                                <div className="cuit-inputs-row">
-                                    <input
-                                        type="text"
-                                        placeholder="20"
-                                        value={cuitPrefix}
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            if (val.length <= 2 && /^\d*$/.test(val)) setCuitPrefix(val);
-                                        }}
-                                        required
-                                        maxLength={2}
-                                        style={{ width: '65px', textAlign: 'center' }}
-                                    />
-                                    <span style={{ color: '#64748b', fontSize: '1.2rem' }}>-</span>
-                                    <input
-                                        type="text"
-                                        placeholder="12345678"
-                                        value={cuitDni}
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            if (val.length <= 8 && /^\d*$/.test(val)) setCuitDni(val);
-                                        }}
-                                        required
-                                        maxLength={8}
-                                        style={{ flex: 1, textAlign: 'center' }}
-                                    />
-                                    <span style={{ color: '#64748b', fontSize: '1.2rem' }}>-</span>
-                                    <input
-                                        type="text"
-                                        placeholder="6"
-                                        value={cuitSuffix}
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            if (val.length <= 1 && /^\d*$/.test(val)) setCuitSuffix(val);
-                                        }}
-                                        required
-                                        maxLength={1}
-                                        style={{ width: '50px', textAlign: 'center' }}
-                                    />
-                                </div>
+                                <fieldset className="cuit-fieldset" style={{ border: 'none', padding: 0, margin: 0 }}>
+                                    <legend id="cuit-label" style={{ display: 'block', color: '#94a3b8', marginBottom: '0.6rem', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>CUIT / CUIL</legend>
+                                    <div className="cuit-inputs-row">
+                                        <input
+                                            name="cuitPrefix"
+                                            aria-label="CUIT Prefix"
+                                            autoComplete="off"
+                                            type="text"
+                                            placeholder="20"
+                                            value={cuitPrefix}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                if (val.length <= 2 && /^\d*$/.test(val)) setCuitPrefix(val);
+                                            }}
+                                            required
+                                            maxLength={2}
+                                            style={{ width: '65px', textAlign: 'center' }}
+                                        />
+                                        <span style={{ color: '#64748b', fontSize: '1.2rem' }}>-</span>
+                                        <input
+                                            name="cuitDni"
+                                            aria-label="CUIT DNI"
+                                            autoComplete="off"
+                                            type="text"
+                                            placeholder="12345678"
+                                            value={cuitDni}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                if (val.length <= 8 && /^\d*$/.test(val)) setCuitDni(val);
+                                            }}
+                                            required
+                                            maxLength={8}
+                                            style={{ flex: 1, textAlign: 'center' }}
+                                        />
+                                        <span style={{ color: '#64748b', fontSize: '1.2rem' }}>-</span>
+                                        <input
+                                            name="cuitSuffix"
+                                            aria-label="CUIT Suffix"
+                                            autoComplete="off"
+                                            type="text"
+                                            placeholder="6"
+                                            value={cuitSuffix}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                if (val.length <= 1 && /^\d*$/.test(val)) setCuitSuffix(val);
+                                            }}
+                                            required
+                                            maxLength={1}
+                                            style={{ width: '50px', textAlign: 'center' }}
+                                        />
+                                    </div>
+                                </fieldset>
                             </div>
 
                             <div className="register-field-row">
                                 <div style={{ flex: 1 }}>
-                                    <label>Tomo</label>
+                                    <label htmlFor="tomo">Tomo</label>
                                     <input
+                                        id="tomo"
+                                        name="tomo"
+                                        autoComplete="off"
                                         type="number"
                                         placeholder="80"
                                         value={tomo}
@@ -305,8 +319,11 @@ export default function RegisterPage() {
                                     />
                                 </div>
                                 <div style={{ flex: 1 }}>
-                                    <label>Folio</label>
+                                    <label htmlFor="folio">Folio</label>
                                     <input
+                                        id="folio"
+                                        name="folio"
+                                        autoComplete="off"
                                         type="number"
                                         placeholder="500"
                                         value={folio}
@@ -318,8 +335,8 @@ export default function RegisterPage() {
                             </div>
 
                             <div className="register-field">
-                                <label>Jurisdicción / Colegio</label>
-                                <select value={jurisdiccion} onChange={e => setJurisdiccion(e.target.value)} required>
+                                <label htmlFor="jurisdiccion">Jurisdicción / Colegio</label>
+                                <select id="jurisdiccion" name="jurisdiccion" autoComplete="organization" value={jurisdiccion} onChange={e => setJurisdiccion(e.target.value)} required>
                                     <option value="">Seleccionar...</option>
                                     {JURISDICCION_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                 </select>
@@ -327,31 +344,36 @@ export default function RegisterPage() {
 
                             {jurisdiccion === 'Otro' && (
                                 <div className="register-field full-width slide-up">
-                                    <label>Especificar Colegio / Jurisdicción</label>
-                                    <input type="text" placeholder="Ej: Colegio de Abogados de Tucumán" value={customJurisdiccion} onChange={e => setCustomJurisdiccion(e.target.value)} required />
+                                    <label htmlFor="customJurisdiccion">Especificar Colegio / Jurisdicción</label>
+                                    <input id="customJurisdiccion" name="customJurisdiccion" autoComplete="organization" type="text" placeholder="Ej: Colegio de Abogados de Tucumán" value={customJurisdiccion} onChange={e => setCustomJurisdiccion(e.target.value)} required />
                                 </div>
                             )}
 
                             <div className="register-field full-width">
-                                <label>Especialidades (Lo que atenderá tu IA)</label>
-                                <div className="tags-container">
-                                    {SPECIALTIES_OPTIONS.map(spec => (
-                                        <button key={spec} type="button" className={`tag-btn ${specialties.includes(spec) ? 'selected' : ''}`} onClick={() => toggleSpecialty(spec)}>
-                                            {spec}
-                                        </button>
-                                    ))}
-                                </div>
+                                <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
+                                    <legend style={{ display: 'block', color: '#94a3b8', marginBottom: '0.6rem', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Especialidades (Lo que atenderá tu IA)</legend>
+                                    <div className="tags-container">
+                                        {SPECIALTIES_OPTIONS.map(spec => (
+                                            <button key={spec} type="button" className={`tag-btn ${specialties.includes(spec) ? 'selected' : ''}`} onClick={() => toggleSpecialty(spec)}>
+                                                {spec}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </fieldset>
                             </div>
                         </div>
 
                         <div className="register-field full-width">
-                            <label>Email Profesional</label>
-                            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="dr.nombre@estudio.com" required />
+                            <label htmlFor="email">Email Profesional</label>
+                            <input id="email" name="email" autoComplete="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="dr.nombre@estudio.com" required />
                         </div>
 
                         <div className="register-field full-width">
-                            <label>Confirmar Email</label>
+                            <label htmlFor="confirmEmail">Confirmar Email</label>
                             <input
+                                id="confirmEmail"
+                                name="confirmEmail"
+                                autoComplete="off"
                                 type="email"
                                 value={confirmEmail}
                                 onChange={(e) => setConfirmEmail(e.target.value)}
@@ -368,9 +390,9 @@ export default function RegisterPage() {
 
                         <div className="register-grid">
                             <div className="register-field">
-                                <label>Contraseña</label>
+                                <label htmlFor="password">Contraseña</label>
                                 <div className="pass-input-wrapper">
-                                    <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
+                                    <input id="password" name="password" autoComplete="new-password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
                                     <button type="button" className="eye-toggle-register" onClick={() => setShowPassword(!showPassword)}>
                                         {showPassword ? "👁️" : "👁️‍🗨️"}
                                     </button>
@@ -378,9 +400,9 @@ export default function RegisterPage() {
                             </div>
 
                             <div className="register-field">
-                                <label>Confirmar Contraseña</label>
+                                <label htmlFor="confirmPassword">Confirmar Contraseña</label>
                                 <div className="pass-input-wrapper">
-                                    <input type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" required />
+                                    <input id="confirmPassword" name="confirmPassword" autoComplete="new-password" type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" required />
                                     <button type="button" className="eye-toggle-register" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                                         {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
                                     </button>

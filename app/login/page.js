@@ -199,8 +199,11 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin}>
           <div className="login-field">
-            <label>Email profesional</label>
+            <label htmlFor="email">Email profesional</label>
             <input
+              id="email"
+              name="email"
+              autoComplete="email"
               type="email"
               placeholder="dr.nombre@estudio.com"
               value={email}
@@ -210,9 +213,12 @@ export default function LoginPage() {
           </div>
 
           <div className="login-field">
-            <label>Contraseña</label>
+            <label htmlFor="password">Contraseña</label>
             <div className="password-wrapper">
               <input
+                id="password"
+                name="password"
+                autoComplete="current-password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
