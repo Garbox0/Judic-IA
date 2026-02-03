@@ -61,7 +61,7 @@ export async function GET(request) {
             .single();
 
         if (inqError || !inquiry) {
-            return NextResponse.json({ error: "Expediente no encontrado" }, { status: 404 });
+            return NextResponse.json({ history: [] });
         }
 
         // 2. Authorization Guard

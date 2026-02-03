@@ -77,7 +77,7 @@ export async function middleware(request) {
     const cspHeader = `
         default-src 'none';
         script-src 'self' 'nonce-${nonce}' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://apis.google.com https://accounts.google.com https://sdk.mercadopago.com https://static.cloudflareinsights.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live https://unpkg.com;
-        style-src 'self' 'nonce-${nonce}' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=' 'sha256-CIxDM5jnsGiKqXs2v7NKCY5MzdR9gu6TtiMJrDw29AY=' https://fonts.googleapis.com https://vercel.live;
+        style-src 'self' 'nonce-${nonce}' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=' 'sha256-CIxDM5jnsGiKqXs2v7NKCY5MzdR9gu6TtiMJrDw29AY=' 'sha256-zlqnbDt84zf1iSefLU/ImC54isoprH/MRiVZGskwexk=' 'sha256-32t0bJPIyxns/QqsW8RE3JGUERKnHL5RygHBgJvEanc=' 'sha256-bo9/JAqIUBMiSHL1O4oiO3U5UHaFxqbagFBryI+8mwU=' https://fonts.googleapis.com https://vercel.live;
         img-src 'self' data: https://*.supabase.co https://lh3.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live https://vercel.com https://assets.vercel.com ${legislationOrigin};
         font-src 'self' https://fonts.gstatic.com data: https://vercel.live;
         connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live https://vitals.vercel-insights.com https://cloudflareinsights.com https://static.cloudflareinsights.com ${legislationOrigin};
