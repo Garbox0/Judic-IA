@@ -58,9 +58,9 @@ export async function GET(request) {
             .from('inquiries')
             .select('assigned_lawyer_id, client_auth_id')
             .eq('id', sessionId)
-            .single();
+            .maybeSingle();
 
-        if (inqError || !inquiry) {
+        if (!inquiry) {
             return NextResponse.json({ history: [] });
         }
 

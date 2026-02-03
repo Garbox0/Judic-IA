@@ -447,32 +447,16 @@ export default function LegislationPage() {
                 {/* INFOLEG SEARCH BAR */}
                 <div className="infoleg-search glass-panel">
                     {/* Search Tabs */}
-                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
+                    <div className="legislation-tabs">
                         <button
                             onClick={() => setSearchMode('norma')}
-                            style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: searchMode === 'norma' ? '#fbbf24' : '#94a3b8',
-                                borderBottom: searchMode === 'norma' ? '2px solid #fbbf24' : '2px solid transparent',
-                                padding: '0.5rem 0',
-                                cursor: 'pointer',
-                                fontWeight: 500
-                            }}
+                            className={`legislation-tab-btn ${searchMode === 'norma' ? 'active' : ''}`}
                         >
                             Buscar por Norma
                         </button>
                         <button
                             onClick={() => setSearchMode('boletin')}
-                            style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: searchMode === 'boletin' ? '#fbbf24' : '#94a3b8',
-                                borderBottom: searchMode === 'boletin' ? '2px solid #fbbf24' : '2px solid transparent',
-                                padding: '0.5rem 0',
-                                cursor: 'pointer',
-                                fontWeight: 500
-                            }}
+                            className={`legislation-tab-btn ${searchMode === 'boletin' ? 'active' : ''}`}
                         >
                             Buscar por Boletín Oficial
                         </button>
@@ -558,8 +542,8 @@ export default function LegislationPage() {
                         ) : (
                             /* BOLETIN OFICIAL FORM */
                             <div className="search-grid">
-                                <div className="search-field col-span-4" style={{ flexDirection: 'row', gap: '2rem', marginBottom: '1rem' }}>
-                                    <label htmlFor="bo_type_fecha" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'white' }}>
+                                <div className="search-field col-span-4 legislation-radio-group">
+                                    <label htmlFor="bo_type_fecha" className="legislation-radio-label">
                                         <input
                                             id="bo_type_fecha"
                                             type="radio"
@@ -569,7 +553,7 @@ export default function LegislationPage() {
                                         />
                                         Fecha de Publicación
                                     </label>
-                                    <label htmlFor="bo_type_numero" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'white' }}>
+                                    <label htmlFor="bo_type_numero" className="legislation-radio-label">
                                         <input
                                             id="bo_type_numero"
                                             type="radio"
@@ -698,25 +682,19 @@ export default function LegislationPage() {
                 {/* SECTION 3: CÓDIGOS DE FORMA (COLLAPSIBLE) */}
                 <section className="legislation-section">
                     <div
-                        className="section-head collapsible-header"
+                        className="section-head collapsible-header collapsible-header-btn"
                         onClick={() => setIsProceduralExpanded(!isProceduralExpanded)}
-                        style={{ cursor: 'pointer' }}
                     >
                         <div className="icon-badge blue">
                             <Map size={20} />
                         </div>
                         <div className="head-row">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div className="head-row-inner">
                                 <div>
                                     <h2>Códigos de Forma (Procesales)</h2>
                                     <p className="section-desc">Reglas de procedimiento según la jurisdicción competente.</p>
                                 </div>
-                                <span style={{
-                                    fontSize: '1.2rem',
-                                    color: '#94a3b8',
-                                    transition: 'transform 0.2s',
-                                    transform: isProceduralExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
-                                }}>
+                                <span className={`collapsible-arrow ${isProceduralExpanded ? 'expanded' : ''}`}>
                                     ▼
                                 </span>
                             </div>
@@ -726,7 +704,7 @@ export default function LegislationPage() {
                     {isProceduralExpanded && (
                         <>
                             {/* JURISDICTION SELECTOR */}
-                            <div className="jurisdiction-select-wrapper" style={{ marginBottom: '1.5rem' }}>
+                            <div className="jurisdiction-select-wrapper jurisdiction-wrapper">
                                 <label htmlFor="leg_jurisdiction_select" className="sr-only">Seleccionar Jurisdicción de Códigos de Forma</label>
                                 <select
                                     id="leg_jurisdiction_select"
