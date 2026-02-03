@@ -302,14 +302,17 @@ export default function AgendaPage() {
                                 <button className={range === "30d" ? "active" : ""} onClick={() => setRange("30d")}>30d</button>
                             </div>
 
-                            <select className="select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                            <label htmlFor="agenda_sort_by" className="sr-only">Ordenar por</label>
+                            <select id="agenda_sort_by" name="sortBy" className="select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                                 <option value="urgency">Orden: Urgencia</option>
                                 <option value="date">Orden: Fecha</option>
                                 <option value="title">Orden: Título</option>
                             </select>
 
-                            <label className="check">
+                            <label htmlFor="agenda_only_critical" className="check">
                                 <input
+                                    id="agenda_only_critical"
+                                    name="onlyCritical"
                                     type="checkbox"
                                     checked={onlyCritical}
                                     onChange={(e) => setOnlyCritical(e.target.checked)}

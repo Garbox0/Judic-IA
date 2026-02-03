@@ -95,7 +95,6 @@ export default function CasesPage() {
                 throw error;
             }
             setCases(data || []);
-            console.log("📂 Casos cargados:", data);
 
             // Calculate stats
             const newStats = (data || []).reduce((acc, c) => {

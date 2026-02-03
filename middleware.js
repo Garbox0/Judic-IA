@@ -95,6 +95,7 @@ export async function middleware(request) {
         'https://*.vercel.com',
         'https://*.cloudflareinsights.com',
         'https://unpkg.com',
+        'https://old.pjn.gov.ar',
         legislationOrigin
     ].join(' ');
 
