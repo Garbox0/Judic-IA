@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 
 import { useSearchParams } from "next/navigation";
+import "./chat-widget.css";
 
 export default function ChatWidget({
     mode = "client",
@@ -204,42 +205,21 @@ export default function ChatWidget({
     }, [embedded]);
 
     return (
-        <div className={embedded ? "" : "chat-widget-container"} style={embedded ? {
-            position: "relative", width: "100%", maxWidth: "450px", height: "100%", margin: "0 auto",
-            display: "flex", flexDirection: "column", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "12px",
-            overflow: "hidden", fontFamily: 'var(--font-outfit)'
-        } : {}}>
+        <div className={embedded ? "chat-widget-wrapper" : "chat-widget-container"}>
             {/* LIMIT REACHED MODAL */}
             {showLimitModal && (
-                <div style={{
-                    position: 'absolute', inset: 0, zIndex: 100,
-                    background: 'rgba(2, 6, 23, 0.85)', backdropFilter: 'blur(8px)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem'
-                }}>
-                    <div style={{
-                        background: '#0f172a', border: '1px solid rgba(251, 191, 36, 0.3)',
-                        borderRadius: '24px', padding: '2rem', textAlign: 'center',
-                        boxShadow: '0 20px 50px -10px rgba(0,0,0,0.8)', maxWidth: '320px'
-                    }}>
-                        <div style={{
-                            width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(251, 191, 36, 0.1)',
-                            border: '1px solid rgba(251, 191, 36, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            margin: '0 auto 1.5rem auto'
-                        }}>
-                            <span style={{ fontSize: '1.8rem' }}>👑</span>
+                <div className="limit-modal-overlay">
+                    <div className="limit-modal-content">
+                        <div className="limit-modal-icon">
+                            <span className="limit-modal-emoji">👑</span>
                         </div>
-                        <h3 style={{ color: 'white', fontWeight: '800', fontSize: '1.25rem', marginBottom: '0.5rem' }}>Límite Alcanzado</h3>
-                        <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
+                        <h3 className="limit-modal-title">Límite Alcanzado</h3>
+                        <p className="limit-modal-text">
                             El profesional ha agotado su cupo mensual de consultas gratuitas.
                         </p>
                         <button
                             onClick={() => setShowLimitModal(false)}
-                            style={{
-                                width: '100%', padding: '0.75rem', borderRadius: '12px',
-                                background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
-                                color: 'black', fontWeight: '800', border: 'none', cursor: 'pointer',
-                                fontSize: '0.9rem', boxShadow: '0 4px 12px rgba(251, 191, 36, 0.3)'
-                            }}
+                            className="limit-modal-btn"
                         >
                             Entendido
                         </button>
@@ -267,22 +247,13 @@ export default function ChatWidget({
                                 {/* Label is hidden on mobile by CSS, visible on desktop */}
                                 <span className="chat-label">Asistente IA</span>
                                 <button
-                                    className="btn-primary"
+                                    className="btn-primary chat-toggle-btn-premium"
                                     style={{
-                                        width: "60px", height: "60px",
-                                        borderRadius: "50%",
-                                        boxShadow: `0 8px 32px rgba(212, 178, 76, 0.25)`, // Premium Gold Glow
-                                        display: "flex", alignItems: "center", justifyContent: "center",
-                                        background: '#0f172a',
-                                        border: `2px solid ${botConfig.color}`,
-                                        cursor: 'pointer',
-                                        padding: 0,
-                                        overflow: 'hidden',
-                                        position: 'relative',
-                                        transition: 'transform 0.2s'
+                                        boxShadow: `0 8px 32px rgba(212, 178, 76, 0.25)`,
+                                        border: `2px solid ${botConfig.color}`
                                     }}
                                 >
-                                    <img src={activeAvatar || "/bot-icon.png"} alt="Bot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img src={activeAvatar || "/bot-icon.png"} alt="Bot" className="chat-avatar-img" />
                                 </button>
                             </div>
                         </div>
@@ -291,17 +262,9 @@ export default function ChatWidget({
                     {/* HIDDEN TAB (When minimized) - With IA Label */}
                     {isBubbleHidden && (
                         <button
-                            className="chat-minimized-tab"
+                            className="chat-minimized-tab chat-minimized-tab-v3"
                             onClick={() => { setIsBubbleHidden(false); setIsOpen(true); }}
-                            style={{
-                                borderLeft: `3px solid ${botConfig.color}`,
-                                background: 'rgba(2, 6, 23, 0.95)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: '4px',
-                                padding: '10px 8px'
-                            }}
+                            style={{ borderLeft: `3px solid ${botConfig.color}` }}
                         >
                             {/* Robot/AI Icon */}
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={botConfig.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -312,12 +275,7 @@ export default function ChatWidget({
                                 <line x1="16" y1="16" x2="16" y2="16"></line>
                             </svg>
                             {/* IA Label */}
-                            <span style={{
-                                fontSize: '9px',
-                                fontWeight: '900',
-                                color: botConfig.color,
-                                letterSpacing: '0.5px'
-                            }}>IA</span>
+                            <span className="chat-ia-label" style={{ color: botConfig.color }}>IA</span>
                         </button>
                     )}
                 </>
@@ -334,55 +292,37 @@ export default function ChatWidget({
                 }}>
                     {/* Header - Hidden in embedded intake to avoid redundancy, OR simplified */}
                     {!embedded && (
-                        <div style={{
-                            padding: "1rem", background: "var(--glass-strong)", borderBottom: "1px solid var(--border)",
-                            display: "flex", justifyContent: "space-between", alignItems: "center"
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <div style={{
-                                    width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden',
-                                    border: `1px solid ${botConfig.color}`
-                                }}>
-                                    <img src={activeAvatar || "/bot-icon.png"} alt="Bot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div className="chat-header-v3">
+                            <div className="chat-header-info">
+                                <div className="chat-header-avatar" style={{ border: `1px solid ${botConfig.color}` }}>
+                                    <img src={activeAvatar || "/bot-icon.png"} alt="Bot" className="chat-avatar-img" />
                                 </div>
-                                <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{botConfig.name}</span>
+                                <span className="chat-header-name">{botConfig.name}</span>
                             </div>
                             <button onClick={() => {
                                 setIsOpen(false);
                                 // On mobile, go directly back to minimized tab
                                 if (window.innerWidth <= 768) setIsBubbleHidden(true);
-                            }} style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: '1.2rem', cursor: 'pointer' }} aria-label="Cerrar chat">×</button>
+                            }} className="chat-close-btn" aria-label="Cerrar chat">×</button>
                         </div>
                     )}
 
                     {/* Messages */}
-                    <div style={{ flex: 1, padding: "1rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1rem" }}>
+                    <div className="chat-messages-area">
                         {messages.filter(m => m.content && !m.content.startsWith('[SISTEMA:')).map((m, i) => (
-                            <div key={i} style={{
-                                alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                                background: m.role === "user" ? "var(--primary)" : "var(--secondary-hover)", // Theme-aware background
-                                color: m.role === "user" ? "#0f172a" : "var(--foreground)", // Theme-aware text
-                                padding: "0.8rem 1rem", borderRadius: "12px",
-                                maxWidth: "85%", fontSize: "0.9rem", lineHeight: "1.4",
-                                border: m.role === "assistant" ? "1px solid var(--border)" : "none"
-                            }}>
+                            <div key={i} className={`chat-msg ${m.role === "user" ? "user" : "assistant"}`}>
                                 {m.content}
                             </div>
                         ))}
-                        {loading && <div style={{ alignSelf: "flex-start", color: "var(--muted)", fontSize: "0.8rem" }}>Escribiendo...</div>}
+                        {loading && <div className="chat-typing">Escribiendo...</div>}
                         <div ref={messagesEndRef} />
                     </div>
 
                     {/* Input Area */}
-                    <div style={{
-                        padding: "1rem",
-                        borderTop: embedded ? "1px solid rgba(255,255,255,0.05)" : "1px solid var(--border)",
-                        display: "flex", gap: "0.8rem", alignItems: 'flex-end',
-                        background: embedded ? 'transparent' : 'inherit'
-                    }}>
+                    <div className="chat-input-wrapper">
                         {/* 🔒 SECURITY: Only allow attachments in 'intake' mode to reduce attack surface */}
                         {(mode === 'intake' || mode === 'client') && (
-                            <label htmlFor="chat_file_upload" style={{ cursor: 'pointer', padding: '0.5rem', color: 'var(--muted)', transition: '0.2s', paddingBottom: '0.8rem' }} className="hover-icon">
+                            <label htmlFor="chat_file_upload" className="chat-file-label hover-icon">
                                 <input id="chat_file_upload" name="chat_attachment" type="file" style={{ display: 'none' }} onChange={async (e) => {
                                     if (e.target.files?.[0]) {
                                         const file = e.target.files[0];
@@ -488,18 +428,10 @@ export default function ChatWidget({
                                     }
                                 }}
                                 placeholder="Escribe tu consulta aquí..."
-                                style={{
-                                    width: '100%', padding: "1rem", borderRadius: "16px", border: "1px solid var(--border)",
-                                    background: "var(--site-input-bg, rgba(15, 23, 42, 0.4))", color: "var(--foreground)", outline: "none",
-                                    resize: 'none', height: '54px', fontSize: '0.95rem', fontFamily: 'inherit',
-                                    boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.1)'
-                                }}
+                                className="chat-textarea"
                             />
                         </div>
-                        <button onClick={sendMessage} className="btn-primary" style={{
-                            width: '50px', height: '50px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '1.2rem', padding: 0
-                        }} aria-label="Enviar mensaje">➤</button>
+                        <button onClick={sendMessage} className="btn-primary chat-send-btn" aria-label="Enviar mensaje">➤</button>
                     </div>
                 </div>
             )}
