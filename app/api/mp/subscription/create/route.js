@@ -12,7 +12,7 @@ export async function POST(req) {
         process.env.MP_PREAPPROVAL_PLAN_ID ||
         process.env.NEXT_PUBLIC_MP_PREAPPROVAL_PLAN_ID;
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://judic-ia.com";
 
     const body = {
         subscription_plan_id: planId, // NOTE: This might be ignored by 'checkout/preferences' but kept for legacy/tracking

@@ -213,9 +213,9 @@ export default function DemoLegislationPage() {
             { title: "Código Urbanístico", url: "https://boletinoficial.buenosaires.gob.ar/normativaba/norma/446782" }
         ],
         "Córdoba": [
-            { title: "Código de Procedimiento Contencioso-Administrativo", url: "http://web2.cba.gov.ar/web/leyes.nsf/0/EF9B8FD2619646E403257BE10057A1BE?OpenDocument&Highlight=0,7182" },
-            { title: "Código Procesal Penal de la Provincia", url: "http://web2.cba.gov.ar/web/leyes.nsf/0/34892CF23B741475032586BE00575E42?OpenDocument&Highlight=0,c%F3digo%20procesal%20penal" },
-            { title: "Código de Procedimiento Civil y Comercial", url: "http://web2.cba.gov.ar/web/leyes.nsf/0/19FD5340A2AA7E7003258A2000449696?OpenDocument&Highlight=0,8465" },
+            { title: "Código de Procedimiento Contencioso-Administrativo", url: "https://web2.cba.gov.ar/web/leyes.nsf/0/EF9B8FD2619646E403257BE10057A1BE?OpenDocument&Highlight=0,7182" },
+            { title: "Código Procesal Penal de la Provincia", url: "https://web2.cba.gov.ar/web/leyes.nsf/0/34892CF23B741475032586BE00575E42?OpenDocument&Highlight=0,c%F3digo%20procesal%20penal" },
+            { title: "Código de Procedimiento Civil y Comercial", url: "https://web2.cba.gov.ar/web/leyes.nsf/0/19FD5340A2AA7E7003258A2000449696?OpenDocument&Highlight=0,8465" },
             { title: "Código Procesal del Trabajo (Ley 7987)", url: "https://www.argentina.gob.ar/normativa/provincial/ley-7987-123456789-0abc-defg-789-7000ovorpyel" }
         ],
         "Catamarca": [

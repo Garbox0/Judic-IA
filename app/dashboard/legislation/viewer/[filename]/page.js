@@ -32,7 +32,7 @@ export default function LegislationViewerPage() {
 
     // 🔒 VPS MIGRATION: Serve files from MinIO (Legislation Bucket)
     // Using Env Var to avoid exposing hardcoded IP, preparing for future HTTPS domain.
-    const VPS_BASE_URL = process.env.NEXT_PUBLIC_LEGISLATION_URL || 'http://localhost:3000/legislation';
+    const VPS_BASE_URL = process.env.NEXT_PUBLIC_LEGISLATION_URL || 'https://judic-ia.com/legislation';
 
     // If external URL (e.g. KB) use it, otherwise construct VPS path for legislation
     const pdfPath = externalUrl

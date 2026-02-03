@@ -19,7 +19,7 @@ export async function POST(request) {
         const openai = new OpenAI({
             apiKey: process.env.OPENROUTER_API_KEY,
             baseURL: "https://openrouter.ai/api/v1",
-            defaultHeaders: { "HTTP-Referer": "http://localhost:3000", "X-Title": "Judic-IA" }
+            defaultHeaders: { "HTTP-Referer": "https://judic-ia.com", "X-Title": "Judic-IA" }
         });
 
         // 1. FRESH BRAVE SEARCH

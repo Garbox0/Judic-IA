@@ -51,7 +51,7 @@ export async function POST(request) {
             type: 'recovery',
             email: email,
             options: {
-                redirectTo: redirectTo || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/update-password`
+                redirectTo: redirectTo || `${process.env.NEXT_PUBLIC_APP_URL || 'https://judic-ia.com'}/update-password`
             }
         });
 

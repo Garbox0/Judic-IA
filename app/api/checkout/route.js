@@ -15,7 +15,7 @@ export async function POST(request) {
             return new Response(JSON.stringify({ error: 'User ID is required' }), { status: 400 });
         }
 
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://judic-ia.com';
         const webhookUrl = process.env.WEBHOOK_URL || siteUrl;
 
         const preference = new Preference(client);
