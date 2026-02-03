@@ -170,7 +170,7 @@ export default function DemoCalculatorsContent() {
 
             <header className="tools-header">
                 <div className="header-content">
-                    <h1><Calculator size={48} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.8rem', color: '#8b5cf6' }} /> Calculadoras Jurídicas</h1>
+                    <h1><Calculator size={48} className="icon-purple" /> Calculadoras Jurídicas</h1>
                     <p>Herramientas de precisión para el ejercicio profesional.</p>
                 </div>
                 <UsageGuideDemo content={demoManuals.calculators} />
@@ -179,7 +179,7 @@ export default function DemoCalculatorsContent() {
             <div className="tools-grid">
 
                 {/* --- CALCULADORA DE PLAZOS --- */}
-                <div className="tool-card glass-panel" style={{ borderColor: '#8b5cf6' }}> {/* Purple tint */}
+                <div className="tool-card glass-panel border-purple">
                     <div className="tool-header">
                         <Calendar size={24} className="text-violet-400" />
                         <h3>Calculadora de Plazos Procesales</h3>
@@ -212,8 +212,8 @@ export default function DemoCalculatorsContent() {
                             />
                         </div>
 
-                        <fieldset className="form-group full" style={{ border: 'none', padding: 0, margin: '0 0 1.5rem 0' }}>
-                            <legend style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Tipo de Cómputo</legend>
+                        <fieldset className="form-group full fieldset-reset">
+                            <legend className="legend-block">Tipo de Cómputo</legend>
                             <div className="radio-group">
                                 <label htmlFor="demo_plazo_habiles" className={`radio-option ${tipoPlazo === 'habiles' ? 'active' : ''}`}>
                                     <input
@@ -272,7 +272,7 @@ export default function DemoCalculatorsContent() {
                                 </div>
                             </div>
 
-                            <div className="disclaimer-mini" style={{ marginTop: '1.5rem' }}>
+                            <div className="disclaimer-mini mt-1-5rem">
                                 <Info size={14} />
                                 <span>El cómputo contempla fines de semana, feriados nacionales y periodos de feria judicial argentina 2026.</span>
                             </div>
@@ -330,8 +330,8 @@ export default function DemoCalculatorsContent() {
                             </div>
                         </div>
 
-                        <fieldset className="form-group full" style={{ border: 'none', padding: 0, margin: '0 0 1.5rem 0' }}>
-                            <legend style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Rubros Adicionales (Opcionales)</legend>
+                        <fieldset className="form-group full fieldset-reset">
+                            <legend className="legend-block">Rubros Adicionales (Opcionales)</legend>
                             <div className="checkbox-grid">
                                 <label htmlFor="demo_indem_check_preaviso" className={`check-option ${includePreaviso ? 'active' : ''}`}>
                                     <input id="demo_indem_check_preaviso" name="check_preaviso_demo" type="checkbox" checked={includePreaviso} onChange={() => setIncludePreaviso(!includePreaviso)} />

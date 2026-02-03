@@ -524,3 +524,32 @@ body.light-theme .result-header {
     /* amber-700 */
     border-bottom-color: rgba(251, 191, 36, 0.3) !important;
 }
+
+/* CSP COMPLIANCE & DEMO CLASSES */
+.icon-purple {
+    display: inline;
+    vertical-align: middle;
+    margin-right: 0.8rem;
+    color: #8b5cf6;
+}
+
+.border-purple {
+    border-color: #8b5cf6 !important;
+}
+
+.fieldset-reset {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 0 1.5rem 0 !important;
+}
+
+.legend-block {
+    display: block !important;
+    margin-bottom: 0.5rem !important;
+    font-weight: 500 !important;
+    color: #94a3b8 !important;
+}
+
+.mt-1-5rem {
+    margin-top: 1.5rem !important;
+}

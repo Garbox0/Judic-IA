@@ -212,7 +212,7 @@ export default function DemoAgendaPage() {
     return (
         <div className="agenda-container">
             {toast && (
-                <div style={{ position: 'fixed', bottom: '30px', right: '30px', background: '#10b981', color: 'white', padding: '1rem 2rem', borderRadius: '12px', zIndex: 5000, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+                <div className="agenda-toast">
                     ✅ {toast}
                 </div>
             )}
@@ -227,7 +227,7 @@ export default function DemoAgendaPage() {
 
             <header className="agenda-header">
                 <div>
-                    <h1 className="dashboard-page-title"><Calendar size={32} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.8rem', color: '#fbbf24' }} /> Agenda Jurídica</h1>
+                    <h1 className="dashboard-page-title"><Calendar size={32} className="inline-icon-demo" /> Agenda Jurídica</h1>
                     <p className="subtitle">Gestión de vencimientos, audiencias y plazos procesales.</p>
                 </div>
                 <button className="btn-primary" onClick={() => showToast("Crear evento deshabilitado en Demo")}>
@@ -258,7 +258,7 @@ export default function DemoAgendaPage() {
                 <aside className="upcoming-panel glass-panel">
                     <div className="upcoming-sticky">
                         <div className="upcoming-title-row">
-                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Bell size={18} /> Plazos</h3>
+                            <h3 className="flex-center gap-0-5rem"><Bell size={18} /> Plazos</h3>
                             <div className="upcoming-mini">
                                 <span className="pill">Vencidos: {kpiOverdue}</span>
                                 <span className="pill">Hoy: {kpiToday}</span>
@@ -293,7 +293,7 @@ export default function DemoAgendaPage() {
                     <div className="upcoming-scroll">
                         {filtered.length === 0 && (
                             <div className="empty-state">
-                                <div className="empty-title">No hay plazos en este rango <CheckCircle size={16} style={{ display: 'inline' }} /></div>
+                                <div className="empty-title">No hay plazos en este rango <CheckCircle size={16} className="display-inline" /></div>
                                 <div className="empty-sub">Probá ampliar a 7d/30d.</div>
                             </div>
                         )}
@@ -309,7 +309,7 @@ export default function DemoAgendaPage() {
                                                 <div className="countdown">{humanCountdown(ev.urgency.hoursLeft)}</div>
                                             </div>
                                             {ev.inquiries?.contact_name && (
-                                                <div className="card-client" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={12} /> {ev.inquiries.contact_name}</div>
+                                                <div className="card-client gap-4px"><User size={12} /> {ev.inquiries.contact_name}</div>
                                             )}
                                             <div className="card-title">{ev.title}</div>
                                             <div className="card-meta">
@@ -336,7 +336,7 @@ export default function DemoAgendaPage() {
                                                 <div className="countdown">{humanCountdown(ev.urgency.hoursLeft)}</div>
                                             </div>
                                             {ev.inquiries?.contact_name && (
-                                                <div className="card-client" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={12} /> {ev.inquiries.contact_name}</div>
+                                                <div className="card-client gap-4px"><User size={12} /> {ev.inquiries.contact_name}</div>
                                             )}
                                             <div className="card-title">{ev.title}</div>
                                             <div className="card-meta">
@@ -363,7 +363,7 @@ export default function DemoAgendaPage() {
                                                 <div className="countdown">{humanCountdown(ev.urgency.hoursLeft)}</div>
                                             </div>
                                             {ev.inquiries?.contact_name && (
-                                                <div className="card-client" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={12} /> {ev.inquiries.contact_name}</div>
+                                                <div className="card-client gap-4px"><User size={12} /> {ev.inquiries.contact_name}</div>
                                             )}
                                             <div className="card-title">{ev.title}</div>
                                             <div className="card-meta">
@@ -386,7 +386,7 @@ export default function DemoAgendaPage() {
             {hoverDay && (
                 <div
                     className="day-tooltip"
-                    style={{ transform: `translate(${hoverDay.x}px, ${hoverDay.y}px)` }}
+                    style={{ '--tt-x': `${hoverDay.x}px`, '--tt-y': `${hoverDay.y}px` }}
                 >
                     <div className="tt-head">
                         <div className="tt-date">
@@ -404,7 +404,7 @@ export default function DemoAgendaPage() {
                                 <div className="tt-main">
                                     <div className="tt-title">{ev.title}</div>
                                     {ev.inquiries?.contact_name && (
-                                        <div className="tt-client" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={10} /> {ev.inquiries.contact_name}</div>
+                                        <div className="tt-client gap-4px"><User size={10} /> {ev.inquiries.contact_name}</div>
                                     )}
                                     <div className="tt-meta">
                                         {new Date(ev.due_date).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}

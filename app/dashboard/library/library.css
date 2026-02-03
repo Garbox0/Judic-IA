@@ -276,3 +276,26 @@ body.light-theme .btn-copy:hover {
 body.light-theme .empty-state h3 {
     color: #0f172a;
 }
+
+/* CSP COMPLIANCE & DEMO CLASSES */
+.header-icon-pink {
+    display: inline;
+    vertical-align: middle;
+    margin-right: 0.8rem;
+    color: #ec4899;
+}
+
+.empty-state-icon-wrapper {
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.flex-center-gap-6 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.opacity-50 {
+    opacity: 0.5;
+}

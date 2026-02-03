@@ -221,7 +221,7 @@ ${formattedRespondents || 'Sin datos de denunciados.'}
                         </div>
                         <h2>Expediente Creado</h2>
                         <p>La carpeta legal y documentación se han generado con éxito.</p>
-                        <Loader2 className="animate-spin mt-4" size={24} style={{ color: '#fbbf24', margin: '2rem auto' }} />
+                        <Loader2 className="animate-spin loader-success-custom" size={24} />
                     </div>
                 ) : (
                     <>

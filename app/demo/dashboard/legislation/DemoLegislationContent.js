@@ -14,19 +14,11 @@ const DemoToast = ({ message, type = 'info', onClose }) => {
     }, [onClose]);
 
     return (
-        <div style={{
-            position: 'fixed', bottom: '30px', right: '30px', zIndex: 10000,
-            background: 'rgba(15, 23, 42, 0.95)', color: '#f8fafc',
-            padding: '1rem 1.5rem', borderRadius: '16px',
-            boxShadow: `0 10px 40px rgba(0,0,0,0.6), 0 0 0 1px #3b82f640`,
-            display: 'flex', gap: '16px', borderLeft: `5px solid #fbbf24`,
-            backdropFilter: 'blur(10px)', animation: 'slideUpFade 0.5s', alignItems: 'center'
-        }}>
+        <div className="demo-toast">
             <AlertCircle size={24} className="text-amber-400" />
-            <div>
-                <p style={{ margin: 0, fontWeight: 600 }}>{message}</p>
+            <div className="toast-content">
+                <p>{message}</p>
             </div>
-            <style jsx>{` @keyframes slideUpFade { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } } `}</style>
         </div>
     );
 };
@@ -452,8 +444,8 @@ export default function DemoLegislationPage() {
                 </div>
 
                 <div className="infoleg-search glass-panel">
-                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
-                        <button onClick={() => setSearchMode('norma')} style={{ background: 'transparent', border: 'none', color: searchMode === 'norma' ? '#fbbf24' : '#94a3b8', borderBottom: searchMode === 'norma' ? '2px solid #fbbf24' : '2px solid transparent', padding: '0.5rem 0', cursor: 'pointer', fontWeight: 500 }}>
+                    <div className="legislation-tabs">
+                        <button onClick={() => setSearchMode('norma')} className={`legislation-tab-btn ${searchMode === 'norma' ? 'active' : ''}`}>
                             Buscar por Norma
                         </button>
                     </div>
@@ -558,25 +550,19 @@ export default function DemoLegislationPage() {
                 {/* SECTION 3: CÓDIGOS DE FORMA (PROCESALES) */}
                 <section className="legislation-section">
                     <div
-                        className="section-head collapsible-header"
+                        className="section-head collapsible-header-btn"
                         onClick={() => setIsProceduralExpanded(!isProceduralExpanded)}
-                        style={{ cursor: 'pointer' }}
                     >
                         <div className="icon-badge blue">
                             <Map size={20} />
                         </div>
                         <div className="head-row">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div className="head-row-inner">
                                 <div>
                                     <h2>Códigos de Forma (Procesales)</h2>
                                     <p className="section-desc">Reglas de procedimiento según la jurisdicción competente.</p>
                                 </div>
-                                <span style={{
-                                    fontSize: '1.2rem',
-                                    color: '#94a3b8',
-                                    transition: 'transform 0.2s',
-                                    transform: isProceduralExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
-                                }}>
+                                <span className={`collapsible-arrow ${isProceduralExpanded ? 'expanded' : ''}`}>
                                     ▼
                                 </span>
                             </div>
@@ -586,7 +572,7 @@ export default function DemoLegislationPage() {
                     {isProceduralExpanded && (
                         <>
                             {/* JURISDICTION SELECTOR */}
-                            <div className="jurisdiction-select-wrapper" style={{ marginBottom: '1.5rem' }}>
+                            <div className="jurisdiction-wrapper">
                                 <label htmlFor="demo_leg_jurisdiction_select" className="sr-only">Seleccionar Jurisdicción de Códigos de Forma</label>
                                 <select
                                     id="demo_leg_jurisdiction_select"
@@ -617,7 +603,7 @@ export default function DemoLegislationPage() {
                                             <span className="jurisdiction-tag">{selectedJurisdiction}</span>
                                         </div>
                                         <div className="proc-action">
-                                            {norm.url.startsWith('/') ? <span style={{ fontSize: '1.2rem' }}>🔒</span> : "Ver Norma →"}
+                                            {norm.url.startsWith('/') ? <span className="lock-icon-text">🔒</span> : "Ver Norma →"}
                                         </div>
                                     </Link>
                                 ))}

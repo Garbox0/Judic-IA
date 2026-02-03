@@ -209,11 +209,11 @@ export default function CasesPage() {
                     <span className="stat-label">Total Expedientes</span>
                     <span className="stat-value">{cases.length}</span>
                 </div>
-                <div className="stat-card glass-panel" style={{ borderLeft: `4px solid ${getStatusColor('open')}` }}>
+                <div className="stat-card glass-panel open">
                     <span className="stat-label">Abiertos</span>
                     <span className="stat-value">{stats.open}</span>
                 </div>
-                <div className="stat-card glass-panel" style={{ borderLeft: `4px solid ${getStatusColor('in_progress')}` }}>
+                <div className="stat-card glass-panel in_progress">
                     <span className="stat-label">En Curso</span>
                     <span className="stat-value">{stats.in_progress}</span>
                 </div>
@@ -234,12 +234,12 @@ export default function CasesPage() {
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '3rem' }}>Cargando expedientes...</td></tr>
+                                <tr><td colSpan="5" className="text-center p-3rem">Cargando expedientes...</td></tr>
                             ) : activeCases.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" style={{ textAlign: 'center', padding: '4rem 1rem' }}>
+                                    <td colSpan="5" className="text-center p-4rem-1rem">
                                         <div className="empty-state">
-                                            <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}><Archive size={64} style={{ opacity: 0.5 }} /></div>
+                                            <div className="mb-1rem flex-center"><Archive size={64} className="opacity-50" /></div>
                                             <h3>No hay expedientes activos</h3>
                                             <p>Convierte tus consultas entrantes en expedientes para empezar a gestionarlos aquí.</p>
                                         </div>
@@ -263,12 +263,12 @@ export default function CasesPage() {
                                         </td>
                                         <td>
                                             <span className="matter-badge">
-                                                <Briefcase size={12} style={{ marginRight: '4px', opacity: 0.7 }} />
+                                                <Briefcase size={12} className="mr-4px opacity-70" />
                                                 {item.matter}
                                             </span>
                                         </td>
                                         <td>
-                                            <span className="status-badge" style={{ backgroundColor: `${getStatusColor(item.status)}20`, color: getStatusColor(item.status), border: `1px solid ${getStatusColor(item.status)}40` }}>
+                                            <span className={`status-badge ${item.status}`}>
                                                 {getStatusLabel(item.status)}
                                             </span>
                                         </td>
@@ -301,7 +301,7 @@ export default function CasesPage() {
                     className={`btn-vault-toggle ${showVault ? 'active' : ''}`}
                     onClick={() => setShowVault(!showVault)}
                 >
-                    <span style={{ fontSize: '1.2rem', display: 'flex' }}>{showVault ? <FolderOpen size={20} /> : <Folder size={20} />}</span>
+                    <span className="font-1-2rem display-flex">{showVault ? <FolderOpen size={20} /> : <Folder size={20} />}</span>
                     Archivos del Estudio ({archivedCases.length})
                     <span className="vault-arrow">{showVault ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</span>
                 </button>
@@ -323,14 +323,14 @@ export default function CasesPage() {
                                 <tbody>
                                     {archivedCases.map(item => (
                                         <tr key={item.id}>
-                                            <td style={{ opacity: 0.7 }}>
+                                            <td className="opacity-70">
                                                 <div className="case-title-cell">
                                                     <strong>{item.title}</strong>
                                                     <small>{item.inquiry?.contact_email}</small>
                                                 </div>
                                             </td>
-                                            <td style={{ opacity: 0.7 }}><span className="matter-badge">{item.matter}</span></td>
-                                            <td style={{ opacity: 0.7 }}><span className="date-cell">{new Date(item.updated_at).toLocaleDateString()}</span></td>
+                                            <td className="opacity-70"><span className="matter-badge">{item.matter}</span></td>
+                                            <td className="opacity-70"><span className="date-cell">{new Date(item.updated_at).toLocaleDateString()}</span></td>
                                             <td>
                                                 <div className="action-cell">
                                                     <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Ver Carpeta"><FolderOpen size={16} /></Link>
@@ -351,7 +351,7 @@ export default function CasesPage() {
             {caseToDelete && (
                 <div className="modal-overlay">
                     <div className="modal-box glass-panel">
-                        <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}><AlertTriangle size={48} className="text-red-500" /></div>
+                        <div className="mb-1rem flex-center"><AlertTriangle size={48} className="text-red-500" /></div>
                         <h2>¿Eliminar Definitivamente?</h2>
                         <p>Se borrará la "Carpeta Legal" <strong>{caseToDelete.title}</strong>.</p>
                         <p>Se eliminará el expediente, toda su documentación y chats asociados de forma irreversible.</p>

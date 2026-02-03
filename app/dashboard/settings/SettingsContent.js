@@ -444,8 +444,8 @@ export default function SettingsPage({ isDemo = false }) {
                     <span className="breadcrumb-separator">/</span>
                     <span className="breadcrumb-current">Ajustes</span>
                 </nav>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <h1 className="dashboard-page-title" style={{ margin: 0 }}>Configuración Profesional <Gem size={28} className="text-amber-400" style={{ display: 'inline', verticalAlign: 'middle', marginLeft: '0.5rem' }} /></h1>
+                <div className="settings-header-v2">
+                    <h1 className="dashboard-page-title m-0">Configuración Profesional <Gem size={28} className="text-amber-400 gem-icon-inline" /></h1>
                     <UsageGuide content={dashboardManuals.settings} />
                 </div>
 
@@ -532,8 +532,8 @@ export default function SettingsPage({ isDemo = false }) {
                                     </div>
                                 </div>
 
-                                <fieldset className="stg-f-group" style={{ marginTop: '1.5rem', border: 'none', padding: 0 }}>
-                                    <legend className="stg-label" style={{ width: '100%', marginBottom: '0.5rem' }}>Especialidades Profesionales</legend>
+                                <fieldset className="stg-f-group fieldset-reset-v2">
+                                    <legend className="stg-label legend-full-width">Especialidades Profesionales</legend>
                                     <div className="stg-chips-grid">
                                         {SPECIALTIES_OPTIONS.map(spec => (
                                             <button
@@ -548,7 +548,7 @@ export default function SettingsPage({ isDemo = false }) {
                                     </div>
                                 </fieldset>
 
-                                <div className="stg-f-group" style={{ marginTop: '1.5rem' }}>
+                                <div className="stg-f-group mt-1-5rem">
                                     <label htmlFor="biography" className="stg-label">Biografía / Extracto</label>
                                     <textarea id="biography" name="biography" autoComplete="off" className="stg-dark-input underline" rows="3" value={formData.biography} onChange={handleChange} />
                                 </div>
@@ -563,7 +563,7 @@ export default function SettingsPage({ isDemo = false }) {
 
                         {activeTab === 'security' && (
                             <div className="stg-tab-pane">
-                                <div className="stg-alert-card"><Shield size={16} className="text-emerald-400" style={{ display: 'inline', marginRight: '0.5rem' }} /> Sus datos están bajo la protección cifrada de Judic-IA.</div>
+                                <div className="stg-alert-card"><Shield size={16} className="text-emerald-400 display-inline mr-0-5rem" /> Sus datos están bajo la protección cifrada de Judic-IA.</div>
                                 <div className="stg-field-row multi">
                                     <div className="stg-f-group flex-2">
                                         <label htmlFor="email_access" className="stg-label">Email de Acceso</label>
@@ -576,14 +576,14 @@ export default function SettingsPage({ isDemo = false }) {
                                 </div>
                                 <div className="stg-divider"></div>
                                 <h3 className="stg-sec-title">Gabinete de Identidad</h3>
-                                <div className="stg-field-row multi stg-bg-box" style={{ alignItems: 'flex-end' }}>
+                                <div className="stg-field-row multi stg-bg-box align-items-end">
                                     <div className="stg-f-group flex-2">
                                         <label htmlFor="fake_credential" className="stg-label">Credencial de Acceso</label>
                                         <input id="fake_credential" name="credential" autoComplete="off" type="password" className="stg-dark-input readonly" value="********" readOnly />
                                         <p className="stg-hint">Solo puede ser restablecida por email oficial.</p>
                                     </div>
                                     <div className="flex-1">
-                                        <button className="stg-outline-btn" style={{ width: '100%' }} onClick={() => toast.info("Solicitud enviada. Revise su email.")}>Restablecer</button>
+                                        <button className="stg-outline-btn w-100" onClick={() => toast.info("Solicitud enviada. Revise su email.")}>Restablecer</button>
                                     </div>
                                 </div>
                                 <div className="stg-actions-footer">
@@ -605,8 +605,8 @@ export default function SettingsPage({ isDemo = false }) {
                                         <div className="stg-status-info">
                                             <span className="stg-status-icon">{formData.plan_tier === 'professional' ? <Crown size={24} className="text-amber-400" /> : <Scale size={24} className="text-slate-400" />}</span>
                                             <div>
-                                                <h4 style={{ margin: 0, fontSize: '1.2rem' }}>{formData.plan_tier === 'professional' ? 'Judic-IA Suite Pro' : 'Plan Starter (Gratuito)'}</h4>
-                                                <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: '#64748b' }}>
+                                                <h4 className="m-0 fs-1-2rem">{formData.plan_tier === 'professional' ? 'Judic-IA Suite Pro' : 'Plan Starter (Gratuito)'}</h4>
+                                                <p className="billing-plan-p">
                                                     {formData.plan_tier === 'professional' ? 'Acceso completo a todas las funciones legales.' : 'Acceso limitado. Sube de nivel para desbloquear potencia total.'}
                                                 </p>
                                             </div>
@@ -636,49 +636,21 @@ export default function SettingsPage({ isDemo = false }) {
                                                 <li><Check size={16} className="text-emerald-400" /> Gestión de Clientes sin límites</li>
                                                 <li><Check size={16} className="text-emerald-400" /> Generación de Documentos Premium</li>
 
-                                                <div className="stg-plan-footer" style={{
-                                                    marginTop: '2.5rem',
-                                                    paddingTop: '2rem',
-                                                    borderTop: '1px solid rgba(148, 163, 184, 0.1)',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    alignItems: 'center',
-                                                    gap: '1.5rem'
-                                                }}>
+                                                <div className="billing-footer-v2">
                                                     <button
-                                                        className="stg-gold-btn pulse-anim"
-                                                        style={{
-                                                            width: 'auto', // Changed from 100%
-                                                            minWidth: '280px',
-                                                            padding: '1rem 2rem', // Reduced padding
-                                                            fontSize: '1rem', // Reduced font size
-                                                            fontWeight: '800',
-                                                            borderRadius: '16px',
-                                                            boxShadow: '0 8px 25px rgba(251, 191, 36, 0.25)',
-                                                            letterSpacing: '1px',
-                                                            textTransform: 'uppercase'
-                                                        }}
+                                                        className="stg-gold-btn pulse-anim billing-btn-pro"
                                                         onClick={handleSaveBilling}
-                                                        disabled={saving || paymentPending} // Disable main button if pending
+                                                        disabled={saving || paymentPending}
                                                     >
                                                         {paymentPending ? 'ESPERANDO COMPROBACIÓN...' : (saving ? 'PROCESANDO...' : 'SUSCRIBIRSE AHORA')}
                                                     </button>
 
-
-
-                                                    <div style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        gap: '24px',
-                                                        width: '100%',
-                                                        opacity: 0.9
-                                                    }}>
-                                                        <img src="/mercadopago/logo_white.svg" alt="Mercado Pago" style={{ height: '24px' }} />
-                                                        <div style={{ height: '16px', width: '1px', background: 'rgba(148, 163, 184, 0.3)' }}></div>
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <div className="billing-trust-v2 full-opacity">
+                                                        <img src="/mercadopago/logo_white.svg" alt="Mercado Pago" className="mp-logo-v2" />
+                                                        <div className="billing-divider-v2"></div>
+                                                        <div className="billing-secure-badge">
                                                             <Shield size={14} className="text-emerald-500" />
-                                                            <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                                                            <span className="billing-secure-text">
                                                                 PAGO SEGURO
                                                             </span>
                                                         </div>
@@ -693,15 +665,14 @@ export default function SettingsPage({ isDemo = false }) {
                                         <h3 style={{ margin: 0, color: '#fbbf24' }}>¡Ya eres Profesional!</h3>
                                         <p style={{ color: '#94a3b8' }}>Estás aprovechando al máximo el Gabinete Jurídico.</p>
 
-                                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem', marginBottom: '2.5rem' }}>
+                                        <div className="billing-success-actions">
                                             {formData.subscription_status === 'cancelled' ? (
-                                                <div className="stg-badge-v2" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <div className="stg-badge-v2 billing-cancel-alert">
                                                     <ShieldOff size={14} className="text-red-400" /> CANCELADA (Expira el {formData.subscription_expiry ? new Date(formData.subscription_expiry).toLocaleDateString() : 'fin de mes'})
                                                 </div>
                                             ) : (
                                                 <button
-                                                    className="stg-outline-btn danger"
-                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', borderColor: 'rgba(239, 68, 68, 0.3)', color: '#f87171' }}
+                                                    className="stg-outline-btn danger btn-cancel-sub"
                                                     onClick={() => setModalOpen(true)}
                                                     disabled={saving}
                                                 >
@@ -710,21 +681,12 @@ export default function SettingsPage({ isDemo = false }) {
                                             )}
                                         </div>
 
-                                        <div style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '24px',
-                                            width: '100%',
-                                            opacity: 0.7,
-                                            paddingTop: '1.5rem',
-                                            borderTop: '1px solid rgba(255, 255, 255, 0.1)'
-                                        }}>
+                                        <div className="billing-trust-v2 mt-1-5rem pt-1-5rem border-top-glow">
                                             <img src="/mercadopago/logo_white.svg" alt="Mercado Pago" style={{ height: '20px' }} />
-                                            <div style={{ height: '14px', width: '1px', background: 'rgba(148, 163, 184, 0.3)' }}></div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <div className="billing-divider-v2 billing-divider-short"></div>
+                                            <div className="billing-secure-badge">
                                                 <Shield size={14} className="text-emerald-500" />
-                                                <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                                                <span className="billing-secure-text billing-secure-text-sm">
                                                     PAGO SEGURO
                                                 </span>
                                             </div>
@@ -732,28 +694,18 @@ export default function SettingsPage({ isDemo = false }) {
 
                                         {/* Custom Confirmation Modal */}
                                         {modalOpen && (
-                                            <div style={{
-                                                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                                                background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
-                                            }}>
-                                                <div style={{
-                                                    background: '#1e293b', border: '1px solid #334155', borderRadius: '12px',
-                                                    padding: '24px', maxWidth: '400px', width: '90%', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
-                                                }}>
-                                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#f8fafc', marginBottom: '12px' }}>
+                                            <div className="modal-overlay-v2">
+                                                <div className="modal-content-v2">
+                                                    <h3 className="modal-title-v2">
                                                         ¿Cancelar Suscripción?
                                                     </h3>
-                                                    <p style={{ color: '#94a3b8', marginBottom: '24px', lineHeight: '1.5' }}>
+                                                    <p className="modal-text-v2">
                                                         Perderás acceso a las funciones profesionales (búsqueda ilimitada, documentos, IA avanzada) al finalizar tu periodo actual.
                                                     </p>
-                                                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                                                    <div className="modal-btn-row">
                                                         <button
                                                             onClick={() => setModalOpen(false)}
-                                                            style={{
-                                                                padding: '8px 16px', borderRadius: '6px', color: '#e2e8f0',
-                                                                background: '#334155', border: 'none', cursor: 'pointer', fontWeight: 500
-                                                            }}
+                                                            className="btn-modal-ghost"
                                                         >
                                                             Conservar Plan
                                                         </button>
@@ -778,10 +730,7 @@ export default function SettingsPage({ isDemo = false }) {
                                                                     setModalOpen(false);
                                                                 }
                                                             }}
-                                                            style={{
-                                                                padding: '8px 16px', borderRadius: '6px', color: '#fee2e2',
-                                                                background: '#991b1b', border: 'none', cursor: 'pointer', fontWeight: 600
-                                                            }}
+                                                            className="btn-modal-danger"
                                                         >
                                                             {saving ? 'Procesando...' : 'Confirmar Baja'}
                                                         </button>

@@ -105,7 +105,7 @@ export default function DemoDashboardLayout({ children }) {
             {/* SIDEBAR */}
             <aside className={`sidebar ${mobileSidebarOpen ? 'open' : ''}`}>
                 <div className="logo-section">
-                    <div className="logo-link" style={{ cursor: 'default' }}>
+                    <div className="logo-link cursor-default">
                         <h1>Judic-IA</h1>
                         <span className="demo-tag">Modo Demo</span>
                     </div>
@@ -150,8 +150,8 @@ export default function DemoDashboardLayout({ children }) {
                     </Link>
                 </nav>
 
-                <div style={{ padding: '1rem', marginTop: 'auto' }}>
-                    <Link href="/" className="btn-primary" style={{ display: 'block', textAlign: 'center', fontSize: '0.8rem', padding: '0.5rem' }}>
+                <div className="sidebar-exit-container">
+                    <Link href="/" className="btn-exit-demo">
                         Salir de Demo
                     </Link>
                 </div>

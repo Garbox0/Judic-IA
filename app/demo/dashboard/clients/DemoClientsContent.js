@@ -36,67 +36,38 @@ const DemoToast = ({ message, type = 'info', onClose }) => {
         return () => clearTimeout(timer);
     }, [onClose]);
 
-    // Premium Dark Glass Theme
     const themes = {
-        info: { border: '#3b82f6', icon: <Search size={20} style={{ color: '#3b82f6' }} /> },
-        success: { border: '#10b981', icon: <Check size={20} style={{ color: '#10b981' }} /> },
-        warning: { border: '#f59e0b', icon: <AlertTriangle size={20} style={{ color: '#f59e0b' }} /> },
-        error: { border: '#ef4444', icon: <X size={20} style={{ color: '#ef4444' }} /> }
+        info: { class: 'info', icon: <Search size={20} /> },
+        success: { class: 'success', icon: <Check size={20} /> },
+        warning: { class: 'warning', icon: <AlertTriangle size={20} /> },
+        error: { class: 'error', icon: <X size={20} /> }
     };
 
     const theme = themes[type] || themes.info;
 
     return (
-        <div className="demo-toast-slide-in">
-            <div style={{
-                background: 'rgba(15, 23, 42, 0.85)', // Dark premium background
-                color: '#f8fafc',
-                padding: '1rem 1.5rem',
-                borderRadius: '16px',
-                boxShadow: `0 10px 40px rgba(0,0,0,0.6), 0 0 0 1px ${theme.border}40`, // Colored border glow
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '16px',
-                minWidth: '360px',
-                maxWidth: '480px',
-                backdropFilter: 'blur(20px)',
-                borderLeft: `5px solid ${theme.border}`
-            }}>
-                <span style={{ fontSize: '1.5rem', lineHeight: '1', filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.3))' }}>
+        <div className={`demo-toast-slide-in ${theme.class}`}>
+            <div className="toast-wrapper">
+                <span className="toast-icon-wrapper">
                     {theme.icon}
                 </span>
-                <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontWeight: 600, fontSize: '0.95rem', lineHeight: '1.5', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                <div className="toast-body">
+                    <p className="toast-title">
                         {message}
                     </p>
                     {type === 'warning' && (
-                        <p style={{ margin: '6px 0 0', fontSize: '0.75rem', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <p className="toast-subtitle">
                             Simulación de Demo
                         </p>
                     )}
                 </div>
                 <button
                     onClick={onClose}
-                    style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.5rem', lineHeight: '0.8', cursor: 'pointer', padding: 0, transition: '0.2s' }}
-                    onMouseEnter={(e) => e.target.style.color = 'white'}
-                    onMouseLeave={(e) => e.target.style.color = '#94a3b8'}
+                    className="toast-close-x"
                 >
                     ×
                 </button>
             </div>
-            <style jsx>{`
-                .demo-toast-slide-in {
-                    position: fixed;
-                    bottom: 30px;
-                    right: 30px;
-                    z-index: 10000;
-                    animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-                }
-                @keyframes slideUpFade {
-                    from { opacity: 0; transform: translateY(40px) scale(0.95); }
-                    to { opacity: 1; transform: translateY(0) scale(1); }
-                }
-            `}</style>
         </div>
     );
 };
@@ -118,61 +89,6 @@ const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
                     <button onClick={onConfirm} className="btn-confirm-delete">Eliminar</button>
                 </div>
             </div>
-            <style jsx>{`
-                .confirm-overlay {
-                    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-                    background: rgba(0,0,0,0.7);
-                    backdrop-filter: blur(8px);
-                    z-index: 9990; /* Below Toast */
-                    display: flex; align-items: center; justify-content: center;
-                    animation: fadeIn 0.2s ease-out;
-                }
-                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-                
-                .confirm-card {
-                    background: #1e293b;
-                    border: 1px solid rgba(255,255,255,0.1);
-                    padding: 2.5rem;
-                    border-radius: 24px;
-                    width: 90%; max-width: 420px;
-                    text-align: center;
-                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-                    transform: scale(1);
-                    animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-                }
-                @keyframes popIn { from { transform: scale(0.9) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
-
-                .confirm-icon {
-                    display: flex; align-items: center; justify-content: center;
-                    margin-bottom: 1.5rem;
-                    background: rgba(239, 68, 68, 0.1);
-                    width: 80px; height: 80px;
-                    border-radius: 50%;
-                    margin: 0 auto 1.5rem;
-                    border: 1px solid rgba(239, 68, 68, 0.3);
-                    color: #ef4444;
-                }
-                .confirm-title { color: white; margin-bottom: 0.8rem; font-size: 1.4rem; font-weight: 700; }
-                .confirm-message { color: #94a3b8; font-size: 1rem; line-height: 1.6; margin-bottom: 2rem; }
-                
-                .confirm-actions { display: flex; gap: 1rem; justify-content: center; }
-                .btn-cancel {
-                    background: transparent; border: 1px solid rgba(255,255,255,0.15);
-                    color: #cbd5e1; padding: 0.8rem 1.6rem; border-radius: 12px;
-                    font-weight: 600; cursor: pointer; transition: 0.2s;
-                    flex: 1;
-                }
-                .btn-cancel:hover { background: rgba(255,255,255,0.05); color: white; }
-                
-                .btn-confirm-delete {
-                    background: #ef4444; border: none;
-                    color: white; padding: 0.8rem 1.6rem; border-radius: 12px;
-                    font-weight: 600; cursor: pointer; transition: 0.2s;
-                    flex: 1;
-                    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-                }
-                .btn-confirm-delete:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5); }
-            `}</style>
         </div>
     );
 };
@@ -306,7 +222,7 @@ export default function DemoClientsPage() {
             {/* SMART LINK CARD */}
             <div className="smart-link-card glass-panel">
                 <div className="link-info">
-                    <h3><Link2 size={24} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.8rem', color: '#fbbf24' }} /> Tu Enlace de Consulta Inteligente</h3>
+                    <h3><Link2 size={24} className="inline-mr-0-8 text-amber-400" /> Tu Enlace de Consulta Inteligente</h3>
                     <p>Comparte este link con tus clientes para que la IA tome sus datos automáticamente.</p>
                 </div>
                 <button onClick={copySmartLink} className={`btn-copy ${copied ? 'copied' : ''}`} disabled={copied}>
@@ -319,45 +235,32 @@ export default function DemoClientsPage() {
                 {
                     clients.length === 0 ? (
                         <div className="empty-state">
-                            <div style={{ fontSize: '3rem', marginBottom: '1rem', color: '#64748b' }}><Inbox size={64} /></div>
-                            <h3 style={{ color: 'var(--muted)', marginBottom: '1rem' }}>No hay consultas visibles</h3>
-                            <p style={{ color: '#64748b', fontSize: '0.9rem' }}>En esta sesión de demo, has eliminado todos los clientes de prueba.</p>
+                            <div className="empty-state-icon"><Inbox size={64} /></div>
+                            <h3 className="text-muted mb-1rem">No hay consultas visibles</h3>
+                            <p className="text-muted-foreground fs-0-9rem">En esta sesión de demo, has eliminado todos los clientes de prueba.</p>
                             <button
                                 onClick={() => window.location.reload()}
-                                style={{
-                                    marginTop: '1.5rem',
-                                    background: 'rgba(251, 191, 36, 0.1)',
-                                    border: '1px solid #fbbf24',
-                                    color: '#fbbf24',
-                                    padding: '0.6rem 1.2rem',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    fontWeight: 600,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    margin: '1.5rem auto 0'
-                                }}>
+                                className="btn-refresh-demo">
                                 <RefreshCw size={18} /> Reiniciar Demo
                             </button>
                         </div>
                     ) : (
                         clients.map(client => (
                             <div key={client.id} className="client-card glass-panel" onClick={() => openClientModal(client)}>
-                                <button className="btn-delete" onClick={(e) => requestDelete(client.id, e)} title="Eliminar Expediente" style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <button className="btn-delete btn-delete-absolute" onClick={(e) => requestDelete(client.id, e)} title="Eliminar Expediente">
                                     <Trash2 size={14} />
                                 </button>
 
-                                <h3 className="client-id" style={{ marginTop: '1.5rem', fontSize: '1.1rem' }}>
+                                <h3 className="client-id client-id-card">
                                     {client.contact_name || `Consulta #${client.id.slice(0, 8)}`}
                                 </h3>
 
                                 {client.contact_name && (
-                                    <p style={{ color: 'var(--muted)', fontSize: '0.8rem', marginBottom: '0.2rem' }}>ID: {client.id.slice(0, 8)}...</p>
+                                    <p className="muted-small-text mb-0-2rem">ID: {client.id.slice(0, 8)}...</p>
                                 )}
 
                                 {client.contact_phone && (
-                                    <p style={{ color: '#fbbf24', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}><Phone size={14} /> {client.contact_phone}</p>
+                                    <p className="client-phone-demo"><Phone size={14} /> {client.contact_phone}</p>
                                 )}
 
                                 <p className="client-date">{new Date(client.created_at).toLocaleDateString()}</p>
@@ -375,41 +278,38 @@ export default function DemoClientsPage() {
                         <div className="modal-content glass-panel" onClick={e => e.stopPropagation()}>
                             {/* HEADER */}
                             <div className="modal-header">
-                                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <h2 className="flex-center-gap-8">
                                     {selectedClient.contact_name ? selectedClient.contact_name : `Consulta #${selectedClient.id.slice(0, 6)}`}
                                 </h2>
-                                <div className="modal-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                <div className="modal-actions flex-center-gap-8">
                                     <button
                                         className={`btn-toggle-details ${showDetails ? 'active' : ''}`}
                                         onClick={() => setShowDetails(!showDetails)}
                                         title={showDetails ? "Ocultar Detalles" : "Ver Datos del Cliente"}
-                                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                                     >
                                         {showDetails ? <><ChevronRight size={16} /> Cerrar Datos</> : <><ChevronLeft size={16} /> Ver Datos</>}
                                     </button>
 
                                     <div className="divider-vertical"></div>
 
-                                    <button className="btn-delete" onClick={(e) => requestDelete(selectedClient.id, e)} title="Eliminar Expediente" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <button className="btn-delete flex-center" onClick={(e) => requestDelete(selectedClient.id, e)} title="Eliminar Expediente">
                                         <Trash2 size={16} />
                                     </button>
 
                                     <button
-                                        className="btn-generate-action"
+                                        className="btn-generate-action flex-center-gap-8"
                                         onClick={() => handleRestrictedAction("Generar Escrito")}
-                                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                                     >
                                         <Zap size={16} /> Generar Escrito
                                     </button>
                                     <button
-                                        className="btn-convert-action"
+                                        className="btn-convert-action flex-center-gap-8"
                                         onClick={() => handleRestrictedAction("Convertir a Expediente")}
                                         title="Convertir esta consulta en un expediente formal del estudio"
-                                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                                     >
                                         <Folder size={16} /> Convertir en Expediente
                                     </button>
-                                    <button className="btn-agenda-action" onClick={() => handleRestrictedAction("Crear Plazo")} title="Agendar Plazo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <button className="btn-agenda-action flex-center-gap-8" onClick={() => handleRestrictedAction("Crear Plazo")} title="Agendar Plazo">
                                         <Calendar size={16} /> Crear Plazo
                                     </button>
                                     <button onClick={closeModal} className="close-btn"><X size={24} /></button>
@@ -421,7 +321,7 @@ export default function DemoClientsPage() {
 
                                 {/* CHAT SECTION (CENTRAL) */}
                                 <div className="chat-section">
-                                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '8px' }}><MessageSquare size={18} /> Historial de Conversación</h3>
+                                    <h3 className="chat-section-header"><MessageSquare size={18} /> Historial de Conversación</h3>
                                     <div className="chat-viewer">
                                         {loadingChat ? <p>Cargando chat...</p> : (
                                             chatHistory.length === 0 ? <p className="no-msgs">No hay mensajes aún.</p> :
@@ -439,7 +339,7 @@ export default function DemoClientsPage() {
                                 {/* DETAILS SIDEBAR (RIGHT) */}
                                 <div className={`details-sidebar ${showDetails ? 'open' : 'closed'}`}>
                                     <div className="details-inner-wrapper">
-                                        <h4 style={{ marginBottom: '1rem', color: '#e2e8f0', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Expediente</h4>
+                                        <h4 className="sidebar-section-title">Expediente</h4>
 
                                         <div className="details-card">
                                             <div className="details-content">
@@ -448,31 +348,31 @@ export default function DemoClientsPage() {
                                                     <span className="value" title={selectedClient.id}>{selectedClient.id.slice(0, 8)}...</span>
                                                 </div>
                                                 <div className="detail-row">
-                                                    <span className="label"><Phone size={14} style={{ marginRight: '5px' }} /> Teléfono</span>
-                                                    <span className="value highlight">{selectedClient.contact_phone || '-'}</span>
+                                                    <span className="label"><Phone size={14} className="mr-0-5rem" /> Teléfono</span>
+                                                    <p>{selectedClient.contact_phone || '-'}</p>
                                                 </div>
-                                                <div className="detail-row">
-                                                    <span className="label"><Mail size={14} style={{ marginRight: '5px' }} /> Email</span>
-                                                    <span className="value">{selectedClient.contact_email || '-'}</span>
+                                                <div className="detail-item">
+                                                    <span className="label"><Mail size={14} className="mr-0-5rem" /> Email</span>
+                                                    <p>{selectedClient.contact_email || '-'}</p>
                                                 </div>
-                                                <div className="detail-row">
-                                                    <span className="label"><Scale size={14} style={{ marginRight: '5px' }} /> Caso</span>
-                                                    <span className="value badge-text">{selectedClient.case_type || 'General'}</span>
+                                                <div className="detail-item">
+                                                    <span className="label"><Scale size={14} className="mr-0-5rem" /> Caso</span>
+                                                    <p>{selectedClient.case_type || 'General'}</p>
                                                 </div>
-                                                <div className="detail-row" style={{ flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start', marginTop: '0.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '0.5rem' }}>
-                                                    <span className="label"><FileText size={14} style={{ marginRight: '5px' }} /> Resumen IA</span>
-                                                    <p style={{ fontSize: '0.8rem', lineHeight: '1.4', lineClamp: 3, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', color: 'var(--muted)', margin: 0 }}>
+                                                <div className="detail-row detail-row-column">
+                                                    <span className="label"><FileText size={14} className="icon-mr-5" /> Resumen IA</span>
+                                                    <p className="ai-summary-text-clamped">
                                                         {selectedClient.ai_summary || 'Sin resumen disponible.'}
                                                     </p>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <h4 style={{ marginTop: '1.5rem', marginBottom: '1rem', color: '#e2e8f0', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Adjuntos ({attachments.length})</h4>
+                                        <h4 className="sidebar-section-title mt-1-5rem">Adjuntos ({attachments.length})</h4>
 
                                         <div className="details-card">
                                             <div className="details-content">
-                                                <p style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>Sin archivos (Demo).</p>
+                                                <p className="opacity-70 fs-0-8rem">Sin archivos (Demo).</p>
                                             </div>
                                         </div>
                                     </div>

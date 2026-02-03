@@ -558,15 +558,15 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                 <span className="value" title={selectedClient.id}>{selectedClient.id.slice(0, 8)}...</span>
                                             </div>
                                             <div className="detail-row">
-                                                <span className="label"><Phone size={14} style={{ display: 'inline', marginRight: '5px' }} /> Teléfono</span>
+                                                <span className="label"><Phone size={14} className="icon-mr-5" /> Teléfono</span>
                                                 <span className="value highlight">{selectedClient.contact_phone || '-'}</span>
                                             </div>
                                             <div className="detail-row">
-                                                <span className="label"><Mail size={14} style={{ display: 'inline', marginRight: '5px' }} /> Email</span>
+                                                <span className="label"><Mail size={14} className="icon-mr-5" /> Email</span>
                                                 <span className="value">{selectedClient.contact_email || '-'}</span>
                                             </div>
                                             <div className="detail-row">
-                                                <span className="label"><Scale size={14} style={{ display: 'inline', marginRight: '5px' }} /> Caso</span>
+                                                <span className="label"><Scale size={14} className="icon-mr-5" /> Caso</span>
                                                 <span className="value badge-text">{selectedClient.case_type || 'General'}</span>
                                             </div>
                                             <div className="detail-row flex-column-dashed">

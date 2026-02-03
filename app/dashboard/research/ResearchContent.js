@@ -218,7 +218,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
             // If the split actually resulted in meaningful parts, render as list
             if (parts.length > 1) {
                 return (
-                    <ul style={{ listStyleType: 'none', paddingLeft: 0, margin: 0 }}>
+                    <ul className="numbered-list">
                         {parts.reduce((acc, part, i) => {
                             // Check if this part is the number marker ("1. ")
                             if (/^\d+\.\s+$/.test(part)) {
@@ -226,9 +226,9 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                             }
                             return acc;
                         }, []).map((item, i) => (
-                            <li key={i} style={{ marginBottom: '0.8rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                                <span style={{ fontWeight: 'bold', color: '#fbbf24', minWidth: '1.5em', display: 'flex', alignItems: 'center', height: '1.5rem' }}>{item.marker}</span>
-                                <span style={{ color: '#cbd5e1', lineHeight: '1.6' }}>{item.content}</span>
+                            <li key={i} className="numbered-list-item">
+                                <span className="numbered-list-marker">{item.marker}</span>
+                                <span className="numbered-list-content">{item.content}</span>
                             </li>
                         ))}
                     </ul>
@@ -242,22 +242,20 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                 const match = line.match(/^#{1,6}\s/);
                 const level = match[0].trim().length;
                 const cleanLine = line.replace(/^#{1,6}\s/, '');
-                const styles = { margin: '1em 0 0.5em', color: '#e2e8f0', fontWeight: 'bold' };
-                if (level === 3) { styles.fontSize = '1.1rem'; styles.color = '#fbbf24'; }
-                if (level === 4) { styles.fontSize = '1rem'; styles.color = '#cbd5e1'; }
+                const levelClass = level <= 2 ? 'research-h3' : (level === 3 ? 'research-h4' : 'research-h5');
 
-                if (level <= 2) return <h3 key={index} style={{ ...styles, fontSize: '1.2rem' }}>{cleanLine}</h3>;
-                if (level === 3) return <h4 key={index} style={styles}>{cleanLine}</h4>;
-                return <h5 key={index} style={{ ...styles, fontSize: '0.9rem' }}>{cleanLine}</h5>;
+                if (level <= 2) return <h3 key={index} className={levelClass}>{cleanLine}</h3>;
+                if (level === 3) return <h4 key={index} className={levelClass}>{cleanLine}</h4>;
+                return <h5 key={index} className={levelClass}>{cleanLine}</h5>;
             }
 
             // Bold text
             const parts = line.split(/(\*\*.*?\*\*)/g);
             return (
-                <p key={index} style={{ marginBottom: '0.8rem', lineHeight: '1.6', color: '#cbd5e1' }}>
+                <p key={index} className="research-p">
                     {parts.map((part, i) => {
                         if (part.startsWith('**') && part.endsWith('**')) {
-                            return <strong key={i} style={{ color: '#e2e8f0' }}>{part.slice(2, -2)}</strong>;
+                            return <strong key={i} className="research-strong">{part.slice(2, -2)}</strong>;
                         }
                         return part;
                     })}
@@ -405,10 +403,10 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         {/* Always show header with Close button on Mobile/Expand */}
                         {(sidebarOpen || true) && (
                             <div className="sidebar-header-row">
-                                <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', textTransform: 'uppercase' }}>Historial</h4>
+                                <h4 className="sidebar-title">Historial</h4>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setSidebarOpen(!sidebarOpen); }}
-                                    style={{ background: 'none', border: 'none', color: '#fbbf24', cursor: 'pointer', fontSize: '1.5rem', padding: '0.5rem' }}
+                                    className="sidebar-close-btn"
                                 >
                                     {sidebarOpen ? '✕' : '▶'}
                                 </button>
@@ -429,29 +427,18 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         )}
 
                         {sidebarOpen && (
-                            <div className="history-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', overflowY: 'auto', maxHeight: 'calc(100vh - 150px)' }}>
-                                {history.length === 0 && <p style={{ fontSize: '0.85rem', color: '#64748b', fontStyle: 'italic' }}>Sin investigaciones recientes.</p>}
+                            <div className="history-list history-list-container">
+                                {history.length === 0 && <p className="history-empty-text">Sin investigaciones recientes.</p>}
                                 {history.map(item => (
                                     <div
                                         key={item.id}
-                                        className="history-item"
+                                        className="history-item history-item-box"
                                         onClick={() => { setQuery(item.query); setResults(item.result_json); }}
-                                        style={{
-                                            padding: '0.8rem',
-                                            background: 'rgba(255,255,255,0.03)',
-                                            borderRadius: '8px',
-                                            cursor: 'pointer',
-                                            border: '1px solid rgba(255,255,255,0.05)',
-                                            transition: '0.2s',
-                                            fontSize: '0.85rem'
-                                        }}
-                                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-                                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
                                     >
-                                        <div style={{ fontWeight: 600, color: '#e2e8f0', marginBottom: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        <div className="history-item-query">
                                             {item.query}
                                         </div>
-                                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                                        <div className="history-item-meta">
                                             {new Date(item.created_at).toLocaleDateString()} • {item.jurisdiction}
                                         </div>
                                     </div>
@@ -474,10 +461,9 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                             <Image
                                 src="/judic-ia-mark.png"
                                 alt="Judic-IA Logo"
-                                className="logo-main"
+                                className="logo-main logo-main-contain"
                                 width={56}
                                 height={75}
-                                style={{ objectFit: 'contain' }}
                             />
                             <div className="header-text">
                                 <h1 className="dashboard-page-title">Terminal de Estrategia Jurídica</h1>
@@ -632,12 +618,12 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                     {/* STATUS BADGE LOGIC */}
                                     {isDemoProp || (userProfile && userProfile.subscription_status === 'demo') ? (
                                         <>
-                                            <span style={{ opacity: 0.6 }}>•</span>
-                                            <span style={{ color: '#ef4444' }}>Refrescos Desactivados (Demo)</span>
+                                            <span className="quota-status-badge">•</span>
+                                            <span className="demo-quota-text">Refrescos Desactivados (Demo)</span>
                                         </>
                                     ) : (
                                         <>
-                                            <span style={{ opacity: 0.6 }}>•</span>
+                                            <span className="quota-status-badge">•</span>
                                             <span>Refrescos Restantes: {refreshQuota}/5</span>
                                         </>
                                     )}
@@ -655,7 +641,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                 <div className="content">
                                     {Array.isArray(results.cases) ? (
                                         <div className="cases-grid">
-                                            {results.cases.length === 0 && <p style={{ fontStyle: 'italic', color: '#64748b' }}>No se encontraron fallos digitales directos.</p>}
+                                            {results.cases.length === 0 && <p className="case-empty-text">No se encontraron fallos digitales directos.</p>}
                                             {results.cases.map((c, i) => {
                                                 const safeUrl = (c.url && c.url.startsWith('http')) ? c.url : (c.url ? `https://${c.url}` : null);
                                                 const isRefreshing = refreshingCases[i];

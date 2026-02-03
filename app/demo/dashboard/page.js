@@ -85,8 +85,8 @@ export default function DemoDashboardHome() {
             <header className="dashboard-header">
                 <h2>Hola, {user?.user_metadata?.first_name}</h2>
                 <div className="header-stats">
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Calendar size={16} /> <b>{stats.deadlines}</b> vencimientos hoy</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Users size={16} /> <b>{stats.clients}</b> clientes activos</span>
+                    <span className="flex-item-center-gap-5"><Calendar size={16} /> <b>{stats.deadlines}</b> vencimientos hoy</span>
+                    <span className="flex-item-center-gap-5"><Users size={16} /> <b>{stats.clients}</b> clientes activos</span>
                 </div>
                 <UsageGuideDemo content={demoManuals.dashboard} />
             </header>

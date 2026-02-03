@@ -25,29 +25,21 @@ const DemoToast = ({ message, type = 'info', onClose }) => {
     }, [onClose]);
 
     const themes = {
-        info: { border: '#3b82f6', icon: 'ℹ️' },
-        success: { border: '#10b981', icon: '✅' },
-        warning: { border: '#f59e0b', icon: '⚠️' },
-        error: { border: '#ef4444', icon: '🚨' }
+        info: { class: 'info', icon: 'ℹ️' },
+        success: { class: 'success', icon: '✅' },
+        warning: { class: 'warning', icon: '⚠️' },
+        error: { class: 'error', icon: '🚨' }
     };
     const theme = themes[type] || themes.info;
 
     return (
-        <div style={{
-            position: 'fixed', bottom: '30px', right: '30px', zIndex: 10000,
-            background: 'rgba(15, 23, 42, 0.95)', color: '#f8fafc',
-            padding: '1rem 1.5rem', borderRadius: '16px',
-            boxShadow: `0 10px 40px rgba(0,0,0,0.6), 0 0 0 1px ${theme.border}40`,
-            display: 'flex', gap: '16px', borderLeft: `5px solid ${theme.border}`,
-            backdropFilter: 'blur(10px)', animation: 'slideUpFade 0.5s'
-        }}>
-            <span style={{ fontSize: '1.5rem' }}>{theme.icon}</span>
-            <div>
-                <p style={{ margin: 0, fontWeight: 600 }}>{message}</p>
-                {type === 'warning' && <p style={{ fontSize: '0.75rem', opacity: 0.7 }}>Simulación de Demo</p>}
+        <div className={`demo-toast-v2 ${theme.class}`}>
+            <span className="toast-icon">{theme.icon}</span>
+            <div className="toast-body">
+                <p>{message}</p>
+                {type === 'warning' && <p className="opacity-70 fs-0-75rem">Simulación de Demo</p>}
             </div>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.5rem', cursor: 'pointer', marginLeft: 'auto' }}>×</button>
-            <style jsx>{` @keyframes slideUpFade { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } } `}</style>
+            <button onClick={onClose} className="toast-btn-close">×</button>
         </div>
     );
 };
@@ -149,11 +141,11 @@ export default function DemoCasesPage() {
                     <span className="stat-label">Total Expedientes</span>
                     <span className="stat-value">{cases.length}</span>
                 </div>
-                <div className="stat-card glass-panel" style={{ borderLeft: `4px solid ${getStatusColor('open')}` }}>
+                <div className="stat-card glass-panel open">
                     <span className="stat-label">Abiertos</span>
                     <span className="stat-value">{cases.filter(c => c.status === 'open').length}</span>
                 </div>
-                <div className="stat-card glass-panel" style={{ borderLeft: `4px solid ${getStatusColor('in_progress')}` }}>
+                <div className="stat-card glass-panel in_progress">
                     <span className="stat-label">En Curso</span>
                     <span className="stat-value">{cases.filter(c => c.status === 'in_progress').length}</span>
                 </div>
@@ -175,9 +167,9 @@ export default function DemoCasesPage() {
                         <tbody>
                             {activeCases.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" style={{ textAlign: 'center', padding: '4rem 1rem' }}>
+                                    <td colSpan="5" className="text-center p-4rem-1rem">
                                         <div className="empty-state">
-                                            <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}><Archive size={64} style={{ opacity: 0.5 }} /></div>
+                                            <div className="flex-center mb-1rem"><Archive size={64} className="opacity-50" /></div>
                                             <h3>No hay expedientes activos</h3>
                                             <button onClick={() => window.location.reload()} className="btn-secondary">Reiniciar Demo</button>
                                         </div>
@@ -196,7 +188,7 @@ export default function DemoCasesPage() {
                                             <span className="matter-badge">{item.matter}</span>
                                         </td>
                                         <td>
-                                            <span className="status-badge" style={{ backgroundColor: `${getStatusColor(item.status)}20`, color: getStatusColor(item.status), border: `1px solid ${getStatusColor(item.status)}40` }}>
+                                            <span className={`status-badge ${item.status}`}>
                                                 {getStatusLabel(item.status)}
                                             </span>
                                         </td>
@@ -224,7 +216,7 @@ export default function DemoCasesPage() {
                     className={`btn-vault-toggle ${showVault ? 'active' : ''}`}
                     onClick={() => setShowVault(!showVault)}
                 >
-                    <span style={{ fontSize: '1.2rem', display: 'flex' }}>{showVault ? <FolderOpen size={20} /> : <Folder size={20} />}</span>
+                    <span className="display-flex font-1-2rem">{showVault ? <FolderOpen size={20} /> : <Folder size={20} />}</span>
                     Archivos del Estudio ({archivedCases.length})
                     <span className="vault-arrow">{showVault ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</span>
                 </button>
@@ -241,14 +233,14 @@ export default function DemoCasesPage() {
             {/* DELETE MODAL */}
             {
                 caseToDelete && (
-                    <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-                        <div className="modal-box glass-panel" style={{ padding: '2rem', background: '#1e293b', borderRadius: '16px', maxWidth: '400px', textAlign: 'center' }}>
-                            <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}><AlertTriangle size={48} className="text-amber-500" /></div>
+                    <div className="modal-overlay-dark">
+                        <div className="modal-box-demo glass-panel">
+                            <div className="flex-center mb-1rem"><AlertTriangle size={48} className="text-amber-500" /></div>
                             <h2>¿Eliminar Expediente?</h2>
-                            <p style={{ marginBottom: '2rem', color: '#94a3b8' }}>Se borrará la "Carpeta Legal" <strong>{caseToDelete.title}</strong> de la vista demo.</p>
-                            <div className="modal-actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                                <button onClick={() => setCaseToDelete(null)} className="btn-cancel" style={{ padding: '0.8rem 1.5rem', background: 'transparent', border: '1px solid #475569', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>Cancelar</button>
-                                <button onClick={handleDeleteCase} className="btn-confirm-delete" style={{ padding: '0.8rem 1.5rem', background: '#ef4444', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}>Sí, Eliminar</button>
+                            <p className="mb-2rem text-muted">Se borrará la "Carpeta Legal" <strong>{caseToDelete.title}</strong> de la vista demo.</p>
+                            <div className="modal-actions flex-center gap-1rem">
+                                <button onClick={() => setCaseToDelete(null)} className="btn-cancel btn-cancel-demo">Cancelar</button>
+                                <button onClick={handleDeleteCase} className="btn-confirm-delete btn-confirm-delete-demo">Sí, Eliminar</button>
                             </div>
                         </div>
                     </div>

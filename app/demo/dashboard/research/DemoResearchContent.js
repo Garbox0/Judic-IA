@@ -79,16 +79,16 @@ export default function DemoResearchPage() {
             const parts = text.split(/(\d+\.\s+)/).filter(Boolean);
             if (parts.length > 1) {
                 return (
-                    <ul style={{ listStyleType: 'none', paddingLeft: 0, margin: 0 }}>
+                    <ul className="numbered-list">
                         {parts.reduce((acc, part, i) => {
                             if (/^\d+\.\s+$/.test(part)) {
                                 acc.push({ marker: part.trim(), content: parts[i + 1] || "" });
                             }
                             return acc;
                         }, []).map((item, i) => (
-                            <li key={i} style={{ marginBottom: '0.8rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                                <span style={{ fontWeight: 'bold', color: '#fbbf24', minWidth: '1.5em', display: 'flex', alignItems: 'center', height: '1.5rem' }}>{item.marker}</span>
-                                <span style={{ color: '#cbd5e1', lineHeight: '1.6' }}>{item.content}</span>
+                            <li key={i} className="numbered-list-item">
+                                <span className="numbered-list-marker">{item.marker}</span>
+                                <span className="numbered-list-content">{item.content}</span>
                             </li>
                         ))}
                     </ul>
@@ -101,20 +101,18 @@ export default function DemoResearchPage() {
                 const match = line.match(/^#{1,6}\s/);
                 const level = match[0].trim().length;
                 const cleanLine = line.replace(/^#{1,6}\s/, '');
-                const styles = { margin: '1em 0 0.5em', color: '#e2e8f0', fontWeight: 'bold' };
-                if (level === 3) { styles.fontSize = '1.1rem'; styles.color = '#fbbf24'; }
-                if (level === 4) { styles.fontSize = '1rem'; styles.color = '#cbd5e1'; }
+                const levelClass = level <= 2 ? 'research-h3' : (level === 3 ? 'research-h4' : 'research-h5');
 
-                if (level <= 2) return <h3 key={index} style={{ ...styles, fontSize: '1.2rem' }}>{cleanLine}</h3>;
-                if (level === 3) return <h4 key={index} style={styles}>{cleanLine}</h4>;
-                return <h5 key={index} style={{ ...styles, fontSize: '0.9rem' }}>{cleanLine}</h5>;
+                if (level <= 2) return <h3 key={index} className={levelClass}>{cleanLine}</h3>;
+                if (level === 3) return <h4 key={index} className={levelClass}>{cleanLine}</h4>;
+                return <h5 key={index} className={levelClass}>{cleanLine}</h5>;
             }
             const parts = line.split(/(\*\*.*?\*\*)/g);
             return (
-                <p key={index} style={{ marginBottom: '0.8rem', lineHeight: '1.6', color: '#cbd5e1' }}>
+                <p key={index} className="research-p">
                     {parts.map((part, i) => {
                         if (part.startsWith('**') && part.endsWith('**')) {
-                            return <strong key={i} style={{ color: '#e2e8f0' }}>{part.slice(2, -2)}</strong>;
+                            return <strong key={i} className="research-strong">{part.slice(2, -2)}</strong>;
                         }
                         return part;
                     })}
@@ -189,55 +187,34 @@ export default function DemoResearchPage() {
                     <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`}>
                         {(sidebarOpen || true) && (
                             <div className="sidebar-header-row">
-                                <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8', textTransform: 'uppercase' }}>Historial (Demo)</h4>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); setSidebarOpen(!sidebarOpen); }}
-                                    style={{ background: 'none', border: 'none', color: '#fbbf24', cursor: 'pointer', fontSize: '1.5rem', padding: '0.5rem' }}
+                                <div
+                                    className="collapsed-icon-area"
+                                    onClick={() => setSidebarOpen(true)}
                                 >
-                                    {sidebarOpen ? '✕' : '▶'}
-                                </button>
-                            </div>
-                        )}
-
-                        {!sidebarOpen && (
-                            <div
-                                className="collapsed-icon-area"
-                                onClick={() => setSidebarOpen(true)}
-                            >
-                                <div className="vertical-trigger">
-                                    <span className="v-icon">🕒</span>
-                                    <span className="v-label">HISTORIAL</span>
-                                </div>
-                            </div>
-                        )}
-
-                        {sidebarOpen && (
-                            <div className="history-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', overflowY: 'auto', maxHeight: 'calc(100vh - 150px)' }}>
-                                {history.map(item => (
-                                    <div
-                                        key={item.id}
-                                        className="history-item"
-                                        onClick={() => { setQuery(item.query); setResults(item.result_json); }}
-                                        style={{
-                                            padding: '0.8rem',
-                                            background: 'rgba(255,255,255,0.03)',
-                                            borderRadius: '8px',
-                                            cursor: 'pointer',
-                                            border: '1px solid rgba(255,255,255,0.05)',
-                                            transition: '0.2s',
-                                            fontSize: '0.85rem'
-                                        }}
-                                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-                                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
-                                    >
-                                        <div style={{ fontWeight: 600, color: '#e2e8f0', marginBottom: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                            {item.query}
-                                        </div>
-                                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                                            {new Date(item.created_at).toLocaleDateString()} • {item.jurisdiction}
-                                        </div>
+                                    <div className="vertical-trigger">
+                                        <span className="v-icon">🕒</span>
+                                        <span className="v-label">HISTORIAL</span>
                                     </div>
-                                ))}
+                                </div>
+
+                                {sidebarOpen && (
+                                    <div className="history-list">
+                                        {history.map(item => (
+                                            <div
+                                                key={item.id}
+                                                className="history-item"
+                                                onClick={() => { setQuery(item.query); setResults(item.result_json); }}
+                                            >
+                                                <div className="history-item-query">
+                                                    {item.query}
+                                                </div>
+                                                <div className="history-item-meta">
+                                                    {new Date(item.created_at).toLocaleDateString()} • {item.jurisdiction}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </aside>
@@ -258,10 +235,9 @@ export default function DemoResearchPage() {
                             <img
                                 src="/judic-ia-mark.png"
                                 alt="Judic-IA Logo"
-                                className="logo-main"
+                                className="logo-main object-contain"
                                 width={56}
                                 height={75}
-                                style={{ objectFit: 'contain' }}
                             />
                             <div className="header-text">
                                 <h1 className="dashboard-page-title">Terminal de Estrategia Jurídica</h1>
@@ -313,16 +289,16 @@ export default function DemoResearchPage() {
                         </div>
 
                         {/* 💡 SEARCH TIPS */}
-                        <details className="search-tips-details" style={{ marginBottom: '1rem', width: '100%' }}>
-                            <summary style={{ color: '#fbbf24', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', userSelect: 'none' }}>
+                        <details className="search-tips-details mb-1rem w-full">
+                            <summary className="tips-summary">
                                 <Zap size={14} fill="#fbbf24" />
                                 <span>Tips para búsquedas de Alta Precisión</span>
                             </summary>
-                            <div className="tips-content" style={{ marginTop: '0.8rem', padding: '1rem', background: 'rgba(251, 191, 36, 0.05)', borderRadius: '8px', border: '1px solid rgba(251, 191, 36, 0.1)', fontSize: '0.85rem', color: '#cbd5e1', lineHeight: '1.6' }}>
-                                <p style={{ margin: '0 0 0.5rem 0' }}>Para obtener los mejores resultados, utilizá estos patrones:</p>
-                                <ul style={{ margin: 0, paddingLeft: '1.2rem', color: '#e2e8f0' }}>
-                                    <li style={{ marginBottom: '0.3rem' }}><strong>Tema + "fallo" o "sentencia":</strong> <span style={{ opacity: 0.7 }}>Ej: "despido sin causa fallo"</span></li>
-                                    <li style={{ marginBottom: '0.3rem' }}><strong>Frase exacta entre comillas:</strong> <span style={{ opacity: 0.7 }}>Ej: "daño moral" accidente tránsito</span></li>
+                            <div className="tips-content">
+                                <p className="mb-0-5rem">Para obtener los mejores resultados, utilizá estos patrones:</p>
+                                <ul className="tips-list">
+                                    <li className="mb-0-3rem"><strong>Tema + "fallo" o "sentencia":</strong> <span className="opacity-70">Ej: "despido sin causa fallo"</span></li>
+                                    <li className="mb-0-3rem"><strong>Frase exacta entre comillas:</strong> <span className="opacity-70">Ej: "daño moral" accidente tránsito</span></li>
                                 </ul>
                             </div>
                         </details>
@@ -337,7 +313,7 @@ export default function DemoResearchPage() {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                             />
-                            <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                            <button type="submit" disabled={loading} className="flex-center-gap">
                                 {loading ? <Zap size={18} className="spin-animation" /> : <Search size={18} />}
                                 {loading ? 'Procesando Inteligencia...' : 'Generar Estrategia IA'}
                             </button>
@@ -346,10 +322,10 @@ export default function DemoResearchPage() {
 
 
                         {loading && (
-                            <div className="loader-container" style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-                                <div style={{ textAlign: 'center' }}>
+                            <div className="loader-container mt-2rem flex-center w-full">
+                                <div className="text-center">
                                     <Loader2 className="spin-animation text-amber-400" size={48} />
-                                    <p style={{ marginTop: '1.5rem', color: '#fbbf24', fontSize: '0.9rem', fontWeight: 600, animation: 'pulse 2s infinite' }}>{searchStatus}</p>
+                                    <p className="search-status-text">{searchStatus}</p>
                                 </div>
                             </div>
                         )}
@@ -380,7 +356,7 @@ export default function DemoResearchPage() {
                     {results && (
                         <div className="results-area">
                             {results.brave_used && (
-                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(251, 191, 36, 0.15)', color: '#fbbf24', padding: '0.4rem 0.8rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.5rem', border: '1px solid rgba(251, 191, 36, 0.3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                <div className="brave-badge">
                                     <span>🦁 Brave Search Pro Activo (Demo)</span>
                                 </div>
                             )}

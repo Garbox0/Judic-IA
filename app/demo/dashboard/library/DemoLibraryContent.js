@@ -63,7 +63,7 @@ export default function DemoLibraryPage() {
 
             <header className="library-header">
                 <div className="header-content">
-                    <h1><Brain size={48} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.8rem', color: '#ec4899' }} /> Base de Conocimiento</h1>
+                    <h1><Brain size={48} className="header-icon-pink" /> Base de Conocimiento</h1>
                     <p>Índice colaborativo de jurisprudencia y precedentes investigados.</p>
                 </div>
                 <UsageGuideDemo content={demoManuals.library} />
@@ -94,7 +94,7 @@ export default function DemoLibraryPage() {
                     <div className="loading-state">Cargando biblioteca (Demo)...</div>
                 ) : cases.length === 0 ? (
                     <div className="empty-state">
-                        <span style={{ display: 'block', marginBottom: '1rem' }}><Library size={64} style={{ opacity: 0.5 }} /></span>
+                        <span className="empty-state-icon-wrapper"><Library size={64} className="opacity-50" /></span>
                         <h3>No hay resultados</h3>
                         <p>Prueba con otros términos de búsqueda.</p>
                     </div>
@@ -109,12 +109,11 @@ export default function DemoLibraryPage() {
                             <p className="card-summary">{item.summary}</p>
                             <div className="card-footer">
                                 <button
-                                    className="btn-copy"
+                                    className="btn-copy flex-center-gap-6"
                                     onClick={() => {
                                         navigator.clipboard.writeText(`${item.autos} - ${item.url}`);
                                         alert("Cita copiada (Simulación)");
                                     }}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                                 >
                                     <Copy size={12} /> Copiar Cita
                                 </button>
