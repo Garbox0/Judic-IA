@@ -32,6 +32,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const [results, setResults] = useState(null);
     const [loading, setLoading] = useState(false);
     const [refreshingCases, setRefreshingCases] = useState({}); // { [index]: true/false }
+    const [capturingCases, setCapturingCases] = useState({}); // New state for capture loading
     const [copySuccess, setCopySuccess] = useState(false);
     const [activeCategory, setActiveCategory] = useState(null);
     const [placeholder, setPlaceholder] = useState("Ej: Despido sin causa con antigüedad de 10 años en CABA...");
@@ -164,6 +165,37 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
             alert(`No se pudo actualizar el fallo: ${error.message}`);
         } finally {
             setRefreshingCases(prev => ({ ...prev, [index]: false }));
+        }
+    };
+
+    // 📸 NEW: Handle PDF Capture via Puppeteer
+    const handleCapture = async (index, url, title) => {
+        if (capturingCases[index]) return;
+
+        setCapturingCases(prev => ({ ...prev, [index]: true }));
+        try {
+            const res = await fetch('/api/research/capture', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url, title })
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Fallo en captura');
+            }
+
+            const data = await res.json();
+            // Open the generated/cached PDF in new tab
+            window.open(data.url, '_blank');
+
+        } catch (error) {
+            console.error("Capture failed:", error);
+            alert("No se pudo generar el PDF limpio: " + error.message);
+            // Fallback: try old proxy if capture fails? or just let user know.
+            // window.open(`/api/proxy-pdf?url=${encodeURIComponent(url)}`, '_blank');
+        } finally {
+            setCapturingCases(prev => ({ ...prev, [index]: false }));
         }
     };
 
@@ -644,7 +676,6 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                     <span style={{ opacity: 0.6 }}>•</span>
                                     <span>Resultados en Tiempo Real</span>
                                     {/* DEBUG LOGIC */}
-                                    {console.log("🔍 Badge Debug:", { isDemoProp, status: userProfile?.subscription_status, fullProfile: userProfile })}
                                     {/* STATUS BADGE LOGIC */}
                                     {isDemoProp || (userProfile && userProfile.subscription_status === 'demo') ? (
                                         <>
@@ -714,10 +745,11 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                                     </a>
                                                                     <button
                                                                         className="btn-preview-icon"
-                                                                        title="Visualizar en Pestaña"
-                                                                        onClick={() => window.open(`/api/proxy-pdf?url=${encodeURIComponent(safeUrl)}`, '_blank')}
+                                                                        title={capturingCases[i] ? "Generando PDF limpio..." : "Visualizar (PDF Limpio)"}
+                                                                        onClick={() => handleCapture(i, safeUrl, c.title)}
+                                                                        disabled={capturingCases[i]}
                                                                     >
-                                                                        <Eye size={16} />
+                                                                        {capturingCases[i] ? <Loader2 size={16} className="spin-animation" /> : <Eye size={16} />}
                                                                     </button>
                                                                 </div>
                                                             )}

@@ -67,15 +67,15 @@ export async function middleware(request) {
 
     // 🛡️ 0. SEGURIDAD (CSP Relaxed for Debugging)
     const nonce = crypto.randomUUID()
-    // Fallback to VPS IP explicitly if Env Var not loaded (avoids restart requirement)
-    const legislationUrl = process.env.NEXT_PUBLIC_LEGISLATION_URL || 'http://147.93.9.185:9000';
-    // Clean URL to origin (remove path if exists, though variable implies base URL)
+    // Fallback to VPS URL (HTTPS) if Env Var not loaded
+    const legislationUrl = process.env.NEXT_PUBLIC_LEGISLATION_URL || 'https://archivos.judic-ia.com/legislation';
+    // Clean URL to origin (remove path if exists)
     const legislationOrigin = new URL(legislationUrl).origin;
 
-    // CSP Híbrida: Estricta en Scripts (Anti-XSS), Permisiva en Estilos (UI Moderna)
+    // CSP Híbrida: Estricta (A+) - Ajustada para Mozilla Observatory
     const isDev = process.env.NODE_ENV === 'development';
     const cspHeader = `
-        default-src 'self';
+        default-src 'none';
         script-src 'self' 'nonce-${nonce}' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://apis.google.com https://accounts.google.com https://sdk.mercadopago.com https://static.cloudflareinsights.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live https://unpkg.com blob:;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vercel.live;
         img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live https://vercel.com https://assets.vercel.com ${legislationOrigin};
@@ -84,8 +84,12 @@ export async function middleware(request) {
         frame-src 'self' https://accounts.google.com https://*.mercadopago.com https://vercel.live https://*.vercel.live;
         object-src 'none';
         worker-src 'self' blob: https://unpkg.com;
+        manifest-src 'self';
+        media-src 'self';
         base-uri 'self';
+        form-action 'self';
         frame-ancestors 'self';
+        upgrade-insecure-requests;
     `.replace(/\s{2,}/g, ' ').trim()
 
     const requestHeaders = new Headers(request.headers)
