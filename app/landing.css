@@ -1150,9 +1150,50 @@ body::before {
     transition: 0.3s;
 }
 
+
 .footer-links a:hover {
     color: var(--accent);
 }
+
+/* --- CSP COMPLIANCE CLASSES --- */
+.stat-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.price-card-v3.featured i {
+    color: #fbbf24;
+}
+
+.price-card-v3 i {
+    color: var(--primary);
+}
+
+.auth-recovery-banner-v3 {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    max-width: 90%;
+}
+
+.badge-score-aplus {
+    background: #10b981;
+    color: white;
+    padding: 0 4px;
+    border-radius: 4px;
+    font-weight: 800;
+    font-size: 10px;
+    margin-right: 4px;
+    display: inline-block;
+}
+
+.norton-icon-color {
+    color: #ffd700;
+}
+
 
 /* 🛡️ TRUST BADGES SYSTEM */
 .trust-badges-container {

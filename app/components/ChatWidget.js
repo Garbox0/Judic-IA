@@ -205,7 +205,7 @@ export default function ChatWidget({
     }, [embedded]);
 
     return (
-        <div className={embedded ? "chat-widget-wrapper" : "chat-widget-container"}>
+        <div className={`${embedded ? "embedded-chat-wrapper" : "chat-widget-wrapper"} chat-widget-${mode}`}>
             {/* LIMIT REACHED MODAL */}
             {showLimitModal && (
                 <div className="limit-modal-overlay">
@@ -248,10 +248,6 @@ export default function ChatWidget({
                                 <span className="chat-label">Asistente IA</span>
                                 <button
                                     className="btn-primary chat-toggle-btn-premium"
-                                    style={{
-                                        boxShadow: `0 8px 32px rgba(212, 178, 76, 0.25)`,
-                                        border: `2px solid ${botConfig.color}`
-                                    }}
                                 >
                                     <img src={activeAvatar || "/bot-icon.png"} alt="Bot" className="chat-avatar-img" />
                                 </button>
@@ -264,10 +260,9 @@ export default function ChatWidget({
                         <button
                             className="chat-minimized-tab chat-minimized-tab-v3"
                             onClick={() => { setIsBubbleHidden(false); setIsOpen(true); }}
-                            style={{ borderLeft: `3px solid ${botConfig.color}` }}
                         >
                             {/* Robot/AI Icon */}
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={botConfig.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="chat-svg-accent">
                                 <rect x="3" y="11" width="18" height="10" rx="2"></rect>
                                 <circle cx="12" cy="5" r="2"></circle>
                                 <path d="M12 7v4"></path>
@@ -275,26 +270,19 @@ export default function ChatWidget({
                                 <line x1="16" y1="16" x2="16" y2="16"></line>
                             </svg>
                             {/* IA Label */}
-                            <span className="chat-ia-label" style={{ color: botConfig.color }}>IA</span>
+                            <span className="chat-ia-label">IA</span>
                         </button>
                     )}
                 </>
             )}
 
             {(isOpen || embedded) && (
-                <div className={embedded ? "embedded-chat" : "glass-panel chat-window"} style={embedded ? {
-                    display: 'flex', flexDirection: 'column', height: '100%',
-                    background: 'transparent',
-                    fontFamily: 'var(--font-outfit)'
-                } : {
-                    // Removed fixed width/height/shadow here because CSS class handles it
-                    // But keep display logic just in case override needed? No, CSS handles flex column.
-                }}>
+                <div className={embedded ? "embedded-chat" : "glass-panel chat-window"}>
                     {/* Header - Hidden in embedded intake to avoid redundancy, OR simplified */}
                     {!embedded && (
                         <div className="chat-header-v3">
                             <div className="chat-header-info">
-                                <div className="chat-header-avatar" style={{ border: `1px solid ${botConfig.color}` }}>
+                                <div className="chat-header-avatar">
                                     <img src={activeAvatar || "/bot-icon.png"} alt="Bot" className="chat-avatar-img" />
                                 </div>
                                 <span className="chat-header-name">{botConfig.name}</span>
@@ -323,7 +311,7 @@ export default function ChatWidget({
                         {/* 🔒 SECURITY: Only allow attachments in 'intake' mode to reduce attack surface */}
                         {(mode === 'intake' || mode === 'client') && (
                             <label htmlFor="chat_file_upload" className="chat-file-label hover-icon">
-                                <input id="chat_file_upload" name="chat_attachment" type="file" style={{ display: 'none' }} onChange={async (e) => {
+                                <input id="chat_file_upload" name="chat_attachment" type="file" className="chat-file-input" onChange={async (e) => {
                                     if (e.target.files?.[0]) {
                                         const file = e.target.files[0];
 
@@ -414,7 +402,7 @@ export default function ChatWidget({
                                 📎
                             </label>
                         )}
-                        <div style={{ flex: 1, position: 'relative' }}>
+                        <div className="chat-input-container">
                             <label htmlFor="chat_input" className="sr-only">Escribe tu consulta</label>
                             <textarea
                                 id="chat_input"
