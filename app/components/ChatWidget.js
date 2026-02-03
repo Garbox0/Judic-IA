@@ -81,8 +81,8 @@ export default function ChatWidget({
 
                 // FETCH HISTORY FROM API (Persistence)
                 // Only if sessionId is UUID (avoid fetching for mock 'auth-' ids which cause 500 errors)
-                // AND not 'demo'/'internal' mode (which are ephemeral)
-                if (activeSessionId.length > 20 && !activeSessionId.startsWith('auth-') && mode !== 'demo' && mode !== 'lawyer_login' && mode !== 'internal') {
+                // AND not 'demo'/'internal'/'client_help' mode (which are ephemeral or support-only)
+                if (activeSessionId.length > 20 && !activeSessionId.startsWith('auth-') && mode !== 'demo' && mode !== 'lawyer_login' && mode !== 'internal' && mode !== 'client_help') {
                     try {
                         const res = await fetch(`/api/chat?sessionId=${activeSessionId}`, {
                             credentials: 'include'
@@ -334,7 +334,7 @@ export default function ChatWidget({
                     {/* Header - Hidden in embedded intake to avoid redundancy, OR simplified */}
                     {!embedded && (
                         <div style={{
-                            padding: "1rem", background: "rgba(15, 23, 42, 0.95)", borderBottom: "1px solid var(--border)",
+                            padding: "1rem", background: "var(--glass-strong)", borderBottom: "1px solid var(--border)",
                             display: "flex", justifyContent: "space-between", alignItems: "center"
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -359,10 +359,11 @@ export default function ChatWidget({
                         {messages.filter(m => m.content && !m.content.startsWith('[SISTEMA:')).map((m, i) => (
                             <div key={i} style={{
                                 alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                                background: m.role === "user" ? "var(--primary)" : "rgba(30, 41, 59, 0.8)",
-                                color: m.role === "user" ? "#0f172a" : "var(--foreground)",
+                                background: m.role === "user" ? "var(--primary)" : "var(--secondary-hover)", // Theme-aware background
+                                color: m.role === "user" ? "#0f172a" : "var(--foreground)", // Theme-aware text
                                 padding: "0.8rem 1rem", borderRadius: "12px",
-                                maxWidth: "85%", fontSize: "0.9rem", lineHeight: "1.4"
+                                maxWidth: "85%", fontSize: "0.9rem", lineHeight: "1.4",
+                                border: m.role === "assistant" ? "1px solid var(--border)" : "none"
                             }}>
                                 {m.content}
                             </div>
@@ -484,10 +485,10 @@ export default function ChatWidget({
                                 }}
                                 placeholder="Escribe tu consulta aquí..."
                                 style={{
-                                    width: '100%', padding: "1rem", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.1)",
-                                    background: "rgba(15, 23, 42, 0.6)", color: "white", outline: "none",
+                                    width: '100%', padding: "1rem", borderRadius: "16px", border: "1px solid var(--border)",
+                                    background: "var(--site-input-bg, rgba(15, 23, 42, 0.4))", color: "var(--foreground)", outline: "none",
                                     resize: 'none', height: '54px', fontSize: '0.95rem', fontFamily: 'inherit',
-                                    boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.2)'
+                                    boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.1)'
                                 }}
                             />
                         </div>
