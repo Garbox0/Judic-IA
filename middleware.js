@@ -78,18 +78,37 @@ export async function middleware(request) {
     // Clean URL to origin (remove path if exists)
     const legislationOrigin = new URL(legislationUrl).origin;
 
-    // CSP Híbrida: Estricta (A+) - Ajustada para Mozilla Observatory
+    // CSP Híbrida: Estricta (A+) - Ajustada para Mozilla Observatory (Final Hardening)
     const isDev = process.env.NODE_ENV === 'development';
+
+    // Lista de dominios de confianza (Script/Connect/Img)
+    const trustedDomains = [
+        'self',
+        'https://*.supabase.co',
+        'https://*.google.com',
+        'https://*.googleapis.com',
+        'https://*.gstatic.com',
+        'https://*.mercadopago.com',
+        'https://*.google-analytics.com',
+        'https://*.googletagmanager.com',
+        'https://*.vercel-insights.com',
+        'https://*.vercel.live',
+        'https://*.vercel.com',
+        'https://*.cloudflareinsights.com',
+        'https://unpkg.com',
+        legislationOrigin
+    ].join(' ');
+
     const cspHeader = [
         "default-src 'none'",
-        `script-src 'self' 'nonce-${nonce}' https: ${isDev ? "'unsafe-eval'" : ""}`,
-        `style-src 'self' 'nonce-${nonce}' https: 'unsafe-inline'`,
-        `img-src 'self' https: data: ${legislationOrigin}`,
-        `font-src 'self' https: data:`,
-        `connect-src 'self' https: wss:`,
-        `frame-src 'self' https:`,
+        `script-src 'self' 'nonce-${nonce}' ${trustedDomains} ${isDev ? "'unsafe-eval'" : ""}`,
+        `style-src 'self' 'nonce-${nonce}' ${trustedDomains} 'unsafe-hashes' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=' 'sha256-CIxDM5jnsGiKqXs2v7NKCY5MzdR9gu6TtiMJrDw29AY=' 'sha256-zlqnbDt84zf1iSefLU/ImC54isoprH/MRiVZGskwexk=' 'sha256-32t0bJPIyxns/QqsW8RE3JGUERKnHL5RygHBgJvEanc=' 'sha256-bo9/JAqIUBMiSHL1O4oiO3U5UHaFxqbagFBryI+8mwU=' 'sha256-zWpgYAIYQbPPXWm2cNN92poH5pezyiyARDiGUjuqbFU=' 'sha256-NDlUvbI0C5AhCY+uu2OxERc8b/zOZ5m/C3vpWbghG1M='`,
+        `img-src 'self' data: ${trustedDomains}`,
+        `font-src 'self' data: ${trustedDomains}`,
+        `connect-src 'self' wss: ${trustedDomains}`,
+        `frame-src 'self' ${trustedDomains}`,
         "object-src 'none'",
-        "worker-src 'self' blob: https:",
+        "worker-src 'self' blob: https://unpkg.com",
         "manifest-src 'self'",
         "media-src 'self'",
         "base-uri 'self'",
