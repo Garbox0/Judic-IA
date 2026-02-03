@@ -61,8 +61,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                 return;
             }
 
-            const { data: { user }, error: authError } = await supabase.auth.getUser();
-            console.log("🔍 ClientsPage Init - User:", user?.id, "Error:", authError);
+            const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setLawyerId(user.id);
                 const { data, error } = await supabase
@@ -75,8 +74,6 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
                 if (error) console.error("❌ Error fetching inquiries:", error);
                 if (!error) setClients(data || []);
-            } else {
-                console.warn("⚠️ No user found in ClientsPage init");
             }
             setLoading(false);
         };
@@ -234,21 +231,17 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     };
 
     const copySmartLink = async () => {
-        console.log("🖱️ copySmartLink clicked. Current lawyerId:", lawyerId);
-        if (!lawyerId && !isDemo) {
-            console.error("❌ lawyerId is null! Attempting emergency fetch...");
+        let currentLawyerId = lawyerId;
+
+        if (!currentLawyerId && !isDemo) {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                console.log("✅ Recovered lawyerId:", user.id);
                 setLawyerId(user.id);
-                // Continue with local variable to avoid race condition with state update
-                var currentLawyerId = user.id;
+                currentLawyerId = user.id;
             } else {
                 alert("Error de sesión: No se pudo identificar al abogado. Por favor, recarga la página.");
                 return;
             }
-        } else {
-            var currentLawyerId = lawyerId;
         }
 
         if (isDemo) {
@@ -259,7 +252,6 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
         }
 
         try {
-            console.log("📡 Sending to API /api/intake/create-link with lawyerId:", currentLawyerId);
             const res = await fetch("/api/intake/create-link", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -268,7 +260,6 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
             const data = await res.json();
             if (data.link) {
-                console.log("✅ Link generated successfully:", data.link);
                 navigator.clipboard.writeText(data.link);
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
@@ -322,7 +313,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
             if (!apiRes.ok) {
                 throw new Error("Error en el servidor de borrado.");
             }
-            console.log("✅ Atomic cleanup successful.");
+
         } catch (error) {
             console.error("❌ Error during full client deletion:", error);
         } finally {
@@ -390,7 +381,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
             <div className="smart-link-card glass-panel">
                 <div className="link-info">
-                    <h3><Link2 size={24} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.5rem' }} /> Tu Enlace de Consulta Inteligente</h3>
+                    <h3><Link2 size={24} className="inline-icon-middle" /> Tu Enlace de Consulta Inteligente</h3>
                     <p>Comparte este link con tus clientes para que la IA tome sus datos automáticamente.</p>
                 </div>
                 <button onClick={copySmartLink} className={`btn-copy ${copied ? 'copied' : ''}`} disabled={copied}>
@@ -404,31 +395,31 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                     <p>Cargando clientes...</p>
                 ) : clients.length === 0 ? (
                     <div className="empty-state glass-panel">
-                        <div className="empty-icon"><Inbox size={64} style={{ opacity: 0.5 }} /></div>
+                        <div className="empty-icon"><Inbox size={64} className="opacity-low" /></div>
                         <h3>Aún no tienes consultas</h3>
                         <p>Comparte tu enlace inteligente para empezar a recibir casos.</p>
                     </div>
                 ) : (
                     clients.map(client => (
                         <div key={client.id} className="client-card glass-panel" onClick={() => openClientModal(client)}>
-                            <button className="btn-delete" onClick={(e) => deleteClient(client.id, e)} title="Eliminar Expediente" style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', fontSize: '1rem' }}>
+                            <button className="btn-delete btn-delete-absolute" onClick={(e) => deleteClient(client.id, e)} title="Eliminar Expediente">
                                 <Trash2 size={14} />
                             </button>
 
-                            <h3 className="client-id" style={{ marginTop: '1.5rem', fontSize: '1.1rem' }}>
+                            <h3 className="client-id header-id-margin">
                                 {client.contact_name || `Consulta #${client.id.slice(0, 8)}`}
                             </h3>
 
                             {client.contact_name && (
-                                <p style={{ color: 'var(--muted)', fontSize: '0.8rem', marginBottom: '0.2rem' }}>ID: {client.id.slice(0, 8)}...</p>
+                                <p className="client-id-text">ID: {client.id.slice(0, 8)}...</p>
                             )}
 
                             {client.contact_phone && (
-                                <p style={{ color: '#fbbf24', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Phone size={14} /> {client.contact_phone}</p>
+                                <p className="client-phone-row"><Phone size={14} /> {client.contact_phone}</p>
                             )}
 
                             <p className="client-date">{new Date(client.created_at).toLocaleDateString()}</p>
-                            <div className="client-footer">Ver Conversación <ArrowRight size={14} style={{ display: 'inline', marginLeft: '5px' }} /></div>
+                            <div className="client-footer">Ver Conversación <ArrowRight size={14} className="inline-icon-footer" /></div>
                         </div>
                     ))
                 )}
@@ -437,13 +428,13 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
             {/* DELETE CONFIRMATION MODAL */}
             {clientToDelete && (
                 <div className="modal-overlay" onClick={() => setClientToDelete(null)}>
-                    <div className="modal-content glass-panel" style={{ maxWidth: '400px', padding: '2rem', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}><AlertTriangle size={48} className="text-amber-500" /></div>
-                        <h2 style={{ marginBottom: '1rem' }}>¿Eliminar Expediente?</h2>
-                        <p style={{ color: 'var(--muted)', marginBottom: '2rem' }}>
+                    <div className="modal-content glass-panel modal-delete-confirm" onClick={e => e.stopPropagation()}>
+                        <div className="modal-icon-center"><AlertTriangle size={48} className="text-amber-500" /></div>
+                        <h2 className="modal-m-bottom">¿Eliminar Expediente?</h2>
+                        <p className="modal-muted-m-bottom">
                             Esta acción borrará el chat, los archivos adjuntos y <strong>la cuenta de acceso del cliente</strong> de forma permanente.
                         </p>
-                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                        <div className="flex-center-gap">
                             <button onClick={() => setClientToDelete(null)} className="btn-cancel">
                                 Cancelar
                             </button>
@@ -458,20 +449,20 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
             {/* SUCCESS CONVERSION MODAL */}
             {conversionSuccess && (
                 <div className="modal-overlay" onClick={() => setConversionSuccess(false)}>
-                    <div className="modal-content glass-panel" style={{ maxWidth: '450px', height: 'auto', padding: '2.5rem', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.3)' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}><PartyPopper size={64} className="text-emerald-400" /></div>
-                        <h2 style={{ marginBottom: '1rem', color: '#4ade80' }}>¡Expediente Creado!</h2>
-                        <p style={{ color: '#e2e8f0', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+                    <div className="modal-content glass-panel modal-conversion-success" onClick={e => e.stopPropagation()}>
+                        <div className="modal-icon-center"><PartyPopper size={64} className="text-emerald-400" /></div>
+                        <h2 className="modal-header-conversion">¡Expediente Creado!</h2>
+                        <p className="modal-p-conversion">
                             La consulta se ha convertido exitosamente en un <strong>Caso Oficial</strong> del estudio.
                         </p>
-                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', marginBottom: '2rem', fontSize: '0.9rem', color: 'var(--muted)' }}>
+                        <div className="modal-box-info">
                             📁 Podrás gestionarlo, ver sus documentos y seguir su estado desde la nueva sección <strong>Expedientes</strong>.
                         </div>
-                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                        <div className="flex-center-gap">
                             <button onClick={() => setConversionSuccess(false)} className="btn-cancel">
                                 Cerrar
                             </button>
-                            <Link href="/dashboard/cases" className="btn-confirm-delete" style={{ background: '#10b981', textDecoration: 'none' }}>
+                            <Link href="/dashboard/cases" className="btn-confirm-delete btn-emerald-bg">
                                 Ir a Expedientes →
                             </Link>
                         </div>
@@ -486,10 +477,10 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
                         {/* HEADER */}
                         <div className="modal-header">
-                            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <h2 className="modal-title-flex">
                                 {selectedClient.contact_name ? selectedClient.contact_name : `Consulta #${selectedClient.id.slice(0, 6)}`}
                             </h2>
-                            <div className="modal-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                            <div className="modal-actions-bar">
                                 <button
                                     className={`btn-toggle-details ${showDetails ? 'active' : ''}`}
                                     onClick={() => setShowDetails(!showDetails)}
@@ -540,7 +531,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
                             {/* CHAT SECTION (CENTRAL) */}
                             <div className="chat-section">
-                                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MessageSquare size={18} /> Historial de Conversación</h3>
+                                <h3 className="chat-header-title"><MessageSquare size={18} /> Historial de Conversación</h3>
                                 <div className="chat-viewer">
                                     {loadingChat ? <p>Cargando chat...</p> : (
                                         chatHistory.length === 0 ? <p className="no-msgs">No hay mensajes aún.</p> :
@@ -558,7 +549,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                             {/* DETAILS SIDEBAR (RIGHT) */}
                             <div className={`details-sidebar ${showDetails ? 'open' : 'closed'}`}>
                                 <div className="details-inner-wrapper">
-                                    <h4 style={{ marginBottom: '1rem', color: '#e2e8f0', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Expediente</h4>
+                                    <h4 className="sidebar-subtitle">Expediente</h4>
 
                                     <div className="details-card">
                                         <div className="details-content">
@@ -578,21 +569,21 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                 <span className="label"><Scale size={14} style={{ display: 'inline', marginRight: '5px' }} /> Caso</span>
                                                 <span className="value badge-text">{selectedClient.case_type || 'General'}</span>
                                             </div>
-                                            <div className="detail-row" style={{ flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start', marginTop: '0.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '0.5rem' }}>
-                                                <span className="label"><FileText size={14} style={{ display: 'inline', marginRight: '5px' }} /> Resumen IA</span>
-                                                <p style={{ fontSize: '0.8rem', lineHeight: '1.4', lineClamp: 3, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', color: 'var(--muted)', margin: 0 }}>
+                                            <div className="detail-row flex-column-dashed">
+                                                <span className="label"><FileText size={14} className="icon-mr-5" /> Resumen IA</span>
+                                                <p className="summary-text-truncated">
                                                     {selectedClient.ai_summary || 'Sin resumen disponible.'}
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <h4 style={{ marginTop: '1.5rem', marginBottom: '1rem', color: '#e2e8f0', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Adjuntos ({attachments.length})</h4>
+                                    <h4 className="sidebar-subtitle-mt">Adjuntos ({attachments.length})</h4>
 
                                     <div className="details-card">
                                         <div className="details-content">
                                             {attachments.length === 0 ? (
-                                                <p style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>Sin archivos.</p>
+                                                <p className="muted-small-text">Sin archivos.</p>
                                             ) : (
                                                 <div className="attachments-list">
                                                     {attachments.map(file => (

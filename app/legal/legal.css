@@ -649,3 +649,26 @@
     opacity: 0.5;
     /* Maintain transparency effect but on gold */
 }
+
+/* --- CSP COMPLIANCE --- */
+.flex-gap-1 {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+}
+
+.hero-section-legal {
+    padding: 160px 0 40px !important;
+}
+
+.section-padding-top-20 {
+    padding-top: 20px !important;
+}
+
+.footer-opacity-low {
+    opacity: 0.6 !important;
+}
+
+.section-padding-bottom-100 {
+    padding-bottom: 100px !important;
+}

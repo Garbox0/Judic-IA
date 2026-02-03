@@ -250,3 +250,66 @@ button:disabled {
     color: #d97706;
     /* Darker amber */
 }
+
+/* --- CSP COMPLIANCE --- */
+.loading-overlay {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 10%, #0f172a, #020617);
+    color: #fbbf24;
+    font-family: 'Inter', sans-serif;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-logo {
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.3));
+    object-fit: contain;
+}
+
+.loading-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.theme-toggle-auth-fixed {
+    position: absolute !important;
+    top: 2rem !important;
+    right: 2rem !important;
+    z-index: 100 !important;
+    background: transparent !important;
+    border-radius: 50% !important;
+    width: 36px !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+.theme-toggle-dark {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fbbf24 !important;
+}
+
+.theme-toggle-light {
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    color: #0f172a !important;
+}
+
+.forgot-password-wrap {
+    text-align: right;
+    margin-top: 0.5rem;
+}
+
+.forgot-password-link-item {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    text-decoration: none;
+}

@@ -121,7 +121,7 @@ export default function Home() {
       {/* 📱 MOBILE OVERLAY 3.0 */}
       {mobileMenuOpen && (
         <div className="mobile-menu-overlay">
-          <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(false)} style={{ position: 'absolute', top: '2rem', right: '2rem' }}>
+          <button className="mobile-menu-btn mobile-menu-close" onClick={() => setMobileMenuOpen(false)}>
             ✕
           </button>
 
@@ -167,14 +167,14 @@ export default function Home() {
             <div className="hero-card-v3">
               <div className="mock-window">
                 <div className="mock-header">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div className="mock-header-flex">
                     <div className="mock-avatar"></div>
-                    <div style={{ lineHeight: 1 }}>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 800 }}>Dr. Martínez</div>
-                      <div style={{ fontSize: '0.6rem', color: '#94a3b8' }}>En línea</div>
+                    <div className="mock-user-info">
+                      <div className="mock-user-name">Dr. Martínez</div>
+                      <div className="mock-user-status">En línea</div>
                     </div>
                   </div>
-                  <div style={{ opacity: 0.3 }}>•••</div>
+                  <div className="mock-dots-opacity">•••</div>
                 </div>
                 <div className="mock-content">
                   <div className="mock-bubble">
@@ -232,7 +232,7 @@ export default function Home() {
           <div className="services-wrapper">
             <div className="grid4">
               {services.map((feat, i) => (
-                <div key={i} className="card-v3 reveal" style={{ transitionDelay: `${i * 0.1}s` }}>
+                <div key={i} className="card-v3 reveal">
                   <i>{feat.icon}</i>
                   <h3>{feat.title}</h3>
                   <p>{feat.desc}</p>
@@ -246,7 +246,7 @@ export default function Home() {
       </section>
 
       {/* 🏷️ PRICING SECTION 3.0 */}
-      <section id="pricing" className="section-container" style={{ background: 'rgba(251, 191, 36, 0.02)' }}>
+      <section id="pricing" className="section-container pricing-section-bg">
         <div className="section-header reveal">
           <h2 className="section-title">Planes a <span className="gradient-text italic-serif">tu Medida</span></h2>
           <p className="section-subtitle">Elige el motor que impulsará el crecimiento de tu estudio jurídico.</p>
@@ -255,9 +255,9 @@ export default function Home() {
         <div className="grid2">
           {/* PLAN STARTER */}
           <div className="price-card-v3 reveal">
-            <h3 style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '1rem', color: '#94a3b8' }}>Starter</h3>
+            <h3 className="price-card-tag">Starter</h3>
             <div className="price-amount">
-              Gratis<small className="price-period" style={{ marginLeft: '10px', fontSize: '1.2rem' }}>/ 14 días</small>
+              Gratis<small className="price-period price-period-item">/ 14 días</small>
             </div>
             <ul className="price-features">
               <li>Asistente IA básico</li>
@@ -265,17 +265,17 @@ export default function Home() {
               <li>Búsqueda de jurisprudencia (2/día)</li>
               <li>Soporte limitado</li>
             </ul>
-            <Link href="/register" className="btn-secondary-v3" style={{ width: '100%', textAlign: 'center', marginTop: '2rem' }}>
+            <Link href="/register" className="btn-secondary-v3 price-btn-wrap">
               Comenzar Gratis
             </Link>
           </div>
 
           {/* PLAN PROFESIONAL */}
-          <div className="price-card-v3 featured reveal" style={{ transitionDelay: '0.2s' }}>
+          <div className="price-card-v3 featured reveal delay-2">
             <span className="price-badge">MÁS ELEGIDO</span>
-            <h3 style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '1rem', color: '#fbbf24' }}>Profesional</h3>
+            <h3 className="price-card-tag-featured">Profesional</h3>
             <div className="price-amount">
-              <span className="price-currency">$</span>25.000<small className="price-period" style={{ marginLeft: '10px', fontSize: '1.2rem' }}>/ mes</small>
+              <span className="price-currency">$</span>25.000<small className="price-period price-period-item">/ mes</small>
             </div>
             <ul className="price-features">
               <li className="premium-check">Asistente IA ilimitado</li>
@@ -283,7 +283,7 @@ export default function Home() {
               <li className="premium-check">Alertas de plazos y vencimientos</li>
               <li className="premium-check">Soporte VIP 24/7</li>
             </ul>
-            <Link href="/register" className="btn-primary-v3" style={{ width: '100%', justifyContent: 'center', marginTop: '2rem' }}>
+            <Link href="/register" className="btn-primary-v3 price-btn-featured">
               Suscribirse Ahora
             </Link>
           </div>
@@ -294,7 +294,7 @@ export default function Home() {
       <section className="reveal">
         <div className="cta-v3">
           <h2 className="section-title">¿Listo para el <span className="gradient-text italic-serif">Siguiente Nivel?</span></h2>
-          <p className="section-subtitle" style={{ marginBottom: '3rem' }}>
+          <p className="section-subtitle cta-subtitle-gap">
             Únete a los profesionales que ya están liderando la transformación digital en el ámbito legal.
           </p>
           <Link href="/register" className="btn-primary-v3">
@@ -362,7 +362,7 @@ export default function Home() {
             </a>
 
             <a href="https://safeweb.norton.com/report?url=https://www.judic-ia.com/" target="_blank" rel="noopener noreferrer" className="trust-badge" title="Verificado por Norton Safe Web">
-              <CheckCircle className="badge-icon" size={14} style={{ color: '#fbbf24' }} />
+              <CheckCircle className="badge-icon norton-icon-color" size={14} />
               Norton Safe Web <strong>Verified</strong>
             </a>
 

@@ -415,3 +415,93 @@
 .light-theme .consent-check {
     color: #64748b;
 }
+
+/* --- CSP COMPLIANCE --- */
+.theme-toggle-auth-fixed-register {
+    position: fixed !important;
+    top: 2rem !important;
+    right: 2rem !important;
+    z-index: 100 !important;
+    background: transparent !important;
+    border-radius: 50% !important;
+    width: 36px !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+.theme-toggle-dark-reg {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fbbf24 !important;
+}
+
+.theme-toggle-light-reg {
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    color: #0f172a !important;
+}
+
+.fieldset-reset {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.legend-cuit {
+    display: block !important;
+    color: #94a3b8 !important;
+    margin-bottom: 0.6rem !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+.cuit-input-s {
+    width: 65px !important;
+    text-align: center !important;
+}
+
+.cuit-input-m {
+    flex: 1 !important;
+    text-align: center !important;
+}
+
+.cuit-input-xs {
+    width: 50px !important;
+    text-align: center !important;
+}
+
+.cuit-separator {
+    color: #64748b;
+    font-size: 1.2rem;
+}
+
+.flex-1 {
+    flex: 1 !important;
+}
+
+.email-mismatch {
+    border-color: #ef4444 !important;
+}
+
+.error-text-mini {
+    color: #ef4444;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.success-msg-small {
+    color: #fff;
+    display: block;
+    margin-top: 5px;
+}
+
+.countdown-msg {
+    margin-top: 0.8rem;
+    font-weight: 700;
+    color: white;
+}

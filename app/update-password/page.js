@@ -153,22 +153,21 @@ export default function UpdatePasswordPage() {
                                     className="brand-logo-img"
                                     width={48}
                                     height={64}
-                                    style={{ objectFit: 'contain' }}
                                 />
                                 <h1 className="brand-name-premium">Actualizar Clave</h1>
                                 <p className="brand-status">Restablecimiento Seguro</p>
                             </header>
 
                             {verifyingSession ? (
-                                <div style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem 0' }}>
+                                <div className="verifying-msg">
                                     <p>Verificando credenciales de seguridad...</p>
                                 </div>
                             ) : sessionError ? (
-                                <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-                                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
-                                    <h3 style={{ color: '#fca5a5', marginBottom: '1rem' }}>Acceso Denegado</h3>
-                                    <p style={{ color: '#94a3b8', marginBottom: '2rem' }}>{sessionError}</p>
-                                    <Link href="/forgot-password" style={{ color: '#fbbf24', textDecoration: 'none', fontWeight: 'bold' }}>
+                                <div className="error-container">
+                                    <div className="error-icon">⚠️</div>
+                                    <h3 className="error-title">Acceso Denegado</h3>
+                                    <p className="error-description">{sessionError}</p>
+                                    <Link href="/forgot-password" className="error-link">
                                         Solicitar nuevo enlace →
                                     </Link>
                                 </div>
@@ -234,14 +233,14 @@ export default function UpdatePasswordPage() {
                         </>
                     ) : (
                         <div className="success-ui">
-                            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
-                            <h2 style={{ color: '#fbbf24', marginBottom: '1rem' }}>¡Contraseña Actualizada!</h2>
-                            <p style={{ color: '#94a3b8', lineHeight: '1.6', marginBottom: '2rem' }}>
+                            <div className="success-ui-icon">🎉</div>
+                            <h2 className="success-ui-title">¡Contraseña Actualizada!</h2>
+                            <p className="success-ui-description">
                                 Tu acceso ha sido restaurado exitosamente.
                                 <br />
                                 Redirigiendo al login en <strong>{redirectCountdown}</strong> segundos...
                             </p>
-                            <Link href="/login" style={{ color: '#fbbf24', fontWeight: 'bold', textDecoration: 'none' }}>
+                            <Link href="/login" className="success-ui-link">
                                 Ir al Login Ahora →
                             </Link>
                         </div>

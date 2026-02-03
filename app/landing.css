@@ -1724,3 +1724,110 @@ body::before {
 .light-theme .fiscal-separator {
     color: rgba(15, 23, 42, 0.18);
 }
+
+/* --- CSP COMPLIANCE UTILITIES (Removing Inline Styles) --- */
+.mobile-menu-close {
+    position: absolute !important;
+    top: 2rem !important;
+    right: 2rem !important;
+}
+
+.mock-header-flex {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.mock-user-info {
+    line-height: 1 !important;
+}
+
+.mock-user-name {
+    font-size: 0.8rem !important;
+    font-weight: 800 !important;
+}
+
+.mock-user-status {
+    font-size: 0.6rem !important;
+    color: #94a3b8 !important;
+}
+
+.mock-dots-opacity {
+    opacity: 0.3 !important;
+}
+
+.pricing-section-bg {
+    background: rgba(251, 191, 36, 0.02) !important;
+}
+
+.price-card-tag {
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    font-size: 1rem !important;
+    color: #94a3b8 !important;
+}
+
+.price-card-tag-featured {
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    font-size: 1rem !important;
+    color: #fbbf24 !important;
+}
+
+.price-period-item {
+    margin-left: 10px !important;
+    font-size: 1.2rem !important;
+}
+
+.price-btn-wrap {
+    width: 100% !important;
+    text-align: center !important;
+    margin-top: 2rem !important;
+}
+
+.price-btn-featured {
+    width: 100% !important;
+    justify-content: center !important;
+    margin-top: 2rem !important;
+}
+
+.cta-subtitle-gap {
+    margin-bottom: 3rem !important;
+}
+
+.norton-icon-color {
+    color: #fbbf24 !important;
+}
+
+/* Transition delays for reveal animations (staggered) */
+.card-v3:nth-child(1) {
+    transition-delay: 0.1s !important;
+}
+
+.card-v3:nth-child(2) {
+    transition-delay: 0.2s !important;
+}
+
+.card-v3:nth-child(3) {
+    transition-delay: 0.3s !important;
+}
+
+.card-v3:nth-child(4) {
+    transition-delay: 0.4s !important;
+}
+
+.card-v3:nth-child(5) {
+    transition-delay: 0.5s !important;
+}
+
+.card-v3:nth-child(6) {
+    transition-delay: 0.6s !important;
+}
+
+.card-v3:nth-child(7) {
+    transition-delay: 0.7s !important;
+}
+
+.card-v3:nth-child(8) {
+    transition-delay: 0.8s !important;
+}

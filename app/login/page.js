@@ -128,24 +128,16 @@ export default function LoginPage() {
 
   if (checkingSession) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'radial-gradient(circle at 50% 10%, #0f172a, #020617)',
-        color: '#fbbf24',
-        fontFamily: "'Inter', sans-serif"
-      }}>
-        <div style={{ textAlign: 'center' }}>
+      <div className="loading-overlay">
+        <div className="loading-content">
           <Image
             src="/judic-ia-mark.png"
             alt="Logo"
             width={48}
             height={64}
-            style={{ marginBottom: '20px', filter: 'drop-shadow(0 0 10px rgba(251, 191, 36, 0.3))', objectFit: 'contain' }}
+            className="loading-logo"
           />
-          <p style={{ fontSize: '1.2rem', fontWeight: '600' }}>Verificando credenciales...</p>
+          <p className="loading-text">Verificando credenciales...</p>
         </div>
       </div>
     );
@@ -159,25 +151,8 @@ export default function LoginPage() {
 
       <button
         onClick={toggleTheme}
-        className="theme-toggle-auth"
+        className={`theme-toggle-auth-fixed ${theme === 'dark' ? 'theme-toggle-dark' : 'theme-toggle-light'}`}
         aria-label="Alternar tema"
-        style={{
-          position: 'absolute',
-          top: '2rem',
-          right: '2rem',
-          zIndex: 100,
-          background: 'transparent',
-          border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
-          color: theme === 'dark' ? '#fbbf24' : '#0f172a',
-          borderRadius: '50%',
-          width: '36px',
-          height: '36px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease'
-        }}
       >
         {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
       </button>
@@ -191,7 +166,6 @@ export default function LoginPage() {
             width={48}
             height={64}
             priority
-            style={{ objectFit: 'contain' }}
           />
           <h1>Judic-IA <span className="justice-emoji">⚖️</span></h1>
           <div className="subtitle">Acceso Profesional · Abogados</div>
@@ -238,8 +212,8 @@ export default function LoginPage() {
                 )}
               </button>
             </div>
-            <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
-              <Link href="/forgot-password" style={{ color: '#94a3b8', fontSize: '0.8rem', textDecoration: 'none' }}>
+            <div className="forgot-password-wrap">
+              <Link href="/forgot-password" className="forgot-password-link-item">
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>

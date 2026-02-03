@@ -70,7 +70,7 @@ export default function LegalPage() {
             />
             <span className="nav-title text-glow">Judic-IA</span>
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="flex-gap-1">
             <Link href="/" className="btn-login-premium">
               <span className="nav-btn-text">← Volver al Inicio</span>
             </Link>
@@ -85,7 +85,7 @@ export default function LegalPage() {
         </div >
       </nav >
 
-      <section className="hero-section" style={{ padding: '160px 0 40px' }}>
+      <section className="hero-section hero-section-legal">
         <div className="section-header reveal active">
           <span className="badge-new">Legales & Compliance</span>
           <h1 className="hero-title">Centro de <span className="gradient-text italic-serif">Confianza</span></h1>
@@ -93,7 +93,7 @@ export default function LegalPage() {
         </div>
       </section>
 
-      <section className="section-container" style={{ paddingTop: '20px' }}>
+      <section className="section-container section-padding-top-20">
         <div className="legal-layout">
           {/* SIDEBAR TABS - Desktop style */}
           <aside className="legal-sidebar reveal active">
@@ -112,7 +112,7 @@ export default function LegalPage() {
           </aside>
 
           {/* CONTENT AREA */}
-          <div className="legal-main-content reveal active" style={{ transitionDelay: '0.2s' }}>
+          <div className="legal-main-content reveal active delay-2">
             <div className="legal-content-card-v3">
               {activeTab === 'terminos' && (
                 <div className="legal-section-fade">
@@ -226,7 +226,7 @@ export default function LegalPage() {
       </section>
 
       {/* 📞 SUPPORT CONTACT SECTION */}
-      <section className="section-container reveal active" style={{ paddingBottom: '100px' }}>
+      <section className="section-container reveal active section-padding-bottom-100">
         <div className="legal-contact-footer">
           <div className="contact-footer-header">
             <h3>¿Dudas adicionales?</h3>
@@ -246,7 +246,7 @@ export default function LegalPage() {
       </section>
 
       <footer className="footer-premium-v3">
-        <div className="footer-nav-container" style={{ opacity: 0.6 }}>
+        <div className="footer-nav-container footer-opacity-low">
           <div>© 2026 Judic-IA Legal Intelligence. Todos los derechos reservados.</div>
         </div>
       </footer>

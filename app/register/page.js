@@ -8,14 +8,7 @@ import { Sun, Moon } from 'lucide-react';
 import SafeChatWidget from '../components/SafeChatWidget';
 import './register.css';
 
-/* Inline styles for CUIT row, typically would be in CSS but adding here for quick execution */
-const cuitStyles = `
-.cuit-inputs-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-`;
+
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -197,25 +190,8 @@ export default function RegisterPage() {
 
             <button
                 onClick={toggleTheme}
-                className="theme-toggle-auth"
+                className={`theme-toggle-auth-fixed-register ${theme === 'dark' ? 'theme-toggle-dark-reg' : 'theme-toggle-light-reg'}`}
                 aria-label="Alternar tema"
-                style={{
-                    position: 'fixed',
-                    top: '2rem',
-                    right: '2rem',
-                    zIndex: 100,
-                    background: 'transparent',
-                    border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
-                    color: theme === 'dark' ? '#fbbf24' : '#0f172a',
-                    borderRadius: '50%',
-                    width: '36px',
-                    height: '36px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                }}
             >
                 {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
@@ -231,7 +207,6 @@ export default function RegisterPage() {
                             width={48}
                             height={64}
                             priority
-                            style={{ objectFit: 'contain' }}
                         />
                         <h1 className="register-brand">Judic-IA <span className="justice-emoji">⚖️</span></h1>
                         <p className="register-status">Registro Profesional • Abogados</p>
@@ -249,8 +224,8 @@ export default function RegisterPage() {
                             </div>
 
                             <div className="register-field full-width">
-                                <fieldset className="cuit-fieldset" style={{ border: 'none', padding: 0, margin: 0 }}>
-                                    <legend id="cuit-label" style={{ display: 'block', color: '#94a3b8', marginBottom: '0.6rem', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>CUIT / CUIL</legend>
+                                <fieldset className="cuit-fieldset fieldset-reset">
+                                    <legend id="cuit-label" className="legend-cuit">CUIT / CUIL</legend>
                                     <div className="cuit-inputs-row">
                                         <input
                                             name="cuitPrefix"
@@ -265,9 +240,9 @@ export default function RegisterPage() {
                                             }}
                                             required
                                             maxLength={2}
-                                            style={{ width: '65px', textAlign: 'center' }}
+                                            className="cuit-input-s"
                                         />
-                                        <span style={{ color: '#64748b', fontSize: '1.2rem' }}>-</span>
+                                        <span className="cuit-separator">-</span>
                                         <input
                                             name="cuitDni"
                                             aria-label="CUIT DNI"
@@ -281,9 +256,9 @@ export default function RegisterPage() {
                                             }}
                                             required
                                             maxLength={8}
-                                            style={{ flex: 1, textAlign: 'center' }}
+                                            className="cuit-input-m"
                                         />
-                                        <span style={{ color: '#64748b', fontSize: '1.2rem' }}>-</span>
+                                        <span className="cuit-separator">-</span>
                                         <input
                                             name="cuitSuffix"
                                             aria-label="CUIT Suffix"
@@ -297,14 +272,14 @@ export default function RegisterPage() {
                                             }}
                                             required
                                             maxLength={1}
-                                            style={{ width: '50px', textAlign: 'center' }}
+                                            className="cuit-input-xs"
                                         />
                                     </div>
                                 </fieldset>
                             </div>
 
                             <div className="register-field-row">
-                                <div style={{ flex: 1 }}>
+                                <div className="flex-1">
                                     <label htmlFor="tomo">Tomo</label>
                                     <input
                                         id="tomo"
@@ -318,7 +293,7 @@ export default function RegisterPage() {
                                         required
                                     />
                                 </div>
-                                <div style={{ flex: 1 }}>
+                                <div className="flex-1">
                                     <label htmlFor="folio">Folio</label>
                                     <input
                                         id="folio"
@@ -350,8 +325,8 @@ export default function RegisterPage() {
                             )}
 
                             <div className="register-field full-width">
-                                <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-                                    <legend style={{ display: 'block', color: '#94a3b8', marginBottom: '0.6rem', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Especialidades (Lo que atenderá tu IA)</legend>
+                                <fieldset className="fieldset-reset">
+                                    <legend className="legend-cuit">Especialidades (Lo que atenderá tu IA)</legend>
                                     <div className="tags-container">
                                         {SPECIALTIES_OPTIONS.map(spec => (
                                             <button key={spec} type="button" className={`tag-btn ${specialties.includes(spec) ? 'selected' : ''}`} onClick={() => toggleSpecialty(spec)}>
@@ -379,10 +354,10 @@ export default function RegisterPage() {
                                 onChange={(e) => setConfirmEmail(e.target.value)}
                                 placeholder="Repita su email"
                                 required
-                                style={{ borderColor: (confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase()) ? '#ef4444' : '' }}
+                                className={(confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase()) ? 'email-mismatch' : ''}
                             />
                             {confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase() && (
-                                <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
+                                <span className="error-text-mini">
                                     Los emails no coinciden
                                 </span>
                             )}
@@ -432,11 +407,11 @@ export default function RegisterPage() {
                             <div className="success-msg">
                                 📩 {message}
                                 <br />
-                                <small style={{ color: '#fff', display: 'block', marginTop: '5px' }}>
+                                <small className="success-msg-small">
                                     ⚠️ Si no lo ves, <strong>revisá Correo no deseado / Spam</strong>.
                                 </small>
                                 {redirectCountdown !== null && (
-                                    <div style={{ marginTop: '0.8rem', fontWeight: 700, color: '#white' }}>
+                                    <div className="countdown-msg">
                                         Redirigiendo al login en {redirectCountdown} segundos...
                                     </div>
                                 )}
