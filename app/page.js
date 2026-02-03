@@ -366,6 +366,11 @@ export default function Home() {
               Norton Safe Web <strong>Verified</strong>
             </a>
 
+            <a href="https://observatory.mozilla.org/analyze/www.judic-ia.com" target="_blank" rel="noopener noreferrer" className="trust-badge" title="HTTP Observatory Score A+">
+              <span className="badge-score-aplus">A+</span>
+              HTTP Observatory <strong>Score</strong>
+            </a>
+
             <div className="trust-badge">
               <Shield className="badge-icon" size={14} />
               AES-256 <strong>Encrypted</strong>

@@ -1198,6 +1198,20 @@ body::before {
     opacity: 0.8;
 }
 
+.badge-score-aplus {
+    background: #10b981;
+    color: white;
+    font-weight: 900;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    line-height: 1;
+}
+
 .cf-icon {
     width: 18px;
     height: 18px;
