@@ -1001,3 +1001,55 @@
     background: #f8fafc;
     /* Solid for mobile off-canvas if needed, but sidebar class handles it */
 }
+
+/* PREMIUM GOLD BUTTON */
+.btn-gold-premium {
+    display: block !important;
+    text-align: center !important;
+    font-size: 0.9rem !important;
+    padding: 0.8rem 1.5rem !important;
+    background: linear-gradient(135deg, #fbbf24, #d97706) !important;
+    color: #020617 !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+}
+
+.btn-gold-premium:hover {
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 8px 25px rgba(251, 191, 36, 0.5) !important;
+    filter: brightness(1.1) !important;
+}
+
+.btn-gold-premium:active {
+    transform: translateY(0) scale(0.98) !important;
+}
+
+.flex-item-center-gap-5 {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+}
+
+.cursor-default {
+    cursor: default !important;
+}
+
+.sidebar-exit-container {
+    padding: 1rem !important;
+    margin-top: auto !important;
+}
+
+.mr-0-5rem {
+    margin-right: 0.5rem !important;
+}
+
+.border-top-glow {
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}

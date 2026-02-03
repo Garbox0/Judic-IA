@@ -77,6 +77,8 @@ export default function DemoLibraryPage() {
                         className="search-input"
                     />
                     <select
+                        id="jurisdiction-select"
+                        name="jurisdiction"
                         value={jurisdictionFilter}
                         onChange={(e) => setJurisdictionFilter(e.target.value)}
                         className="jurisdiction-select"

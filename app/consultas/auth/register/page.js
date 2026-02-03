@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon } from 'lucide-react';
-import SafeChatWidget from '../../../components/SafeChatWidget';
+// import SafeChatWidget from '../../../components/SafeChatWidget';
 import { supabase } from '../../../lib/supabase';
 import '../../../globals.css';
 
@@ -562,10 +562,7 @@ export default function ClientRegisterPage() {
                     <RegisterContent />
                 </Suspense>
             </div>
-            {/* Global Fixed Widget */}
-            <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999 }}>
-                <SafeChatWidget mode="client_help" initialMessage="¿Necesitas ayuda con tu registro?" />
-            </div>
+
         </main>
     );
 }

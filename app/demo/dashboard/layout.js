@@ -151,7 +151,7 @@ export default function DemoDashboardLayout({ children }) {
                 </nav>
 
                 <div className="sidebar-exit-container">
-                    <Link href="/" className="btn-exit-demo">
+                    <Link href="/" className="btn-gold-premium">
                         Salir de Demo
                     </Link>
                 </div>

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import SafeChatWidget from '../../../components/SafeChatWidget';
+// import SafeChatWidget from '../../../components/SafeChatWidget';
 import '../../../globals.css';
 
 import './login.css';
@@ -445,10 +445,7 @@ export default function ClientLoginPage() {
                     <LoginContent />
                 </Suspense>
             </div>
-            {/* Global Fixed Widget */}
-            <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999 }}>
-                <SafeChatWidget mode="client_help" initialMessage="¿Problemas para ingresar? Pregúntame." />
-            </div>
+
         </main>
     );
 }

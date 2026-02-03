@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../../lib/supabase';
-import SafeChatWidget from '../../../components/SafeChatWidget';
+// import SafeChatWidget from '../../../components/SafeChatWidget';
 import './update-password.css';
 
 export default function ClientUpdatePasswordPage() {
@@ -273,8 +273,7 @@ export default function ClientUpdatePasswordPage() {
                 </div>
             </div>
 
-            {/* AI ASSISTANT FOR PASSWORD RESET */}
-            <SafeChatWidget mode="password_reset" initialMessage="¿Necesitas ayuda para crear tu nueva clave?" />
+
         </main>
     );
 }

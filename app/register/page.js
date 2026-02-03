@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon } from 'lucide-react';
-import SafeChatWidget from '../components/SafeChatWidget';
+// import SafeChatWidget from '../components/SafeChatWidget';
 import './register.css';
 
 
@@ -433,7 +433,7 @@ export default function RegisterPage() {
                 </div>
             </div>
 
-            <SafeChatWidget mode="sales" initialMessage="¡Hola! ¿Necesitas ayuda con el registro profesional?" />
+
         </main>
     );
 }

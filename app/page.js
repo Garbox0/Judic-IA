@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import styles from "./page.module.css";
 import Link from "next/link";
 import Image from "next/image";
-import SafeChatWidget from "./components/SafeChatWidget";
 import { Clock, Shield, Zap, Scale, BookOpen, Users, FolderOpen, Calculator, Calendar, FileText, BarChart2, PlayCircle, Lock, Sun, Moon, CheckCircle } from 'lucide-react';
 import "./landing.css"; // Version 3.0 Styles
 
@@ -324,8 +323,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* 📱 CHAT WIDGET */}
-      <SafeChatWidget mode="sales" startOpen={false} />
+
 
       {/* 🏛️ FOOTER 3.0 */}
       <footer className="footer-premium-v3">

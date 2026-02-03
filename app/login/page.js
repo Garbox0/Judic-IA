@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon } from 'lucide-react';
-import SafeChatWidget from '../components/SafeChatWidget';
+// import SafeChatWidget from '../components/SafeChatWidget';
 import './login.css';
 
 export default function LoginPage() {
@@ -233,7 +233,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <SafeChatWidget mode="lawyer_login" initialMessage="¿Problemas para ingresar? Estoy aquí para ayudarte." />
+
     </main>
   );
 }

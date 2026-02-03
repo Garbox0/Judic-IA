@@ -273,7 +273,13 @@ export default function DemoAgendaPage() {
                                 <button className={range === "30d" ? "active" : ""} onClick={() => setRange("30d")}>30d</button>
                             </div>
 
-                            <select className="select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                            <select
+                                id="sort-by-select"
+                                name="sort-by"
+                                className="select"
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value)}
+                            >
                                 <option value="urgency">Orden: Urgencia</option>
                                 <option value="date">Orden: Fecha</option>
                                 <option value="title">Orden: Título</option>
@@ -281,6 +287,8 @@ export default function DemoAgendaPage() {
 
                             <label className="check">
                                 <input
+                                    id="only-critical-check"
+                                    name="only-critical"
                                     type="checkbox"
                                     checked={onlyCritical}
                                     onChange={(e) => setOnlyCritical(e.target.checked)}
