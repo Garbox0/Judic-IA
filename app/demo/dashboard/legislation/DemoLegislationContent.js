@@ -69,80 +69,80 @@ export default function DemoLegislationPage() {
             title: "Constitución Nacional",
             desc: "Ley suprema. Derechos, garantías y organización del Estado.",
             url: "/dashboard/legislation/viewer/constitucion-nacional.pdf?province=nacion",
-            icon: <Landmark size={28} className="text-amber-400" />
+            icon: <span className="text-2xl mr-2">🏛️</span>
         },
         {
             title: "Código Civil y Comercial de la Nación",
             desc: "Regula las relaciones civiles y comerciales (InfoLeg).",
             url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/235000-239999/235975/texact.htm",
-            icon: <Scale size={28} className="text-amber-400" />
+            icon: <span className="text-2xl mr-2">⚖️</span>
         },
         {
             title: "Código Penal de la Nación",
             desc: "Delitos y penas en el territorio argentino (InfoLeg).",
             url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/15000-19999/16546/texact.htm",
-            icon: <Gavel size={28} className="text-amber-400" />
+            icon: <span className="text-2xl mr-2">🔨</span>
         },
         {
             title: "Código Procesal Civil y Comercial",
             desc: "Reglas de procedimiento en materia civil y comercial (InfoLeg).",
             url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/15000-19999/16547/texact.htm",
-            icon: <Book size={28} className="text-amber-400" />
+            icon: <span className="text-2xl mr-2">📖</span>
         },
         {
             title: "Código Procesal Penal Federal",
             desc: "Procedimiento penal federal acusatorio (PDF).",
             url: "/dashboard/legislation/viewer/codigo-procesal-penal-federal.pdf?province=nacion",
-            icon: <Scale size={28} className="text-amber-400" />
+            icon: <span className="text-2xl mr-2">👮</span>
         },
         {
             title: "Código Procesal Penal (Ley 27.063)",
             desc: "Nuevo Código Procesal Penal de la Nación (InfoLeg).",
             url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/0-4999/383/texact.htm",
-            icon: <Scale size={28} className="text-amber-400" />
+            icon: <span className="text-2xl mr-2">👮</span>
         },
         {
             title: "Ley de Contrato de Trabajo (20.744)",
             desc: "Régimen de contrato de trabajo (Sector Privado).",
             url: "/dashboard/legislation/viewer/ley-contrato-trabajo.pdf?province=nacion",
-            icon: <FileText size={28} className="text-amber-400" />
+            icon: <span className="text-2xl mr-2">💼</span>
         },
         {
             title: "Código de Minería",
             desc: "Régimen legal de las minas y su explotación (InfoLeg).",
             url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/40000-44999/43797/texact.htm",
-            icon: <Pickaxe size={28} className="text-amber-400" />
+            icon: <span className="text-2xl mr-2">⛏️</span>
         },
         {
             title: "Código Aduanero",
             desc: "Disposiciones sobre el tráfico internacional (InfoLeg).",
             url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/15000-19999/16536/texact.htm",
-            icon: <Globe size={28} className="text-amber-400" />
+            icon: <span className="text-2xl mr-2">🌐</span>
         },
         {
             title: "Código Aeronáutico",
             desc: "Rige la aeronáutica civil en el territorio (InfoLeg).",
             url: "https://servicios.infoleg.gob.ar/infolegInternet/anexos/20000-24999/24963/texact.htm",
-            icon: <Shield size={28} className="text-amber-400" />
+            icon: <span className="text-2xl mr-2">🛡️</span>
         },
         {
             title: "Código Alimentario Argentino",
             desc: "Normas higiénico-sanitarias y bromatológicas.",
             url: "/dashboard/legislation/viewer/codigo-alimentario.pdf?province=nacion",
-            icon: <Utensils size={28} className="text-amber-400" />
+            icon: <span className="text-2xl mr-2">🍎</span>
         },
         {
             title: "Código Alimentario (ANMAT)",
             desc: "Portal oficial de la ANMAT para el código alimentario.",
             url: "https://www.argentina.gob.ar/anmat/codigoalimentario",
-            icon: <Utensils size={28} className="text-amber-400" />
+            icon: <span className="text-2xl mr-2">🍎</span>
         },
         // ... truncated list for brevity, same as original ...
         {
             title: "Reglamento para la Justicia Nacional",
             desc: "Reglamentación oficial del Poder Judicial (PJN).",
             url: "https://www.pjn.gov.ar/",
-            icon: <FileText size={28} className="text-amber-400" />
+            icon: <span className="text-2xl mr-2">📜</span>
         }
     ];
 
@@ -151,26 +151,26 @@ export default function DemoLegislationPage() {
             title: "Defensa del Consumidor (24.240)",
             desc: "Protección y defensa de los consumidores y usuarios.",
             url: "/dashboard/legislation/viewer/ley-defensa-consumidor.pdf?province=nacion",
-            icon: <HeartHandshake size={28} className="text-blue-400" />
+            icon: <span className="text-2xl mr-2">🤝</span>
         },
         {
             title: "Concursos y Quiebras (24.522)",
             desc: "Reorganización de empresas y procesos falenciales.",
             url: "/dashboard/legislation/viewer/ley-concursos-quiebras.pdf?province=nacion",
-            icon: <Briefcase size={28} className="text-blue-400" />
+            icon: <span className="text-2xl mr-2">🏢</span>
         },
         // ... truncated ...
         {
             title: "Riesgos del Trabajo (24.557)",
             desc: "Prevención de riesgos y reparación de daños laborales.",
             url: "/dashboard/legislation/viewer/ley-riesgos-trabajo.pdf?province=nacion",
-            icon: <Shield size={28} className="text-blue-400" />
+            icon: <span className="text-2xl mr-2">🏥</span>
         },
         {
             title: "Procedimiento Administrativo (19.549)",
             desc: "Normas para trámites y actos ante la administración.",
             url: "/dashboard/legislation/viewer/ley-procedimiento-administrativo.pdf?province=nacion",
-            icon: <Scroll size={28} className="text-blue-400" />
+            icon: <span className="text-2xl mr-2">📄</span>
         }
     ];
 
@@ -439,7 +439,7 @@ export default function DemoLegislationPage() {
 
             <header className="legislation-header">
                 <div className="header-content">
-                    <h1><Scale size={32} className="inline-icon" /> Digesto Jurídico</h1>
+                    <h1><span className="inline-icon mr-2">⚖️</span> Digesto Jurídico</h1>
                     <p>Fuente oficial unificada. Códigos y leyes de aplicación frecuente.</p>
                 </div>
 
@@ -479,7 +479,7 @@ export default function DemoLegislationPage() {
                 <section className="legislation-section">
                     <div className="section-head">
                         <div className="icon-badge amber">
-                            <Book size={20} />
+                            <span className="text-xl">📚</span>
                         </div>
                         <div>
                             <h2>Códigos de Fondo</h2>
@@ -515,7 +515,7 @@ export default function DemoLegislationPage() {
                 <section className="legislation-section">
                     <div className="section-head">
                         <div className="icon-badge blue">
-                            <Scroll size={20} />
+                            <span className="text-xl">📜</span>
                         </div>
                         <div>
                             <h2>Leyes Especiales</h2>
@@ -554,7 +554,7 @@ export default function DemoLegislationPage() {
                         onClick={() => setIsProceduralExpanded(!isProceduralExpanded)}
                     >
                         <div className="icon-badge blue">
-                            <Map size={20} />
+                            <span className="text-xl">🗺️</span>
                         </div>
                         <div className="head-row">
                             <div className="head-row-inner">

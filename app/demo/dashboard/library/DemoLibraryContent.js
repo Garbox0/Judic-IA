@@ -70,6 +70,8 @@ export default function DemoLibraryPage() {
 
                 <div className="search-bar-container glass-panel">
                     <input
+                        id="demo-library-search"
+                        name="library_search"
                         type="text"
                         placeholder="Buscar por autos, tema o fallo..."
                         value={searchTerm}

@@ -80,24 +80,24 @@ export async function middleware(request) {
 
     // CSP Híbrida: Estricta (A+) - Ajustada para Mozilla Observatory
     const isDev = process.env.NODE_ENV === 'development';
-    const cspHeader = `
-        default-src 'none';
-        script-src 'self' 'nonce-${nonce}' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://apis.google.com https://accounts.google.com https://sdk.mercadopago.com https://static.cloudflareinsights.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live https://unpkg.com;
-        style-src 'self' 'nonce-${nonce}' 'unsafe-hashes' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=' 'sha256-CIxDM5jnsGiKqXs2v7NKCY5MzdR9gu6TtiMJrDw29AY=' 'sha256-zlqnbDt84zf1iSefLU/ImC54isoprH/MRiVZGskwexk=' 'sha256-32t0bJPIyxns/QqsW8RE3JGUERKnHL5RygHBgJvEanc=' 'sha256-bo9/JAqIUBMiSHL1O4oiO3U5UHaFxqbagFBryI+8mwU=' 'sha256-zWpgYAIYQbPPXWm2cNN92poH5pezyiyARDiGUjuqbFU=' 'sha256-NDlUvbI0C5AhCY+uu2OxERc8b/zOZ5m/C3vpWbghG1M=' https://fonts.googleapis.com https://vercel.live;
-        img-src 'self' data: https://*.supabase.co https://lh3.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live https://vercel.com https://assets.vercel.com ${legislationOrigin};
-        font-src 'self' https://fonts.gstatic.com data: https://vercel.live;
-        connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live https://vitals.vercel-insights.com https://cloudflareinsights.com https://static.cloudflareinsights.com ${legislationOrigin};
-        frame-src 'self' https://accounts.google.com https://*.mercadopago.com https://vercel.live https://*.vercel.live;
-        object-src 'none';
-        worker-src 'self' blob: https://unpkg.com;
-        manifest-src 'self';
-        media-src 'self';
-        base-uri 'self';
-        form-action 'self';
-        frame-ancestors 'self';
-        block-all-mixed-content;
-        upgrade-insecure-requests;
-    `.replace(/\s{2,}/g, ' ').trim()
+    const cspHeader = [
+        "default-src 'none'",
+        `script-src 'self' 'nonce-${nonce}' https: ${isDev ? "'unsafe-eval'" : ""}`,
+        `style-src 'self' 'nonce-${nonce}' https: 'unsafe-inline'`,
+        `img-src 'self' https: data: ${legislationOrigin}`,
+        `font-src 'self' https: data:`,
+        `connect-src 'self' https: wss:`,
+        `frame-src 'self' https:`,
+        "object-src 'none'",
+        "worker-src 'self' blob: https:",
+        "manifest-src 'self'",
+        "media-src 'self'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'self'",
+        "block-all-mixed-content",
+        "upgrade-insecure-requests"
+    ].join('; ').trim();
 
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-nonce', nonce)

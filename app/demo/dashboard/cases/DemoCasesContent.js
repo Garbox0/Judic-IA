@@ -125,7 +125,7 @@ export default function DemoCasesPage() {
 
             <header className="cases-header">
                 <div className="header-flex">
-                    <div className="header-icon-box"><Briefcase size={48} /></div>
+                    <div className="header-icon-box"><span className="text-4xl">📁</span></div>
                     <div className="header-text">
                         <h1 className="dashboard-page-title">Expedientes del Estudio</h1>
                         <p>Gestión centralizada de casos oficiales y carpetas legales.</p>

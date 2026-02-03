@@ -30,7 +30,7 @@ const nextConfig = {
       {
         source: '/legislation/(.*)\\.pdf',
         headers: [
-          { key: 'Content-Security-Policy', value: "default-src 'self'; object-src 'self'; frame-ancestors 'self';" },
+          { key: 'Content-Security-Policy', value: "default-src 'self' https:; object-src 'self' https:; frame-ancestors 'self'; block-all-mixed-content; upgrade-insecure-requests;" },
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'Content-Type', value: 'application/pdf' },
         ],

@@ -631,7 +631,8 @@
 .modal-overlay-dark {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -639,11 +640,15 @@
 }
 
 .modal-box-demo {
-    padding: 2rem;
-    background: #1e293b;
-    border-radius: 16px;
-    max-width: 400px;
+    padding: 2.5rem;
+    background: var(--secondary);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    max-width: 440px;
+    width: 90%;
     text-align: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    color: var(--foreground);
 }
 
 .mb-2rem {
