@@ -579,10 +579,10 @@ option {
     margin-bottom: 1.5rem;
 }
 
-:global(.light-theme) .legislation-tabs {
+.light-theme .legislation-tabs {
     border-bottom-color: rgba(15, 23, 42, 0.1);
 }
 
-:global(.light-theme) .legislation-radio-label {
+.light-theme .legislation-radio-label {
     color: #0f172a;
 }
