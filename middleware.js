@@ -73,16 +73,17 @@ export async function middleware(request) {
     const legislationOrigin = new URL(legislationUrl).origin;
 
     // CSP Híbrida: Estricta en Scripts (Anti-XSS), Permisiva en Estilos (UI Moderna)
+    const isDev = process.env.NODE_ENV === 'development';
     const cspHeader = `
         default-src 'self';
-        script-src 'self' 'nonce-${nonce}' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://sdk.mercadopago.com https://static.cloudflareinsights.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live;
+        script-src 'self' 'nonce-${nonce}' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://apis.google.com https://accounts.google.com https://sdk.mercadopago.com https://static.cloudflareinsights.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live https://unpkg.com blob:;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vercel.live;
         img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://www.google-analytics.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live https://vercel.com https://assets.vercel.com ${legislationOrigin};
         font-src 'self' https://fonts.gstatic.com data: https://vercel.live;
         connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.mercadopago.com https://events.mercadopago.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://vercel.live https://*.vercel.live https://vitals.vercel-insights.com https://cloudflareinsights.com https://static.cloudflareinsights.com ${legislationOrigin};
         frame-src 'self' https://accounts.google.com https://*.mercadopago.com https://vercel.live https://*.vercel.live;
         object-src 'none';
-        worker-src 'self' blob:;
+        worker-src 'self' blob: https://unpkg.com;
         base-uri 'self';
         frame-ancestors 'self';
     `.replace(/\s{2,}/g, ' ').trim()
