@@ -100,7 +100,7 @@ export async function middleware(request) {
     ].join(' ');
 
     const cspHeader = [
-        "default-src 'none'",
+        "default-src 'self'",
         `script-src 'self' 'nonce-${nonce}' ${trustedDomains} ${isDev ? "'unsafe-eval'" : ""}`,
         `style-src 'self' 'nonce-${nonce}' ${trustedDomains} 'unsafe-hashes' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=' 'sha256-CIxDM5jnsGiKqXs2v7NKCY5MzdR9gu6TtiMJrDw29AY=' 'sha256-zlqnbDt84zf1iSefLU/ImC54isoprH/MRiVZGskwexk=' 'sha256-32t0bJPIyxns/QqsW8RE3JGUERKnHL5RygHBgJvEanc=' 'sha256-bo9/JAqIUBMiSHL1O4oiO3U5UHaFxqbagFBryI+8mwU=' 'sha256-zWpgYAIYQbPPXWm2cNN92poH5pezyiyARDiGUjuqbFU=' 'sha256-NDlUvbI0C5AhCY+uu2OxERc8b/zOZ5m/C3vpWbghG1M='`,
         `img-src 'self' data: ${trustedDomains}`,
