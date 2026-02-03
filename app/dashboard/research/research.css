@@ -1097,3 +1097,200 @@ body.light-theme .province-select {
     border-color: #cbd5e1 !important;
     color: #0f172a !important;
 }
+
+body.light-theme .province-select {
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+/* A+ CSP Refactor: Research Content Inline Styles Replacement */
+.btn-search-submit {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.loader-wrapper {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.loader-text-wrapper {
+    text-align: center;
+}
+
+.loader-status-text {
+    margin-top: 1.5rem;
+    color: #fbbf24;
+    font-size: 0.9rem;
+    font-weight: 600;
+    animation: pulse 2s infinite;
+}
+
+.badge-brave {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    padding: 0.4rem 0.8rem;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.opacity-60 {
+    opacity: 0.6;
+}
+
+/* Quota Modal Refactor */
+.quota-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(2, 6, 23, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.quota-modal-card {
+    background: #0f172a;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 24px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.8);
+    max-width: 360px;
+    animation: zoomIn 0.2s ease-out;
+}
+
+.quota-icon-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem auto;
+}
+
+.quota-icon-emoji {
+    font-size: 1.8rem;
+}
+
+.quota-title {
+    color: white;
+    font-weight: 800;
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.quota-desc {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+.quota-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-direction: column;
+}
+
+.btn-quota-pro {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+    color: black;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.btn-quota-cancel {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 12px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Search Tips Refactor */
+.tips-details {
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.tips-summary {
+    color: #fbbf24;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    user-select: none;
+}
+
+.tips-content-box {
+    margin-top: 0.8rem;
+    padding: 1rem;
+    background: rgba(251, 191, 36, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(251, 191, 36, 0.1);
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    line-height: 1.6;
+}
+
+.tips-intro-p {
+    margin: 0 0 0.5rem 0;
+}
+
+.tips-list {
+    margin: 0;
+    padding-left: 1.2rem;
+    color: #e2e8f0;
+}
+
+.tips-li {
+    margin-bottom: 0.3rem;
+}
+
+.tips-example {
+    opacity: 0.7;
+}

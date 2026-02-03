@@ -528,43 +528,25 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         </div>
 
                         {/* 💡 SEARCH TIPS */}
-                        <details className="search-tips-details" style={{ marginBottom: '1rem', width: '100%' }}>
-                            <summary style={{
-                                color: '#fbbf24',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: 600,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                userSelect: 'none'
-                            }}>
+                        <details className="search-tips-details tips-details">
+                            <summary className="tips-summary">
                                 <Zap size={14} fill="#fbbf24" />
                                 <span>Tips para búsquedas de Alta Precisión</span>
                             </summary>
-                            <div className="tips-content" style={{
-                                marginTop: '0.8rem',
-                                padding: '1rem',
-                                background: 'rgba(251, 191, 36, 0.05)',
-                                borderRadius: '8px',
-                                border: '1px solid rgba(251, 191, 36, 0.1)',
-                                fontSize: '0.85rem',
-                                color: '#cbd5e1',
-                                lineHeight: '1.6'
-                            }}>
-                                <p style={{ margin: '0 0 0.5rem 0' }}>Para obtener los mejores resultados, utilizá estos patrones:</p>
-                                <ul style={{ margin: 0, paddingLeft: '1.2rem', color: '#e2e8f0' }}>
-                                    <li style={{ marginBottom: '0.3rem' }}>
-                                        <strong>Tema + "fallo" o "sentencia":</strong> <span style={{ opacity: 0.7 }}>Ej: "despido sin causa fallo", "cuota alimentaria sentencia"</span>
+                            <div className="tips-content tips-content-box">
+                                <p className="tips-intro-p">Para obtener los mejores resultados, utilizá estos patrones:</p>
+                                <ul className="tips-list">
+                                    <li className="tips-li">
+                                        <strong>Tema + "fallo" o "sentencia":</strong> <span className="tips-example">Ej: "despido sin causa fallo", "cuota alimentaria sentencia"</span>
                                     </li>
-                                    <li style={{ marginBottom: '0.3rem' }}>
-                                        <strong>Frase exacta entre comillas:</strong> <span style={{ opacity: 0.7 }}>Ej: "daño moral" accidente tránsito</span>
+                                    <li className="tips-li">
+                                        <strong>Frase exacta entre comillas:</strong> <span className="tips-example">Ej: "daño moral" accidente tránsito</span>
                                     </li>
-                                    <li style={{ marginBottom: '0.3rem' }}>
-                                        <strong>Jurisdicción específica:</strong> <span style={{ opacity: 0.7 }}>Ej: "mala praxis médica cordoba camara"</span>
+                                    <li className="tips-li">
+                                        <strong>Jurisdicción específica:</strong> <span className="tips-example">Ej: "mala praxis médica cordoba camara"</span>
                                     </li>
                                     <li>
-                                        <strong>Autos (si conocés):</strong> <span style={{ opacity: 0.7 }}>Ej: "autos garcia c/ perez s/ daños"</span>
+                                        <strong>Autos (si conocés):</strong> <span className="tips-example">Ej: "autos garcia c/ perez s/ daños"</span>
                                     </li>
                                 </ul>
                             </div>
@@ -580,31 +562,16 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                             />
-                            <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                            <button type="submit" disabled={loading} className="btn-search-submit">
                                 {loading ? <Zap size={18} className="spin-animation" /> : <Search size={18} />}
                                 {loading ? 'Procesando Inteligencia...' : 'Generar Estrategia IA'}
                             </button>
                         </form>
                         {loading && (
-                            <div
-                                className="loader-container"
-                                style={{
-                                    marginTop: '2rem',
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    width: '100%',
-                                }}
-                            >
-                                <div style={{ textAlign: 'center' }}>
+                            <div className="loader-container loader-wrapper">
+                                <div className="loader-text-wrapper">
                                     <Loader2 className="spin-animation text-amber-400" size={48} />
-                                    <p style={{
-                                        marginTop: '1.5rem',
-                                        color: '#fbbf24',
-                                        fontSize: '0.9rem',
-                                        fontWeight: 600,
-                                        animation: 'pulse 2s infinite'
-                                    }}>
+                                    <p className="loader-status-text">
                                         {searchStatus}
                                     </p>
                                 </div>
@@ -657,23 +624,9 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                     {results && (
                         <div className="results-area">
                             {results.brave_used && (
-                                <div style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    background: 'rgba(251, 191, 36, 0.15)',
-                                    color: '#fbbf24',
-                                    padding: '0.4rem 0.8rem',
-                                    borderRadius: '99px',
-                                    fontSize: '0.75rem',
-                                    fontWeight: 800,
-                                    marginBottom: '1.5rem',
-                                    border: '1px solid rgba(251, 191, 36, 0.3)',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.05em'
-                                }}>
+                                <div className="badge-brave">
                                     <span>🦁 Brave Search Pro Activo</span>
-                                    <span style={{ opacity: 0.6 }}>•</span>
+                                    <span className="opacity-60">•</span>
                                     <span>Resultados en Tiempo Real</span>
                                     {/* DEBUG LOGIC */}
                                     {/* STATUS BADGE LOGIC */}
@@ -852,47 +805,24 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
             {/* QUOTA LIMIT MODAL */}
             {quotaModalOpen && (
-                <div style={{
-                    position: 'fixed', inset: 0, zIndex: 9999,
-                    background: 'rgba(2, 6, 23, 0.85)', backdropFilter: 'blur(8px)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem'
-                }} onClick={() => setQuotaModalOpen(false)}>
-                    <div style={{
-                        background: '#0f172a', border: '1px solid rgba(251, 191, 36, 0.3)',
-                        borderRadius: '24px', padding: '2rem', textAlign: 'center',
-                        boxShadow: '0 20px 50px -10px rgba(0,0,0,0.8)', maxWidth: '360px',
-                        animation: 'zoomIn 0.2s ease-out'
-                    }} onClick={e => e.stopPropagation()}>
-                        <div style={{
-                            width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(251, 191, 36, 0.1)',
-                            border: '1px solid rgba(251, 191, 36, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            margin: '0 auto 1.5rem auto'
-                        }}>
-                            <span style={{ fontSize: '1.8rem' }}>👑</span>
+                <div className="quota-modal-overlay" onClick={() => setQuotaModalOpen(false)}>
+                    <div className="quota-modal-card" onClick={e => e.stopPropagation()}>
+                        <div className="quota-icon-circle">
+                            <span className="quota-icon-emoji">👑</span>
                         </div>
-                        <h3 style={{ color: 'white', fontWeight: '800', fontSize: '1.25rem', marginBottom: '0.5rem' }}>Límite Mensual Alcanzado</h3>
-                        <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
+                        <h3 className="quota-title">Límite Mensual Alcanzado</h3>
+                        <p className="quota-desc">
                             Has utilizado todas tus consultas de alta potencia de este mes. Actualiza tu plan para acceso ilimitado.
                         </p>
-                        <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
+                        <div className="quota-actions">
                             <button
-                                style={{
-                                    width: '100%', padding: '0.75rem', borderRadius: '12px',
-                                    background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
-                                    color: 'black', fontWeight: '800', border: 'none', cursor: 'pointer',
-                                    fontSize: '0.9rem', boxShadow: '0 4px 12px rgba(251, 191, 36, 0.3)'
-                                }}
+                                className="btn-quota-pro"
                             >
                                 Ver Planes PRO
                             </button>
                             <button
                                 onClick={() => setQuotaModalOpen(false)}
-                                style={{
-                                    width: '100%', padding: '0.75rem', borderRadius: '12px',
-                                    background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
-                                    color: '#cbd5e1', fontWeight: '600', cursor: 'pointer',
-                                    fontSize: '0.85rem'
-                                }}
+                                className="btn-quota-cancel"
                             >
                                 Cancelar
                             </button>

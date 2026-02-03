@@ -1,0 +1,100 @@
+/* UsageGuide.js Styles - Refactored for CSP A+ */
+
+.guide-h3 {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #fbbf24;
+    margin-top: 1.5rem;
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.guide-h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #fbbf24;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+    letter-spacing: -0.02em;
+}
+
+.guide-h2.mt-large {
+    margin-top: 1.5rem;
+}
+
+.guide-h2.mt-none {
+    margin-top: 0;
+}
+
+.guide-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 1rem;
+    padding-left: 0.5rem;
+}
+
+.guide-bullet-icon {
+    margin-top: 5px;
+    color: #fbbf24;
+}
+
+.guide-list-text {
+    color: #cbd5e1;
+    line-height: 1.7;
+    font-size: 0.95rem;
+}
+
+.guide-num-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 1.2rem;
+    padding-left: 0.5rem;
+}
+
+.guide-num-marker {
+    color: #fbbf24;
+    font-family: monospace;
+    font-weight: 800;
+    min-width: 24px;
+    text-align: left;
+    font-size: 1.05rem;
+}
+
+.guide-num-text {
+    color: #cbd5e1;
+    line-height: 1.7;
+    font-size: 1rem;
+}
+
+.guide-blockquote {
+    border-left: 4px solid #fbbf24;
+    padding: 1rem 1.4rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: #cbd5e1;
+    background: rgba(251, 191, 36, 0.05);
+    border-radius: 0 12px 12px 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.guide-spacer {
+    height: 0.4rem;
+}
+
+.guide-p {
+    margin-bottom: 1rem;
+    line-height: 1.7;
+    color: #94a3b8;
+    font-size: 0.95rem;
+}
+
+.guide-strong {
+    color: white;
+    font-weight: 700;
+}
