@@ -399,6 +399,7 @@ export default function Home() {
                   required
                   className="newsletter-input-v3"
                   aria-label="Introduce tu correo electrónico"
+                  autoComplete="email"
                 />
                 <button type="submit" className="btn-newsletter-v3" aria-label="Suscribirse a la newsletter">
                   Inscribirse <span>→</span>

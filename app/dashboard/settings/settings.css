@@ -934,8 +934,10 @@
     letter-spacing: 0.8px !important;
 }
 
-.billing-secure-text-sm {
-    font-size: 0.7rem !important;
+.mp-logo-v2 {
+    height: 32px !important;
+    width: auto !important;
+    display: block !important;
 }
 
 .billing-success-h {
