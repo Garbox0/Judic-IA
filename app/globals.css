@@ -292,7 +292,15 @@ button {
   overflow: hidden;
   z-index: 2000;
   border-radius: 16px;
-  /* Glass effect handled by utility or inherited */
+  /* Solid background instead of transparent glass */
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Light theme solid background for chat */
+.light-theme .chat-window {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 /* Mobile Optimizations */

@@ -21,7 +21,10 @@ import {
     Calendar,
     ArrowUpRight,
     Mail,
-    Lock
+    Lock,
+    BadgeCheck,
+    ShieldAlert,
+    ShieldQuestion
 } from 'lucide-react';
 import {
     BarChart,
@@ -36,6 +39,7 @@ import {
 
 import './admin.css';
 import AdminGuard from './components/AdminGuard';
+import VerificationBadge from '@/app/components/VerificationBadge';
 
 export default function AdminPage() {
     const [users, setUsers] = useState([]);
@@ -47,6 +51,7 @@ export default function AdminPage() {
     const [currentUser, setCurrentUser] = useState(null);
     const [activeModal, setActiveModal] = useState(null);
     const [notifications, setNotifications] = useState([]);
+    const [activeTab, setActiveTab] = useState('users'); // 'users' | 'verification'
     const router = useRouter();
 
     useEffect(() => {
@@ -222,6 +227,42 @@ export default function AdminPage() {
                 });
                 if (!res.ok) throw new Error('Error en API al revocar');
                 showNotification('success', 'Acceso revocado y cuenta degradada a Basic.');
+            } else if (action === 'verify-lawyer') {
+                const { data: { session } } = await supabase.auth.getSession();
+                const res = await fetch('/api/admin/update-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session?.access_token}`
+                    },
+                    body: JSON.stringify({ userId, updates: { verification_status: 'verified' } })
+                });
+                if (!res.ok) throw new Error('Error al verificar');
+                showNotification('success', 'Abogado verificado correctamente.');
+            } else if (action === 'reject-lawyer') {
+                const { data: { session } } = await supabase.auth.getSession();
+                const res = await fetch('/api/admin/update-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session?.access_token}`
+                    },
+                    body: JSON.stringify({ userId, updates: { verification_status: 'rejected' } })
+                });
+                if (!res.ok) throw new Error('Error al rechazar');
+                showNotification('success', 'Abogado marcado como no verificado.');
+            } else if (action === 'reset-verification') {
+                const { data: { session } } = await supabase.auth.getSession();
+                const res = await fetch('/api/admin/update-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session?.access_token}`
+                    },
+                    body: JSON.stringify({ userId, updates: { verification_status: 'pending' } })
+                });
+                if (!res.ok) throw new Error('Error al resetear');
+                showNotification('success', 'Verificación reseteada a pendiente.');
             }
             // Optimistic Update
             setUsers(prev => prev.map(u => {
@@ -248,6 +289,9 @@ export default function AdminPage() {
                             ai_message_quota: 20
                         };
                     }
+                    if (action === 'verify-lawyer') return { ...u, verification_status: 'verified' };
+                    if (action === 'reject-lawyer') return { ...u, verification_status: 'rejected' };
+                    if (action === 'reset-verification') return { ...u, verification_status: 'pending' };
                 }
                 return u;
             }));
@@ -361,6 +405,35 @@ export default function AdminPage() {
                         <StatBox label="Status Web" value={health?.status === 'healthy' ? '100%' : '50%'} delta="LIVE" icon={TrendingUp} color="purple" />
                     </div>
 
+                    {/* --- TAB NAVIGATION --- */}
+                    <div className="flex gap-4 items-center">
+                        <button
+                            onClick={() => setActiveTab('users')}
+                            className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2
+                                ${activeTab === 'users'
+                                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-[0_0_15px_rgba(251,191,36,0.15)]'
+                                    : 'bg-slate-800/50 text-slate-500 border border-slate-700 hover:text-slate-300 hover:border-slate-600'}`}
+                        >
+                            <Users size={16} />
+                            Usuarios
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('verification')}
+                            className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2
+                                ${activeTab === 'verification'
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]'
+                                    : 'bg-slate-800/50 text-slate-500 border border-slate-700 hover:text-slate-300 hover:border-slate-600'}`}
+                        >
+                            <BadgeCheck size={16} />
+                            Verificación
+                            {users.filter(u => u.role === 'lawyer' && u.verification_status === 'pending').length > 0 && (
+                                <span className="bg-amber-500 text-black text-[9px] font-black px-2 py-0.5 rounded-full ml-1">
+                                    {users.filter(u => u.role === 'lawyer' && u.verification_status === 'pending').length}
+                                </span>
+                            )}
+                        </button>
+                    </div>
+
                     {/* --- SECTIONS --- */}
                     <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                         <div className="glass-card p-10 flex flex-col items-center">
@@ -378,112 +451,208 @@ export default function AdminPage() {
                             </div>
                         </div>
 
-                        <div className="glass-card xl:col-span-2 overflow-hidden flex flex-col">
-                            <div className="p-10 border-b border-white/5 flex justify-between items-center">
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">Base de Datos de Usuarios</h3>
-                                <div className="relative">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={14} />
-                                    <input type="text" placeholder="Filtrar por nombre o mail..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                                        className="bg-black/20 border border-white/5 rounded-full py-3 pl-12 pr-8 text-xs text-white focus:outline-none focus:border-gold/20 w-80 transition-all font-medium" />
+                        {/* --- USERS TAB CONTENT --- */}
+                        {activeTab === 'users' && (
+                            <div className="glass-card xl:col-span-2 overflow-hidden flex flex-col">
+                                <div className="p-10 border-b border-white/5 flex justify-between items-center">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">Base de Datos de Usuarios</h3>
+                                    <div className="relative">
+                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={14} />
+                                        <input type="text" placeholder="Filtrar por nombre o mail..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                                            className="bg-black/20 border border-white/5 rounded-full py-3 pl-12 pr-8 text-xs text-white focus:outline-none focus:border-gold/20 w-80 transition-all font-medium" />
+                                    </div>
+                                </div>
+
+                                <div className="overflow-x-auto">
+                                    <div className="user-table-grid user-table-header">
+                                        <span>Nombre del Profesional</span>
+                                        <span>Mail de Acceso</span>
+                                        <span>Plan Contractual</span>
+                                        <span>Consumo AI</span>
+                                        <span className="text-right">Herramientas</span>
+                                    </div>
+
+                                    {filteredUsers.map(user => (
+                                        <div key={user.id} className="user-table-grid group transition-all hover:bg-white/[0.05] border-b border-white/[0.02] last:border-0">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs border
+                                                        ${user.subscription_status === 'active' ? 'bg-amber-400 text-black border-amber-400/50 shadow-[0_0_20px_rgba(251,191,36,0.2)]' : 'bg-slate-800 text-slate-500 border-white/5'}`}>
+                                                    {user.email[0].toUpperCase()}
+                                                </div>
+                                                <span className="font-bold text-white text-base tracking-tight">{user.full_name !== 'N/A' ? user.full_name : 'No asignado'}</span>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <Mail size={12} className="text-slate-600 group-hover:text-slate-400 transition-colors" />
+                                                <span className="text-[11px] font-mono text-slate-500 group-hover:text-slate-300 transition-colors opacity-80 italic">{user.email}</span>
+                                            </div>
+
+                                            <div className="flex flex-col gap-1.5">
+                                                {user.subscription_status === 'active' ? (
+                                                    <span className="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-500/20 w-fit">Pro Suite</span>
+                                                ) : user.subscription_status === 'cancelled' && user.plan_tier === 'professional' ? (
+                                                    <span className="bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-red-500/20 w-fit flex items-center gap-1">
+                                                        <ShieldCheck size={10} /> Cancelado (Pro)
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-[9px] font-black uppercase text-slate-600 px-3 py-1 bg-slate-900/50 rounded-full border border-white/5 w-fit">Basic Tier</span>
+                                                )}
+
+                                                <div className="flex flex-col gap-0.5 opacity-40 group-hover:opacity-100 transition-opacity">
+                                                    <span className="text-[8px] font-black text-slate-500 uppercase flex items-center gap-1">
+                                                        <Calendar size={8} /> Alta: {user.subscription_started_at ? new Date(user.subscription_started_at).toLocaleDateString() : new Date(user.created_at).toLocaleDateString()}
+                                                    </span>
+                                                    <span className="text-[8px] font-black text-slate-500 uppercase flex items-center gap-1">
+                                                        <ArrowUpRight size={8} /> Vence: {user.subscription_expiry ? new Date(user.subscription_expiry).toLocaleDateString() : 'Manual'}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-3 pr-8">
+                                                <div className="flex items-baseline gap-1.5 text-[10px] font-black tracking-tighter">
+                                                    <span className="text-white text-lg">{user.ai_messages_used}</span>
+                                                    <span className="text-slate-700 text-xs">/ {user.ai_message_quota || '∞'}</span>
+                                                    <span className="text-slate-600 text-[8px] ml-auto uppercase opacity-50">Mensajes</span>
+                                                </div>
+                                                <div className="h-1.5 bg-black/40 rounded-full overflow-hidden border border-white/5 p-[1px]">
+                                                    <div className="h-full bg-gradient-to-r from-gold to-orange-600 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(251,191,36,0.2)]" style={{ width: `${Math.min(user.usage_percent || 0, 100)}%` }} />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button onClick={() => handleAction(user.id, 'toggle-pro', { active: user.subscription_status !== 'active' })}
+                                                    className={`action-btn ${user.subscription_status === 'active' ? 'active-pro' : ''}`} title="Upgrade a PRO">
+                                                    <Crown size={15} />
+                                                </button>
+                                                <button onClick={() => {
+                                                    setActiveModal({
+                                                        title: 'Ajustar Cuota',
+                                                        message: `Nueva cuota mensual para ${user.full_name || user.email}:`,
+                                                        userInput: true,
+                                                        inputType: 'number',
+                                                        defaultValue: user.ai_message_quota,
+                                                        onConfirm: (val) => handleAction(user.id, 'update-credits', { quota: val }, true)
+                                                    });
+                                                }} className="action-btn" title="Ajustar Cuota">
+                                                    <Edit3 size={15} />
+                                                </button>
+                                                <button onClick={() => {
+                                                    setActiveModal({
+                                                        title: 'Ajustar Consumo',
+                                                        message: `Modificar consumo actual para ${user.full_name || user.email} (Testing):`,
+                                                        userInput: true,
+                                                        inputType: 'number',
+                                                        defaultValue: user.ai_messages_used,
+                                                        onConfirm: (val) => handleAction(user.id, 'set-usage', { usage: val }, true)
+                                                    });
+                                                }} className="action-btn" title="Forzar Consumo (Test)">
+                                                    <Activity size={15} />
+                                                </button>
+                                                <button onClick={() => handleAction(user.id, 'reset-usage')} className="action-btn" title="Limpiar Uso Mensual">
+                                                    <RefreshCw size={14} />
+                                                </button>
+                                                <button onClick={() => handleAction(user.id, 'revoke-access')} className="action-btn text-red-500/20 hover:text-red-500 hover:bg-red-500/10" title="Revocar Acceso">
+                                                    <Power size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
+                        )}
 
-                            <div className="overflow-x-auto">
-                                <div className="user-table-grid user-table-header">
-                                    <span>Nombre del Profesional</span>
-                                    <span>Mail de Acceso</span>
-                                    <span>Plan Contractual</span>
-                                    <span>Consumo AI</span>
-                                    <span className="text-right">Herramientas</span>
-                                </div>
-
-                                {filteredUsers.map(user => (
-                                    <div key={user.id} className="user-table-grid group transition-all hover:bg-white/[0.05] border-b border-white/[0.02] last:border-0">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs border
-                                                        ${user.subscription_status === 'active' ? 'bg-amber-400 text-black border-amber-400/50 shadow-[0_0_20px_rgba(251,191,36,0.2)]' : 'bg-slate-800 text-slate-500 border-white/5'}`}>
-                                                {user.email[0].toUpperCase()}
-                                            </div>
-                                            <span className="font-bold text-white text-base tracking-tight">{user.full_name !== 'N/A' ? user.full_name : 'No asignado'}</span>
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            <Mail size={12} className="text-slate-600 group-hover:text-slate-400 transition-colors" />
-                                            <span className="text-[11px] font-mono text-slate-500 group-hover:text-slate-300 transition-colors opacity-80 italic">{user.email}</span>
-                                        </div>
-
-                                        <div className="flex flex-col gap-1.5">
-                                            {user.subscription_status === 'active' ? (
-                                                <span className="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-500/20 w-fit">Pro Suite</span>
-                                            ) : user.subscription_status === 'cancelled' && user.plan_tier === 'professional' ? (
-                                                <span className="bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-red-500/20 w-fit flex items-center gap-1">
-                                                    <ShieldCheck size={10} /> Cancelado (Pro)
-                                                </span>
-                                            ) : (
-                                                <span className="text-[9px] font-black uppercase text-slate-600 px-3 py-1 bg-slate-900/50 rounded-full border border-white/5 w-fit">Basic Tier</span>
-                                            )}
-
-                                            <div className="flex flex-col gap-0.5 opacity-40 group-hover:opacity-100 transition-opacity">
-                                                <span className="text-[8px] font-black text-slate-500 uppercase flex items-center gap-1">
-                                                    <Calendar size={8} /> Alta: {user.subscription_started_at ? new Date(user.subscription_started_at).toLocaleDateString() : new Date(user.created_at).toLocaleDateString()}
-                                                </span>
-                                                <span className="text-[8px] font-black text-slate-500 uppercase flex items-center gap-1">
-                                                    <ArrowUpRight size={8} /> Vence: {user.subscription_expiry ? new Date(user.subscription_expiry).toLocaleDateString() : 'Manual'}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-3 pr-8">
-                                            <div className="flex items-baseline gap-1.5 text-[10px] font-black tracking-tighter">
-                                                <span className="text-white text-lg">{user.ai_messages_used}</span>
-                                                <span className="text-slate-700 text-xs">/ {user.ai_message_quota || '∞'}</span>
-                                                <span className="text-slate-600 text-[8px] ml-auto uppercase opacity-50">Mensajes</span>
-                                            </div>
-                                            <div className="h-1.5 bg-black/40 rounded-full overflow-hidden border border-white/5 p-[1px]">
-                                                <div className="h-full bg-gradient-to-r from-gold to-orange-600 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(251,191,36,0.2)]" style={{ width: `${Math.min(user.usage_percent || 0, 100)}%` }} />
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button onClick={() => handleAction(user.id, 'toggle-pro', { active: user.subscription_status !== 'active' })}
-                                                className={`action-btn ${user.subscription_status === 'active' ? 'active-pro' : ''}`} title="Upgrade a PRO">
-                                                <Crown size={15} />
-                                            </button>
-                                            <button onClick={() => {
-                                                setActiveModal({
-                                                    title: 'Ajustar Cuota',
-                                                    message: `Nueva cuota mensual para ${user.full_name || user.email}:`,
-                                                    userInput: true,
-                                                    inputType: 'number',
-                                                    defaultValue: user.ai_message_quota,
-                                                    onConfirm: (val) => handleAction(user.id, 'update-credits', { quota: val }, true)
-                                                });
-                                            }} className="action-btn" title="Ajustar Cuota">
-                                                <Edit3 size={15} />
-                                            </button>
-                                            <button onClick={() => {
-                                                setActiveModal({
-                                                    title: 'Ajustar Consumo',
-                                                    message: `Modificar consumo actual para ${user.full_name || user.email} (Testing):`,
-                                                    userInput: true,
-                                                    inputType: 'number',
-                                                    defaultValue: user.ai_messages_used,
-                                                    onConfirm: (val) => handleAction(user.id, 'set-usage', { usage: val }, true)
-                                                });
-                                            }} className="action-btn" title="Forzar Consumo (Test)">
-                                                <Activity size={15} />
-                                            </button>
-                                            <button onClick={() => handleAction(user.id, 'reset-usage')} className="action-btn" title="Limpiar Uso Mensual">
-                                                <RefreshCw size={14} />
-                                            </button>
-                                            <button onClick={() => handleAction(user.id, 'revoke-access')} className="action-btn text-red-500/20 hover:text-red-500 hover:bg-red-500/10" title="Revocar Acceso">
-                                                <Power size={14} />
-                                            </button>
+                        {/* --- VERIFICATION TAB CONTENT --- */}
+                        {activeTab === 'verification' && (
+                            <div className="glass-card xl:col-span-2 overflow-hidden flex flex-col">
+                                <div className="p-10 border-b border-white/5 flex justify-between items-center">
+                                    <div className="flex items-center gap-4">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">Verificación de Abogados</h3>
+                                        <div className="flex gap-2">
+                                            <span className="bg-amber-500/10 text-amber-400 text-[9px] font-black px-2 py-1 rounded-full border border-amber-500/20">
+                                                {users.filter(u => u.role === 'lawyer' && u.verification_status === 'pending').length} Pendientes
+                                            </span>
+                                            <span className="bg-emerald-500/10 text-emerald-400 text-[9px] font-black px-2 py-1 rounded-full border border-emerald-500/20">
+                                                {users.filter(u => u.role === 'lawyer' && u.verification_status === 'verified').length} Verificados
+                                            </span>
                                         </div>
                                     </div>
-                                ))}
+                                </div>
+
+                                <div className="overflow-x-auto">
+                                    <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-4 px-10 py-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 border-b border-white/5">
+                                        <span>Abogado</span>
+                                        <span>Matrícula / Jurisdicción</span>
+                                        <span>Estado</span>
+                                        <span className="text-right">Acciones</span>
+                                    </div>
+
+                                    {users.filter(u => u.role === 'lawyer').map(lawyer => (
+                                        <div key={lawyer.id} className="grid grid-cols-[1fr_1fr_auto_auto] gap-4 px-10 py-5 items-center group transition-all hover:bg-white/[0.03] border-b border-white/[0.02] last:border-0">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs border
+                                                ${lawyer.verification_status === 'verified'
+                                                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                                        : lawyer.verification_status === 'rejected'
+                                                            ? 'bg-red-500/20 text-red-400 border-red-500/30'
+                                                            : 'bg-amber-500/20 text-amber-400 border-amber-500/30'}`}>
+                                                    {lawyer.email[0].toUpperCase()}
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="font-bold text-white text-sm tracking-tight">{lawyer.full_name !== 'N/A' ? lawyer.full_name : 'Sin nombre'}</span>
+                                                    <span className="text-[10px] text-slate-500 font-mono">{lawyer.email}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-white text-sm font-bold">{lawyer.matricula || 'Sin matrícula'}</span>
+                                                <span className="text-[10px] text-slate-500 uppercase tracking-wider">{lawyer.jurisdiccion || 'Sin jurisdicción'}</span>
+                                            </div>
+
+                                            <div>
+                                                <VerificationBadge status={lawyer.verification_status || 'pending'} size="md" />
+                                            </div>
+
+                                            <div className="flex items-center justify-end gap-2">
+                                                {lawyer.verification_status !== 'verified' && (
+                                                    <button
+                                                        onClick={() => handleAction(lawyer.id, 'verify-lawyer')}
+                                                        className="action-btn bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20"
+                                                        title="Aprobar Verificación"
+                                                    >
+                                                        <ShieldCheck size={15} />
+                                                    </button>
+                                                )}
+                                                {lawyer.verification_status !== 'rejected' && (
+                                                    <button
+                                                        onClick={() => handleAction(lawyer.id, 'reject-lawyer')}
+                                                        className="action-btn bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20"
+                                                        title="Rechazar Verificación"
+                                                    >
+                                                        <ShieldAlert size={15} />
+                                                    </button>
+                                                )}
+                                                {lawyer.verification_status !== 'pending' && (
+                                                    <button
+                                                        onClick={() => handleAction(lawyer.id, 'reset-verification')}
+                                                        className="action-btn bg-slate-500/10 text-slate-400 hover:bg-slate-500/20 border border-slate-500/20"
+                                                        title="Resetear a Pendiente"
+                                                    >
+                                                        <ShieldQuestion size={15} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {users.filter(u => u.role === 'lawyer').length === 0 && (
+                                        <div className="px-10 py-12 text-center">
+                                            <ShieldQuestion size={48} className="mx-auto text-slate-700 mb-4" />
+                                            <p className="text-slate-500 text-sm font-bold">No hay abogados registrados</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 
