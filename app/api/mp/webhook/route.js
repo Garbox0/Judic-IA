@@ -193,13 +193,37 @@ export async function POST(req) {
                             </div>
 
                             <div style="margin-top: 40px; border-top: 1px solid #1e293b; padding-top: 20px; font-size: 12px; color: #64748b; text-align: center;">
-                                <p>Si necesitas tu factura, escríbenos a <a href="mailto:billing@judic-ia.com" style="color: #fbbf24;">billing@judic-ia.com</a></p>
+                                <p>Tu factura estará disponible en tu panel en las próximas horas.</p>
                                 <p>© ${new Date().getFullYear()} Judic-IA. Todos los derechos reservados.</p>
                             </div>
                         </div>
                     `
                 });
                 console.log("📧 Welcome Email sent to:", userEmail);
+            }
+
+            // 7) Crear factura pendiente para el usuario
+            // Obtener nombre del perfil para la factura
+            const { data: profileData } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', userId)
+                .single();
+
+            const { error: invoiceError } = await supabase.from("invoices").insert({
+                user_id: userId,
+                status: 'pending',
+                description: 'Suscripción Mensual - Judic-IA Suite Pro',
+                amount: 25000,
+                payment_date: new Date().toISOString(),
+                client_name: profileData?.full_name || 'Consumidor Final',
+                invoice_type: 'C' // Factura C (monotributista)
+            });
+
+            if (invoiceError) {
+                console.error("Error creating invoice:", invoiceError);
+            } else {
+                console.log("📄 Pending invoice created for user:", userId);
             }
         }
 

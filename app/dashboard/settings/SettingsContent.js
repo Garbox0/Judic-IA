@@ -25,8 +25,17 @@ import {
     Gem,
     Receipt,
     HelpCircle,
-    Mail
+    Mail,
+    FileText,
+    Download,
+    Eye,
+    Clock,
+    X
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+// Dynamic import para PdfReader (evita SSR issues con react-pdf)
+const PdfReader = dynamic(() => import('@/app/components/PdfReader'), { ssr: false });
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
 import '../../globals.css';
@@ -71,6 +80,12 @@ export default function SettingsPage({ isDemo = false }) {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [deletionStep, setDeletionStep] = useState('initial'); // initial, otp_sent, verified
     const [deletionOtp, setDeletionOtp] = useState('');
+
+    // Invoice state
+    const [invoices, setInvoices] = useState([]);
+    const [invoicesLoading, setInvoicesLoading] = useState(false);
+    const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
+    const [selectedInvoice, setSelectedInvoice] = useState(null);
 
     const [formData, setFormData] = useState({
         full_name: '',
@@ -149,7 +164,27 @@ export default function SettingsPage({ isDemo = false }) {
         } else {
             fetchProfile();
         }
-    }, [searchParams]);
+
+        // Fetch invoices when on billing tab
+        if (activeTab === 'billing' && !isDemo) {
+            fetchInvoices();
+        }
+    }, [searchParams, activeTab]);
+
+    const fetchInvoices = async () => {
+        setInvoicesLoading(true);
+        try {
+            const res = await fetch('/api/invoices');
+            if (res.ok) {
+                const data = await res.json();
+                setInvoices(data.invoices || []);
+            }
+        } catch (error) {
+            console.error('Error fetching invoices:', error);
+        } finally {
+            setInvoicesLoading(false);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -785,7 +820,113 @@ export default function SettingsPage({ isDemo = false }) {
                                     </div>
                                 )}
 
-                                {/* El botón de confirmar aquí es redundante ya que el pago se inicia arriba */}
+                                {/* Invoice History Section */}
+                                <div className="stg-invoice-section">
+                                    <div className="stg-invoice-header">
+                                        <div className="stg-invoice-title">
+                                            <Receipt size={20} className="text-amber-400" />
+                                            <h4>Historial de Facturas</h4>
+                                        </div>
+                                    </div>
+
+                                    {invoicesLoading ? (
+                                        <div className="stg-invoice-loading">
+                                            <div className="spinner-small" />
+                                            <span>Cargando facturas...</span>
+                                        </div>
+                                    ) : invoices.length === 0 ? (
+                                        <div className="stg-invoice-empty">
+                                            <FileText size={32} className="text-slate-500" />
+                                            <p>No hay facturas disponibles aún.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="stg-invoice-list">
+                                            {invoices.map(invoice => (
+                                                <div key={invoice.id} className="stg-invoice-item">
+                                                    <div className="stg-invoice-info">
+                                                        <div className="stg-invoice-icon">
+                                                            <FileText size={18} />
+                                                        </div>
+                                                        <div className="stg-invoice-details">
+                                                            <span className="stg-invoice-desc">{invoice.description}</span>
+                                                            <span className="stg-invoice-date">
+                                                                {new Date(invoice.payment_date).toLocaleDateString('es-AR', {
+                                                                    day: '2-digit',
+                                                                    month: 'long',
+                                                                    year: 'numeric'
+                                                                })}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="stg-invoice-amount">
+                                                        ${invoice.amount?.toLocaleString('es-AR')}
+                                                    </div>
+                                                    <div className="stg-invoice-actions">
+                                                        {invoice.status === 'pending' ? (
+                                                            <div className="stg-invoice-pending">
+                                                                <Clock size={14} />
+                                                                <span>En preparación</span>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    className="stg-invoice-btn view"
+                                                                    onClick={() => {
+                                                                        setSelectedInvoice(invoice);
+                                                                        setInvoiceModalOpen(true);
+                                                                    }}
+                                                                    title="Ver factura"
+                                                                >
+                                                                    <Eye size={16} />
+                                                                </button>
+                                                                <a
+                                                                    href={invoice.file_url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="stg-invoice-btn download"
+                                                                    title="Descargar factura"
+                                                                >
+                                                                    <Download size={16} />
+                                                                </a>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Invoice PDF Viewer Modal */}
+                                {invoiceModalOpen && selectedInvoice && (
+                                    <div className="modal-overlay-v2" onClick={() => setInvoiceModalOpen(false)}>
+                                        <div className="invoice-modal-content" onClick={e => e.stopPropagation()}>
+                                            <div className="invoice-modal-header">
+                                                <h3>Factura - {selectedInvoice.description}</h3>
+                                                <button
+                                                    className="invoice-modal-close"
+                                                    onClick={() => setInvoiceModalOpen(false)}
+                                                >
+                                                    <X size={20} />
+                                                </button>
+                                            </div>
+                                            <div className="invoice-modal-body">
+                                                <PdfReader url={selectedInvoice.file_url} />
+                                            </div>
+                                            <div className="invoice-modal-footer">
+                                                <a
+                                                    href={selectedInvoice.file_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="stg-gold-btn"
+                                                >
+                                                    <Download size={16} />
+                                                    Descargar PDF
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                         {activeTab === 'support' && (
