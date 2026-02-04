@@ -82,6 +82,7 @@ export default function SettingsPage({ isDemo = false }) {
         biography: '',
         phone: '',
         avatar_url: '',
+        verification_status: 'pending', // Added to track lock state
         plan_tier: 'starter',
         subscription_status: 'inactive',
         subscription_expiry: null
@@ -128,6 +129,7 @@ export default function SettingsPage({ isDemo = false }) {
                         biography: data.biography || '',
                         phone: data.phone || '',
                         avatar_url: data.avatar_url || '',
+                        verification_status: data.verification_status || 'pending',
                         plan_tier: data.plan_tier || 'starter',
                         subscription_status: data.subscription_status || 'inactive',
                         subscription_expiry: data.subscription_expiry || null
@@ -292,7 +294,10 @@ export default function SettingsPage({ isDemo = false }) {
                 biography: formData.biography,
                 jurisdiccion: formData.jurisdiccion,
                 especialidades: formData.especialidades,
-                // Removed updated_at as it doesn't exist in schema
+                matricula: (formData.tomo || formData.folio)
+                    ? `T° ${formData.tomo || ''} F° ${formData.folio || ''}`.trim()
+                    : formData.matricula,
+                verification_status: formData.verification_status === 'rejected' ? 'pending' : formData.verification_status
             };
 
             const { data: updateData, error: updateError } = await supabase
@@ -514,19 +519,58 @@ export default function SettingsPage({ isDemo = false }) {
                                                 <label htmlFor="full_name" className="stg-label">Nombre Completo</label>
                                                 <input id="full_name" name="full_name" autoComplete="name" className="stg-dark-input readonly" value={formData.full_name} readOnly disabled />
                                             </div>
+                                            <div className="stg-f-group ml-4 flex justify-end items-end pb-2">
+                                                {formData.verification_status === 'verified' && (
+                                                    <div className="flex items-center gap-2 bg-emerald/10 text-emerald border border-emerald/20 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                                        <Check size={12} /> Perfil Verificado
+                                                    </div>
+                                                )}
+                                                {formData.verification_status === 'rejected' && (
+                                                    <div className="flex items-center gap-2 bg-rose/10 text-rose border border-rose/20 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                                        <AlertTriangle size={12} /> Revisión Necesaria
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className="stg-field-row multi">
                                             <div className="stg-f-group flex-2">
                                                 <label htmlFor="jurisdiccion" className="stg-label">Colegio / Jurisdicción</label>
-                                                <input id="jurisdiccion" name="jurisdiccion" autoComplete="organization" className="stg-dark-input readonly" value={formData.jurisdiccion} readOnly disabled />
+                                                <input
+                                                    id="jurisdiccion"
+                                                    name="jurisdiccion"
+                                                    autoComplete="organization"
+                                                    className={`stg-dark-input ${formData.verification_status === 'verified' ? 'readonly' : 'underline'}`}
+                                                    value={formData.jurisdiccion}
+                                                    onChange={handleChange}
+                                                    readOnly={formData.verification_status === 'verified'}
+                                                    disabled={formData.verification_status === 'verified'}
+                                                />
                                             </div>
                                             <div className="stg-f-group flex-1">
                                                 <label htmlFor="tomo" className="stg-label">Tomo</label>
-                                                <input id="tomo" name="tomo" autoComplete="off" className="stg-dark-input readonly" value={formData.tomo} readOnly disabled />
+                                                <input
+                                                    id="tomo"
+                                                    name="tomo"
+                                                    autoComplete="off"
+                                                    className={`stg-dark-input ${formData.verification_status === 'verified' ? 'readonly' : 'underline'}`}
+                                                    value={formData.tomo}
+                                                    onChange={handleChange}
+                                                    readOnly={formData.verification_status === 'verified'}
+                                                    disabled={formData.verification_status === 'verified'}
+                                                />
                                             </div>
                                             <div className="stg-f-group flex-1">
                                                 <label htmlFor="folio" className="stg-label">Folio</label>
-                                                <input id="folio" name="folio" autoComplete="off" className="stg-dark-input readonly" value={formData.folio} readOnly disabled />
+                                                <input
+                                                    id="folio"
+                                                    name="folio"
+                                                    autoComplete="off"
+                                                    className={`stg-dark-input ${formData.verification_status === 'verified' ? 'readonly' : 'underline'}`}
+                                                    value={formData.folio}
+                                                    onChange={handleChange}
+                                                    readOnly={formData.verification_status === 'verified'}
+                                                    disabled={formData.verification_status === 'verified'}
+                                                />
                                             </div>
                                         </div>
                                     </div>
