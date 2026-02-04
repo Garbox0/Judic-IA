@@ -71,7 +71,7 @@ export async function POST(request) {
                     heading: '¡Gracias por sumarte!',
                     bodyContent: `
                         <p>Es un gusto saludarte. Te has unido correctamente a la comunidad de <strong>Judic-IA</strong>.</p>
-                        <p>Muy pronto recibirás actualizaciones exclusivas sobre nuestras herramientas de IA jurídica, consejos para automatizar tu estudio y tendencias en LegalTech en Argentina.</p>
+                        <p>Muy pronto recibirás actualizaciones exclusivas sobre nuestras herramientas de IA jurídica, consejos para automatizar tu estudio y novedades de Judic-IA.</p>
                         <div style="background: rgba(255,255,255,0.03); border-left: 4px solid #fbbf24; padding: 20px; margin: 25px 0; border-radius: 0 10px 10px 0;">
                             <strong>Siguiente paso:</strong> Te avisaremos apenas habilitemos el acceso exclusivo para probar nuestras calculadoras de plazos y modelos de escritos inteligentes.
                         </div>

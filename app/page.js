@@ -333,7 +333,7 @@ export default function Home() {
       <section className="newsletter-section-v3 reveal">
         <div className="newsletter-container-v3">
           <div className="newsletter-content-v3">
-            <h2 className="newsletter-title-v3">Recibir novedades <span className="gradient-text italic-serif">de LegalTech</span></h2>
+            <h2 className="newsletter-title-v3">Novedades <span className="gradient-text italic-serif">de Judic-IA</span></h2>
             <p className="newsletter-desc-v3">Entérate de nuevas funcionalidades y tendencias en IA jurídica antes que nadie.</p>
             <form
               className="newsletter-form-v3"
@@ -441,7 +441,7 @@ export default function Home() {
             />
             <div className="footer-info">
               <strong>Judic-IA</strong>
-              <span>© 2026 — LegalTech Argentina</span>
+              <span>© 2026 — Judic-IA Argentina</span>
             </div>
           </div>
 

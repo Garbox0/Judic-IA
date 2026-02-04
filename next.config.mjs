@@ -24,7 +24,7 @@ const nextConfig = {
       {
         source: '/legislation/(.*)\\.pdf',
         headers: [
-          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; block-all-mixed-content; upgrade-insecure-requests;" },
+          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://api.pwnedpasswords.com; frame-ancestors 'self'; block-all-mixed-content; upgrade-insecure-requests;" },
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'Content-Type', value: 'application/pdf' },
         ],

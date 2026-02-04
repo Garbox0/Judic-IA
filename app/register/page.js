@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw, Sparkles, Key, Lock, Eye, EyeOff } from 'lucide-react';
 // import SafeChatWidget from '../components/SafeChatWidget';
 import './register.css';
 
@@ -39,6 +39,12 @@ export default function RegisterPage() {
     const [redirectCountdown, setRedirectCountdown] = useState(null);
     const [theme, setTheme] = useState('light');
 
+    // Security States
+    const [pwnedStatus, setPwnedStatus] = useState(null); // 'safe' | 'breached' | 'checking'
+    const [isCheckingPwned, setIsCheckingPwned] = useState(false);
+    const [lastCheckedPassword, setLastCheckedPassword] = useState('');
+
+
     // Load theme from localStorage
     useEffect(() => {
         const savedTheme = localStorage.getItem('app-theme') || 'light';
@@ -67,9 +73,116 @@ export default function RegisterPage() {
         symbol: /[^A-Za-z0-9]/.test(password)
     };
 
+    // Trusted Email Domains (anti-disposable)
+    const TRUSTED_EMAIL_DOMAINS = [
+        // Google
+        'gmail.com', 'googlemail.com',
+        // Microsoft
+        'outlook.com', 'outlook.es', 'outlook.com.ar', 'hotmail.com', 'hotmail.es', 'hotmail.com.ar', 'live.com', 'live.com.ar', 'msn.com',
+        // Yahoo
+        'yahoo.com', 'yahoo.com.ar', 'yahoo.es', 'ymail.com',
+        // Apple
+        'icloud.com', 'me.com', 'mac.com',
+        // ProtonMail (privacy-focused but legit)
+        'protonmail.com', 'proton.me', 'pm.me',
+        // Business/Corporate (common Argentina)
+        'fibertel.com.ar', 'speedy.com.ar', 'arnet.com.ar', 'ciudad.com.ar',
+        // International trusted
+        'zoho.com', 'aol.com'
+    ];
+
+    const getEmailDomain = (emailStr) => {
+        const parts = emailStr.toLowerCase().split('@');
+        return parts.length === 2 ? parts[1] : null;
+    };
+
+    const isEmailDomainTrusted = TRUSTED_EMAIL_DOMAINS.includes(getEmailDomain(email));
+
     const isPasswordStrong = Object.values(passwordValidations).every(v => v);
     const passwordsMatch = password === confirmPassword && confirmPassword !== '';
     const emailsMatch = email.toLowerCase() === confirmEmail.toLowerCase() && email !== '';
+
+    // Passphrase Generator
+    const generateSecurePass = () => {
+        const caps = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+        const lows = "abcdefghijkmnopqrstuvwxyz";
+        const nums = "23456789";
+        const syms = "!@#$%&*+?=";
+        const all = caps + lows + nums + syms;
+
+        let pass = "";
+        pass += caps[Math.floor(Math.random() * caps.length)];
+        pass += lows[Math.floor(Math.random() * lows.length)];
+        pass += nums[Math.floor(Math.random() * nums.length)];
+        pass += syms[Math.floor(Math.random() * syms.length)];
+
+        for (let i = 0; i < 12; i++) {
+            pass += all[Math.floor(Math.random() * all.length)];
+        }
+
+        const final = pass.split('').sort(() => 0.5 - Math.random()).join('');
+        setPassword(final);
+        setConfirmPassword(final);
+        setError(null);
+    };
+
+    // Pwned Check Logic (k-Anonymity)
+    const checkPwned = async (pwd) => {
+        if (pwd.length < 6) {
+            setPwnedStatus(null);
+            return;
+        }
+
+        setIsCheckingPwned(true);
+        setPwnedStatus('checking');
+
+        try {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(pwd);
+            const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+
+            const prefix = hashHex.slice(0, 5);
+            const suffix = hashHex.slice(5);
+
+            const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+            const text = await response.text();
+
+            const lines = text.split('\n');
+            const found = lines.some(line => line.split(':')[0] === suffix);
+
+            setPwnedStatus(found ? 'breached' : 'safe');
+            setLastCheckedPassword(pwd);
+        } catch (err) {
+            console.error("HIBP Check failed:", err);
+            setPwnedStatus(null);
+        } finally {
+            setIsCheckingPwned(false);
+        }
+    };
+
+    // Auto-check on password change (debounced)
+    useEffect(() => {
+        if (!password || password.length < 6) {
+            setPwnedStatus(null);
+            return;
+        }
+
+        // Reset status while waiting for debounce
+        if (password !== lastCheckedPassword) {
+            setPwnedStatus(null);
+        }
+
+        const timer = setTimeout(() => {
+            if (password !== lastCheckedPassword) {
+                console.log('Checking password against HIBP...');
+                checkPwned(password);
+            }
+        }, 600);
+        return () => clearTimeout(timer);
+    }, [password, lastCheckedPassword]);
+
 
     // Auto-redirect if already logged in
     useEffect(() => {
@@ -126,7 +239,11 @@ export default function RegisterPage() {
             return;
         }
         if (!emailsMatch) {
-            setError("los emails no coinciden.");
+            setError("Los emails no coinciden.");
+            return;
+        }
+        if (!isEmailDomainTrusted) {
+            setError("Solo aceptamos emails de proveedores confiables (Gmail, Outlook, Yahoo, iCloud). Para tu seguridad, evitamos emails temporales.");
             return;
         }
         if (!consent) {
@@ -145,6 +262,34 @@ export default function RegisterPage() {
         setLoading(true);
         setError(null);
         setMessage(null);
+
+        // === CRITICAL: Hard block for breached passwords ===
+        try {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+
+            const prefix = hashHex.slice(0, 5);
+            const suffix = hashHex.slice(5);
+
+            const hibpResponse = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+            if (hibpResponse.ok) {
+                const hibpText = await hibpResponse.text();
+                const isBreached = hibpText.split('\n').some(line => line.split(':')[0] === suffix);
+
+                if (isBreached) {
+                    setError("Esta contraseña ha sido filtrada en internet. Por tu seguridad, elegí otra más segura.");
+                    setLoading(false);
+                    return;
+                }
+            }
+        } catch (hibpError) {
+            console.warn("HIBP check failed, proceeding with registration:", hibpError);
+            // If HIBP fails, we allow registration but log the issue
+        }
+        // === END HIBP CHECK ===
 
         const finalJurisdiccion = jurisdiccion === 'Otro' ? customJurisdiccion : jurisdiccion;
         const finalMatricula = `T° ${tomo} F° ${folio}`;
@@ -339,8 +484,28 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="register-field full-width">
-                            <label htmlFor="email">Email Profesional</label>
-                            <input id="email" name="email" autoComplete="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="dr.nombre@estudio.com" required />
+                            <div className="label-row">
+                                <label htmlFor="email">Email Profesional</label>
+                                {email && (
+                                    <div className="domain-trust-badge">
+                                        {isEmailDomainTrusted ? (
+                                            <span className="text-emerald flex items-center gap-1 text-[10px] uppercase font-bold">
+                                                <ShieldCheck size={12} /> Confianza Alta
+                                            </span>
+                                        ) : (
+                                            <span className="text-[#94a3b8] flex items-center gap-1 text-[10px] uppercase font-bold opacity-60">
+                                                <ShieldAlert size={12} /> No verificado
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                            <input id="email" name="email" autoComplete="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="dr.nombre@estudio.com" required className={email && !isEmailDomainTrusted ? 'untrusted-domain' : ''} />
+                            {email && !isEmailDomainTrusted && (
+                                <span className="error-text-mini">
+                                    Recomendamos usar Gmail, Outlook o Yahoo para evitar bloqueos
+                                </span>
+                            )}
                         </div>
 
                         <div className="register-field full-width">
@@ -365,11 +530,34 @@ export default function RegisterPage() {
 
                         <div className="register-grid">
                             <div className="register-field">
-                                <label htmlFor="password">Contraseña</label>
+                                <div className="label-row">
+                                    <label htmlFor="password">Contraseña</label>
+                                    <button
+                                        type="button"
+                                        onClick={generateSecurePass}
+                                        className="suggest-pass-link"
+                                        title="Generar clave segura"
+                                    >
+                                        <Sparkles size={12} /> Sugerir
+                                    </button>
+                                </div>
                                 <div className="pass-input-wrapper">
-                                    <input id="password" name="password" autoComplete="new-password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
-                                    <button type="button" className="eye-toggle-register" onClick={() => setShowPassword(!showPassword)}>
-                                        {showPassword ? "👁️" : "👁️‍🗨️"}
+                                    <div className="pass-icon-left">
+                                        <Lock size={16} className="opacity-40" />
+                                    </div>
+                                    <input
+                                        id="password"
+                                        name="password"
+                                        autoComplete="new-password"
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        required
+                                        className="pl-10"
+                                    />
+                                    <button type="button" className="eye-toggle-register eye-absolute" onClick={() => setShowPassword(!showPassword)}>
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
                                 </div>
                             </div>
@@ -377,21 +565,57 @@ export default function RegisterPage() {
                             <div className="register-field">
                                 <label htmlFor="confirmPassword">Confirmar Contraseña</label>
                                 <div className="pass-input-wrapper">
-                                    <input id="confirmPassword" name="confirmPassword" autoComplete="new-password" type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" required />
-                                    <button type="button" className="eye-toggle-register" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                                        {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+                                    <input
+                                        id="confirmPassword"
+                                        name="confirmPassword"
+                                        autoComplete="new-password"
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        required
+                                    />
+                                    <button type="button" className="eye-toggle-register eye-absolute" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
                                 </div>
                             </div>
                         </div>
 
                         <div className="password-checklist">
-                            <p className={passwordValidations.length ? 'valid' : ''}>{passwordValidations.length ? '✅' : '❌'} Mínimo 8 caracteres</p>
-                            <p className={passwordValidations.uppercase ? 'valid' : ''}>{passwordValidations.uppercase ? '✅' : '❌'} Al menos 1 Mayúscula</p>
-                            <p className={passwordValidations.number ? 'valid' : ''}>{passwordValidations.number ? '✅' : '❌'} Al menos 1 Número</p>
-                            <p className={passwordValidations.symbol ? 'valid' : ''}>{passwordValidations.symbol ? '✅' : '❌'} Al menos 1 Símbolo (!@#$...)</p>
+                            <p className={passwordValidations.length ? 'valid' : ''}>
+                                {passwordValidations.length ? <ShieldCheck size={14} className="text-emerald" /> : <ShieldEllipsis size={14} className="opacity-30" />}
+                                Mínimo 8 caracteres
+                            </p>
+                            <p className={passwordValidations.uppercase ? 'valid' : ''}>
+                                {passwordValidations.uppercase ? <ShieldCheck size={14} className="text-emerald" /> : <ShieldEllipsis size={14} className="opacity-30" />}
+                                Al menos 1 Mayúscula
+                            </p>
+                            <p className={passwordValidations.number ? 'valid' : ''}>
+                                {passwordValidations.number ? <ShieldCheck size={14} className="text-emerald" /> : <ShieldEllipsis size={14} className="opacity-30" />}
+                                Al menos 1 Número
+                            </p>
+                            <p className={passwordValidations.symbol ? 'valid' : ''}>
+                                {passwordValidations.symbol ? <ShieldCheck size={14} className="text-emerald" /> : <ShieldEllipsis size={14} className="opacity-30" />}
+                                Al menos 1 Símbolo (!@#$...)
+                            </p>
+
+                            {/* Pwned Check Item */}
+                            {password.length >= 6 && (
+                                <p className={pwnedStatus === 'safe' ? 'valid' : pwnedStatus === 'breached' ? 'invalid-crit' : ''}>
+                                    {isCheckingPwned ? <RefreshCw size={14} className="animate-spin text-gold" /> :
+                                        pwnedStatus === 'safe' ? <ShieldCheck size={14} className="text-emerald" /> :
+                                            pwnedStatus === 'breached' ? <ShieldAlert size={14} className="text-red-500" /> :
+                                                <ShieldEllipsis size={14} className="opacity-30" />}
+                                    {pwnedStatus === 'breached' ? 'Clave comprometida en internet' : 'Protección contra filtraciones'}
+                                </p>
+                            )}
+
                             {confirmPassword && (
-                                <p className={passwordsMatch ? 'valid' : 'invalid'}>{passwordsMatch ? '✅' : '❌'} Las contraseñas coinciden</p>
+                                <p className={passwordsMatch ? 'valid' : 'invalid'}>
+                                    {passwordsMatch ? <ShieldCheck size={14} className="text-emerald" /> : <ShieldAlert size={14} className="text-red-500" />}
+                                    Las contraseñas coinciden
+                                </p>
                             )}
                         </div>
 
@@ -419,7 +643,11 @@ export default function RegisterPage() {
                         )}
 
                         {!message && (
-                            <button type="submit" disabled={loading || !isPasswordStrong || !passwordsMatch || !emailsMatch} className="btn-register-action">
+                            <button
+                                type="submit"
+                                disabled={loading || !isPasswordStrong || !passwordsMatch || !emailsMatch || pwnedStatus === 'breached'}
+                                className="btn-register-action"
+                            >
                                 {loading ? 'Procesando Registro...' : 'Confirmar Registro Profesional'}
                             </button>
                         )}
