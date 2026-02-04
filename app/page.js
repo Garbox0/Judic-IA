@@ -357,8 +357,7 @@ export default function Home() {
                   if (res.ok) {
                     if (data.already_active) {
                       btn.innerText = '✓ Ya activo';
-                      btn.style.background = 'rgba(255,255,255,0.1)';
-                      btn.style.color = 'white';
+                      btn.classList.add('already-active-btn');
                     } else {
                       btn.innerText = '✓ ¡Inscrito!';
                       btn.classList.add('success-btn');
@@ -368,11 +367,10 @@ export default function Home() {
                     // Temporizador de 5 segundos para volver a la normalidad
                     setTimeout(() => {
                       btn.disabled = false;
-                      btn.innerText = 'Inscribirse';
-                      btn.classList.remove('success-btn');
+                      btn.innerHTML = 'Inscribirse <span>→</span>';
+                      btn.classList.remove('success-btn', 'already-active-btn');
                       btn.style.background = '';
                       btn.style.color = '';
-                      btn.innerHTML = 'Inscribirse <span>→</span>';
                     }, 5000);
 
                     if (typeof window !== 'undefined' && window.gtag) {
