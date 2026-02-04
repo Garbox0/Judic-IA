@@ -40,20 +40,20 @@ export async function POST(request) {
 
         // 2. Notificación interna (Hola@judic-ia.com)
         try {
-            await sendEmail({
-                resendClient: resend,
-                from: 'hola@judic-ia.com',
+            await resend.emails.send({
+                from: 'Judic-IA Ads <security@judic-ia.com>',
                 to: 'hola@judic-ia.com',
-                subject: '🚀 Nuevo Lead: Inscripción a Newsletter',
-                html: `
-                    <div style="font-family: sans-serif; padding: 20px; color: #0f172a;">
-                        <h2 style="color: #fbbf24;">¡Nuevo Interesado!</h2>
-                        <p>Se ha registrado un nuevo email en la lista de espera:</p>
-                        <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; font-size: 1.1rem; font-weight: bold;">
-                            ${email}
+                subject: '🚀 Nuevo Interesado en Newsletter',
+                html: getHtmlEmail({
+                    heading: '¡Nuevo Lead Registrado!',
+                    bodyContent: `
+                        <p>Se ha registrado un nuevo email interesado en la Newsletter de Judic-IA:</p>
+                        <div style="background: rgba(251,191,36,0.1); padding: 15px; border-radius: 10px; font-size: 1.1rem; color: #fbbf24; text-align: center; border: 1px dashed #fbbf24;">
+                            <strong>${email}</strong>
                         </div>
-                    </div>
-                `
+                        <p>El contacto ha sido guardado exitosamente en Supabase (status: active).</p>
+                    `
+                })
             });
         } catch (mailError) {
             console.error('Internal Notification Error:', mailError);
@@ -63,38 +63,26 @@ export async function POST(request) {
         try {
             const unsubscribeUrl = `https://judic-ia.com/newsletter/unsubscribe?email=${encodeURIComponent(email)}`;
 
-            await sendEmail({
-                resendClient: resend,
-                from: 'hola@judic-ia.com',
+            await resend.emails.send({
+                from: 'Judic-IA <hola@judic-ia.com>',
                 to: email,
                 subject: '¡Bienvenido a la evolución de tu estudio jurídico! ⚖️',
-                html: `
-                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #0f172a; line-height: 1.6;">
-                        <div style="text-align: center; margin-bottom: 30px;">
-                            <img src="https://judic-ia.com/judic-ia-mark.png" alt="Judic-IA" style="width: 60px;">
-                            <h1 style="color: #fbbf24; margin-top: 10px;">¡Gracias por sumarte!</h1>
+                html: getHtmlEmail({
+                    heading: '¡Gracias por sumarte!',
+                    bodyContent: `
+                        <p>Es un gusto saludarte. Te has unido correctamente a la comunidad de <strong>Judic-IA</strong>.</p>
+                        <p>Muy pronto recibirás actualizaciones exclusivas sobre nuestras herramientas de IA jurídica, consejos para automatizar tu estudio y tendencias en LegalTech en Argentina.</p>
+                        <div style="background: rgba(255,255,255,0.03); border-left: 4px solid #fbbf24; padding: 20px; margin: 25px 0; border-radius: 0 10px 10px 0;">
+                            <strong>Siguiente paso:</strong> Te avisaremos apenas habilitemos el acceso exclusivo para probar nuestras calculadoras de plazos y modelos de escritos inteligentes.
                         </div>
-                        
-                        <p>Hola,</p>
-                        <p>Es un gusto saludarte. Te has suscrito correctamente a las novedades de <b>Judic-IA</b>.</p>
-                        <p>Muy pronto recibirás actualizaciones exclusivas sobre nuestras nuevas herramientas de IA jurídica, consejos para automatizar tu estudio y tendencias en LegalTech en Argentina.</p>
-                        
-                        <div style="background: #fffbeb; border-left: 4px solid #fbbf24; padding: 15px; margin: 25px 0;">
-                            <b>Próximamente:</b> Te enviaremos un acceso exclusivo para probar nuestras calculadoras de plazos y modelos de escritos inteligentes.
-                        </div>
-                        
-                        <p>Si tienes alguna consulta, puedes responder directamente a este correo.</p>
-                        
-                        <p>Saludos,<br><b>El equipo de Judic-IA</b></p>
-                        
-                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 40px 0 20px;">
-                        
-                        <div style="text-align: center; font-size: 0.75rem; color: #94a3b8;">
-                            Este correo fue enviado a ${email} porque te suscribiste en Judic-IA.com<br>
-                            <a href="${unsubscribeUrl}" style="color: #64748b; text-decoration: underline;">Darme de baja de la lista</a>
-                        </div>
-                    </div>
-                `
+                        <p>Si tienes alguna consulta, puedes responder directamente a este correo. Estamos para ayudarte.</p>
+                        <p>Saludos,<br><strong>El equipo de Judic-IA</strong></p>
+                    `,
+                    footerLinks: [
+                        { label: 'Darme de baja', url: unsubscribeUrl },
+                        { label: 'Seguridad', url: 'https://judic-ia.com/legal?tab=seguridad' }
+                    ]
+                })
             });
         } catch (welcomeError) {
             console.error('Welcome Email Error:', welcomeError);
