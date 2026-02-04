@@ -650,19 +650,21 @@ export default function AdminPage() {
                             )}
                             {activeTab === 'invoices' && (
                                 <div className="glass-card overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                    <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-6 py-10 px-10 border-b border-admin-stroke">
-                                        <div className="space-y-1">
-                                            <h3 className="text-2xl font-black text-admin-primary tracking-tighter">Gestión de Facturas</h3>
-                                            <p className="text-admin-muted text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Administración de Documentos Fiscales</p>
-                                        </div>
-                                        <div className="flex gap-4">
-                                            <div className="badge-premium badge-pending flex items-center gap-2 py-2 px-4">
-                                                <span className="w-2 h-2 rounded-full bg-gold animate-pulse" />
-                                                <span className="font-black">{adminInvoices.filter(i => i.status === 'pending').length}</span> Pendientes
+                                    <div className="flex flex-col gap-6 py-10 px-10 border-b border-admin-stroke">
+                                        <div className="flex flex-wrap justify-between items-center gap-4">
+                                            <div className="space-y-1">
+                                                <h3 className="text-2xl font-black text-admin-primary tracking-tighter">Gestión de Facturas</h3>
+                                                <p className="text-admin-muted text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Administración de Documentos Fiscales</p>
                                             </div>
-                                            <div className="badge-premium badge-verified flex items-center gap-2 py-2 px-4">
-                                                <span className="w-2 h-2 rounded-full bg-emerald" />
-                                                <span className="font-black">{adminInvoices.filter(i => i.status === 'issued').length}</span> Emitidas
+                                            <div className="flex items-center gap-3 flex-wrap">
+                                                <div className="badge-premium badge-pending flex items-center gap-2 py-2 px-4 rounded-full text-xs">
+                                                    <span className="w-2 h-2 rounded-full bg-gold animate-pulse" />
+                                                    <span className="font-black">{adminInvoices.filter(i => i.status === 'pending').length}</span> Pendientes
+                                                </div>
+                                                <div className="badge-premium badge-verified flex items-center gap-2 py-2 px-4 rounded-full text-xs">
+                                                    <span className="w-2 h-2 rounded-full bg-emerald" />
+                                                    <span className="font-black">{adminInvoices.filter(i => i.status === 'issued').length}</span> Emitidas
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -752,12 +754,12 @@ export default function AdminPage() {
                                             ))}
 
                                             {adminInvoices.length === 0 && (
-                                                <div className="px-10 py-32 text-center animate-in fade-in zoom-in duration-500">
-                                                    <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-8 border border-white/5">
+                                                <div className="flex flex-col items-center justify-center py-32 px-10 animate-in fade-in zoom-in duration-500">
+                                                    <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-8 border border-white/5">
                                                         <Receipt size={48} className="text-admin-muted opacity-20" />
                                                     </div>
-                                                    <h4 className="text-admin-primary font-black uppercase tracking-[0.3em] text-sm mb-3">Sin Facturas</h4>
-                                                    <p className="text-admin-muted text-[10px] font-bold uppercase tracking-widest opacity-60">No hay facturas registradas en el sistema</p>
+                                                    <h4 className="text-admin-primary font-black uppercase tracking-[0.3em] text-sm mb-3 text-center">Sin Facturas</h4>
+                                                    <p className="text-admin-muted text-[10px] font-bold uppercase tracking-widest opacity-60 text-center">No hay facturas registradas en el sistema</p>
                                                 </div>
                                             )}
                                         </div>
@@ -824,7 +826,7 @@ export default function AdminPage() {
                     ))}
                 </div>
             </div>
-        </AdminGuard>
+        </AdminGuard >
     );
 }
 
