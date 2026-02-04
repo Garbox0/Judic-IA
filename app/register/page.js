@@ -185,7 +185,7 @@ export default function RegisterPage() {
     return (
         <main className="register-main">
             <div className="back-wrapper">
-                <Link href="/home" className="back">← Volver al inicio</Link>
+                <Link href="/" className="back">← Volver al inicio</Link>
             </div>
 
             <button

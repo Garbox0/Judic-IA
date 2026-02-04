@@ -19,8 +19,30 @@ export const metadata = {
   metadataBase: new URL('https://judic-ia.com'),
   title: "Judic-IA | Asistente Legal Inteligente",
   description: "Asistente digital para abogados que automatiza y clasifica consultas legales con inteligencia artificial.",
-  keywords: ["abogados", "inteligencia artificial", "jurisprudencia", "agenda legal", "gestión de clientes", "nsw-9ZN9ZW25NIQ4-ROKBX9DNYYN4E8MJUSBQEHQXVNQ6E8BB5XK9BPWA3YJ5K30C27PP1NQJF-6-9lIJXQRGMXPRA3UZ-JGXINFMENUNTP2JADZTXSVR9OWRAX2Y8-8N6Y3"],
+  keywords: ["abogados", "inteligencia artificial", "jurisprudencia", "agenda legal", "gestión de clientes", "legaltech argentina"],
   robots: "index, follow",
+  openGraph: {
+    title: "Judic-IA | La Evolución de tu Estudio Jurídico",
+    description: "Automatiza consultas, investiga jurisprudencia y gestiona tu estudio con IA de élite.",
+    url: 'https://judic-ia.com',
+    siteName: 'Judic-IA',
+    locale: 'es_AR',
+    type: 'website',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Judic-IA - Inteligencia Artificial para Abogados',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Judic-IA | IA Legal de Élite",
+    description: "La herramienta que transforma la práctica legal en Argentina.",
+    images: ['/og-image.png'],
+  },
   other: {
     "norton-safeweb-site-verification": "1E6773V6QM5D5ZHHAQK8JT155X0Y-YOG9V-XO6K5N86TDITPD7XBE9OU7G66LNTPU40BD4CXD38F9AT5K4B7BO7X3I1GU5S-AOGNWLKCZMUF6OU15EMFT35BK3VSS25H",
   },

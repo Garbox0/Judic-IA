@@ -153,7 +153,18 @@ export default function Home() {
               Automatiza la atención de consultas, investiga jurisprudencia en segundos y gestiona tu consultoría legal con tecnología de élite diseñada para abogados de alto rendimiento.
             </p>
             <div className="hero-actions">
-              <Link href="/register" className="btn-primary-v3">
+              <Link
+                href="/register"
+                className="btn-primary-v3"
+                onClick={() => {
+                  if (typeof window !== 'undefined' && window.gtag) {
+                    window.gtag('event', 'click_comenzar_ahora_hero', {
+                      'event_category': 'conversion',
+                      'event_label': 'Hero CTA'
+                    });
+                  }
+                }}
+              >
                 Comenzar Ahora <span>→</span>
               </Link>
               <Link href="/demo" className="btn-secondary-v3">
@@ -296,13 +307,106 @@ export default function Home() {
           <p className="section-subtitle cta-subtitle-gap">
             Únete a los profesionales que ya están liderando la transformación digital en el ámbito legal.
           </p>
-          <Link href="/register" className="btn-primary-v3">
+          <Link
+            href="/register"
+            className="btn-primary-v3"
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.gtag) {
+                window.gtag('event', 'click_crear_estudio_cta', {
+                  'event_category': 'conversion',
+                  'event_label': 'Bottom CTA'
+                });
+              }
+            }}
+          >
             Crear mi Estudio Digital
           </Link>
           <div className="cta-pills">
             <span className="cta-pill"><strong>✓</strong> 14 días gratis</span>
             <span className="cta-pill"><strong>✓</strong> Sin tarjeta</span>
             <span className="cta-pill"><strong>✓</strong> Cancela cuando quieras</span>
+          </div>
+        </div>
+      </section>
+
+      {/* 📧 NEWSLETTER SECTION 3.0 */}
+      <section className="newsletter-section-v3 reveal">
+        <div className="newsletter-container-v3">
+          <div className="newsletter-content-v3">
+            <h2 className="newsletter-title-v3">Recibir novedades <span className="gradient-text italic-serif">de LegalTech</span></h2>
+            <p className="newsletter-desc-v3">Entérate de nuevas funcionalidades y tendencias en IA jurídica antes que nadie.</p>
+            <form
+              className="newsletter-form-v3"
+              id="newsletter-signup-form"
+              aria-label="Inscripción a la newsletter"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const email = e.target.email.value;
+                const btn = e.target.querySelector('button');
+                btn.disabled = true;
+                btn.innerText = 'Inscribiendo...';
+
+                try {
+                  const res = await fetch('/api/newsletter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                  });
+                  const data = await res.json();
+
+                  if (res.ok) {
+                    if (data.already_active) {
+                      btn.innerText = '✓ Ya activo';
+                      btn.style.background = 'rgba(255,255,255,0.1)';
+                      btn.style.color = 'white';
+                    } else {
+                      btn.innerText = '✓ ¡Inscrito!';
+                      btn.classList.add('success-btn');
+                    }
+                    e.target.reset();
+
+                    // Temporizador de 5 segundos para volver a la normalidad
+                    setTimeout(() => {
+                      btn.disabled = false;
+                      btn.innerText = 'Inscribirse';
+                      btn.classList.remove('success-btn');
+                      btn.style.background = '';
+                      btn.style.color = '';
+                      btn.innerHTML = 'Inscribirse <span>→</span>';
+                    }, 5000);
+
+                    if (typeof window !== 'undefined' && window.gtag) {
+                      window.gtag('event', 'newsletter_signup', {
+                        'event_category': 'conversion',
+                        'event_label': data.already_active ? 'Newsletter Already Active' : 'Newsletter Footer'
+                      });
+                    }
+                  } else {
+                    btn.innerText = 'Reintentar';
+                    btn.disabled = false;
+                  }
+                } catch (err) {
+                  btn.innerText = 'Reintentar';
+                  btn.disabled = false;
+                }
+              }}
+            >
+              <div className="newsletter-input-group">
+                <label htmlFor="newsletter-email" className="sr-only">Tu email profesional</label>
+                <input
+                  type="email"
+                  id="newsletter-email"
+                  name="email"
+                  placeholder="Tu email profesional..."
+                  required
+                  className="newsletter-input-v3"
+                  aria-label="Introduce tu correo electrónico"
+                />
+                <button type="submit" className="btn-newsletter-v3" aria-label="Suscribirse a la newsletter">
+                  Inscribirse <span>→</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </section>
@@ -354,7 +458,7 @@ export default function Home() {
           <div className="trust-badges-container">
             <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer" className="trust-badge">
               <svg className="badge-icon cf-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M23.53 13.1c-.26-1.55-1.42-2.73-2.92-3a5.5 5.5 0 00-10.42-2c-1.8.1-3.32 1.4-3.7 3.14a4 4 0 00-2.43 7.33A4 4 0 008 22h11a5 5 0 004.53-8.9zM19 20H8a2 2 0 01-1-3.74v-.01a2 2 0 011-3.75 3.5 3.5 0 016.71-1.25l.13.43.45-.06a3.5 3.5 0 013.71 3.49v.14a3 3 0 010 5.75z" />
+                <path d="M22.84 10.605a5.163 5.163 0 00-4.321-4.148c-.682-1.846-2.454-3.15-4.519-3.15-2.007 0-3.743 1.233-4.463 2.992a5.576 5.576 0 00-4.707 3.43A4.542 4.542 0 002.5 14.167c0 2.507 2.031 4.54 4.537 4.54H17.41c3.087 0 5.59-2.503 5.59-5.59 0-1.077-.323-2.083-.87-2.922h.71z" />
               </svg>
               Protected by <strong>Cloudflare</strong>
             </a>

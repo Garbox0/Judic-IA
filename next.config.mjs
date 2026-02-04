@@ -3,13 +3,7 @@ const nextConfig = {
   poweredByHeader: false, // Hide "X-Powered-By: Next.js"
   skipTrailingSlashRedirect: true, // Prevent 307 redirects on API routes (webhooks) - Forced Update
   async rewrites() {
-
-    return [
-      {
-        source: '/home',
-        destination: '/?public=1',
-      },
-    ];
+    return [];
   },
   async headers() {
     return [
