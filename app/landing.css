@@ -1283,6 +1283,22 @@ body::before {
     }
 }
 
+@media (max-width: 600px) {
+    .trust-badges-container {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        gap: 0.6rem;
+    }
+
+    .trust-badge {
+        width: 100%;
+        max-width: none;
+        padding: 10px 20px;
+        font-size: 0.75rem;
+    }
+}
+
+
 
 /* FISCAL INFO ROW */
 .footer-fiscal-row {
