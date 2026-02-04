@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js'; // Use the standard JS client for service role
+import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
-import { sendEmail } from '../../lib/resend';
-import { getHtmlEmail } from '../../lib/email-template';
+import { getHtmlEmail } from '@/lib/email-template';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
