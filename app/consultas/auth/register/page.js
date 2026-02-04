@@ -333,7 +333,7 @@ function RegisterContent() {
                                 style={{ objectFit: 'contain' }}
                                 priority
                             />
-                            <h1 className="brand-name-premium">Judic-IA <span className="justice-emoji">⚖️</span></h1>
+                            <h1 className="brand-name-premium">Judic-IA</h1>
                             <div className="brand-status">Acceso Seguro • Clientes</div>
                             <p className="brand-desc">Crea una clave de acceso temporal para proteger tu privacidad y documentos durante esta sesión.</p>
                         </header>

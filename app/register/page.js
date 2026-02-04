@@ -353,7 +353,7 @@ export default function RegisterPage() {
                             height={64}
                             priority
                         />
-                        <h1 className="register-brand">Judic-IA <span className="justice-emoji">⚖️</span></h1>
+                        <h1 className="register-brand">Judic-IA</h1>
                         <p className="register-status">Registro Profesional • Abogados</p>
                     </header>
 

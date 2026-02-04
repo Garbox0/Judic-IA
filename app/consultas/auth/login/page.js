@@ -355,7 +355,7 @@ function LoginContent() {
                                 style={{ objectFit: 'contain' }}
                                 priority
                             />
-                            <h1 className="brand-name-premium">Judic-IA <span className="justice-emoji">⚖️</span></h1>
+                            <h1 className="brand-name-premium">Judic-IA</h1>
                             <div className="brand-status">Acceso Seguro • Clientes</div>
                             <p className="brand-desc">Ingresa para continuar con tu asesoría legal automatizada.</p>
                         </header>

@@ -167,7 +167,7 @@ export default function LoginPage() {
             height={64}
             priority
           />
-          <h1>Judic-IA <span className="justice-emoji">⚖️</span></h1>
+          <h1>Judic-IA</h1>
           <div className="subtitle">Acceso Profesional · Abogados</div>
         </div>
 
