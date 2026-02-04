@@ -158,7 +158,7 @@ export default function RegisterPage() {
                     first_name: firstName,
                     last_name: lastName,
                     full_name: `${firstName} ${lastName}`,
-                    cuit: `${cuitPrefix}-${cuitDni}-${cuitSuffix}`,
+                    cuit: `${cuitPrefix}${cuitDni}${cuitSuffix}`,
                     role: 'lawyer',
                     matricula: finalMatricula,
                     jurisdiccion: finalJurisdiccion,

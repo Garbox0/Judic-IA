@@ -58,7 +58,8 @@ export async function GET(req) {
                 profiles:user_id (
                     id,
                     email,
-                    full_name
+                    full_name,
+                    cuit
                 )
             `)
             .order("status", { ascending: true }) // pending first

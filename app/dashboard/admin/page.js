@@ -46,6 +46,14 @@ import './admin.css';
 import AdminGuard from './components/AdminGuard';
 import VerificationBadge from '@/app/components/VerificationBadge';
 
+// Helper: Format CUIT for display (20123456786 -> 20-12345678-6)
+const formatCuit = (cuit) => {
+    if (!cuit) return null;
+    const clean = cuit.replace(/-/g, '');
+    if (clean.length !== 11) return cuit; // Return as-is if invalid length
+    return `${clean.slice(0, 2)}-${clean.slice(2, 10)}-${clean.slice(10)}`;
+};
+
 export default function AdminPage() {
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
@@ -689,6 +697,9 @@ export default function AdminPage() {
                                                         <div className="flex flex-col">
                                                             <span className="font-bold text-admin-primary text-sm tracking-tight">{invoice.profiles?.full_name || 'Sin nombre'}</span>
                                                             <span className="text-[10px] text-admin-muted font-mono opacity-60">{invoice.profiles?.email || 'N/A'}</span>
+                                                            {invoice.profiles?.cuit && (
+                                                                <span className="text-[9px] text-gold font-mono opacity-80">CUIT: {formatCuit(invoice.profiles?.cuit)}</span>
+                                                            )}
                                                         </div>
                                                     </div>
 
