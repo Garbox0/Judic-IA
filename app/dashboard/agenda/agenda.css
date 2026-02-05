@@ -867,6 +867,28 @@ body.light-theme .calendar-day:hover {
     background: #f1f5f9;
 }
 
+body.light-theme .calendar-day.today {
+    border: 2px solid var(--primary);
+    background: rgba(212, 178, 76, 0.1);
+}
+
+body.light-theme .calendar-day.non-business {
+    background: rgba(239, 68, 68, 0.05);
+    opacity: 1;
+}
+
+body.light-theme .calendar-day.non-business .day-number {
+    color: rgba(239, 68, 68, 0.6);
+}
+
+body.light-theme .calendar-day.non-business:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+body.light-theme .calendar-day.empty {
+    background: transparent;
+}
+
 body.light-theme .calendar-grid .day-number {
     color: #94a3b8;
     /* Darker than the original 0.5 opacity */

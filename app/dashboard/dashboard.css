@@ -727,6 +727,8 @@
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
     overflow: hidden;
     animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: left;
+    /* FORCE LEFT ALIGNMENT */
 }
 
 /* HEADER */
@@ -738,6 +740,51 @@
     align-items: center;
     background: rgba(30, 41, 59, 0.3);
     flex-shrink: 0;
+    text-align: left;
+}
+
+.guide-title-box h2 {
+    margin: 0;
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-align: left;
+}
+
+/* TYPOGRAPHY */
+.guide-h2,
+.guide-h3,
+.guide-p,
+.guide-list-text,
+.guide-num-text {
+    text-align: left !important;
+}
+
+.guide-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 1rem;
+    padding-left: 0.2rem;
+}
+
+.guide-num-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 1.2rem;
+    padding-left: 0.2rem;
+}
+
+.guide-num-marker {
+    color: #fbbf24;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    min-width: 22px;
+    text-align: left;
+    font-size: 1.1rem;
+    line-height: 1.2;
 }
 
 .guide-title-box {
@@ -1065,4 +1112,43 @@
 
 .border-top-glow {
     border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* LIGHT THEME OVERRIDES FOR USAGE GUIDE */
+.light-theme .guide-overlay {
+    background: rgba(241, 245, 249, 0.4);
+}
+
+.light-theme .guide-modal {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.1);
+}
+
+.light-theme .guide-header {
+    background: #f8fafc;
+    border-bottom-color: #e2e8f0;
+}
+
+.light-theme .guide-title-box h2 {
+    color: #0f172a;
+}
+
+.light-theme .guide-close-btn {
+    border-color: #e2e8f0;
+    color: #64748b;
+}
+
+.light-theme .guide-close-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.light-theme .guide-content {
+    color: #334155;
+}
+
+.light-theme .guide-footer {
+    background: #f8fafc;
+    border-top-color: #e2e8f0;
 }

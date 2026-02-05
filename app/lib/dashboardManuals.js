@@ -1,145 +1,170 @@
 export const dashboardManuals = {
     dashboard: `
 ## Gabinete de Control
+Tu centro de mando jurídico inteligente. Desde aquí tienes una visión global y en tiempo real de tu estudio.
 
-Tu centro de comando jurídico inteligente. Desde aquí tienes una visión global de tu estudio.
+### Qué revisar al entrar
+1.  **Métricas Clave:** Resumen de casos activos, nuevos prospectos y cumplimiento del cupo de consultas.
+2.  **Agenda de Hoy:** Vencimientos críticos y audiencias programadas para las próximas 24 horas.
+3.  **Actividad Reciente:** Feed de las últimas interacciones de tus clientes con la IA y cambios en expedientes.
 
-### Secciones
-1.  **Métricas Clave:** Resumen de casos activos, vencimientos de hoy y nuevos prospectos.
-2.  **Accesos Directos:** Navegación rápida a Investigación, Agenda y Expedientes.
-3.  **Actividad Reciente:** Feed en tiempo real de lo último que ha sucedido en tus casos.
+### Flujo Recomendado
+*   **Priorizar:** Revisa la sección de **"Plazos"** para resolver urgencias del día.
+*   **Seguimiento:** Dirígete a **"Clientes"** para evaluar nuevas consultas captadas por el asistente virtual.
+*   **Gestión:** Utiliza **"Expedientes"** para el trabajo diario en causas abiertas.
 
-### Consejos
-*   Usa el botón **"+"** en la esquina inferior derecha para acciones rápidas como cargar un nuevo cliente o iniciar una investigación.
+> [!TIP]
+> Usa el botón **"+"** en la esquina inferior derecha para acciones rápidas como cargar un nuevo cliente o iniciar una investigación sin cambiar de sección.
 `,
 
     research: `
 ## Terminal de Estrategia Jurídica
+Motor de inteligencia artificial conectado a jurisprudencia actualizada y normativa vigente. Diseñado para reducir horas de investigación a segundos.
 
-Motor de inteligencia artificial conectado a jurisprudencia actualizada y normativa vigente.
+### Paso a paso para una investigación de élite
+1.  **Contexto:** Ingresa tu consulta en lenguaje natural (ej: "Responsabilidad de plataforma de delivery por accidente de repartidor en CABA").
+2.  **Ámbito:** Selecciona la jurisdicción (Nacional/Federal o Provincial) para filtrar precedentes relevantes.
+3.  **Generación:** Ejecuta **"Generar Estrategia IA"** para obtener un análisis detallado.
 
-### Capacidades
-1.  **Investigación Profunda:** La IA analiza millones de fallos para encontrar precedentes exactos.
-2.  **Generación de Escritos:** Redacta demandas, contestaciones y oficios automáticamente basados en tu estrategia.
-3.  **Análisis Predictivo:** Estima la viabilidad de tu caso basándose en tendencias jurisprudenciales.
+### Qué obtendrás
+*   **Análisis Predictivo:** Viabilidad del caso basada en tendencias jurisprudenciales.
+*   **Precedentes:** Listado de fallos concordantes con acceso directo a la fuente.
+*   **Prueba Sugerida:** Listado técnico de elementos probatorios para el caso.
+*   **Estrategia:** Recomendación de encuadre legal y pasos a seguir.
 
-### Flujo Típico
-1.  Ingresa tu consulta en lenguaje natural.
-2.  Selecciona la jurisdicción y el fuero.
-3.  Revisa los resultados y exporta la estrategia a PDF o Word.
+### Acciones Útiles
+*   **Exportar:** Descarga el informe en PDF o Word para integrarlo a tu escrito.
+*   **Refinar:** Si un fallo no es exacto, usa el botón de "Refrescar" para buscar una alternativa puntual.
+`,
+
+    clients: `
+## Centro de Captación (CRM)
+Gestión inteligente de consultas entrantes. Aquí la IA actúa como tu primer filtro profesional.
+
+### Gestión de Prospectos
+1.  **Link Inteligente:** Comparte tu enlace único de consulta por WhatsApp o redes sociales.
+2.  **Entrevista IA:** El asistente realiza la entrevista inicial, recolecta datos (DNI, CUIT, hechos) y genera un resumen.
+3.  **Evaluación:** Revisa el chat completo y el pre-análisis para decidir si tomas el caso.
+
+### Acciones Clave
+*   **Convertir en Expediente:** Crea automáticamente la carpeta digital del caso moviendo toda la información recopilada.
+*   **Crear Plazo:** Si la consulta implica un vencimiento inminente, agéndalo directamente desde aquí.
+*   **Filtros de Estado:** Organiza tus contactos en "Prospectos", "Clientes Activos" o "Finalizados".
 `,
 
     cases: `
 ## Gestión de Expedientes
+El archivo digital centralizado de tu estudio. Organización absoluta para una litigación de alto nivel.
 
-Sistema integral de gestión de casos para tu estudio jurídico. 
+### Uso Diario
+1.  **Organización:** Carpetas individuales con historial, documentos y estados procesales.
+2.  **Identificación:**
+    *   **Robot (IA):** Casos derivados automáticamente desde el portal de consultas.
+    *   **Escudo:** Casos cargados manualmente por el profesional.
+3.  **Estados:** Cambia entre *Abierto, En Curso, Cerrado o Archivado* para mantener limpia tu bandeja de trabajo.
 
-### Funcionalidades
-1.  **Organización:** Carpetas digitales completas con escritos, notificaciones y documentación vinculada.
-2.  **Identificación de Origen:** Diferenciación visual entre expedientes generados por IA (Robot) e ingresos manuales (Escudo).
-3.  **Estados Procesales:** Seguimiento automático del avance de cada causa.
-
-### Acciones
-*   **Archivar/Eliminar:** Gestión segura del ciclo de vida del expediente con confirmaciones de seguridad.
+### Recomendaciones
+*   **Archivar:** No elimines casos terminados; archívalos para mantener el historial disponible en el buscador global del estudio.
+*   **Buscador:** Encuentra cualquier expediente por nombre de cliente, carátula o número de causa.
 `,
 
-    clients: `
-## CRM Jurídico
+    caseDetails: `
+## Detallado Operativo
+Vista profunda y herramientas específicas para el avance de una causa particular.
 
-Gestión de relaciones con clientes potenciada por IA para la toma de casos.
+### Secciones del Expediente
+1.  **Información General:** Datos de la carátula, juzgado, contraparte y cliente.
+2.  **Documentación:** Repositorio de archivos, fotos de pruebas y escritos vinculados.
+3.  **Chat Original:** Acceso al diálogo inicial que el cliente tuvo con la IA (disponible en casos derivados).
 
-### Herramientas
-1.  **Link de Consulta:** Enlace público único para captación de clientes. La IA realiza la entrevista inicial.
-2.  **Perfil 360:** Vista completa del cliente, historial de chat, documentos compartidos y facturación.
-3.  **Seguimiento:** Estados de "Prospecto", "Cliente Activo" y "Ex-Cliente" para tu funnel de ventas.
-
-### Automatización
-*   La IA puede responder consultas básicas y agendar reuniones automáticamente si lo configuras.
-`,
-
-    calculators: `
-## Calculadoras Jurídicas 2026
-
-Suite de herramientas matemáticas de precisión adaptadas a la normativa argentina.
-
-### 1. Liquidación por Despido (LCT)
-Cálculo integral del Art. 245 LCT incluyendo rubros opcionales:
-*   **Antigüedad:** Cálculo automático (fracción > 3 meses = año extra).
-*   **Preaviso:** Indemnización sustitutiva + SAC sobre preaviso.
-*   **SAC Proporcional:** Cálculo técnico basado en el semestre trabajado.
-*   **Vacaciones No Gozadas:** Proporción anual según escala + SAC sobre vacaciones.
-
-### 2. Plazos Procesales
-Motor de cálculo sincronizado con el **Calendario Judicial Argentino 2026**:
-*   **Días Hábiles:** Descuenta automáticamente feriados y periodos de Feria Judicial.
-*   **Plazo de Gracia (Cargo):** Determina las dos primeras horas hábiles del día siguiente al vencimiento.
-`,
-
-    legislation: `
-## Digesto Jurídico
-
-Biblioteca normativa inteligente con concordancias y análisis de vigencia.
-
-### Contenido
-*   **Códigos de Fondo y Forma:** Texto completo actualizado.
-*   **Leyes Especiales:** Buscador específico por número o tema.
-*   **Comparador:** Visualiza cambios legislativos y versiones anteriores de los artículos.
-
-### Funciones Avanzadas
-*   **Citar:** Copia el texto con formato de cita académica automáticamente.
-*   **Favoritos:** Guarda artículos frecuentes para acceso rápido.
+### Acciones Principales
+*   **Editar:** Actualiza radicación o radicación del expediente.
+*   **Gestión de archivos:** Sube pruebas o escritos en PDF/JPG para tener acceso desde cualquier dispositivo.
+*   **Ciclo de vida:** Archiva el caso al finalizar la etapa procesal para optimizar tu vista principal.
 `,
 
     agenda: `
-## Agenda Jurídica 2026
+## Terminal de Plazos (Agenda)
+Sistema de alerta temprana diseñado para que nunca pierdas un vencimiento fatal.
 
-Calendario diseñado para plazos fatales, sincronizado con el calendario judicial oficial de Argentina.
+### Priorización y Control
+1.  **Semaforización:**
+    *   🔴 **Crítico:** Vence hoy o mañana (incluye plazo de gracia).
+    *   🟡 **Próximo:** Vence en los próximos 3-7 días.
+    *   🔵 **Pendiente:** Tareas programadas a largo plazo.
+2.  **Filtros Temporales:** Visualiza solo lo que vence en las próximas 48h para máximo foco.
+3.  **Solo Críticos:** Un interruptor de seguridad que oculta tareas menores para resaltar los plazos procesales.
 
-### Funciones Clave
-1.  **Semaforización:** Alertas de colores basadas en **días hábiles reales** (Crítico, Alto, Medio).
-2.  **Calendario Visual:** Identificación de días inhábiles resaltados en rojo. Pasa el mouse sobre ellos para ver el motivo (feriados o feria judicial).
-3.  **Filtro Inteligente:** Usa el interruptor "Solo críticos" para depurar la lista de vencimientos inminentes.
+### Gestión Judicial
+*   **Calendario Visual:** Los días en rojo indican feriados judiciales o feria; la agenda los reconoce automáticamente al calcular plazos.
+*   **Historial:** Revisa eventos completados para tener un registro de auditoría de tu desempeño procesal.
+`,
 
-### Gestión de Vencimientos
-*   **Historial:** Registra todas las tareas completadas o eliminadas para auditoría técnica.
-*   **Calculadora integrada:** Determina fechas exactas al crear nuevos eventos según el tipo de notificación.
+    calculators: `
+## Suite de Precisión Matemática
+Herramientas técnicas adaptadas a la normativa argentina vigente (2026).
+
+### 1. Liquidación por Despido (Art. 245 LCT)
+*   **Cálculo Integral:** Antigüedad, preaviso, SAC y vacaciones no gozadas.
+*   **Parámetros:** Ingresa remuneración, fecha de ingreso y egreso para obtener un desglose detallado listo para la demanda.
+
+### 2. Calculadora de Plazos Procesales
+*   **Computo Inteligente:** Ingresa la fecha de notificación y el tipo de plazo (días hábiles o corridos).
+*   **Gracia:** El sistema determina automáticamente el vencimiento y las dos primeras horas (fueros nacionales).
+*   **Sincronización:** Descuenta automáticamente feriados y periodos de feria judicial.
+`,
+
+    legislation: `
+## Digesto Normativo
+Acceso instantáneo a la ley escrita con herramientas de análisis moderno.
+
+### Capacidades
+*   **Códigos y Leyes:** Texto completo de Códigos de fondo y leyes especiales actualizadas.
+*   **Procedimiento:** Códigos de forma organizados por jurisdicción nacional y provincial.
+*   **Citas Académicas:** Copia el texto con formato de cita legal profesional con un solo clic.
+
+### Cómo buscar
+1.  Ingresa el tipo de norma y número (ej: Ley 24.522).
+2.  O busca por palabras clave en el título o contenido.
 `,
 
     library: `
-## Base de Conocimiento
+## Base de Conocimiento (KM)
+El repositorio de sabiduría de tu estudio. Capitaliza tu experiencia.
 
-Gestión del conocimiento interno del estudio jurídico (KM).
+### Gestión del Saber
+1.  **Investigaciones Guardadas:** Todas tus estrategias de IA se almacenan aquí para futura referencia.
+2.  **Filtros:** Busca por autos, tema o jurisdicción.
+3.  **Jurisprudencia Clave:** Organiza los fallos que consideres "leading cases" para usarlos en futuros escritos.
 
-### Recursos
-1.  **Modelos:** Plantillas de escritos probadas y listas para usar.
-2.  **Doctrina Propia:** Guarda tus propias investigaciones y notas jurídicas.
-3.  **Jurisprudencia Favorita:** Colección de fallos clave organizados por etiquetas.
-
-### Búsqueda Semántica
-*   Encuentra documentos por su *contenido* y significado, no solo por el nombre del archivo.
+### Buenas Prácticas
+*   Asigna títulos descriptivos a tus investigaciones para que el buscador semántico sea más efectivo al recuperar información meses después.
 `,
+
+    docGenerator: `
+## Generador de Escritos
+Crea borradores legales de alta calidad usando el contexto real de tus casos.
+
+### Paso a paso
+1.  **Configuración:** Elige el tipo de documento (Demanda, Cédula, Oficio, Contestación).
+2.  **Contexto:** El generador toma automáticamente los hechos y pruebas del expediente seleccionado.
+3.  **Refinado:** Edita el texto en el panel derecho para darle tu toque personal final.
+
+### Salida Profesional
+*   Copia el texto al portapapeles con formato limpio.
+*   Imprime directamente o guarda el borrador para revisión posterior.
+`,
+
     settings: `
-## Configuración Profesional
+## Configuración de Identidad
+Gestiona tu presencia profesional, seguridad y facturación.
 
-Gestiona tu identidad digital y la seguridad de tu cuenta.
+### Módulos de Ajuste
+*   **Perfil:** Sube tu foto, define tus especialidades y activa tu firma digital escaneada.
+*   **Seguridad:** Controla tu contraseña y monitorea las sesiones activas en otros dispositivos.
+*   **Facturación:** Gestiona tu plan (Starter, Profesional o Elite), revisa métodos de pago y descarga tus comprobantes.
 
-### 1. Perfil Profesional
-*   **Datos Personales:** Nombre, matrícula y datos de contacto visibles para clientes.
-*   **Firma Digital:** Sube tu firma escaneada para automatizar escritos.
-*   **Especialidades:** Define tus áreas de práctica para el algoritmo de asignación.
-
-### 2. Seguridad
-*   **Contraseña:** Actualiza tus credenciales de acceso.
-*   **Sesiones:** Revisa dispositivos activos y cierra sesiones sospechosas.
-
-### 3. Facturación
-*   **Suscripción:** Gestiona tu plan (Free/Pro/Winston).
-*   **Métodos de Pago:** Agrega o elimina tarjetas de crédito.
-*   **Historial:** Descarga tus facturas mensuales.
-
-### 4. Soporte y Ayuda
-*   **Centro de Ayuda:** Tutoriales y documentación detallada.
-*   **Contacto:** Chat directo con soporte técnico.
-*   **Zona de Peligro:** Eliminar tu cuenta y todos los datos asociados permanentemente.
+### Soporte Técnico
+*   Encuentra canales directos de WhatsApp y Email para soporte prioritario si eres usuario Pro o Elite.
 `
 };

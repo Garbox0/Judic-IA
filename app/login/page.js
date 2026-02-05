@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon } from 'lucide-react';
-// import SafeChatWidget from '../components/SafeChatWidget';
 import './login.css';
 
 export default function LoginPage() {

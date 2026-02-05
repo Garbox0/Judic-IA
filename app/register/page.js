@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw, Sparkles, Key, Lock, Eye, EyeOff } from 'lucide-react';
-// import SafeChatWidget from '../components/SafeChatWidget';
 import { validateCuit, formatCuit } from '../lib/validation';
 import './register.css';
 

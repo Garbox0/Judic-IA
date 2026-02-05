@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw, Sparkles } from 'lucide-react';
-// import SafeChatWidget from '../../../components/SafeChatWidget';
 import { supabase } from '../../../lib/supabase';
 import '../../../globals.css';
 

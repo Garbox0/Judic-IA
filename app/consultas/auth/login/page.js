@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-// import SafeChatWidget from '../../../components/SafeChatWidget';
 import '../../../globals.css';
 
 import './login.css';
