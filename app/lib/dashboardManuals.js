@@ -165,6 +165,6 @@ Gestiona tu presencia profesional, seguridad y facturación.
 *   **Facturación:** Gestiona tu plan (Starter, Profesional o Elite), revisa métodos de pago y descarga tus comprobantes.
 
 ### Soporte Técnico
-*   Encuentra canales directos de WhatsApp y Email para soporte prioritario si eres usuario Pro o Elite.
+*   Encuentra canales directos de Email para soporte prioritario si eres usuario Pro o Elite.
 `
 };
