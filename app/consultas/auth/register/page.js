@@ -502,6 +502,24 @@ function RegisterContent() {
                                 {confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase() && (
                                     <div style={{ color: '#fca5a5', fontSize: '0.8rem', marginTop: '0.3rem' }}>No coinciden</div>
                                 )}
+                                {/* 🛡️ EMAIL TRUST WARNING - Near email field */}
+                                {email && !isEmailDomainTrusted && (
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.6rem 0.8rem',
+                                        background: 'rgba(239, 68, 68, 0.1)',
+                                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                                        borderRadius: '8px',
+                                        color: '#fca5a5',
+                                        fontSize: '0.75rem',
+                                        marginTop: '0.5rem'
+                                    }}>
+                                        <ShieldAlert size={14} />
+                                        <span>Usá un email de proveedor confiable (Gmail, Outlook, etc.)</span>
+                                    </div>
+                                )}
                             </div>
 
                             <div style={{ display: 'flex', gap: '1rem' }}>
@@ -681,25 +699,6 @@ function RegisterContent() {
                             >
                                 <Sparkles size={16} /> Sugerir Contraseña Segura
                             </button>
-
-                            {/* 🛡️ EMAIL TRUST WARNING */}
-                            {email && !isEmailDomainTrusted && (
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    padding: '0.8rem 1rem',
-                                    background: 'rgba(239, 68, 68, 0.1)',
-                                    border: '1px solid rgba(239, 68, 68, 0.2)',
-                                    borderRadius: '10px',
-                                    color: '#fca5a5',
-                                    fontSize: '0.8rem',
-                                    marginTop: '0.5rem'
-                                }}>
-                                    <ShieldAlert size={16} />
-                                    <span>Usá un email de proveedor confiable (Gmail, Outlook, etc.)</span>
-                                </div>
-                            )}
 
 
                             {error && <div className="error-premium">{error}</div>}
