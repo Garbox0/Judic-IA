@@ -556,13 +556,12 @@ function RegisterContent() {
 
                             <div className="input-field">
                                 <label htmlFor="phone">Celular</label>
-                                <div className="cuit-inputs-row">
+                                <div className="phone-input-group">
                                     <select
                                         name="countryCode"
                                         value={countryCode}
                                         onChange={(e) => setCountryCode(e.target.value)}
-                                        className="cuit-input-s flex-1"
-                                        style={{ width: '130px', height: 'auto' }}
+                                        className="country-select-premium"
                                     >
                                         <option value="+54 9">+54 9 (AR)</option>
                                         <option value="+598">+598 (UY)</option>
@@ -585,7 +584,17 @@ function RegisterContent() {
                             </div>
 
                             <div className="input-field">
-                                <label htmlFor="password">Crear Clave de Acceso</label>
+                                <div className="label-row">
+                                    <label htmlFor="password">Crear Clave de Acceso</label>
+                                    <button
+                                        type="button"
+                                        onClick={generateSecurePass}
+                                        className="suggest-pass-link"
+                                        title="Generar clave segura"
+                                    >
+                                        <Sparkles size={12} /> Sugerir
+                                    </button>
+                                </div>
                                 <div className="pass-input-wrapper">
                                     <input
                                         id="password"
@@ -673,15 +682,6 @@ function RegisterContent() {
                                     )}
                                 </div>
                             )}
-
-                            {/* 🛡️ PASSWORD GENERATOR */}
-                            <button
-                                type="button"
-                                onClick={generateSecurePass}
-                                className="btn-suggest-pass"
-                            >
-                                <Sparkles size={16} /> Sugerir Contraseña Segura
-                            </button>
 
 
                             {error && <div className="error-premium">{error}</div>}
