@@ -350,7 +350,7 @@
     background: #0f172a !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     color: white !important;
-    padding: 1rem 1.4rem !important;
+    padding: 1rem !important;
     border-radius: 16px !important;
     font-size: 1rem !important;
     outline: none !important;
@@ -379,7 +379,7 @@
 
 .stg-field-row.multi {
     display: flex;
-    gap: 1.8rem;
+    gap: 1.2rem;
     align-items: flex-end;
 }
 
@@ -793,6 +793,44 @@
 }
 
 /* CSP COMPLIANCE & UTILITY CLASSES */
+.stg-header-action-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+}
+
+.stg-verified-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    padding: 0.4rem 0.8rem;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.stg-rejected-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(244, 63, 94, 0.1);
+    color: #f43f5e;
+    border: 1px solid rgba(244, 63, 94, 0.2);
+    padding: 0.4rem 0.8rem;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
 .settings-header-v2 {
     display: flex;
     justify-content: space-between;

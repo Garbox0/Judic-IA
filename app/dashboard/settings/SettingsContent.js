@@ -554,14 +554,14 @@ export default function SettingsPage({ isDemo = false }) {
                                                 <label htmlFor="full_name" className="stg-label">Nombre Completo</label>
                                                 <input id="full_name" name="full_name" autoComplete="name" className="stg-dark-input readonly" value={formData.full_name} readOnly disabled />
                                             </div>
-                                            <div className="stg-f-group ml-4 flex justify-end items-end pb-2">
+                                            <div className="stg-f-group stg-header-action-row">
                                                 {formData.verification_status === 'verified' && (
-                                                    <div className="flex items-center gap-2 bg-emerald/10 text-emerald border border-emerald/20 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                                    <div className="stg-verified-badge">
                                                         <Check size={12} /> Perfil Verificado
                                                     </div>
                                                 )}
                                                 {formData.verification_status === 'rejected' && (
-                                                    <div className="flex items-center gap-2 bg-rose/10 text-rose border border-rose/20 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                                    <div className="stg-rejected-badge">
                                                         <AlertTriangle size={12} /> Revisión Necesaria
                                                     </div>
                                                 )}
