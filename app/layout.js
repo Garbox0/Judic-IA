@@ -21,6 +21,9 @@ export const metadata = {
   description: "Asistente digital para abogados que automatiza y clasifica consultas legales con inteligencia artificial.",
   keywords: ["abogados", "inteligencia artificial", "jurisprudencia", "agenda legal", "gestión de clientes", "legaltech argentina"],
   robots: "index, follow",
+  alternates: {
+    canonical: "https://judic-ia.com",
+  },
   openGraph: {
     title: "Judic-IA | La Evolución de tu Estudio Jurídico",
     description: "Automatiza consultas, investiga jurisprudencia y gestiona tu estudio con IA de élite.",
@@ -39,6 +42,8 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
+    site: '@JudicIA',
+    creator: '@JudicIA',
     title: "Judic-IA | IA Legal de Élite",
     description: "La herramienta que transforma la práctica legal en Argentina.",
     images: ['/og-image.png'],
