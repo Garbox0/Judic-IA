@@ -6,6 +6,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { demoResearchHistory, demoFullResearchResult } from '../../lib/demoData'; // [NEW] Mock Data
 import SafeChatWidget from '../../components/SafeChatWidget';
+import TrialExpiredBlock from '../../components/TrialExpiredBlock';
+import { isTrialExpired } from '../../lib/subscription';
 
 import {
     Briefcase,
@@ -45,6 +47,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const [searchStatus, setSearchStatus] = useState('');
     const [refreshQuota, setRefreshQuota] = useState(5);
     const [quotaModalOpen, setQuotaModalOpen] = useState(false); // [NEW] Quota Modal State
+    const [trialExpired, setTrialExpired] = useState(false); // [NEW] Trial Expiration Check
 
 
     useEffect(() => {
@@ -72,6 +75,11 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                 setCurrentUser(user);
                 const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
                 setUserProfile(profile);
+
+                // 🔒 Check Trial Expiration (Frontend UX - Backend is the real security)
+                if (profile && isTrialExpired(profile)) {
+                    setTrialExpired(true);
+                }
 
                 // Fetch History
                 const { data: reports } = await supabase
@@ -381,413 +389,421 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
     return (
         <div className="research-container">
-            <div className={`research-layout ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-                {/* HISTORY SIDEBAR */}
-                {/* HISTORY SIDEBAR - Modified for Mobile Overlay */}
-                <>
-                    {/* Mobile Toggle Button (Visible only on small screens via CSS) */}
-                    <button
-                        className="mobile-history-toggle"
-                        onClick={() => setSidebarOpen(true)}
-                    >
-                        <span>🕒 Historial</span>
-                    </button>
+            {/* 🔒 TRIAL EXPIRED BLOCK - UX only, backend is real security */}
+            {trialExpired && !isDemoProp && (
+                <TrialExpiredBlock featureName="Jurisprudencia" />
+            )}
 
-                    {/* Overlay Backdrop (only visible when sidebar is open on mobile) */}
-                    <div
-                        className={`sidebar-backdrop ${sidebarOpen ? 'open' : ''}`}
-                        onClick={() => setSidebarOpen(false)}
-                    />
+            {/* Main content - hidden when trial expired */}
+            {!trialExpired && (
+                <div className={`research-layout ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+                    {/* HISTORY SIDEBAR */}
+                    {/* HISTORY SIDEBAR - Modified for Mobile Overlay */}
+                    <>
+                        {/* Mobile Toggle Button (Visible only on small screens via CSS) */}
+                        <button
+                            className="mobile-history-toggle"
+                            onClick={() => setSidebarOpen(true)}
+                        >
+                            <span>🕒 Historial</span>
+                        </button>
 
-                    <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`}>
-                        {/* Always show header with Close button on Mobile/Expand */}
-                        {(sidebarOpen || true) && (
-                            <div className="sidebar-header-row">
-                                <h4 className="sidebar-title">Historial</h4>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); setSidebarOpen(!sidebarOpen); }}
-                                    className="sidebar-close-btn"
-                                >
-                                    {sidebarOpen ? '✕' : '▶'}
-                                </button>
-                            </div>
-                        )}
+                        {/* Overlay Backdrop (only visible when sidebar is open on mobile) */}
+                        <div
+                            className={`sidebar-backdrop ${sidebarOpen ? 'open' : ''}`}
+                            onClick={() => setSidebarOpen(false)}
+                        />
 
-                        {/* Collapsed State Icon (Desktop Only) */}
-                        {!sidebarOpen && (
-                            <div
-                                className="collapsed-icon-area"
-                                onClick={() => setSidebarOpen(true)}
-                            >
-                                <div className="vertical-trigger">
-                                    <span className="v-icon">🕒</span>
-                                    <span className="v-label">HISTORIAL</span>
+                        <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`}>
+                            {/* Always show header with Close button on Mobile/Expand */}
+                            {(sidebarOpen || true) && (
+                                <div className="sidebar-header-row">
+                                    <h4 className="sidebar-title">Historial</h4>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setSidebarOpen(!sidebarOpen); }}
+                                        className="sidebar-close-btn"
+                                    >
+                                        {sidebarOpen ? '✕' : '▶'}
+                                    </button>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {sidebarOpen && (
-                            <div className="history-list history-list-container">
-                                {history.length === 0 && <p className="history-empty-text">Sin investigaciones recientes.</p>}
-                                {history.map(item => (
-                                    <div
-                                        key={item.id}
-                                        className="history-item history-item-box"
-                                        onClick={() => { setQuery(item.query); setResults(item.result_json); }}
-                                    >
-                                        <div className="history-item-query">
-                                            {item.query}
-                                        </div>
-                                        <div className="history-item-meta">
-                                            {new Date(item.created_at).toLocaleDateString()} • {item.jurisdiction}
-                                        </div>
+                            {/* Collapsed State Icon (Desktop Only) */}
+                            {!sidebarOpen && (
+                                <div
+                                    className="collapsed-icon-area"
+                                    onClick={() => setSidebarOpen(true)}
+                                >
+                                    <div className="vertical-trigger">
+                                        <span className="v-icon">🕒</span>
+                                        <span className="v-label">HISTORIAL</span>
                                     </div>
-                                ))}
+                                </div>
+                            )}
+
+                            {sidebarOpen && (
+                                <div className="history-list history-list-container">
+                                    {history.length === 0 && <p className="history-empty-text">Sin investigaciones recientes.</p>}
+                                    {history.map(item => (
+                                        <div
+                                            key={item.id}
+                                            className="history-item history-item-box"
+                                            onClick={() => { setQuery(item.query); setResults(item.result_json); }}
+                                        >
+                                            <div className="history-item-query">
+                                                {item.query}
+                                            </div>
+                                            <div className="history-item-meta">
+                                                {new Date(item.created_at).toLocaleDateString()} • {item.jurisdiction}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </aside>
+                    </>
+                    <div className="main-content-area">
+                        <nav className="research-nav">
+                            <div className="breadcrumb">
+                                <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
+                                <span className="breadcrumb-separator">/</span>
+                                <span className="breadcrumb-current">Terminal de Estrategia</span>
                             </div>
-                        )}
-                    </aside>
-                </>
-                <div className="main-content-area">
-                    <nav className="research-nav">
-                        <div className="breadcrumb">
-                            <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
-                            <span className="breadcrumb-separator">/</span>
-                            <span className="breadcrumb-current">Terminal de Estrategia</span>
-                        </div>
-                    </nav>
+                        </nav>
 
-                    <header className="research-header">
-                        <div className="header-flex">
-                            <Image
-                                src="/judic-ia-mark.png"
-                                alt="Judic-IA Logo"
-                                className="logo-main logo-main-contain"
-                                width={56}
-                                height={75}
-                            />
-                            <div className="header-text">
-                                <h1 className="dashboard-page-title">Terminal de Estrategia Jurídica</h1>
-                                <p>Investigación avanzada, Ratio Decidendi y generación de estrategia blindada.</p>
+                        <header className="research-header">
+                            <div className="header-flex">
+                                <Image
+                                    src="/judic-ia-mark.png"
+                                    alt="Judic-IA Logo"
+                                    className="logo-main logo-main-contain"
+                                    width={56}
+                                    height={75}
+                                />
+                                <div className="header-text">
+                                    <h1 className="dashboard-page-title">Terminal de Estrategia Jurídica</h1>
+                                    <p>Investigación avanzada, Ratio Decidendi y generación de estrategia blindada.</p>
+                                </div>
+                                <UsageGuide content={dashboardManuals.research} />
                             </div>
-                            <UsageGuide content={dashboardManuals.research} />
-                        </div>
-                    </header>
+                        </header>
 
-                    <div className="search-box-container glass-panel">
-                        <div className="jurisdiction-selector">
-                            <label htmlFor="res_scope_nacional" className={`radio-btn ${scope === 'nacional' ? 'active' : ''}`}>
-                                <input
-                                    id="res_scope_nacional"
-                                    type="radio"
-                                    name="scope"
-                                    value="nacional"
-                                    checked={scope === 'nacional'}
-                                    onChange={() => setScope('nacional')}
-                                />
-                                🇦🇷 Justicia Nacional / Federal
-                            </label>
-                            <label htmlFor="res_scope_provincial" className={`radio-btn ${scope === 'provincial' ? 'active' : ''}`}>
-                                <input
-                                    id="res_scope_provincial"
-                                    type="radio"
-                                    name="scope"
-                                    value="provincial"
-                                    checked={scope === 'provincial'}
-                                    onChange={() => setScope('provincial')}
-                                />
-                                📍 Justicia Provincial
-                            </label>
+                        <div className="search-box-container glass-panel">
+                            <div className="jurisdiction-selector">
+                                <label htmlFor="res_scope_nacional" className={`radio-btn ${scope === 'nacional' ? 'active' : ''}`}>
+                                    <input
+                                        id="res_scope_nacional"
+                                        type="radio"
+                                        name="scope"
+                                        value="nacional"
+                                        checked={scope === 'nacional'}
+                                        onChange={() => setScope('nacional')}
+                                    />
+                                    🇦🇷 Justicia Nacional / Federal
+                                </label>
+                                <label htmlFor="res_scope_provincial" className={`radio-btn ${scope === 'provincial' ? 'active' : ''}`}>
+                                    <input
+                                        id="res_scope_provincial"
+                                        type="radio"
+                                        name="scope"
+                                        value="provincial"
+                                        checked={scope === 'provincial'}
+                                        onChange={() => setScope('provincial')}
+                                    />
+                                    📍 Justicia Provincial
+                                </label>
 
-                            {scope === 'provincial' && (
-                                <>
-                                    <label htmlFor="res_province_select" className="sr-only">Seleccionar Provincia</label>
-                                    <select
-                                        id="res_province_select"
-                                        className="province-select"
-                                        value={province}
-                                        onChange={(e) => setProvince(e.target.value)}
-                                    >
-                                        {provinces.map(p => <option key={p} value={p}>{p}</option>)}
-                                    </select>
-                                </>
+                                {scope === 'provincial' && (
+                                    <>
+                                        <label htmlFor="res_province_select" className="sr-only">Seleccionar Provincia</label>
+                                        <select
+                                            id="res_province_select"
+                                            className="province-select"
+                                            value={province}
+                                            onChange={(e) => setProvince(e.target.value)}
+                                        >
+                                            {provinces.map(p => <option key={p} value={p}>{p}</option>)}
+                                        </select>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* 💡 SEARCH TIPS */}
+                            <details className="search-tips-details tips-details">
+                                <summary className="tips-summary">
+                                    <Zap size={14} fill="#fbbf24" />
+                                    <span>Tips para búsquedas de Alta Precisión</span>
+                                </summary>
+                                <div className="tips-content tips-content-box">
+                                    <p className="tips-intro-p">Para obtener los mejores resultados, utilizá estos patrones:</p>
+                                    <ul className="tips-list">
+                                        <li className="tips-li">
+                                            <strong>Tema + "fallo" o "sentencia":</strong> <span className="tips-example">Ej: "despido sin causa fallo", "cuota alimentaria sentencia"</span>
+                                        </li>
+                                        <li className="tips-li">
+                                            <strong>Frase exacta entre comillas:</strong> <span className="tips-example">Ej: "daño moral" accidente tránsito</span>
+                                        </li>
+                                        <li className="tips-li">
+                                            <strong>Jurisdicción específica:</strong> <span className="tips-example">Ej: "mala praxis médica cordoba camara"</span>
+                                        </li>
+                                        <li>
+                                            <strong>Autos (si conocés):</strong> <span className="tips-example">Ej: "autos garcia c/ perez s/ daños"</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </details>
+
+                            <form onSubmit={handleSearch} className="search-box">
+                                <label htmlFor="research_input" className="sr-only">Consulta de investigación jurídica</label>
+                                <input
+                                    id="research_input"
+                                    name="query"
+                                    type="text"
+                                    placeholder={placeholder}
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                />
+                                <button type="submit" disabled={loading} className="btn-search-submit">
+                                    {loading ? <Zap size={18} className="spin-animation" /> : <Search size={18} />}
+                                    {loading ? 'Procesando Inteligencia...' : 'Generar Estrategia IA'}
+                                </button>
+                            </form>
+                            {loading && (
+                                <div className="loader-container loader-wrapper">
+                                    <div className="loader-text-wrapper">
+                                        <Loader2 className="spin-animation text-amber-400" size={48} />
+                                        <p className="loader-status-text">
+                                            {searchStatus}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {results && (
+                                <div className="action-buttons">
+                                    <div className="copy-container">
+                                        <button
+                                            className="btn-action"
+                                            onClick={() => {
+                                                // ... copy logic same ...
+                                                const parts = [
+                                                    "🏦 ESTUDIO LEGAL - INVESTIGACIÓN DE IA (JUDIC-IA)",
+                                                    "",
+                                                    "📜 NORMATIVA APLICABLE:",
+                                                    results.laws,
+                                                    "",
+                                                    "⚖️ JURISPRUDENCIA & FALLOS:",
+                                                    results.cases.map(c => `🔹 ${c.title}\n   ${c.summary}\n   Fuente: ${c.source}`).join('\n\n'),
+                                                    "",
+                                                    results.calculation ? `💰 LIQUIDACIÓN ESTIMAD@:\n${results.calculation}\n` : null,
+                                                    results.evidence ? `🔍 PUNTOS DE PRUEBA:\n${results.evidence}\n` : null,
+                                                    "💡 ESTRATEGIA SUGERIDA:",
+                                                    results.strategy,
+                                                    "",
+                                                    "🔗 FUENTES & LINKS:",
+                                                    results.links?.map(l => `- ${l.title}: ${l.url}`).join('\n') || "No hay enlaces digitales directos."
+                                                ].filter(Boolean).join('\n');
+
+                                                navigator.clipboard.writeText(parts);
+                                                setCopySuccess(true);
+                                                setTimeout(() => setCopySuccess(false), 2000);
+                                            }}
+                                        >
+                                            <ClipboardCopy size={16} />
+                                            <span>Copiar Texto</span>
+                                        </button>
+                                        {copySuccess && <span className="copy-toast">✨ ¡Copiado!</span>}
+                                    </div>
+                                    <button className="btn-action btn-pdf" onClick={handleDownloadPDF}>
+                                        <FileText size={16} />
+                                        <span>Exportar Informe de Estrategia</span>
+                                    </button>
+                                </div>
                             )}
                         </div>
-
-                        {/* 💡 SEARCH TIPS */}
-                        <details className="search-tips-details tips-details">
-                            <summary className="tips-summary">
-                                <Zap size={14} fill="#fbbf24" />
-                                <span>Tips para búsquedas de Alta Precisión</span>
-                            </summary>
-                            <div className="tips-content tips-content-box">
-                                <p className="tips-intro-p">Para obtener los mejores resultados, utilizá estos patrones:</p>
-                                <ul className="tips-list">
-                                    <li className="tips-li">
-                                        <strong>Tema + "fallo" o "sentencia":</strong> <span className="tips-example">Ej: "despido sin causa fallo", "cuota alimentaria sentencia"</span>
-                                    </li>
-                                    <li className="tips-li">
-                                        <strong>Frase exacta entre comillas:</strong> <span className="tips-example">Ej: "daño moral" accidente tránsito</span>
-                                    </li>
-                                    <li className="tips-li">
-                                        <strong>Jurisdicción específica:</strong> <span className="tips-example">Ej: "mala praxis médica cordoba camara"</span>
-                                    </li>
-                                    <li>
-                                        <strong>Autos (si conocés):</strong> <span className="tips-example">Ej: "autos garcia c/ perez s/ daños"</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </details>
-
-                        <form onSubmit={handleSearch} className="search-box">
-                            <label htmlFor="research_input" className="sr-only">Consulta de investigación jurídica</label>
-                            <input
-                                id="research_input"
-                                name="query"
-                                type="text"
-                                placeholder={placeholder}
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                            />
-                            <button type="submit" disabled={loading} className="btn-search-submit">
-                                {loading ? <Zap size={18} className="spin-animation" /> : <Search size={18} />}
-                                {loading ? 'Procesando Inteligencia...' : 'Generar Estrategia IA'}
-                            </button>
-                        </form>
-                        {loading && (
-                            <div className="loader-container loader-wrapper">
-                                <div className="loader-text-wrapper">
-                                    <Loader2 className="spin-animation text-amber-400" size={48} />
-                                    <p className="loader-status-text">
-                                        {searchStatus}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
 
                         {results && (
-                            <div className="action-buttons">
-                                <div className="copy-container">
-                                    <button
-                                        className="btn-action"
-                                        onClick={() => {
-                                            // ... copy logic same ...
-                                            const parts = [
-                                                "🏦 ESTUDIO LEGAL - INVESTIGACIÓN DE IA (JUDIC-IA)",
-                                                "",
-                                                "📜 NORMATIVA APLICABLE:",
-                                                results.laws,
-                                                "",
-                                                "⚖️ JURISPRUDENCIA & FALLOS:",
-                                                results.cases.map(c => `🔹 ${c.title}\n   ${c.summary}\n   Fuente: ${c.source}`).join('\n\n'),
-                                                "",
-                                                results.calculation ? `💰 LIQUIDACIÓN ESTIMAD@:\n${results.calculation}\n` : null,
-                                                results.evidence ? `🔍 PUNTOS DE PRUEBA:\n${results.evidence}\n` : null,
-                                                "💡 ESTRATEGIA SUGERIDA:",
-                                                results.strategy,
-                                                "",
-                                                "🔗 FUENTES & LINKS:",
-                                                results.links?.map(l => `- ${l.title}: ${l.url}`).join('\n') || "No hay enlaces digitales directos."
-                                            ].filter(Boolean).join('\n');
+                            <div className="results-area">
+                                {results.brave_used && (
+                                    <div className="badge-brave">
+                                        <span>🦁 Brave Search Pro Activo</span>
+                                        <span className="opacity-60">•</span>
+                                        <span>Resultados en Tiempo Real</span>
+                                        {/* DEBUG LOGIC */}
+                                        {/* STATUS BADGE LOGIC */}
+                                        {isDemoProp || (userProfile && userProfile.subscription_status === 'demo') ? (
+                                            <>
+                                                <span className="quota-status-badge">•</span>
+                                                <span className="demo-quota-text">Refrescos Desactivados (Demo)</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="quota-status-badge">•</span>
+                                                <span>Refrescos Restantes: {refreshQuota}/5</span>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                                {results.laws && results.laws.length > 5 && (
+                                    <section className="result-card glass-card">
+                                        <h3>📚 Normativa Aplicable</h3>
+                                        <div className="content">{renderContent(results.laws)}</div>
+                                    </section>
+                                )}
 
-                                            navigator.clipboard.writeText(parts);
-                                            setCopySuccess(true);
-                                            setTimeout(() => setCopySuccess(false), 2000);
-                                        }}
-                                    >
-                                        <ClipboardCopy size={16} />
-                                        <span>Copiar Texto</span>
-                                    </button>
-                                    {copySuccess && <span className="copy-toast">✨ ¡Copiado!</span>}
-                                </div>
-                                <button className="btn-action btn-pdf" onClick={handleDownloadPDF}>
-                                    <FileText size={16} />
-                                    <span>Exportar Informe de Estrategia</span>
-                                </button>
-                            </div>
-                        )}
-                    </div>
-
-                    {results && (
-                        <div className="results-area">
-                            {results.brave_used && (
-                                <div className="badge-brave">
-                                    <span>🦁 Brave Search Pro Activo</span>
-                                    <span className="opacity-60">•</span>
-                                    <span>Resultados en Tiempo Real</span>
-                                    {/* DEBUG LOGIC */}
-                                    {/* STATUS BADGE LOGIC */}
-                                    {isDemoProp || (userProfile && userProfile.subscription_status === 'demo') ? (
-                                        <>
-                                            <span className="quota-status-badge">•</span>
-                                            <span className="demo-quota-text">Refrescos Desactivados (Demo)</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="quota-status-badge">•</span>
-                                            <span>Refrescos Restantes: {refreshQuota}/5</span>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-                            {results.laws && results.laws.length > 5 && (
                                 <section className="result-card glass-card">
-                                    <h3>📚 Normativa Aplicable</h3>
-                                    <div className="content">{renderContent(results.laws)}</div>
-                                </section>
-                            )}
-
-                            <section className="result-card glass-card">
-                                <h3>⚖️ Jurisprudencia Similares</h3>
-                                <div className="content">
-                                    {Array.isArray(results.cases) ? (
-                                        <div className="cases-grid">
-                                            {results.cases.length === 0 && <p className="case-empty-text">No se encontraron fallos digitales directos.</p>}
-                                            {results.cases.map((c, i) => {
-                                                const safeUrl = (c.url && c.url.startsWith('http')) ? c.url : (c.url ? `https://${c.url}` : null);
-                                                const isRefreshing = refreshingCases[i];
-                                                return (
-                                                    <div
-                                                        key={i}
-                                                        className={`case-item-card ${isRefreshing ? 'refreshing' : ''}`}
-                                                    >
-                                                        <div className="case-content-wrapper">
-                                                            <div className="case-info">
-                                                                <h4 className="case-title">
-                                                                    <Gavel size={16} className="text-amber-400" />
-                                                                    {c.title}
-                                                                </h4>
-                                                                <div className="case-summary-scroll">
-                                                                    <p className="case-summary-text">
-                                                                        {c.summary}
-                                                                    </p>
+                                    <h3>⚖️ Jurisprudencia Similares</h3>
+                                    <div className="content">
+                                        {Array.isArray(results.cases) ? (
+                                            <div className="cases-grid">
+                                                {results.cases.length === 0 && <p className="case-empty-text">No se encontraron fallos digitales directos.</p>}
+                                                {results.cases.map((c, i) => {
+                                                    const safeUrl = (c.url && c.url.startsWith('http')) ? c.url : (c.url ? `https://${c.url}` : null);
+                                                    const isRefreshing = refreshingCases[i];
+                                                    return (
+                                                        <div
+                                                            key={i}
+                                                            className={`case-item-card ${isRefreshing ? 'refreshing' : ''}`}
+                                                        >
+                                                            <div className="case-content-wrapper">
+                                                                <div className="case-info">
+                                                                    <h4 className="case-title">
+                                                                        <Gavel size={16} className="text-amber-400" />
+                                                                        {c.title}
+                                                                    </h4>
+                                                                    <div className="case-summary-scroll">
+                                                                        <p className="case-summary-text">
+                                                                            {c.summary}
+                                                                        </p>
+                                                                    </div>
+                                                                    <span className="case-source">Fuente: {c.source || 'Referencia Legal'}</span>
                                                                 </div>
-                                                                <span className="case-source">Fuente: {c.source || 'Referencia Legal'}</span>
+                                                                {safeUrl && (
+                                                                    <div className="case-actions">
+                                                                        <button
+                                                                            className="btn-preview-icon"
+                                                                            title="Buscar nueva alternativa (Refresh)"
+                                                                            onClick={() => handleRefreshCase(i)}
+                                                                            disabled={refreshingCases[i]}
+                                                                        >
+                                                                            <RefreshCw size={16} className={refreshingCases[i] ? "spin-animation" : ""} />
+                                                                        </button>
+                                                                        <a
+                                                                            href={safeUrl}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="btn-link-icon"
+                                                                            title="Abrir Fuente"
+                                                                        >
+                                                                            <ExternalLink size={16} />
+                                                                        </a>
+                                                                        <button
+                                                                            className="btn-preview-icon"
+                                                                            title={capturingCases[i] ? "Generando PDF limpio..." : "Visualizar (PDF Limpio)"}
+                                                                            onClick={() => handleCapture(i, safeUrl, c.title)}
+                                                                            disabled={capturingCases[i]}
+                                                                        >
+                                                                            {capturingCases[i] ? <Loader2 size={16} className="spin-animation" /> : <Eye size={16} />}
+                                                                        </button>
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                            {safeUrl && (
-                                                                <div className="case-actions">
-                                                                    <button
-                                                                        className="btn-preview-icon"
-                                                                        title="Buscar nueva alternativa (Refresh)"
-                                                                        onClick={() => handleRefreshCase(i)}
-                                                                        disabled={refreshingCases[i]}
-                                                                    >
-                                                                        <RefreshCw size={16} className={refreshingCases[i] ? "spin-animation" : ""} />
-                                                                    </button>
-                                                                    <a
-                                                                        href={safeUrl}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="btn-link-icon"
-                                                                        title="Abrir Fuente"
-                                                                    >
-                                                                        <ExternalLink size={16} />
-                                                                    </a>
-                                                                    <button
-                                                                        className="btn-preview-icon"
-                                                                        title={capturingCases[i] ? "Generando PDF limpio..." : "Visualizar (PDF Limpio)"}
-                                                                        onClick={() => handleCapture(i, safeUrl, c.title)}
-                                                                        disabled={capturingCases[i]}
-                                                                    >
-                                                                        {capturingCases[i] ? <Loader2 size={16} className="spin-animation" /> : <Eye size={16} />}
-                                                                    </button>
-                                                                </div>
-                                                            )}
                                                         </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            // Fallback for old history items (String)
+                                            results.cases
+                                        )}
+                                    </div>
+                                </section>
+
+                                {results.calculation && results.calculation.length > 5 && (
+                                    <section className="result-card glass-card calculation">
+                                        <h3>💰 Liquidación Estimada</h3>
+                                        <div className="content">{renderContent(results.calculation)}</div>
+                                    </section>
+                                )}
+
+                                {results.evidence && results.evidence.length > 5 && (
+                                    <section className="result-card glass-card evidence">
+                                        <h3>🔍 Puntos de Prueba (Sugeridos)</h3>
+                                        <div className="content">{renderContent(results.evidence)}</div>
+                                    </section>
+                                )}
+
+                                {results.strategy && results.strategy.length > 5 && (
+                                    <section className="result-card glass-card strategy">
+                                        <h3>💡 Sugerencia de Estrategia</h3>
+                                        <div className="content">{renderContent(results.strategy)}</div>
+                                    </section>
+                                )}
+
+                                {results.links && results.links.length > 0 && (
+                                    <section className="result-card links">
+                                        <h3>🔗 Recursos y Enlaces Útiles</h3>
+                                        <div className="links-grid">
+                                            {results.links.map((link, idx) => {
+                                                const safeUrl = link.url.startsWith('http') ? link.url : `https://${link.url}`;
+                                                return (
+                                                    <div key={idx} className="link-wrapper">
+                                                        <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="link-item">
+                                                            {link.title} ↗
+                                                        </a>
+
                                                     </div>
                                                 );
                                             })}
                                         </div>
-                                    ) : (
-                                        // Fallback for old history items (String)
-                                        results.cases
-                                    )}
-                                </div>
-                            </section>
+                                    </section>
+                                )}
+                            </div>
+                        )}
 
-                            {results.calculation && results.calculation.length > 5 && (
-                                <section className="result-card glass-card calculation">
-                                    <h3>💰 Liquidación Estimada</h3>
-                                    <div className="content">{renderContent(results.calculation)}</div>
-                                </section>
-                            )}
 
-                            {results.evidence && results.evidence.length > 5 && (
-                                <section className="result-card glass-card evidence">
-                                    <h3>🔍 Puntos de Prueba (Sugeridos)</h3>
-                                    <div className="content">{renderContent(results.evidence)}</div>
-                                </section>
-                            )}
 
-                            {results.strategy && results.strategy.length > 5 && (
-                                <section className="result-card glass-card strategy">
-                                    <h3>💡 Sugerencia de Estrategia</h3>
-                                    <div className="content">{renderContent(results.strategy)}</div>
-                                </section>
-                            )}
-
-                            {results.links && results.links.length > 0 && (
-                                <section className="result-card links">
-                                    <h3>🔗 Recursos y Enlaces Útiles</h3>
-                                    <div className="links-grid">
-                                        {results.links.map((link, idx) => {
-                                            const safeUrl = link.url.startsWith('http') ? link.url : `https://${link.url}`;
-                                            return (
-                                                <div key={idx} className="link-wrapper">
-                                                    <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="link-item">
-                                                        {link.title} ↗
-                                                    </a>
-
-                                                </div>
-                                            );
-                                        })}
+                        {!results && !loading && (
+                            <div className="guided-research">
+                                <h3>💡 ¿Sobre qué quieres investigar hoy?</h3>
+                                <div className="categories-grid">
+                                    <div className={`category-card glass-card ${activeCategory === 'laboral' ? 'active' : ''}`}
+                                        onClick={() => { setPlaceholder('Jurisprudencia sobre despidos con justa causa en CABA'); setQuery(''); setActiveCategory('laboral'); }}>
+                                        <span className="icon"><Briefcase size={24} /></span>
+                                        <h4>Laboral</h4>
+                                        <p>Despidos, accidentes, trabajo en negro.</p>
                                     </div>
-                                </section>
-                            )}
-                        </div>
-                    )}
-
-
-
-                    {!results && !loading && (
-                        <div className="guided-research">
-                            <h3>💡 ¿Sobre qué quieres investigar hoy?</h3>
-                            <div className="categories-grid">
-                                <div className={`category-card glass-card ${activeCategory === 'laboral' ? 'active' : ''}`}
-                                    onClick={() => { setPlaceholder('Jurisprudencia sobre despidos con justa causa en CABA'); setQuery(''); setActiveCategory('laboral'); }}>
-                                    <span className="icon"><Briefcase size={24} /></span>
-                                    <h4>Laboral</h4>
-                                    <p>Despidos, accidentes, trabajo en negro.</p>
-                                </div>
-                                <div className={`category-card glass-card ${activeCategory === 'penal' ? 'active' : ''}`}
-                                    onClick={() => { setPlaceholder('Jurisprudencia sobre robo con arma de guerra y abuso de autoridad'); setQuery(''); setActiveCategory('penal'); }}>
-                                    <span className="icon"><Gavel size={24} /></span>
-                                    <h4>Penal</h4>
-                                    <p>Robo con armas, abusos, delitos complejos.</p>
-                                </div>
-                                <div className={`category-card glass-card ${activeCategory === 'civil' ? 'active' : ''}`}
-                                    onClick={() => { setPlaceholder('Sucesión con herederos forzosos y bienes en varias provincias'); setQuery(''); setActiveCategory('civil'); }}>
-                                    <span className="icon"><Home size={24} /></span>
-                                    <h4>Civil & Familia</h4>
-                                    <p>Sucesiones, divorcios, medianería.</p>
-                                </div>
-                                <div className={`category-card glass-card ${activeCategory === 'propiedad' ? 'active' : ''}`}
-                                    onClick={() => { setPlaceholder('Jurisprudencia sobre mediación y medianería en edificios'); setQuery(''); setActiveCategory('propiedad'); }}>
-                                    <span className="icon"><Building2 size={24} /></span>
-                                    <h4>Propiedad</h4>
-                                    <p>Medianería, consorcios, desalojos.</p>
+                                    <div className={`category-card glass-card ${activeCategory === 'penal' ? 'active' : ''}`}
+                                        onClick={() => { setPlaceholder('Jurisprudencia sobre robo con arma de guerra y abuso de autoridad'); setQuery(''); setActiveCategory('penal'); }}>
+                                        <span className="icon"><Gavel size={24} /></span>
+                                        <h4>Penal</h4>
+                                        <p>Robo con armas, abusos, delitos complejos.</p>
+                                    </div>
+                                    <div className={`category-card glass-card ${activeCategory === 'civil' ? 'active' : ''}`}
+                                        onClick={() => { setPlaceholder('Sucesión con herederos forzosos y bienes en varias provincias'); setQuery(''); setActiveCategory('civil'); }}>
+                                        <span className="icon"><Home size={24} /></span>
+                                        <h4>Civil & Familia</h4>
+                                        <p>Sucesiones, divorcios, medianería.</p>
+                                    </div>
+                                    <div className={`category-card glass-card ${activeCategory === 'propiedad' ? 'active' : ''}`}
+                                        onClick={() => { setPlaceholder('Jurisprudencia sobre mediación y medianería en edificios'); setQuery(''); setActiveCategory('propiedad'); }}>
+                                        <span className="icon"><Building2 size={24} /></span>
+                                        <h4>Propiedad</h4>
+                                        <p>Medianería, consorcios, desalojos.</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {!results && !loading && (
-                        <div className="empty-state">
-                            <p>O escribe tu propia consulta legal en la barra superior.</p>
-                        </div>
-                    )}
+                        {!results && !loading && (
+                            <div className="empty-state">
+                                <p>O escribe tu propia consulta legal en la barra superior.</p>
+                            </div>
+                        )}
 
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* QUOTA LIMIT MODAL */}
             {quotaModalOpen && (

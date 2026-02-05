@@ -1,9 +1,12 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Book, Gavel, FileText, Scale, Search, Map, Globe, Shield, Pickaxe, Utensils, Landmark, Scroll, Users, Briefcase, HeartHandshake } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
+import TrialExpiredBlock from '@/app/components/TrialExpiredBlock';
+import { isTrialExpired } from '@/app/lib/subscription';
+import { supabase } from '@/app/lib/supabase';
 import './legislation.css';
 
 export default function LegislationPage() {
@@ -27,6 +30,42 @@ export default function LegislationPage() {
 
     const [selectedJurisdiction, setSelectedJurisdiction] = useState('Buenos Aires (PBA)');
     const [isProceduralExpanded, setIsProceduralExpanded] = useState(false);
+    const [trialExpired, setTrialExpired] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // 🔒 Check Trial Expiration on mount (Frontend UX - backend is real security)
+    useEffect(() => {
+        const checkTrialStatus = async () => {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('plan_tier, subscription_status, demo_expires_at')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (profile && isTrialExpired(profile)) {
+                        setTrialExpired(true);
+                    }
+                }
+            } catch (err) {
+                console.error('Error checking trial status:', err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        checkTrialStatus();
+    }, []);
+
+    // 🔒 Early return if trial expired
+    if (trialExpired) {
+        return (
+            <div className="legislation-container">
+                <TrialExpiredBlock featureName="Legislación" />
+            </div>
+        );
+    }
 
     const handleSearch = (e) => {
         e.preventDefault();

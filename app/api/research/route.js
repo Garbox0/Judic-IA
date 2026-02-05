@@ -152,6 +152,29 @@ export async function POST(request) {
 
             effectiveUserId = user.id;
 
+            // 🔒 TRIAL EXPIRATION CHECK (Backend Security - Cannot be bypassed via console)
+            const { data: profileData } = await supabase
+                .from('profiles')
+                .select('plan_tier, subscription_status, demo_expires_at')
+                .eq('id', user.id)
+                .single();
+
+            if (profileData) {
+                const isPro = profileData.plan_tier === 'professional' && profileData.subscription_status === 'active';
+                const hasActiveDemo = profileData.demo_expires_at && new Date(profileData.demo_expires_at) > new Date();
+
+                if (!isPro && !hasActiveDemo) {
+                    console.warn(`⛔ Trial expired for user ${user.id}`);
+                    return NextResponse.json({
+                        error: "TRIAL_EXPIRED",
+                        message: "Tu período de prueba ha vencido. Actualizá tu plan para continuar.",
+                        laws: "⏰ PERÍODO DE PRUEBA VENCIDO",
+                        cases: [],
+                        links: []
+                    }, { status: 403 });
+                }
+            }
+
             // SUPERUSER CHECK
             const isSuperUser = user?.email === 'gbrlescalada@gmail.com' && user?.id === '365cd259-4f1e-4004-a677-1eda06a5147e';
 
