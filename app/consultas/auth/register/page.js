@@ -3,7 +3,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw, Sparkles } from 'lucide-react';
 // import SafeChatWidget from '../../../components/SafeChatWidget';
 import { supabase } from '../../../lib/supabase';
 import '../../../globals.css';
@@ -31,6 +31,11 @@ function RegisterContent() {
 
     const [redirectCountdown, setRedirectCountdown] = useState(null);
     const [theme, setTheme] = useState('light');
+
+    // 🛡️ SECURITY: HIBP States
+    const [pwnedStatus, setPwnedStatus] = useState(null); // 'safe' | 'breached' | 'checking'
+    const [isCheckingPwned, setIsCheckingPwned] = useState(false);
+    const [lastCheckedPassword, setLastCheckedPassword] = useState('');
 
     // Load theme from cookies
     useEffect(() => {
@@ -74,9 +79,108 @@ function RegisterContent() {
         number: /[0-9]/.test(password),
         symbol: /[^A-Za-z0-9]/.test(password)
     };
+
+    // 🛡️ Trusted Email Domains (anti-disposable)
+    const TRUSTED_EMAIL_DOMAINS = [
+        'gmail.com', 'googlemail.com',
+        'outlook.com', 'outlook.es', 'outlook.com.ar', 'hotmail.com', 'hotmail.es', 'hotmail.com.ar', 'live.com', 'live.com.ar', 'msn.com',
+        'yahoo.com', 'yahoo.com.ar', 'yahoo.es', 'ymail.com',
+        'icloud.com', 'me.com', 'mac.com',
+        'protonmail.com', 'proton.me', 'pm.me',
+        'fibertel.com.ar', 'speedy.com.ar', 'arnet.com.ar', 'ciudad.com.ar',
+        'zoho.com', 'aol.com'
+    ];
+
+    const getEmailDomain = (emailStr) => {
+        const parts = emailStr.toLowerCase().split('@');
+        return parts.length === 2 ? parts[1] : null;
+    };
+
+    const isEmailDomainTrusted = TRUSTED_EMAIL_DOMAINS.includes(getEmailDomain(email));
+
     const isPasswordStrong = Object.values(passwordValidations).every(v => v);
     const passwordsMatch = password === confirmPassword && confirmPassword !== '';
     const emailsMatch = email === confirmEmail && email !== '';
+
+    // 🛡️ Password Generator
+    const generateSecurePass = () => {
+        const caps = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+        const lows = "abcdefghijkmnopqrstuvwxyz";
+        const nums = "23456789";
+        const syms = "!@#$%&*+?=";
+        const all = caps + lows + nums + syms;
+
+        let pass = "";
+        pass += caps[Math.floor(Math.random() * caps.length)];
+        pass += lows[Math.floor(Math.random() * lows.length)];
+        pass += nums[Math.floor(Math.random() * nums.length)];
+        pass += syms[Math.floor(Math.random() * syms.length)];
+
+        for (let i = 0; i < 12; i++) {
+            pass += all[Math.floor(Math.random() * all.length)];
+        }
+
+        const final = pass.split('').sort(() => 0.5 - Math.random()).join('');
+        setPassword(final);
+        setConfirmPassword(final);
+        setError(null);
+    };
+
+    // 🛡️ HIBP Check Function (k-Anonymity)
+    const checkPwned = async (pwd) => {
+        if (pwd.length < 6) {
+            setPwnedStatus(null);
+            return;
+        }
+
+        setIsCheckingPwned(true);
+        setPwnedStatus('checking');
+
+        try {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(pwd);
+            const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+
+            const prefix = hashHex.slice(0, 5);
+            const suffix = hashHex.slice(5);
+
+            const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+            const text = await response.text();
+
+            const lines = text.split('\n');
+            const found = lines.some(line => line.split(':')[0] === suffix);
+
+            setPwnedStatus(found ? 'breached' : 'safe');
+            setLastCheckedPassword(pwd);
+        } catch (err) {
+            console.error("HIBP Check failed:", err);
+            setPwnedStatus(null);
+        } finally {
+            setIsCheckingPwned(false);
+        }
+    };
+
+    // 🛡️ Auto-check on password change (debounced)
+    useEffect(() => {
+        if (!password || password.length < 6) {
+            setPwnedStatus(null);
+            return;
+        }
+
+        if (password !== lastCheckedPassword) {
+            setPwnedStatus(null);
+        }
+
+        const timer = setTimeout(() => {
+            if (password !== lastCheckedPassword) {
+                checkPwned(password);
+            }
+        }, 600);
+        return () => clearTimeout(timer);
+    }, [password, lastCheckedPassword]);
+
 
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -186,6 +290,37 @@ function RegisterContent() {
             if (!isPasswordStrong) throw new Error("La contraseña no es segura.");
             if (!passwordsMatch) throw new Error("Las contraseñas no coinciden.");
             if (email.toLowerCase() !== confirmEmail.toLowerCase()) throw new Error("Los correos electrónicos no coinciden.");
+
+            // 🛡️ Email Domain Validation
+            if (!isEmailDomainTrusted) {
+                throw new Error("Solo aceptamos emails de proveedores confiables (Gmail, Outlook, Yahoo, iCloud). Para tu seguridad, evitamos emails temporales.");
+            }
+
+            // 🛡️ HIBP Hard Block Check
+            try {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(password);
+                const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+
+                const prefix = hashHex.slice(0, 5);
+                const suffix = hashHex.slice(5);
+
+                const hibpResponse = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+                if (hibpResponse.ok) {
+                    const hibpText = await hibpResponse.text();
+                    const isBreached = hibpText.split('\n').some(line => line.split(':')[0] === suffix);
+
+                    if (isBreached) {
+                        throw new Error("Esta contraseña ha sido filtrada en internet. Por tu seguridad, elegí otra diferente.");
+                    }
+                }
+            } catch (hibpError) {
+                if (hibpError.message.includes("filtrada")) throw hibpError;
+                console.warn("HIBP check failed, proceeding:", hibpError);
+            }
+
 
             // 🔐 NEW: Check if CID is already claimed by a DIFFERENT email
             if (cid) {
@@ -499,6 +634,74 @@ function RegisterContent() {
                                 )}
                             </div>
 
+                            {/* 🛡️ HIBP STATUS INDICATOR */}
+                            {password.length >= 6 && (
+                                <div className="hibp-status-row" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', fontSize: '0.85rem' }}>
+                                    {pwnedStatus === 'checking' && (
+                                        <>
+                                            <ShieldEllipsis size={18} style={{ color: '#94a3b8' }} />
+                                            <span style={{ color: '#94a3b8' }}>Verificando seguridad...</span>
+                                        </>
+                                    )}
+                                    {pwnedStatus === 'safe' && (
+                                        <>
+                                            <ShieldCheck size={18} style={{ color: '#22c55e' }} />
+                                            <span style={{ color: '#22c55e' }}>Contraseña segura ✓</span>
+                                        </>
+                                    )}
+                                    {pwnedStatus === 'breached' && (
+                                        <>
+                                            <ShieldAlert size={18} style={{ color: '#f87171' }} />
+                                            <span style={{ color: '#f87171' }}>⚠️ Contraseña filtrada - Elegí otra</span>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* 🛡️ PASSWORD GENERATOR */}
+                            <button
+                                type="button"
+                                onClick={generateSecurePass}
+                                className="btn-suggest-pass"
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.6rem 1rem',
+                                    background: 'rgba(251, 191, 36, 0.1)',
+                                    border: '1px solid rgba(251, 191, 36, 0.2)',
+                                    borderRadius: '10px',
+                                    color: '#fbbf24',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    marginTop: '0.5rem',
+                                    transition: '0.3s'
+                                }}
+                            >
+                                <Sparkles size={16} /> Sugerir Contraseña Segura
+                            </button>
+
+                            {/* 🛡️ EMAIL TRUST WARNING */}
+                            {email && !isEmailDomainTrusted && (
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.8rem 1rem',
+                                    background: 'rgba(239, 68, 68, 0.1)',
+                                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                                    borderRadius: '10px',
+                                    color: '#fca5a5',
+                                    fontSize: '0.8rem',
+                                    marginTop: '0.5rem'
+                                }}>
+                                    <ShieldAlert size={16} />
+                                    <span>Usá un email de proveedor confiable (Gmail, Outlook, etc.)</span>
+                                </div>
+                            )}
+
+
                             {error && <div className="error-premium">{error}</div>}
                             {message && (
                                 <div className="success-premium">
@@ -515,7 +718,7 @@ function RegisterContent() {
                                 </div>
                             )}
 
-                            <button type="submit" className="btn-gold-action" disabled={loading || !isPasswordStrong || !passwordsMatch || !emailsMatch || message}>
+                            <button type="submit" className="btn-gold-action" disabled={loading || !isPasswordStrong || !passwordsMatch || !emailsMatch || !isEmailDomainTrusted || pwnedStatus === 'breached' || message}>
                                 {loading ? 'Creando Acceso...' : 'Comenzar Consulta Segura'}
                             </button>
                         </form>
@@ -531,7 +734,7 @@ function RegisterContent() {
                         </footer>
                     </>
                 )}
-            </div>
+            </div >
         </>
     );
 }

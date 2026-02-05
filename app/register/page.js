@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw, Sparkles, Key, Lock, Eye, EyeOff } from 'lucide-react';
 // import SafeChatWidget from '../components/SafeChatWidget';
+import { validateCuit, formatCuit } from '../lib/validation';
 import './register.css';
 
 
@@ -97,6 +98,11 @@ export default function RegisterPage() {
     };
 
     const isEmailDomainTrusted = TRUSTED_EMAIL_DOMAINS.includes(getEmailDomain(email));
+
+    // 🛡️ CUIT Validation
+    const fullCuit = `${cuitPrefix}${cuitDni}${cuitSuffix}`;
+    const isCuitComplete = cuitPrefix.length === 2 && cuitDni.length === 8 && cuitSuffix.length === 1;
+    const isCuitValid = isCuitComplete ? validateCuit(fullCuit) : null;
 
     const isPasswordStrong = Object.values(passwordValidations).every(v => v);
     const passwordsMatch = password === confirmPassword && confirmPassword !== '';
@@ -244,6 +250,11 @@ export default function RegisterPage() {
         }
         if (!isEmailDomainTrusted) {
             setError("Solo aceptamos emails de proveedores confiables (Gmail, Outlook, Yahoo, iCloud). Para tu seguridad, evitamos emails temporales.");
+            return;
+        }
+        // 🛡️ CUIT Validation
+        if (isCuitComplete && !isCuitValid) {
+            setError("El CUIT ingresado no es válido. Verificá los números.");
             return;
         }
         if (!consent) {
@@ -421,6 +432,22 @@ export default function RegisterPage() {
                                         />
                                     </div>
                                 </fieldset>
+                                {/* 🛡️ CUIT Validation Indicator */}
+                                {isCuitComplete && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', fontSize: '0.85rem' }}>
+                                        {isCuitValid ? (
+                                            <>
+                                                <ShieldCheck size={16} style={{ color: '#22c55e' }} />
+                                                <span style={{ color: '#22c55e' }}>CUIT válido ✓</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ShieldAlert size={16} style={{ color: '#f87171' }} />
+                                                <span style={{ color: '#f87171' }}>CUIT inválido - Verificá los números</span>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="register-field-row">
