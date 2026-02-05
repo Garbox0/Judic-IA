@@ -447,6 +447,7 @@ export default function Home() {
           </div>
 
           <div className="footer-links">
+            <Link href="/legal">Legal</Link>
             <Link href="/legal?tab=seguridad">Seguridad</Link>
             <Link href="/legal?tab=privacidad">Privacidad</Link>
             <Link href="/legal?tab=terminos">Términos</Link>
