@@ -475,7 +475,22 @@ function RegisterContent() {
 
                         <form onSubmit={handleRegister} className="premium-form">
                             <div className="input-field">
-                                <label htmlFor="email">Tu Email</label>
+                                <div className="label-row">
+                                    <label htmlFor="email">Tu Email</label>
+                                    {email && (
+                                        <div className="domain-trust-badge">
+                                            {isEmailDomainTrusted ? (
+                                                <span className="text-emerald flex items-center gap-1 text-[10px] uppercase font-bold">
+                                                    <ShieldCheck size={12} /> Confianza Alta
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate flex items-center gap-1 text-[10px] uppercase font-bold opacity-60">
+                                                    <ShieldAlert size={12} /> No verificado
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                                 <input
                                     id="email"
                                     name="email"
@@ -484,6 +499,7 @@ function RegisterContent() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="tu@email.com"
                                     required
+                                    className={email && !isEmailDomainTrusted ? 'untrusted-domain' : ''}
                                 />
                             </div>
 
@@ -497,25 +513,14 @@ function RegisterContent() {
                                     onChange={(e) => setConfirmEmail(e.target.value)}
                                     placeholder="Repite tu email"
                                     required
-                                    style={{ borderColor: (confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase()) ? '#ef4444' : '' }}
+                                    className={confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase() ? 'email-mismatch' : ''}
                                 />
                                 {confirmEmail && email.toLowerCase() !== confirmEmail.toLowerCase() && (
-                                    <div style={{ color: '#fca5a5', fontSize: '0.8rem', marginTop: '0.3rem' }}>No coinciden</div>
+                                    <span className="error-text-mini">Los correos no coinciden</span>
                                 )}
                                 {/* 🛡️ EMAIL TRUST WARNING - Near email field */}
                                 {email && !isEmailDomainTrusted && (
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.5rem',
-                                        padding: '0.6rem 0.8rem',
-                                        background: 'rgba(239, 68, 68, 0.1)',
-                                        border: '1px solid rgba(239, 68, 68, 0.2)',
-                                        borderRadius: '8px',
-                                        color: '#fca5a5',
-                                        fontSize: '0.75rem',
-                                        marginTop: '0.5rem'
-                                    }}>
+                                    <div className="email-trust-row">
                                         <ShieldAlert size={14} />
                                         <span>Usá un email de proveedor confiable (Gmail, Outlook, etc.)</span>
                                     </div>
@@ -551,21 +556,13 @@ function RegisterContent() {
 
                             <div className="input-field">
                                 <label htmlFor="phone">Celular</label>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <div className="cuit-inputs-row">
                                     <select
                                         name="countryCode"
                                         value={countryCode}
                                         onChange={(e) => setCountryCode(e.target.value)}
-                                        style={{
-                                            width: '130px',
-                                            padding: '1rem 0.5rem',
-                                            background: '#020617',
-                                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                                            borderRadius: '14px',
-                                            color: 'white',
-                                            fontSize: '0.9rem',
-                                            outline: 'none'
-                                        }}
+                                        className="cuit-input-s flex-1"
+                                        style={{ width: '130px', height: 'auto' }}
                                     >
                                         <option value="+54 9">+54 9 (AR)</option>
                                         <option value="+598">+598 (UY)</option>
@@ -578,7 +575,7 @@ function RegisterContent() {
                                         id="phone"
                                         name="phone"
                                         type="tel"
-                                        style={{ flex: 1 }}
+                                        className="flex-1"
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
                                         placeholder="11 1234 5678"
@@ -598,6 +595,7 @@ function RegisterContent() {
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="••••••••"
                                         required
+                                        className={password && pwnedStatus === 'breached' ? 'untrusted-domain' : ''}
                                     />
                                     <button type="button" className="eye-toggle-premium" onClick={() => setShowPassword(!showPassword)}>
                                         {showPassword ? (
@@ -654,23 +652,23 @@ function RegisterContent() {
 
                             {/* 🛡️ HIBP STATUS INDICATOR */}
                             {password.length >= 6 && (
-                                <div className="hibp-status-row" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', fontSize: '0.85rem' }}>
+                                <div className="hibp-status-row">
                                     {pwnedStatus === 'checking' && (
                                         <>
-                                            <ShieldEllipsis size={18} style={{ color: '#94a3b8' }} />
-                                            <span style={{ color: '#94a3b8' }}>Verificando seguridad...</span>
+                                            <ShieldEllipsis size={18} className="hibp-checking animate-spin" />
+                                            <span className="hibp-checking">Verificando seguridad...</span>
                                         </>
                                     )}
                                     {pwnedStatus === 'safe' && (
                                         <>
-                                            <ShieldCheck size={18} style={{ color: '#22c55e' }} />
-                                            <span style={{ color: '#22c55e' }}>Contraseña segura ✓</span>
+                                            <ShieldCheck size={18} className="hibp-safe" />
+                                            <span className="hibp-safe">Contraseña segura ✓</span>
                                         </>
                                     )}
                                     {pwnedStatus === 'breached' && (
                                         <>
-                                            <ShieldAlert size={18} style={{ color: '#f87171' }} />
-                                            <span style={{ color: '#f87171' }}>⚠️ Contraseña filtrada - Elegí otra</span>
+                                            <ShieldAlert size={18} className="hibp-breached" />
+                                            <span className="hibp-breached">Contraseña filtrada - Elegí otra</span>
                                         </>
                                     )}
                                 </div>
@@ -681,21 +679,6 @@ function RegisterContent() {
                                 type="button"
                                 onClick={generateSecurePass}
                                 className="btn-suggest-pass"
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    padding: '0.6rem 1rem',
-                                    background: 'rgba(251, 191, 36, 0.1)',
-                                    border: '1px solid rgba(251, 191, 36, 0.2)',
-                                    borderRadius: '10px',
-                                    color: '#fbbf24',
-                                    fontSize: '0.8rem',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    marginTop: '0.5rem',
-                                    transition: '0.3s'
-                                }}
                             >
                                 <Sparkles size={16} /> Sugerir Contraseña Segura
                             </button>
@@ -706,11 +689,11 @@ function RegisterContent() {
                                 <div className="success-premium">
                                     {message}
                                     <br />
-                                    <small style={{ color: '#fff', display: 'block', marginTop: '5px' }}>
+                                    <small className="success-msg-small">
                                         Si no lo ves, <strong>revisá SPAM</strong>.
                                     </small>
                                     {redirectCountdown !== null && (
-                                        <div style={{ marginTop: '0.8rem', fontWeight: 700, color: '#white' }}>
+                                        <div className="countdown-msg">
                                             Redirigiendo al login en {redirectCountdown} segundos...
                                         </div>
                                     )}
@@ -742,15 +725,15 @@ function LoadingFallback() {
     return (
         <div className="auth-card glass-premium">
             <header className="brand-header">
-                <div className="brand-logo-premium" style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }}></div>
-                <div style={{ height: '30px', width: '60%', margin: '0 auto 10px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
-                <div style={{ height: '20px', width: '40%', margin: '0 auto', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
+                <div className="brand-logo-premium skeleton-circle"></div>
+                <div className="skeleton-text-m"></div>
+                <div className="skeleton-text-s"></div>
             </header>
-            <div className="premium-form" style={{ gap: '2rem' }}>
-                <div style={{ height: '50px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '14px' }}></div>
-                <div style={{ height: '50px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '14px' }}></div>
-                <div style={{ height: '50px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '14px' }}></div>
-                <div style={{ height: '50px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '14px' }}></div>
+            <div className="premium-form skeleton-fields">
+                <div className="skeleton-field"></div>
+                <div className="skeleton-field"></div>
+                <div className="skeleton-field"></div>
+                <div className="skeleton-field"></div>
             </div>
         </div>
     );
