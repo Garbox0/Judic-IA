@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
+import VerificationPendingBlock from '../../components/VerificationPendingBlock';
 import './clients.css';
 
 export default function ClientsPage({ isDemo = false, basePath = '/dashboard' }) {
@@ -49,6 +50,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
     // Case Conversion State
     const [converting, setConverting] = useState(false);
+    const [verificationStatus, setVerificationStatus] = useState('pending');
 
     // 1. INITIAL FETCH & AUTH
     useEffect(() => {
@@ -64,6 +66,23 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setLawyerId(user.id);
+
+                // 🛡️ EXCLUDE ADMIN (Gabriel) from verification block
+                const isAdmin = user.id === '365cd259-4f1e-4004-a677-1eda06a5147e' || user.email === 'gbrlescalada@gmail.com';
+
+                if (isAdmin) {
+                    setVerificationStatus('verified');
+                } else {
+                    // Fetch Verification Status
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('verification_status')
+                        .eq('id', user.id)
+                        .single();
+
+                    setVerificationStatus(profile?.verification_status || 'none');
+                }
+
                 const { data, error } = await supabase
                     .from('inquiries')
                     .select('*')
@@ -360,6 +379,11 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
     return (
         <div className="clients-container">
+            {/* 🔒 VERIFICATION BLOCK */}
+            {!isDemo && verificationStatus !== 'verified' && (
+                <VerificationPendingBlock status={verificationStatus} />
+            )}
+
             <nav className="clients-nav">
                 <div className="breadcrumb">
                     <Link href={isDemo ? basePath : "/dashboard"} className="breadcrumb-item">Gabinete</Link>
@@ -429,7 +453,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
             {clientToDelete && (
                 <div className="modal-overlay" onClick={() => setClientToDelete(null)}>
                     <div className="modal-content glass-panel modal-delete-confirm" onClick={e => e.stopPropagation()}>
-                        <div className="modal-icon-center"><AlertTriangle size={48} className="text-amber-500" /></div>
+                        <div className="modal-icon-center"><AlertTriangle size={48} className="v-text-amber" /></div>
                         <h2 className="modal-m-bottom">¿Eliminar Expediente?</h2>
                         <p className="modal-muted-m-bottom">
                             Esta acción borrará el chat, los archivos adjuntos y <strong>la cuenta de acceso del cliente</strong> de forma permanente.
@@ -450,7 +474,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
             {conversionSuccess && (
                 <div className="modal-overlay" onClick={() => setConversionSuccess(false)}>
                     <div className="modal-content glass-panel modal-conversion-success" onClick={e => e.stopPropagation()}>
-                        <div className="modal-icon-center"><PartyPopper size={64} className="text-emerald-400" /></div>
+                        <div className="modal-icon-center"><PartyPopper size={64} className="v-text-emerald" /></div>
                         <h2 className="modal-header-conversion">¡Expediente Creado!</h2>
                         <p className="modal-p-conversion">
                             La consulta se ha convertido exitosamente en un <strong>Caso Oficial</strong> del estudio.
@@ -509,7 +533,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                         }
                                     }}
                                 >
-                                    <Zap size={16} className="text-amber-900" /> Generar Escrito
+                                    <Zap size={16} className="v-text-amber-dark" /> Generar Escrito
                                 </Link>
                                 <button
                                     className="btn-convert-action"
