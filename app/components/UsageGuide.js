@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HelpCircle, X, ChevronRight, BookOpen } from 'lucide-react';
 import './usage-guide.css';
 
@@ -7,7 +7,7 @@ import './usage-guide.css';
  * UsageGuide Component for Lawyers Dashboard
  * Renders a floating help icon that opens a blurred modal with professional instructions.
  */
-export default function UsageGuide({ content }) {
+export default function UsageGuide({ content, mode = 'fixed' }) {
     const [isOpen, setIsOpen] = useState(false);
 
     // Simple markdown renderer for the demo content
@@ -73,6 +73,12 @@ export default function UsageGuide({ content }) {
         });
     };
 
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     // Helper to bold text
     const parseBold = (text) => {
         const parts = text.split(/(\*\*.*?\*\*)/g);
@@ -84,49 +90,64 @@ export default function UsageGuide({ content }) {
         });
     };
 
+    const modalContent = isOpen ? (
+        <div className="guide-overlay" onClick={() => setIsOpen(false)}>
+            <div className="guide-modal custom-scrollbar" onClick={e => e.stopPropagation()}>
+
+                {/* HEADER */}
+                <div className="guide-header">
+                    <div className="guide-title-box">
+                        <div className="guide-icon">
+                            <BookOpen size={24} color="#fbbf24" />
+                        </div>
+                        <h2>Manual de Uso</h2>
+                    </div>
+                    <button onClick={() => setIsOpen(false)} className="guide-close-btn">
+                        <X size={24} />
+                    </button>
+                </div>
+
+                {/* CONTENT */}
+                <div className="guide-content custom-scrollbar">
+                    {renderMarkdown(content)}
+                </div>
+
+                {/* FOOTER */}
+                <div className="guide-footer">
+                    <button onClick={() => setIsOpen(false)} className="btn-close-guide">
+                        Entendido
+                    </button>
+                </div>
+            </div>
+        </div>
+    ) : null;
+
+    if (!mounted) return (
+        <button
+            onClick={() => setIsOpen(true)}
+            className={mode === 'inline' ? 'usage-guide-inline-trigger' : 'usage-guide-trigger'}
+            title="Ver Manual de Uso"
+        >
+            <HelpCircle size={mode === 'inline' ? 14 : 20} />
+        </button>
+    );
+
+    // Import createPortal dynamically or use from 'react-dom' if available in env
+    const { createPortal } = require('react-dom');
+
     return (
         <>
             {/* TRIGGER BUTTON */}
             <button
                 onClick={() => setIsOpen(true)}
-                className="usage-guide-trigger"
+                className={mode === 'inline' ? 'usage-guide-inline-trigger' : 'usage-guide-trigger'}
                 title="Ver Manual de Uso"
             >
-                <HelpCircle size={20} />
+                <HelpCircle size={mode === 'inline' ? 14 : 20} />
             </button>
 
-            {/* FLOATING MODAL */}
-            {isOpen && (
-                <div className="guide-overlay" onClick={() => setIsOpen(false)}>
-                    <div className="guide-modal custom-scrollbar" onClick={e => e.stopPropagation()}>
-
-                        {/* HEADER */}
-                        <div className="guide-header">
-                            <div className="guide-title-box">
-                                <div className="guide-icon">
-                                    <BookOpen size={24} color="#fbbf24" />
-                                </div>
-                                <h2>Manual de Uso</h2>
-                            </div>
-                            <button onClick={() => setIsOpen(false)} className="guide-close-btn">
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        {/* CONTENT */}
-                        <div className="guide-content custom-scrollbar">
-                            {renderMarkdown(content)}
-                        </div>
-
-                        {/* FOOTER */}
-                        <div className="guide-footer">
-                            <button onClick={() => setIsOpen(false)} className="btn-close-guide">
-                                Entendido
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* FLOATING MODAL (PORTAL) */}
+            {isOpen && createPortal(modalContent, document.body)}
         </>
     );
 }

@@ -33,6 +33,11 @@
     z-index: 100;
 }
 
+.hub-federal-text {
+    color: #fde68a !important;
+    /* amber-200 */
+}
+
 .logo-section h1 {
     font-family: var(--font-playfair);
     font-size: 2rem;
@@ -719,8 +724,9 @@
     background: #0f172a;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
-    width: 100%;
-    max-width: 600px;
+    width: 90%;
+    max-width: 500px;
+    /* Reduced from 600px */
     max-height: 80vh;
     display: flex;
     flex-direction: column;
@@ -729,6 +735,27 @@
     animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     text-align: left;
     /* FORCE LEFT ALIGNMENT */
+}
+
+/* INLINE TRIGGER */
+.usage-guide-inline-trigger {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.usage-guide-inline-trigger:hover {
+    background: #fbbf24;
+    color: #000;
+    transform: scale(1.1);
 }
 
 /* HEADER */

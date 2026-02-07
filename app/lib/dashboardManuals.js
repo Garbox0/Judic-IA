@@ -166,5 +166,17 @@ Gestiona tu presencia profesional, seguridad y facturación.
 
 ### Soporte Técnico
 *   Encuentra canales directos de Email para soporte prioritario si eres usuario Pro o Elite.
+`,
+
+    federal: `
+## Hub Federal e Interjurisdiccional
+Tu puente para litigar en todo el país sin fronteras técnicas.
+
+### Componentes Clave
+1.  **Red de Corresponsales:** Encontrá colegas verificados en otras provincias para diligenciar trámites locales.
+2.  **Directorio Organismos:** Información de contacto y guías específicas para cada cabecera judicial.
+
+### Cómo ser Corresponsal
+Para aparecer en las búsquedas y colaborar con otros colegas, activa la opción **"Disponibilidad para Corresponsalía"** en tus Ajustes de Perfil Profesional.
 `
 };

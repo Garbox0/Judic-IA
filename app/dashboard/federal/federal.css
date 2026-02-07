@@ -1,0 +1,216 @@
+.federal-container {
+    padding: 0 3rem 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    color: var(--foreground);
+    position: relative;
+}
+
+.federal-header {
+    margin-bottom: 2.5rem;
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.federal-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #fff, #fbbf24);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.federal-header p {
+    color: var(--muted);
+    font-size: 1.1rem;
+}
+
+.federal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.fed-card {
+    background: var(--glass-card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.fed-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(251, 191, 36, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.fed-card-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(251, 191, 36, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fbbf24;
+    margin-bottom: 1.5rem;
+}
+
+.fed-card h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: var(--foreground);
+    /* Use variable instead of fixed white */
+}
+
+.fed-card p {
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+/* Light Theme Overrides */
+body.light-theme .federal-header h1 {
+    background: linear-gradient(135deg, #0f172a, #fbbf24);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+body.light-theme .fed-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+
+body.light-theme .fed-btn-outline {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+body.light-theme .fed-status-info {
+    background: #f8fafc;
+}
+
+.fed-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 0.9rem;
+    text-decoration: none;
+    border: none;
+}
+
+.fed-btn-primary {
+    background: #fbbf24;
+    color: #000;
+}
+
+.fed-btn-primary:hover {
+    background: #f59e0b;
+    transform: scale(1.02);
+}
+
+.fed-btn-outline {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border: 1px solid var(--border);
+}
+
+.fed-btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.fed-badge {
+    padding: 0.3rem 0.8rem;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.fed-status-info {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    font-size: 0.85rem;
+    border-left: 3px solid #fbbf24;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .federal-container {
+        padding: 1rem;
+    }
+
+    .federal-header h1 {
+        font-size: 2rem;
+    }
+}
+
+/* Restricted Access Styles (CSP Compliance) */
+.fed-restricted-container {
+    text-align: center;
+    max-width: 600px;
+    margin: 4rem auto;
+}
+
+.fed-restricted-icon-box {
+    width: 5rem;
+    height: 5rem;
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+
+.fed-restricted-status-box {
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    text-align: left;
+    margin-top: 2rem;
+}
+
+.fed-restricted-btn-wrapper {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+/* Utilities */
+.fed-list-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.fed-footer-disclaimer {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    opacity: 0.6;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.fed-actions-row {
+    display: flex;
+    gap: 0.8rem;
+}

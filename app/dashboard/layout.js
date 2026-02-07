@@ -18,10 +18,12 @@ import {
   Sparkles,
   Book,
   Calculator,
+  Globe,
   Sun,
   Moon
 } from 'lucide-react';
 import SafeChatWidget from '../components/SafeChatWidget';
+import CommunityChatWidget from '../components/CommunityChatWidget'; // [NEW] Community Chat
 import SessionGuard from '../components/SessionGuard';
 
 import './dashboard.css';
@@ -220,6 +222,10 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
             <Book size={18} className="nav-icon" />
             <span>Legislación</span>
           </Link>
+          <Link href={isDemo ? `${basePath}/federal` : '/dashboard/federal'} className={`nav-item ${pathname.includes('/federal') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+            <Globe size={18} className="nav-icon" />
+            <span className="hub-federal-text">Hub Federal</span>
+          </Link>
           <Link href={isDemo ? `${basePath}/library` : '/dashboard/library'} className={`nav-item ${pathname.includes('/library') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <BookOpen size={18} className="nav-icon" />
             <span>Biblioteca</span>
@@ -284,10 +290,14 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
       </main>
 
       {!isDemo && (
-        <SafeChatWidget
-          mode="internal"
-          initialMessage="Hola. Soy tu asistente de soporte técnico. ¿En qué puedo ayudarte?"
-        />
+        <>
+          <SafeChatWidget
+            mode="internal"
+            initialMessage="Hola. Soy tu asistente de soporte técnico. ¿En qué puedo ayudarte?"
+          />
+          {/* Internal Community Chat */}
+          <CommunityChatWidget />
+        </>
       )}
 
       {/* SECURITY HEARTBEAT */}

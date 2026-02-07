@@ -100,7 +100,9 @@ export default function SettingsPage({ isDemo = false }) {
         verification_status: 'pending', // Added to track lock state
         plan_tier: 'starter',
         subscription_status: 'inactive',
-        subscription_expiry: null
+        subscription_expiry: null,
+        is_correspondent: false,
+        coverage_areas: ''
     });
 
     useEffect(() => {
@@ -119,7 +121,9 @@ export default function SettingsPage({ isDemo = false }) {
                     avatar_url: '',
                     plan_tier: 'starter',
                     subscription_status: 'inactive',
-                    subscription_expiry: null
+                    subscription_expiry: null,
+                    is_correspondent: false,
+                    coverage_areas: 'Buenos Aires, AMBA'
                 });
                 setLoading(false);
                 return;
@@ -147,7 +151,9 @@ export default function SettingsPage({ isDemo = false }) {
                         verification_status: data.verification_status || 'pending',
                         plan_tier: data.plan_tier || 'starter',
                         subscription_status: data.subscription_status || 'inactive',
-                        subscription_expiry: data.subscription_expiry || null
+                        subscription_expiry: data.subscription_expiry || null,
+                        is_correspondent: data.is_correspondent || false,
+                        coverage_areas: data.coverage_areas || ''
                     });
                 }
             }
@@ -380,13 +386,13 @@ export default function SettingsPage({ isDemo = false }) {
         }
     };
 
-    // Realtime Payment Listener
+    // Realtime Profile Listener (Payments & Verification)
     useEffect(() => {
         if (!user || isDemo) return;
 
-        console.log("🔌 Conectando listener de pagos para:", user.id);
+        console.log("🔌 Conectando listener de perfil para:", user.id);
         const channel = supabase
-            .channel('profile_changes')
+            .channel('profile_realtime')
             .on(
                 'postgres_changes',
                 {
@@ -397,7 +403,30 @@ export default function SettingsPage({ isDemo = false }) {
                 },
                 (payload) => {
                     console.log("🔔 Cambio detectado en perfil:", payload.new);
-                    if (payload.new.plan_tier === 'professional' && payload.new.subscription_status === 'active') {
+
+                    // 1. Update verification & matricula status
+                    if (payload.new.verification_status !== formData.verification_status || payload.new.matricula !== formData.matricula) {
+                        let t = '', f = '';
+                        if (payload.new.matricula) {
+                            const match = payload.new.matricula.match(/T°?\s*(\d+)\s*F°?\s*(\d+)/i);
+                            if (match) { t = match[1]; f = match[2]; } else { t = payload.new.matricula; }
+                        }
+
+                        setFormData(prev => ({
+                            ...prev,
+                            verification_status: payload.new.verification_status,
+                            matricula: payload.new.matricula,
+                            tomo: t,
+                            folio: f
+                        }));
+
+                        if (payload.new.verification_status === 'verified') {
+                            toast.success("🛡️ ¡Tu matrícula ha sido verificada! Ya tienes acceso total.");
+                        }
+                    }
+
+                    // 2. Update payment status
+                    if (payload.new.plan_tier === 'professional' && payload.new.subscription_status === 'active' && formData.plan_tier !== 'professional') {
                         setFormData(prev => ({
                             ...prev,
                             plan_tier: payload.new.plan_tier,
@@ -413,7 +442,7 @@ export default function SettingsPage({ isDemo = false }) {
             .subscribe();
 
         return () => { supabase.removeChannel(channel); };
-    }, [user]);
+    }, [user, formData.verification_status, formData.matricula, formData.plan_tier]);
 
     const handleSaveBilling = async () => {
         if (isDemo) {
@@ -560,6 +589,11 @@ export default function SettingsPage({ isDemo = false }) {
                                                         <Check size={12} /> Perfil Verificado
                                                     </div>
                                                 )}
+                                                {(!formData.verification_status || formData.verification_status === 'pending') && (
+                                                    <div className="stg-pending-badge">
+                                                        <Clock size={12} /> Verificación Pendiente
+                                                    </div>
+                                                )}
                                                 {formData.verification_status === 'rejected' && (
                                                     <div className="stg-rejected-badge">
                                                         <AlertTriangle size={12} /> Revisión Necesaria
@@ -606,6 +640,47 @@ export default function SettingsPage({ isDemo = false }) {
                                                     readOnly={formData.verification_status === 'verified'}
                                                     disabled={formData.verification_status === 'verified'}
                                                 />
+                                            </div>
+                                        </div>
+
+                                        {/* SECCIÓN CORRESPONSALÍA */}
+                                        <div className="stg-correspondence-wrapper">
+                                            <div className="stg-correspondence-box">
+                                                <div className="stg-toggle-row">
+                                                    <div className="stg-toggle-info">
+                                                        <h4 className="m-0 mb-1">Disponibilidad para Corresponsalía</h4>
+                                                        <p>Habilitá tu perfil para que otros colegas te encuentren en el Hub Federal.</p>
+                                                    </div>
+                                                    <label className="stg-toggle">
+                                                        <input
+                                                            type="checkbox"
+                                                            name="is_correspondent"
+                                                            checked={formData.is_correspondent}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span className="stg-toggle-slider"></span>
+                                                    </label>
+                                                </div>
+
+                                                {formData.is_correspondent && (
+                                                    <div className="stg-coverage-section">
+                                                        <div className="stg-f-group">
+                                                            <label htmlFor="coverage_zones" className="stg-label">Zonas de Cobertura</label>
+                                                            <input
+                                                                id="coverage_zones"
+                                                                name="coverage_zones"
+                                                                className="stg-dark-input"
+                                                                placeholder="Ej: Neuquén Capital, Plottier, Centenario..."
+                                                                value={formData.coverage_zones}
+                                                                onChange={handleChange}
+                                                            />
+                                                            <p className="stg-hint">Mencioná las localidades o departamentos donde podés diligenciar trámites.</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="stg-correspondence-guide-outside">
+                                                <UsageGuide content={dashboardManuals.federal} mode="inline" />
                                             </div>
                                         </div>
                                     </div>
@@ -679,7 +754,7 @@ export default function SettingsPage({ isDemo = false }) {
                             <div className="stg-tab-pane">
                                 {/* Plan Actual Section */}
                                 <div className="stg-current-plan-box">
-                                    <h3 className="stg-label" style={{ fontSize: '0.875rem', marginBottom: '0.75rem' }}>Tu Plan Actual</h3>
+                                    <h3 className="stg-billing-title">Tu Plan Actual</h3>
                                     <div className="stg-current-status-card">
                                         <div className="stg-status-info">
                                             <span className="stg-status-icon">{formData.plan_tier === 'professional' ? <Crown size={24} className="text-amber-400" /> : <Scale size={24} className="text-slate-400" />}</span>
@@ -696,7 +771,7 @@ export default function SettingsPage({ isDemo = false }) {
                                     </div>
                                 </div>
 
-                                <div className="stg-divider" style={{ margin: '2.5rem 0' }}></div>
+                                <div className="stg-divider-lg"></div>
 
                                 {formData.plan_tier !== 'professional' ? (
                                     <>
@@ -740,9 +815,9 @@ export default function SettingsPage({ isDemo = false }) {
                                     </>
                                 ) : (
                                     <div className="stg-success-card">
-                                        <div style={{ marginBottom: '1rem' }}><Gem size={48} className="text-amber-400" /></div>
-                                        <h3 style={{ margin: 0, color: '#fbbf24' }}>¡Ya eres Profesional!</h3>
-                                        <p style={{ color: '#94a3b8' }}>Estás aprovechando al máximo el Gabinete Jurídico.</p>
+                                        <div className="stg-success-icon-box"><Gem size={48} className="text-amber-400" /></div>
+                                        <h3 className="stg-success-title">¡Ya eres Profesional!</h3>
+                                        <p className="stg-success-text">Estás aprovechando al máximo el Gabinete Jurídico.</p>
 
                                         <div className="billing-success-actions">
                                             {formData.subscription_status === 'cancelled' ? (
@@ -761,7 +836,7 @@ export default function SettingsPage({ isDemo = false }) {
                                         </div>
 
                                         <div className="billing-trust-v2 mt-1-5rem pt-1-5rem border-top-glow">
-                                            <img src="/mercadopago/logo_white.svg" alt="Mercado Pago" style={{ height: '20px' }} />
+                                            <img src="/mercadopago/logo_white.svg" alt="Mercado Pago" className="mp-logo-footer" />
                                             <div className="billing-divider-v2 billing-divider-short"></div>
                                             <div className="billing-secure-badge">
                                                 <Shield size={14} className="text-emerald-500" />
@@ -932,7 +1007,7 @@ export default function SettingsPage({ isDemo = false }) {
                         {activeTab === 'support' && (
                             <div className="stg-tab-pane">
                                 <h3 className="stg-sec-title">Centro de Ayuda</h3>
-                                <p style={{ color: '#94a3b8', marginBottom: '2rem' }}>
+                                <p className="stg-support-hint">
                                     Selecciona el canal adecuado para agilizar tu consulta.
                                 </p>
                                 <div className="stg-support-grid">
