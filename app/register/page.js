@@ -333,6 +333,23 @@ export default function RegisterPage() {
         } else {
             setMessage("¡Registro Exitoso! Revisa tu email (incluso SPAM) para confirmar.");
             setRedirectCountdown(10); // Start countdown
+
+            // Notify Admin (Background)
+            try {
+                fetch('/api/admin/notify-registration', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fullName: `${firstName} ${lastName}`,
+                        email,
+                        matricula: finalMatricula,
+                        jurisdiccion: finalJurisdiccion,
+                        date: new Date().toLocaleString()
+                    })
+                });
+            } catch (err) {
+                console.error("Failed to notify admin:", err);
+            }
         }
         setLoading(false);
     };
@@ -653,20 +670,6 @@ export default function RegisterPage() {
                         </div>
 
                         {error && <div className="error-msg">⚠️ {error}</div>}
-                        {message && (
-                            <div className="success-msg">
-                                📩 {message}
-                                <br />
-                                <small className="success-msg-small">
-                                    ⚠️ Si no lo ves, <strong>revisá Correo no deseado / Spam</strong>.
-                                </small>
-                                {redirectCountdown !== null && (
-                                    <div className="countdown-msg">
-                                        Redirigiendo al login en {redirectCountdown} segundos...
-                                    </div>
-                                )}
-                            </div>
-                        )}
 
                         {!message && (
                             <button
@@ -678,6 +681,34 @@ export default function RegisterPage() {
                             </button>
                         )}
                     </form>
+
+                    {/* FULL SCREEN SUCCESS MODAL */}
+                    {message && (
+                        <div className="register-success-modal">
+                            <div className="success-modal-content">
+                                <div className="success-icon-large">
+                                    <ShieldCheck size={80} />
+                                </div>
+                                <h2 className="success-title-large">¡Registro Confirmado!</h2>
+                                <p className="success-text-large">
+                                    Hemos enviado un correo de validación a:<br />
+                                    <span className="success-highlight">{email}</span>
+                                </p>
+                                <p className="text-slate-400 text-sm mb-6">
+                                    ⚠️ Es <strong>fundamental</strong> que revises tu bandeja de entrada (y Spam) para activar tu cuenta.
+                                </p>
+
+                                <div className="redirect-timer">
+                                    Redirigiendo al login en <strong>{redirectCountdown}</strong> segundos...
+                                </div>
+                                <div className="mt-6">
+                                    <Link href="/login" className="btn-register-action" style={{ padding: '0.8rem 2rem', fontSize: '0.9rem' }}>
+                                        Ir al Login Ahora
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="divider"><span>o</span></div>
 

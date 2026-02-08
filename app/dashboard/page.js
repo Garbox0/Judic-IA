@@ -16,9 +16,11 @@ import {
 } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
+import { QuotaSummary } from '@/app/components/QuotaDisplay';
 
 export default function DashboardHome({ isDemo = false, basePath = '/dashboard' }) {
   const [user, setUser] = useState(isDemo ? { user_metadata: { first_name: 'Dr. Martínez' } } : null);
+  const [profile, setProfile] = useState(isDemo ? demoProfile : null);
   const [stats, setStats] = useState(isDemo ? demoStats : { clients: 0, deadlines: 0 });
 
   useEffect(() => {
@@ -29,6 +31,17 @@ export default function DashboardHome({ isDemo = false, basePath = '/dashboard' 
       setUser(user);
 
       if (user) {
+        // Fetch user profile with quota data
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (profileData) {
+          setProfile(profileData);
+        }
+
         // Fetch Real Client Count (Inquiries)
         const { count: inquiryCount, error: inquiryError } = await supabase
           .from('inquiries')
@@ -146,6 +159,10 @@ export default function DashboardHome({ isDemo = false, basePath = '/dashboard' 
         </div>
         <UsageGuide content={dashboardManuals.dashboard} />
       </header>
+
+      {!isDemo && profile && (
+        <QuotaSummary profile={profile} />
+      )}
 
       <section className="dashboard-grid">
         {tools.map((tool, index) => (

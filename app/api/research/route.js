@@ -7,6 +7,8 @@ import {
     enhanceWithSourceInfo,
     identifySource
 } from '@/lib/directSources';
+import { isTrialExpired } from '@/app/lib/subscription';
+import { verifyAccess, incrementUsage } from '@/lib/tierMiddleware';
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -155,44 +157,48 @@ export async function POST(request) {
             // 🔒 TRIAL EXPIRATION CHECK (Backend Security - Cannot be bypassed via console)
             const { data: profileData } = await supabase
                 .from('profiles')
-                .select('plan_tier, subscription_status, demo_expires_at')
+                .select('plan_tier, subscription_status, trial_ends_at')
                 .eq('id', user.id)
                 .single();
 
-            if (profileData) {
-                const isPro = profileData.plan_tier === 'professional' && profileData.subscription_status === 'active';
-                const hasActiveDemo = profileData.demo_expires_at && new Date(profileData.demo_expires_at) > new Date();
-
-                if (!isPro && !hasActiveDemo) {
-                    console.warn(`⛔ Trial expired for user ${user.id}`);
-                    return NextResponse.json({
-                        error: "TRIAL_EXPIRED",
-                        message: "Tu período de prueba ha vencido. Actualizá tu plan para continuar.",
-                        laws: "⏰ PERÍODO DE PRUEBA VENCIDO",
-                        cases: [],
-                        links: []
-                    }, { status: 403 });
-                }
+            if (profileData && isTrialExpired(profileData)) {
+                console.warn(`⛔ Trial expired for user ${user.id}`);
+                return NextResponse.json({
+                    error: "TRIAL_EXPIRED",
+                    message: "Tu período de prueba ha vencido. Actualizá tu plan para continuar.",
+                    laws: "⏰ PERÍODO DE PRUEBA VENCIDO",
+                    cases: [],
+                    links: []
+                }, { status: 403 });
             }
 
             // SUPERUSER CHECK
             const isSuperUser = user?.email === 'gbrlescalada@gmail.com' && user?.id === '365cd259-4f1e-4004-a677-1eda06a5147e';
 
             if (!isSuperUser) {
-                const { data: quota, error: rpcError } = await supabase.rpc("consume_ai_message", { p_user: effectiveUserId });
+                // Verify access and quota using centralized middleware
+                const accessCheck = await verifyAccess(effectiveUserId, 'advanced_research', 'ai_messages');
 
-                if (rpcError) {
-                    console.error("❌ RPC Fatal Error:", rpcError);
-                    // Fail open or closed? Let's fail OPEN to debug if it's just a signature issue, OR fail closed with specific error.
-                    // keeping original logic but logging error.
+                if (!accessCheck.allowed) {
+                    console.warn(`⚠️ Access denied for user ${effectiveUserId}:`, accessCheck.reason);
+
+                    if (accessCheck.reason === 'QUOTA_EXCEEDED') {
+                        return NextResponse.json({
+                            laws: "⚠️ CRÉDITOS AGOTADOS",
+                            cases: "Actualiza tu plan para continuar usando el asistente de investigación.",
+                            links: []
+                        }, { status: 402 });
+                    } else if (accessCheck.reason === 'FEATURE_NOT_AVAILABLE') {
+                        return NextResponse.json({
+                            laws: "⚠️ FUNCIÓN NO DISPONIBLE",
+                            cases: "Esta función requiere un plan Professional. Actualiza tu plan.",
+                            links: []
+                        }, { status: 402 });
+                    }
                 }
 
-                if (!quota?.ok) {
-                    console.warn("⚠️ Quota Check Failed:", quota);
-                    return NextResponse.json({ laws: "⚠️ CRÉDITOS AGOTADOS", cases: "Actualiza tu plan.", links: [] }, { status: 402 });
-                }
-            } else {
-
+                // Increment usage immediately (will be tracked)
+                await incrementUsage(effectiveUserId, 'ai_messages', 1);
             }
         }
 

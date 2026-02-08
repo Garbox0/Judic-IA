@@ -41,7 +41,7 @@ export default function LegislationPage() {
                 if (user) {
                     const { data: profile } = await supabase
                         .from('profiles')
-                        .select('plan_tier, subscription_status, demo_expires_at')
+                        .select('plan_tier, subscription_status, trial_ends_at')
                         .eq('id', user.id)
                         .single();
 

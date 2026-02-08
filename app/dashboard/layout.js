@@ -87,25 +87,25 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
       if (!profileError && profileData) {
         setProfile(profileData);
 
-        // BLOQUE 4: ACTIVAR DEMO AUTOMÁTICAMENTE
-        if (!profileData.subscription_status || !profileData.demo_expires_at) {
-          console.log("🎭 New User detected, activating Demo...");
+        // BLOQUE 4: ACTIVAR TRIAL AUTOMÁTICAMENTE
+        if (!profileData.subscription_status || !profileData.trial_ends_at) {
+          console.log("🎭 New User detected, activating Trial...");
           fetch('/api/demo/activate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: user.id })
           }).then(res => res.json()).then(data => {
             if (data.ok) {
-              console.log("✅ Demo Activated!", data);
+              console.log("✅ Trial Activated!", data);
               // Update local state to reflect changes instantly
               setProfile(prev => ({
                 ...prev,
-                subscription_status: 'demo',
-                plan_tier: 'starter',
-                demo_expires_at: data.demo_expires_at
+                subscription_status: 'active',
+                plan_tier: 'trial',
+                trial_ends_at: data.trial_ends_at || data.demo_expires_at // Backward compatibility
               }));
             }
-          }).catch(err => console.error("❌ Failed to activate demo:", err));
+          }).catch(err => console.error("❌ Failed to activate trial:", err));
         }
       }
 

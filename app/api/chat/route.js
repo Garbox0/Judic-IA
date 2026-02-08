@@ -6,6 +6,7 @@ import OpenAI from 'openai';
 
 import { supabase as publicSupabase } from '../../lib/supabase';
 import { routeContactChannel } from '../../lib/contact-router';
+import { incrementUsage, verifyAccess } from '@/lib/tierMiddleware';
 
 // GET: Fetch Chat History for a Session (Persistence)
 export async function GET(request) {
@@ -430,24 +431,20 @@ export async function POST(request) {
             .single();
 
         if (inquiryData?.assigned_lawyer_id) {
-            // RPC handles: Check Quota -> If OK, Increment -> Return New Usage
-            // If Limit Reached -> Return Error
-            const { data: rpcResult, error: rpcError } = await db.rpc('consume_ai_message', {
-                p_user: inquiryData.assigned_lawyer_id
-            });
+            // Check quota using centralized middleware
+            const accessCheck = await verifyAccess(inquiryData.assigned_lawyer_id, null, 'ai_messages');
 
-            // Handle "Quota exceeded" specifically check the error text wrapper
-            // The RPC returns a JSONB object, so we check rpcResult
-            if (rpcResult && rpcResult.ok === false) {
-                if (rpcResult.error === 'Quota exceeded') {
-                    console.warn(`⛔ QUOTA EXCEEDED for User ${inquiryData.assigned_lawyer_id}`);
-                    return NextResponse.json({
-                        reply: "⛔ **LÍMITE ALCANZADO**\n\nEl profesional ha alcanzado su límite de consultas mensuales.",
-                        error: "QUOTA_EXCEEDED",
-                        code: "LIMIT_REACHED"
-                    }, { status: 403 });
-                }
+            if (!accessCheck.allowed) {
+                console.warn(`⛔ QUOTA EXCEEDED for User ${inquiryData.assigned_lawyer_id}:`, accessCheck.reason);
+                return NextResponse.json({
+                    reply: "⛔ **LÍMITE ALCANZADO**\n\nEl profesional ha alcanzado su límite de mensajes mensuales. Actualiza tu plan para continuar.",
+                    error: "QUOTA_EXCEEDED",
+                    code: "LIMIT_REACHED"
+                }, { status: 403 });
             }
+
+            // Increment usage after verification
+            await incrementUsage(inquiryData.assigned_lawyer_id, 'ai_messages', 1);
         }
 
         // 5. GENERATE AI RESPONSE

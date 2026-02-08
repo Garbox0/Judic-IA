@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
 import { generateResearchPDF } from '../../lib/pdfGenerator';
 import Link from 'next/link';
@@ -8,6 +9,7 @@ import { demoResearchHistory, demoFullResearchResult } from '../../lib/demoData'
 import SafeChatWidget from '../../components/SafeChatWidget';
 import TrialExpiredBlock from '../../components/TrialExpiredBlock';
 import { isTrialExpired } from '../../lib/subscription';
+import { analyzeQueryQuality } from '../../../lib/queryEnhancer';
 
 import {
     Briefcase,
@@ -21,13 +23,17 @@ import {
     Eye,
     FileText,
     ClipboardCopy,
-    Loader2
+    Loader2,
+    Sparkles,
+    AlertCircle,
+    TrendingUp
 } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
 import './research.css';
 
 export default function ResearchPage({ isDemo: isDemoProp = false }) {
+    const router = useRouter();
     const [query, setQuery] = useState('');
     const [scope, setScope] = useState('nacional'); // 'nacional' or 'provincial'
     const [province, setProvince] = useState('Buenos Aires');
@@ -48,6 +54,13 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const [refreshQuota, setRefreshQuota] = useState(5);
     const [quotaModalOpen, setQuotaModalOpen] = useState(false); // [NEW] Quota Modal State
     const [trialExpired, setTrialExpired] = useState(false); // [NEW] Trial Expiration Check
+
+    // 🎯 QUERY ENHANCEMENT STATES
+    const [assistedMode, setAssistedMode] = useState(true); // Default to assisted for better UX
+    const [enhancementModal, setEnhancementModal] = useState(null); // { original, enhanced, quality }
+    const [analyzingQuery, setAnalyzingQuery] = useState(false);
+    const [reformulationModal, setReformulationModal] = useState(null); // { alternatives }
+    const [queryQuality, setQueryQuality] = useState(null); // Current query quality analysis
 
 
     useEffect(() => {
@@ -194,8 +207,9 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
             }
 
             const data = await res.json();
-            // Open the generated/cached PDF in new tab
-            window.open(data.url, '_blank');
+            // Open in internal PDF viewer
+            const viewerUrl = `/dashboard/legislation/viewer/case?url=${encodeURIComponent(data.url)}&title=${encodeURIComponent(title)}`;
+            router.push(viewerUrl);
 
         } catch (error) {
             console.error("Capture failed:", error);
@@ -272,14 +286,84 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         });
     };
 
-    const handleSearch = async (e) => {
+    // 🎯 PRE-FLIGHT CHECK: Analyze query quality before searching
+    const handleSearch = async (e, forceQuery = null) => {
         if (e) e.preventDefault();
-        const finalQuery = query || (placeholder.startsWith("Ej:") ? "" : placeholder);
+        const finalQuery = forceQuery || query || (placeholder.startsWith("Ej:") ? "" : placeholder);
         if (!finalQuery) return;
 
+        // 🔍 ASSISTED MODE: Check query quality first
+        if (assistedMode && !forceQuery) {
+            setAnalyzingQuery(true);
+            const quality = analyzeQueryQuality(finalQuery);
+            setQueryQuality(quality);
+            setAnalyzingQuery(false);
+
+            console.log('🎯 Query Quality Analysis:', {
+                query: finalQuery,
+                score: quality.score,
+                level: quality.level,
+                shouldEnhance: quality.shouldEnhance,
+                issues: quality.issues,
+                strengths: quality.strengths
+            });
+
+            // If query is poor, offer enhancement
+            if (quality.shouldEnhance && quality.score < 60) {
+                console.log('✨ Attempting to enhance query...');
+                try {
+                    const jurisdiction = scope === 'nacional' ? 'Nacional' : province;
+                    const enhanceRes = await fetch('/api/research/enhance', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query: finalQuery, jurisdiction })
+                    });
+
+                    console.log('📡 Enhancement API response:', enhanceRes.status);
+
+                    if (enhanceRes.ok) {
+                        const enhancement = await enhanceRes.json();
+                        console.log('✅ Enhancement received:', enhancement);
+
+                        if (enhancement.enhanced && enhancement.enhanced !== finalQuery && enhancement.confidence >= 50) {
+                            console.log('💡 Showing enhancement modal');
+                            // Show enhancement modal
+                            setEnhancementModal({
+                                original: finalQuery,
+                                enhanced: enhancement.enhanced,
+                                quality: quality,
+                                changes: enhancement.changes,
+                                reasoning: enhancement.reasoning
+                            });
+                            return; // Stop here, wait for user decision
+                        } else {
+                            console.log('⚠️ Enhancement not shown:', {
+                                same: enhancement.enhanced === finalQuery,
+                                lowConfidence: enhancement.confidence < 50
+                            });
+                        }
+                    } else {
+                        const errorText = await enhanceRes.text();
+                        console.error('❌ Enhancement API failed:', errorText);
+                    }
+                } catch (err) {
+                    console.error('❌ Enhancement error:', err);
+                }
+            } else {
+                console.log('⏭️ Skipping enhancement (score too high or not needed)');
+            }
+        }
+
+        // 🚀 EXECUTE SEARCH
+        await executeSearch(finalQuery);
+    };
+
+    // Separated search execution for reuse
+    const executeSearch = async (finalQuery) => {
         setLoading(true);
         setResults(null);
         setTimeLeft(60);
+        setReformulationModal(null); // Clear any previous reformulation suggestions
 
         if (isDemoProp) {
             // SIMULATE SEARCH IN DEMO
@@ -367,6 +451,41 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                     result_json: data
                 };
                 setHistory(prev => [newHistoryItem, ...prev]);
+            }
+
+            // 🔍 POST-SEARCH: Check results quality and offer reformulation if needed
+            if (assistedMode && data.cases && data.cases.length > 0) {
+                const avgScore = data.cases.reduce((sum, c) => sum + (c.score || 0), 0) / data.cases.length;
+                const highQualityCases = data.cases.filter(c => (c.score || 0) >= 60).length;
+
+                // If results are poor, offer alternatives
+                if (avgScore < 50 || highQualityCases < 2) {
+                    setTimeout(async () => {
+                        try {
+                            const altRes = await fetch('/api/research/alternatives', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    query: finalQuery,
+                                    jurisdiction: scope === 'nacional' ? 'Nacional' : province
+                                })
+                            });
+
+                            if (altRes.ok) {
+                                const alternatives = await altRes.json();
+                                if (alternatives.alternatives && alternatives.alternatives.length > 0) {
+                                    setReformulationModal({
+                                        original: finalQuery,
+                                        alternatives: alternatives.alternatives,
+                                        avgScore: Math.round(avgScore)
+                                    });
+                                }
+                            }
+                        } catch (err) {
+                            console.warn('Failed to generate alternatives:', err);
+                        }
+                    }, 2000); // Show after 2 seconds so user can see initial results
+                }
             }
 
         } catch (error) {
@@ -489,6 +608,29 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         </header>
 
                         <div className="search-box-container glass-panel">
+                            {/* MODE TOGGLE - Contextual placement */}
+                            <div className="mode-toggle-container">
+                                <button
+                                    onClick={() => setAssistedMode(!assistedMode)}
+                                    className={`mode-toggle ${assistedMode ? 'assisted' : 'expert'}`}
+                                    title={assistedMode ? 'Modo Asistido: Sugerencias y mejoras automáticas' : 'Modo Experto: Búsqueda directa sin asistencia'}
+                                >
+                                    {assistedMode ? (
+                                        <>
+                                            <Sparkles size={18} />
+                                            <span className="mode-label">Modo Asistido</span>
+                                            <span className="mode-hint">IA te ayuda a mejorar tu búsqueda</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Zap size={18} />
+                                            <span className="mode-label">Modo Experto</span>
+                                            <span className="mode-hint">Búsqueda directa sin asistencia</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+
                             <div className="jurisdiction-selector">
                                 <label htmlFor="res_scope_nacional" className={`radio-btn ${scope === 'nacional' ? 'active' : ''}`}>
                                     <input
@@ -658,7 +800,17 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                             <div className="cases-grid">
                                                 {results.cases.length === 0 && <p className="case-empty-text">No se encontraron fallos digitales directos.</p>}
                                                 {results.cases.map((c, i) => {
-                                                    const safeUrl = (c.url && c.url.startsWith('http')) ? c.url : (c.url ? `https://${c.url}` : null);
+                                                    // Fix malformed URLs (e.g., "www.example.com/https://...")
+                                                    let safeUrl = c.url;
+                                                    if (safeUrl) {
+                                                        if (safeUrl.includes('://') && !safeUrl.startsWith('http')) {
+                                                            // Extract the actual URL after the protocol
+                                                            const protocolIndex = safeUrl.indexOf('://');
+                                                            safeUrl = safeUrl.substring(safeUrl.lastIndexOf('http'));
+                                                        } else if (!safeUrl.startsWith('http')) {
+                                                            safeUrl = `https://${safeUrl}`;
+                                                        }
+                                                    }
                                                     const isRefreshing = refreshingCases[i];
                                                     return (
                                                         <div
@@ -745,7 +897,13 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                         <h3>🔗 Recursos y Enlaces Útiles</h3>
                                         <div className="links-grid">
                                             {results.links.map((link, idx) => {
-                                                const safeUrl = link.url.startsWith('http') ? link.url : `https://${link.url}`;
+                                                // Fix malformed URLs
+                                                let safeUrl = link.url;
+                                                if (safeUrl.includes('://') && !safeUrl.startsWith('http')) {
+                                                    safeUrl = safeUrl.substring(safeUrl.lastIndexOf('http'));
+                                                } else if (!safeUrl.startsWith('http')) {
+                                                    safeUrl = `https://${safeUrl}`;
+                                                }
                                                 return (
                                                     <div key={idx} className="link-wrapper">
                                                         <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="link-item">
@@ -764,40 +922,8 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
 
                         {!results && !loading && (
-                            <div className="guided-research">
-                                <h3>💡 ¿Sobre qué quieres investigar hoy?</h3>
-                                <div className="categories-grid">
-                                    <div className={`category-card glass-card ${activeCategory === 'laboral' ? 'active' : ''}`}
-                                        onClick={() => { setPlaceholder('Jurisprudencia sobre despidos con justa causa en CABA'); setQuery(''); setActiveCategory('laboral'); }}>
-                                        <span className="icon"><Briefcase size={24} /></span>
-                                        <h4>Laboral</h4>
-                                        <p>Despidos, accidentes, trabajo en negro.</p>
-                                    </div>
-                                    <div className={`category-card glass-card ${activeCategory === 'penal' ? 'active' : ''}`}
-                                        onClick={() => { setPlaceholder('Jurisprudencia sobre robo con arma de guerra y abuso de autoridad'); setQuery(''); setActiveCategory('penal'); }}>
-                                        <span className="icon"><Gavel size={24} /></span>
-                                        <h4>Penal</h4>
-                                        <p>Robo con armas, abusos, delitos complejos.</p>
-                                    </div>
-                                    <div className={`category-card glass-card ${activeCategory === 'civil' ? 'active' : ''}`}
-                                        onClick={() => { setPlaceholder('Sucesión con herederos forzosos y bienes en varias provincias'); setQuery(''); setActiveCategory('civil'); }}>
-                                        <span className="icon"><Home size={24} /></span>
-                                        <h4>Civil & Familia</h4>
-                                        <p>Sucesiones, divorcios, medianería.</p>
-                                    </div>
-                                    <div className={`category-card glass-card ${activeCategory === 'propiedad' ? 'active' : ''}`}
-                                        onClick={() => { setPlaceholder('Jurisprudencia sobre mediación y medianería en edificios'); setQuery(''); setActiveCategory('propiedad'); }}>
-                                        <span className="icon"><Building2 size={24} /></span>
-                                        <h4>Propiedad</h4>
-                                        <p>Medianería, consorcios, desalojos.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {!results && !loading && (
                             <div className="empty-state">
-                                <p>O escribe tu propia consulta legal en la barra superior.</p>
+                                <p>✨ Escribí tu consulta legal y el sistema te ayudará a optimizarla automáticamente.</p>
                             </div>
                         )}
 
@@ -827,6 +953,140 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                 className="btn-quota-cancel"
                             >
                                 Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* QUERY ENHANCEMENT MODAL */}
+            {enhancementModal && (
+                <div className="quota-modal-overlay" onClick={() => setEnhancementModal(null)}>
+                    <div className="enhancement-modal-card" onClick={e => e.stopPropagation()}>
+                        <button
+                            className="modal-close-btn"
+                            onClick={() => setEnhancementModal(null)}
+                            aria-label="Cerrar modal"
+                        >
+                            ✕
+                        </button>
+                        <div className="enhancement-icon-circle">
+                            <Sparkles size={32} className="text-amber-400" />
+                        </div>
+                        <h3 className="enhancement-title">Mejora de Búsqueda Detectada</h3>
+
+                        <div className="enhancement-quality-badge">
+                            <AlertCircle size={16} />
+                            <span>Calidad de búsqueda: {enhancementModal.quality.level === 'POOR' ? 'Baja' : 'Mejorable'} ({enhancementModal.quality.score}/100)</span>
+                        </div>
+
+                        {enhancementModal.quality.issues.length > 0 && (
+                            <div className="enhancement-issues">
+                                <p className="enhancement-section-title">Problemas detectados:</p>
+                                <ul>
+                                    {enhancementModal.quality.issues.map((issue, i) => (
+                                        <li key={i}>{issue}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        <div className="enhancement-comparison">
+                            <div className="enhancement-query original">
+                                <label>Tu búsqueda:</label>
+                                <div className="query-text">{enhancementModal.original}</div>
+                            </div>
+                            <div className="enhancement-arrow">→</div>
+                            <div className="enhancement-query enhanced">
+                                <label>Búsqueda mejorada:</label>
+                                <div className="query-text">{enhancementModal.enhanced}</div>
+                            </div>
+                        </div>
+
+                        {enhancementModal.changes && enhancementModal.changes.length > 0 && (
+                            <div className="enhancement-changes">
+                                <p className="enhancement-section-title">Mejoras aplicadas:</p>
+                                <ul>
+                                    {enhancementModal.changes.map((change, i) => (
+                                        <li key={i}>✓ {change}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        <div className="enhancement-actions">
+                            <button
+                                className="btn-enhancement-accept"
+                                onClick={() => {
+                                    setQuery(enhancementModal.enhanced);
+                                    setEnhancementModal(null);
+                                    handleSearch(null, enhancementModal.enhanced);
+                                }}
+                            >
+                                <TrendingUp size={16} />
+                                Usar búsqueda mejorada
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setEnhancementModal(null);
+                                    handleSearch(null, enhancementModal.original);
+                                }}
+                                className="btn-enhancement-original"
+                            >
+                                Usar búsqueda original
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* REFORMULATION SUGGESTIONS MODAL */}
+            {reformulationModal && (
+                <div className="quota-modal-overlay" onClick={() => setReformulationModal(null)}>
+                    <div className="enhancement-modal-card" onClick={e => e.stopPropagation()}>
+                        <button
+                            className="modal-close-btn"
+                            onClick={() => setReformulationModal(null)}
+                            aria-label="Cerrar modal"
+                        >
+                            ✕
+                        </button>
+                        <div className="enhancement-icon-circle">
+                            <AlertCircle size={32} className="text-orange-400" />
+                        </div>
+                        <h3 className="enhancement-title">Resultados Limitados</h3>
+
+                        <p className="reformulation-desc">
+                            La búsqueda "{reformulationModal.original}" obtuvo resultados de calidad limitada (score promedio: {reformulationModal.avgScore}/100).
+                        </p>
+
+                        <p className="reformulation-desc">
+                            Probá con alguna de estas búsquedas alternativas:
+                        </p>
+
+                        <div className="reformulation-alternatives">
+                            {reformulationModal.alternatives.map((alt, i) => (
+                                <button
+                                    key={i}
+                                    className="reformulation-option"
+                                    onClick={() => {
+                                        setQuery(alt.query);
+                                        setReformulationModal(null);
+                                        handleSearch(null, alt.query);
+                                    }}
+                                >
+                                    <div className="reformulation-query">{alt.query}</div>
+                                    <div className="reformulation-reason">{alt.reason}</div>
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="enhancement-actions">
+                            <button
+                                onClick={() => setReformulationModal(null)}
+                                className="btn-enhancement-original"
+                            >
+                                Mantener resultados actuales
                             </button>
                         </div>
                     </div>

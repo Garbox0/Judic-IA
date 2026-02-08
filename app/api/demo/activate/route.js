@@ -15,17 +15,16 @@ export async function POST(req) {
     const { error } = await supabase
         .from("profiles")
         .update({
-            plan_tier: "starter",
-            subscription_status: "demo",
-            demo_expires_at: expires,
-            ai_message_quota: 20,
+            plan_tier: "trial",
+            subscription_status: "active",
+            trial_ends_at: expires,
             ai_messages_used: 0,
-            inquiry_quota: 3,
             inquiries_used: 0,
+            quota_reset_at: new Date().toISOString()
         })
         .eq("id", user_id);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    return NextResponse.json({ ok: true, demo_expires_at: expires });
+    return NextResponse.json({ ok: true, trial_ends_at: expires, demo_expires_at: expires });
 }
