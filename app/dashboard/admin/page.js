@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
+import { getPlanLimit } from '@/lib/planLimits';
 import {
     Users,
     Crown,
@@ -29,7 +30,11 @@ import {
     Upload,
     FileText,
     Clock,
-    Eye
+    Eye,
+    CreditCard,
+    DollarSign,
+    Play,
+    Zap
 } from 'lucide-react';
 import {
     BarChart,
@@ -64,7 +69,7 @@ export default function AdminPage() {
     const [currentUser, setCurrentUser] = useState(null);
     const [activeModal, setActiveModal] = useState(null);
     const [notifications, setNotifications] = useState([]);
-    const [activeTab, setActiveTab] = useState('users'); // 'users' | 'verification' | 'invoices'
+    const [activeTab, setActiveTab] = useState('users'); // 'users' | 'verification' | 'invoices' | 'subscriptions'
     const [adminInvoices, setAdminInvoices] = useState([]);
     const [uploadingInvoice, setUploadingInvoice] = useState(null);
     const router = useRouter();
@@ -134,15 +139,17 @@ export default function AdminPage() {
             setFilteredUsers(profiles || []);
 
             const totalUsers = profiles?.length || 0;
-            const totalPro = profiles?.filter(u => u.subscription_status === 'active').length || 0;
+            const totalPro = profiles?.filter(u => u.plan_tier === 'professional' && u.subscription_status === 'active').length || 0;
             const totalMessages = profiles?.reduce((acc, curr) => acc + (curr.ai_messages_used || 0), 0) || 0;
             const totalUsage = totalMessages > 1000 ? `${(totalMessages / 1000).toFixed(1)}k` : totalMessages;
+            const monthlyRevenue = totalPro * 25000; // $25k ARS per professional user
 
             setStats({
                 totalUsers,
                 totalPro,
                 totalUsage,
-                totalMessages
+                totalMessages,
+                monthlyRevenue
             });
 
         } catch (error) {
@@ -187,9 +194,12 @@ export default function AdminPage() {
 
                 const updates = {
                     subscription_status: newStatus,
-                    plan_tier: payload.active ? 'professional' : 'basic',
-                    ai_message_quota: payload.active ? 1000 : 20,
+                    plan_tier: payload.active ? 'professional' : 'free',
                     subscription_expiry: payload.active ? expiryDate : null,
+                    quota_reset_at: now.toISOString(),
+                    ai_messages_used: 0,
+                    inquiries_used: 0,
+                    research_reports_used: 0,
                     mp_preapproval_id: null,
                     mp_subscription_status: null
                 };
@@ -205,19 +215,13 @@ export default function AdminPage() {
 
                 if (!res.ok) throw new Error('Fallo en la actualización');
                 showNotification('success', `Usuario ${payload.active ? 'activado' : 'desactivado'}.`);
-            } else if (action === 'update-credits') {
-                const res = await fetch('/api/admin/update-profile', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}`
-                    },
-                    body: JSON.stringify({ userId, updates: { ai_message_quota: parseInt(payload.quota) } })
-                });
-                if (!res.ok) throw new Error('Fallo al actualizar cuota');
-                showNotification('success', 'Cuota actualizada.');
             } else if (action === 'reset-usage') {
-                const { error } = await supabase.from('profiles').update({ ai_messages_used: 0 }).eq('id', userId);
+                const { error } = await supabase.from('profiles').update({
+                    ai_messages_used: 0,
+                    inquiries_used: 0,
+                    research_reports_used: 0,
+                    quota_reset_at: new Date().toISOString()
+                }).eq('id', userId);
                 if (error) throw error;
                 showNotification('success', 'Uso reseteado.');
             } else if (action === 'revoke-access') {
@@ -225,7 +229,10 @@ export default function AdminPage() {
                     plan_tier: 'free',
                     subscription_status: 'inactive',
                     subscription_expiry: new Date().toISOString(),
-                    ai_message_quota: 20
+                    quota_reset_at: new Date().toISOString(),
+                    ai_messages_used: 0,
+                    inquiries_used: 0,
+                    research_reports_used: 0
                 };
                 const res = await fetch('/api/admin/update-profile', {
                     method: 'POST',
@@ -409,8 +416,8 @@ export default function AdminPage() {
                     <div className="stat-grid">
                         <StatBox label="Usuarios" value={stats.totalUsers} delta="+12%" icon={Users} color="blue" />
                         <StatBox label="Planes PRO" value={stats.totalPro} delta="Active" icon={Crown} color="gold" />
-                        <StatBox label="Consumo AI" value={stats.totalUsage} delta="Msjs" icon={Activity} color="emerald" />
-                        <StatBox label="Status Web" value={health.status === 'healthy' ? '100%' : '50%'} delta="LIVE" icon={TrendingUp} color="purple" />
+                        <StatBox label="Revenue Mensual" value={`$${(stats.monthlyRevenue / 1000).toFixed(0)}k`} delta="ARS" icon={DollarSign} color="emerald" />
+                        <StatBox label="Consumo AI" value={stats.totalUsage} delta="Msjs" icon={Activity} color="purple" />
                     </div>
 
                     {/* --- TAB NAVIGATION --- */}
@@ -423,8 +430,20 @@ export default function AdminPage() {
                             Usuarios
                         </button>
                         <button
+                            onClick={() => setActiveTab('subscriptions')}
+                            className={`tab-trigger ${activeTab === 'subscriptions' ? 'active emerald' : ''}`}
+                        >
+                            <CreditCard size={14} />
+                            Suscripciones MP
+                            {users.filter(u => u.plan_tier === 'professional' && u.subscription_status === 'active').length > 0 && (
+                                <span className="bg-emerald text-black text-[9px] font-black px-2 py-0.5 rounded-full ml-1">
+                                    {users.filter(u => u.plan_tier === 'professional' && u.subscription_status === 'active').length}
+                                </span>
+                            )}
+                        </button>
+                        <button
                             onClick={() => setActiveTab('verification')}
-                            className={`tab-trigger ${activeTab === 'verification' ? 'active emerald' : ''}`}
+                            className={`tab-trigger ${activeTab === 'verification' ? 'active blue' : ''}`}
                         >
                             <BadgeCheck size={14} />
                             Verificación
@@ -526,32 +545,24 @@ export default function AdminPage() {
 
                                                     <div className="space-y-2 pr-4">
                                                         <div className="flex items-baseline gap-1.5 text-[10px] font-black">
-                                                            <span className="text-admin-primary text-lg">{user.ai_messages_used}</span>
-                                                            <span className="text-admin-muted">/ {user.ai_message_quota || 20}</span>
+                                                            <span className="text-admin-primary text-lg">{user.ai_messages_used || 0}</span>
+                                                            <span className="text-admin-muted">/ {getPlanLimit(user.plan_tier || 'free', 'ai_messages')}</span>
                                                         </div>
                                                         <div className="h-1 bg-black/40 rounded-full overflow-hidden">
-                                                            <div className="h-full bg-gold rounded-full transition-all duration-1000" style={{ width: `${Math.min((user.ai_messages_used / (user.ai_message_quota || 20)) * 100, 100)}%` }} />
+                                                            <div className="h-full bg-gold rounded-full transition-all duration-1000" style={{ width: `${Math.min(((user.ai_messages_used || 0) / getPlanLimit(user.plan_tier || 'free', 'ai_messages')) * 100, 100)}%` }} />
                                                         </div>
                                                     </div>
 
                                                     <div className="flex items-center justify-end gap-2 pr-2">
-                                                        <button onClick={() => handleAction(user.id, 'toggle-pro', { active: user.subscription_status !== 'active' })}
-                                                            className={`action-btn ${user.subscription_status === 'active' ? 'text-gold border-gold/30 bg-gold/10' : ''}`} title="Swap Subscription">
+                                                        <button onClick={() => handleAction(user.id, 'toggle-pro', { active: user.plan_tier !== 'professional' || user.subscription_status !== 'active' })}
+                                                            className={`action-btn ${user.plan_tier === 'professional' && user.subscription_status === 'active' ? 'text-gold border-gold/30 bg-gold/10' : ''}`} title="Toggle Professional">
                                                             <Crown size={15} />
                                                         </button>
-                                                        <button onClick={() => handleAction(user.id, 'revoke-access')} className="action-btn text-rose hover:bg-rose/10 hover:border-rose/30" title="Revive Access">
-                                                            <Power size={15} />
+                                                        <button onClick={() => handleAction(user.id, 'reset-usage')} className="action-btn text-emerald hover:bg-emerald/10 hover:border-emerald/30" title="Reset Usage">
+                                                            <RefreshCw size={15} />
                                                         </button>
-                                                        <button onClick={() => {
-                                                            setActiveModal({
-                                                                title: 'Protocolo de Cuota',
-                                                                message: `Ajustar límite mensual para ${user.email}:`,
-                                                                userInput: true,
-                                                                defaultValue: user.ai_message_quota,
-                                                                onConfirm: (val) => handleAction(user.id, 'update-credits', { quota: val })
-                                                            });
-                                                        }} className="action-btn">
-                                                            <Edit3 size={15} />
+                                                        <button onClick={() => handleAction(user.id, 'revoke-access')} className="action-btn text-rose hover:bg-rose/10 hover:border-rose/30" title="Revoke Access">
+                                                            <Power size={15} />
                                                         </button>
                                                     </div>
                                                 </div>
@@ -650,6 +661,196 @@ export default function AdminPage() {
                                                     </div>
                                                     <h4 className="text-admin-primary font-black uppercase tracking-[0.3em] text-sm mb-3">Protocolos Vacíos</h4>
                                                     <p className="text-admin-muted text-[10px] font-bold uppercase tracking-widest opacity-60">No hay perfiles de abogados registrados en el sistema central</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            {activeTab === 'subscriptions' && (
+                                <div className="glass-card overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    <div className="flex flex-col gap-6 py-10 px-10 border-b border-admin-stroke">
+                                        <div className="flex flex-wrap justify-between items-center gap-4">
+                                            <div className="space-y-1">
+                                                <h3 className="text-2xl font-black text-admin-primary tracking-tighter">Suscripciones MercadoPago</h3>
+                                                <p className="text-admin-muted text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Monitoreo de Planes Profesionales</p>
+                                            </div>
+                                            <div className="flex items-center gap-3 flex-wrap">
+                                                <div className="badge-premium badge-verified flex items-center gap-2 py-2 px-4 rounded-full text-xs">
+                                                    <DollarSign size={14} className="text-emerald" />
+                                                    <span className="font-black">${(stats.monthlyRevenue || 0).toLocaleString('es-AR')}</span> ARS/mes
+                                                </div>
+                                                <div className="badge-premium badge-pending flex items-center gap-2 py-2 px-4 rounded-full text-xs">
+                                                    <Crown size={14} className="text-gold" />
+                                                    <span className="font-black">{users.filter(u => u.plan_tier === 'professional' && u.subscription_status === 'active').length}</span> Activas
+                                                </div>
+                                                {users.filter(u => u.subscription_status === 'past_due').length > 0 && (
+                                                    <div className="badge-premium bg-rose/10 border-rose/20 text-rose flex items-center gap-2 py-2 px-4 rounded-full text-xs">
+                                                        <AlertCircle size={14} />
+                                                        <span className="font-black">{users.filter(u => u.subscription_status === 'past_due').length}</span> En Gracia
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-3 flex-wrap">
+                                            <button
+                                                onClick={async () => {
+                                                    setLoading(true);
+                                                    try {
+                                                        const { data: { session } } = await supabase.auth.getSession();
+                                                        const res = await fetch('/api/cron/check-expiry', {
+                                                            method: 'GET',
+                                                            headers: { 'Authorization': `Bearer ${process.env.CRON_SECRET || 'dev-secret'}` }
+                                                        });
+                                                        const data = await res.json();
+                                                        showNotification('success', `CRON Ejecutado: ${data.results?.renewed?.length || 0} renovadas, ${data.results?.downgraded?.length || 0} degradadas`);
+                                                        initialFetch(currentUser?.id);
+                                                    } catch (e) {
+                                                        showNotification('error', 'Error ejecutando CRON');
+                                                    } finally {
+                                                        setLoading(false);
+                                                    }
+                                                }}
+                                                className="premium-btn emerald"
+                                            >
+                                                <Play size={16} />
+                                                <span>Run Expiry Check</span>
+                                            </button>
+                                            <button
+                                                onClick={async () => {
+                                                    setLoading(true);
+                                                    try {
+                                                        const { data: { session } } = await supabase.auth.getSession();
+                                                        const res = await fetch('/api/cron/reset-quotas', {
+                                                            method: 'GET',
+                                                            headers: { 'Authorization': `Bearer ${process.env.CRON_SECRET || 'dev-secret'}` }
+                                                        });
+                                                        const data = await res.json();
+                                                        showNotification('success', `Cuotas reseteadas: ${data.count || 0} usuarios`);
+                                                        initialFetch(currentUser?.id);
+                                                    } catch (e) {
+                                                        showNotification('error', 'Error reseteando cuotas');
+                                                    } finally {
+                                                        setLoading(false);
+                                                    }
+                                                }}
+                                                className="premium-btn"
+                                            >
+                                                <Zap size={16} />
+                                                <span>Reset Quotas</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="admin-table-container mt-8 mx-10 mb-10 overflow-hidden">
+                                        <div className="table-header-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1.5fr', gap: '1rem' }}>
+                                            <span className="table-header-item">Usuario</span>
+                                            <span className="table-header-item">MP ID</span>
+                                            <span className="table-header-item">Status</span>
+                                            <span className="table-header-item">Inicio</span>
+                                            <span className="table-header-item">Vence</span>
+                                            <span className="table-header-item text-right">Grace Period</span>
+                                        </div>
+
+                                        <div className="overflow-y-auto max-h-[600px]">
+                                            {users.filter(u => u.plan_tier === 'professional').map(sub => {
+                                                const expiryDate = sub.subscription_expiry ? new Date(sub.subscription_expiry) : null;
+                                                const startedDate = sub.subscription_started_at ? new Date(sub.subscription_started_at) : null;
+                                                const graceDate = sub.grace_period_ends_at ? new Date(sub.grace_period_ends_at) : null;
+                                                const daysUntilExpiry = expiryDate ? Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24)) : null;
+
+                                                return (
+                                                    <div key={sub.id} className="table-row group" style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1.5fr', gap: '1rem', alignItems: 'center' }}>
+                                                        <div className="flex items-center gap-4">
+                                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black text-xs border transition-all
+                                                                ${sub.subscription_status === 'active'
+                                                                    ? 'bg-emerald/10 text-emerald border-emerald/20'
+                                                                    : sub.subscription_status === 'past_due'
+                                                                        ? 'bg-rose/10 text-rose border-rose/20'
+                                                                        : 'bg-gold/10 text-gold border-gold/20'}`}>
+                                                                {sub.email[0].toUpperCase()}
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="font-bold text-admin-primary text-sm tracking-tight">{sub.full_name || 'Sin nombre'}</span>
+                                                                <span className="text-[10px] text-admin-muted font-mono opacity-60">{sub.email}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="text-admin-secondary text-xs font-mono truncate">
+                                                            {sub.mp_preapproval_id ? (
+                                                                <span className="text-blue">{sub.mp_preapproval_id.slice(0, 20)}...</span>
+                                                            ) : (
+                                                                <span className="text-admin-muted opacity-40">Manual</span>
+                                                            )}
+                                                        </div>
+
+                                                        <div>
+                                                            {sub.subscription_status === 'active' ? (
+                                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald/10 text-emerald border border-emerald/20 rounded-full text-[10px] font-black uppercase">
+                                                                    <CheckCircle2 size={12} />
+                                                                    Activa
+                                                                </span>
+                                                            ) : sub.subscription_status === 'past_due' ? (
+                                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose/10 text-rose border border-rose/20 rounded-full text-[10px] font-black uppercase">
+                                                                    <AlertCircle size={12} />
+                                                                    Gracia
+                                                                </span>
+                                                            ) : (
+                                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-admin-surface text-admin-muted border border-admin-stroke rounded-full text-[10px] font-black uppercase">
+                                                                    Cancelada
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="text-admin-secondary text-xs">
+                                                            {startedDate ? startedDate.toLocaleDateString('es-AR', {
+                                                                day: '2-digit',
+                                                                month: 'short'
+                                                            }) : 'N/A'}
+                                                        </div>
+
+                                                        <div className="text-admin-secondary text-xs">
+                                                            {expiryDate ? (
+                                                                <div className="flex flex-col">
+                                                                    <span>{expiryDate.toLocaleDateString('es-AR', {
+                                                                        day: '2-digit',
+                                                                        month: 'short'
+                                                                    })}</span>
+                                                                    {daysUntilExpiry !== null && (
+                                                                        <span className={`text-[9px] font-black ${daysUntilExpiry < 7 ? 'text-rose' : daysUntilExpiry < 14 ? 'text-gold' : 'text-emerald'}`}>
+                                                                            {daysUntilExpiry > 0 ? `${daysUntilExpiry}d restantes` : `Venció hace ${Math.abs(daysUntilExpiry)}d`}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            ) : 'N/A'}
+                                                        </div>
+
+                                                        <div className="text-right text-xs">
+                                                            {graceDate ? (
+                                                                <div className="flex flex-col items-end">
+                                                                    <span className="text-rose font-bold">{graceDate.toLocaleDateString('es-AR', {
+                                                                        day: '2-digit',
+                                                                        month: 'short'
+                                                                    })}</span>
+                                                                    <span className="text-[9px] text-rose/60 font-black">
+                                                                        {Math.ceil((graceDate - new Date()) / (1000 * 60 * 60 * 24))}d de gracia
+                                                                    </span>
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-admin-muted opacity-40">—</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+
+                                            {users.filter(u => u.plan_tier === 'professional').length === 0 && (
+                                                <div className="flex flex-col items-center justify-center py-32 px-10 animate-in fade-in zoom-in duration-500">
+                                                    <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-8 border border-white/5">
+                                                        <CreditCard size={48} className="text-admin-muted opacity-20" />
+                                                    </div>
+                                                    <h4 className="text-admin-primary font-black uppercase tracking-[0.3em] text-sm mb-3 text-center">Sin Suscripciones</h4>
+                                                    <p className="text-admin-muted text-[10px] font-bold uppercase tracking-widest opacity-60 text-center">No hay suscripciones profesionales activas</p>
                                                 </div>
                                             )}
                                         </div>
