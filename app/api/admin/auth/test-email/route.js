@@ -11,7 +11,7 @@ export async function GET(request) {
 
         // Test 1: Send simple test email
         const testEmail = {
-            from: 'Seguridad Judic-IA <security@judic-ia.com>',
+            from: 'Soporte Judic-IA <soporte@judic-ia.com>',
             to: 'gbrlescalada@gmail.com', // Your admin email
             subject: '🧪 Test de Configuración Resend - Judic-IA',
             html: `

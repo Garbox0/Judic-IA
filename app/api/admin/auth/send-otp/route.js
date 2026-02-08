@@ -71,12 +71,12 @@ export async function POST(request) {
 
         // 5. Send Email with detailed logging
         console.log('📧 [OTP] Preparing email...');
-        console.log('📧 [OTP] From: security@judic-ia.com');
+        console.log('📧 [OTP] From: soporte@judic-ia.com');
         console.log('📧 [OTP] To:', user.email);
         console.log('📧 [OTP] Resend API Key exists:', !!process.env.RESEND_API_KEY);
 
         const emailPayload = {
-            from: 'Seguridad Judic-IA <security@judic-ia.com>',
+            from: 'Soporte Judic-IA <soporte@judic-ia.com>',
             to: user.email,
             subject: '🛡️ Tu Código de Acceso Admin - Judic-IA',
             html: getHtmlEmail({
