@@ -24,18 +24,18 @@ export async function GET(req) {
         const now = new Date();
 
         // 1. Get ALL users with plan_tier = 'professional' whom expiry is in the past
+        // Also check for users in grace period whose grace period has ended
         const { data: profiles, error } = await supabase
             .from("profiles")
             .select("*")
-            .eq("plan_tier", "professional")
-            .lt("subscription_expiry", now.toISOString());
+            .or(`and(plan_tier.eq.professional,subscription_expiry.lt.${now.toISOString()}),and(subscription_status.eq.past_due,grace_period_ends_at.lt.${now.toISOString()})`);
 
         if (error) throw error;
         if (!profiles || profiles.length === 0) {
-            return NextResponse.json({ message: "No expired subscriptions found" });
+            return NextResponse.json({ message: "No expired subscriptions or grace periods found" });
         }
 
-        console.log(`Checking ${profiles.length} expired subscriptions...`);
+        console.log(`Checking ${profiles.length} expired subscriptions/grace periods...`);
 
         for (const profile of profiles) {
             try {
@@ -82,8 +82,12 @@ export async function GET(req) {
                     await supabase.from("profiles").update({
                         subscription_expiry: newExpiry.toISOString(),
                         subscription_status: 'active',
-                        ai_message_quota: 1000,
-                        inquiry_quota: 100
+                        quota_reset_at: now.toISOString(),
+                        grace_period_ends_at: null,
+                        // Reset usage counters for new billing cycle
+                        ai_messages_used: 0,
+                        inquiries_used: 0,
+                        research_reports_used: 0
                     }).eq("id", profile.id);
 
                     results.renewed.push(profile.id);
@@ -114,12 +118,17 @@ export async function GET(req) {
 }
 
 async function downgradeUser(supabase, userId) {
+    const now = new Date();
     await supabase.from("profiles").update({
-        plan_tier: 'starter',
+        plan_tier: 'free',
         subscription_status: 'inactive',
-        ai_message_quota: 20, // Reset to free limits
-        inquiry_quota: 5,
+        quota_reset_at: now.toISOString(),
+        grace_period_ends_at: null,
+        // Reset to free tier limits (20 AI messages, 5 inquiries, 5 research reports)
+        ai_messages_used: 0,
+        inquiries_used: 0,
+        research_reports_used: 0,
         mp_subscription_status: 'cancelled_by_system'
     }).eq("id", userId);
-    console.log(`Downgraded user ${userId} to starter.`);
+    console.log(`Downgraded user ${userId} to free tier.`);
 }

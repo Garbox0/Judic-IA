@@ -79,15 +79,21 @@ export async function POST(req) {
 
             patch.subscription_expiry = expiryDate.toISOString();
             patch.subscription_started_at = now.toISOString();
+            patch.quota_reset_at = now.toISOString();
+
+            // Clear grace period if exists
+            patch.grace_period_ends_at = null;
 
             // Solo reseteamos cuotas si están bajas (evitar resetear si el webhook ya corrió hace 1 seg)
             // Chequeamos el perfil actual primero
-            const { data: currentProfile } = await supabase.from("profiles").select("ai_message_quota, plan_tier").eq("id", userId).single();
+            const { data: currentProfile } = await supabase.from("profiles").select("plan_tier").eq("id", userId).single();
 
-            // Si el usuario NO era pro, le damos las cuotas completas
+            // Si el usuario NO era pro, le damos las cuotas reseteadas
+            // Professional tier gets usage counters reset (not unlimited quotas, per PLAN_LIMITS)
             if (currentProfile?.plan_tier !== 'professional') {
-                patch.ai_message_quota = 1000;
-                patch.inquiry_quota = 100;
+                patch.ai_messages_used = 0;
+                patch.inquiries_used = 0;
+                patch.research_reports_used = 0;
             }
 
             const { error } = await supabase.from("profiles").update(patch).eq("id", userId);

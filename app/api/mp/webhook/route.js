@@ -113,7 +113,7 @@ export async function POST(req) {
         };
 
         // Check current status for Idempotency (Prevent duplicate emails)
-        const { data: currentProfile } = await supabase.from("profiles").select("plan_tier, subscription_expiry").eq("id", userId).single();
+        const { data: currentProfile } = await supabase.from("profiles").select("plan_tier, subscription_expiry, quota_reset_at").eq("id", userId).single();
         const isFreshUpgrade = currentProfile?.plan_tier !== 'professional';
 
         // Lógica de Estado
@@ -129,16 +129,24 @@ export async function POST(req) {
             expiryDate.setDate(expiryDate.getDate() + 30);
             patch.subscription_expiry = expiryDate.toISOString();
 
-            // Reset quotas for new pro user
-            patch.ai_message_quota = 1000;
-            patch.inquiry_quota = 100;
+            // Reset monthly quota timestamp
+            patch.quota_reset_at = now.toISOString();
+
+            // Reset usage counters for new billing cycle (professional gets unlimited = -1 or high limits)
+            // Per PLAN_LIMITS: professional has 1000 AI messages, 100 inquiries, 50 research reports
+            patch.ai_messages_used = 0;
+            patch.inquiries_used = 0;
+            patch.research_reports_used = 0;
+
+            // Clear any grace period if they were in one
+            patch.grace_period_ends_at = null;
         }
 
         if (sub.status === "paused" || sub.status === "cancelled") {
             patch.subscription_status = "cancelled";
 
             // Logic to prevent premature downgrade:
-            // Only downgrade to starter if the expiry date has passed.
+            // Only downgrade to free tier if the expiry date has passed.
             // If the user paid for the month, they keep 'professional' until expiry.
 
             const now = new Date();
@@ -150,8 +158,24 @@ export async function POST(req) {
                 console.log(`User ${userId} cancelled but has time remaining until ${storedExpiry.toISOString()}`);
                 // patch.plan_tier remains untouched (or ensures it stays professional)
             } else {
-                patch.plan_tier = "starter";
+                // Downgrade to free tier (not trial, since they were paying customers)
+                patch.plan_tier = "free";
+                // Reset to free tier limits (20 AI messages, 5 inquiries, 5 research reports)
+                patch.ai_messages_used = 0;
+                patch.inquiries_used = 0;
+                patch.research_reports_used = 0;
+                patch.quota_reset_at = now.toISOString();
             }
+        }
+
+        // Handle payment failure (MP sends status updates)
+        if (sub.status === "payment_required" || sub.status === "pending") {
+            // Set grace period (7 days to fix payment)
+            const gracePeriod = new Date();
+            gracePeriod.setDate(gracePeriod.getDate() + 7);
+            patch.grace_period_ends_at = gracePeriod.toISOString();
+            patch.subscription_status = "past_due";
+            // Keep professional tier during grace period
         }
 
         // 5) Actualizar Base de Datos

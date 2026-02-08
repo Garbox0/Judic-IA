@@ -13,7 +13,7 @@ export async function POST() {
             auto_recurring: {
                 frequency: 1,
                 frequency_type: "months",
-                transaction_amount: 15000,
+                transaction_amount: 25000,
                 currency_id: "ARS"
             }
         };
