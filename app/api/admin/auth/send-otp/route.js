@@ -12,31 +12,48 @@ const supabaseAdmin = createClient(
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request) {
+    const startTime = Date.now();
+    console.log('🔐 [OTP] Starting OTP send request...');
+
     try {
         // 1. Verify Requesting User (Must be authenticated via Supabase Auth)
         const authHeader = request.headers.get('Authorization');
         if (!authHeader) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            console.error('❌ [OTP] No auth header provided');
+            return NextResponse.json({ error: 'No autorizado - falta token' }, { status: 401 });
         }
 
+        console.log('🔍 [OTP] Verifying user token...');
         const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(
             authHeader.replace('Bearer ', '')
         );
 
         if (authError || !user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            console.error('❌ [OTP] Auth failed:', authError?.message);
+            return NextResponse.json({ error: 'Token inválido o expirado' }, { status: 401 });
         }
 
-        // 2. (Optional) Verify User is actually an Admin
-        // For now, we assume anyone accessing this route (protected by UI) is trying to get in.
-        // But better to check role if possible. 
-        // We'll proceed with sending to the user's email.
+        console.log('✓ [OTP] User verified:', user.email);
+
+        // 2. Check if user is admin (optional but recommended)
+        const { data: profile } = await supabaseAdmin
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+        if (profile?.role !== 'admin') {
+            console.warn('⚠️ [OTP] Non-admin user attempting access:', user.email);
+            // Still proceed but log it
+        }
 
         // 3. Generate OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+        console.log('🎲 [OTP] Generated code for', user.email);
 
         // 4. Store in admin_otps
+        console.log('💾 [OTP] Storing in database...');
         const { error: dbError } = await supabaseAdmin
             .from('admin_otps')
             .insert({
@@ -46,32 +63,59 @@ export async function POST(request) {
                 verified: false
             });
 
-        if (dbError) throw dbError;
+        if (dbError) {
+            console.error('❌ [OTP] Database error:', dbError);
+            throw new Error('Error guardando código en base de datos');
+        }
+        console.log('✓ [OTP] Stored in database');
 
-        // 5. Send Email
-        const { error: emailError } = await resend.emails.send({
+        // 5. Send Email with detailed logging
+        console.log('📧 [OTP] Preparing email...');
+        console.log('📧 [OTP] From: security@judic-ia.com');
+        console.log('📧 [OTP] To:', user.email);
+        console.log('📧 [OTP] Resend API Key exists:', !!process.env.RESEND_API_KEY);
+
+        const emailPayload = {
             from: 'Seguridad Judic-IA <security@judic-ia.com>',
             to: user.email,
-            subject: '🛡️ Tu Código de Acceso Admin',
+            subject: '🛡️ Tu Código de Acceso Admin - Judic-IA',
             html: getHtmlEmail({
                 heading: 'Acceso Administrativo',
                 bodyContent: `
-                    <p>Alguien (esperamos que tú) está intentando acceder al Panel de Administración de Judic-IA.</p>
-                    <p>Usa el siguiente código para verificar tu identidad:</p>
+                    <p style="color: #cbd5e1; line-height: 1.6;">Alguien (esperamos que tú) está intentando acceder al Panel de Administración de Judic-IA.</p>
+                    <p style="color: #cbd5e1; line-height: 1.6;">Usa el siguiente código para verificar tu identidad:</p>
                 `,
                 otpCode: otp
             })
-        });
+        };
 
-        if (emailError) {
-            console.error('Email Error:', emailError);
-            throw new Error('Error enviando email');
+        console.log('📧 [OTP] Sending via Resend API...');
+        const emailResponse = await resend.emails.send(emailPayload);
+
+        if (emailResponse.error) {
+            console.error('❌ [OTP] Resend API error:', JSON.stringify(emailResponse.error));
+            throw new Error(`Error de Resend: ${emailResponse.error.message || 'Unknown error'}`);
         }
 
-        return NextResponse.json({ success: true, email: user.email });
+        console.log('✓ [OTP] Email sent successfully! ID:', emailResponse.data?.id);
+        console.log(`⏱️ [OTP] Total time: ${Date.now() - startTime}ms`);
+
+        return NextResponse.json({
+            success: true,
+            email: user.email,
+            debug: {
+                emailId: emailResponse.data?.id,
+                timestamp: new Date().toISOString(),
+                timeMs: Date.now() - startTime
+            }
+        });
 
     } catch (error) {
-        console.error('Admin OTP Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error('❌ [OTP] Fatal error:', error);
+        console.error('❌ [OTP] Stack:', error.stack);
+        return NextResponse.json({
+            error: error.message || 'Error interno del servidor',
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        }, { status: 500 });
     }
 }

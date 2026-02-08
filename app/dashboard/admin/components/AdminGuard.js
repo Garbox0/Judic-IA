@@ -51,30 +51,47 @@ export default function AdminGuard({ children }) {
         setLoading(true);
         setError('');
         setSuccess('');
+        console.log('🔐 [AdminGuard] Initiating OTP request...');
+
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
 
-            if (!token) throw new Error('No has iniciado sesión.');
+            if (!token) {
+                console.error('❌ [AdminGuard] No session token');
+                throw new Error('No has iniciado sesión.');
+            }
 
+            console.log('📡 [AdminGuard] Sending request to /api/admin/auth/send-otp');
             const res = await fetch('/api/admin/auth/send-otp', {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Error enviando código');
+            console.log('📨 [AdminGuard] Response:', { status: res.status, data });
+
+            if (!res.ok) {
+                const errorMsg = data.error || 'Error enviando código';
+                console.error('❌ [AdminGuard] Request failed:', errorMsg);
+                throw new Error(errorMsg);
+            }
+
+            console.log('✓ [AdminGuard] OTP sent successfully to:', data.email);
+            console.log('📧 [AdminGuard] Email ID:', data.debug?.emailId);
+            console.log('⏱️ [AdminGuard] Time taken:', data.debug?.timeMs, 'ms');
 
             setStep('sent');
             setEmail(data.email || 'tu correo');
             setTimeLeft(900); // Reset timer
             setCanResend(false);
-            setSuccess('✓ Código enviado exitosamente. Revisa tu bandeja de entrada.');
+            setSuccess(`✓ Código enviado a ${data.email}. Revisa tu bandeja de entrada (incluso spam).`);
 
-            // Clear success message after 5 seconds
-            setTimeout(() => setSuccess(''), 5000);
+            // Clear success message after 8 seconds (longer for visibility)
+            setTimeout(() => setSuccess(''), 8000);
         } catch (err) {
-            setError(err.message);
+            console.error('❌ [AdminGuard] Error:', err);
+            setError(err.message || 'Error desconocido al enviar código');
         } finally {
             setLoading(false);
         }
