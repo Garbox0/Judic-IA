@@ -34,7 +34,7 @@ export default function ClientUpdatePasswordPage() {
                     const refresh_token = params.get('refresh_token');
 
                     if (access_token && refresh_token) {
-                        console.log("🔓 Detected tokens in URL, manually setting session...", access_token.substring(0, 10));
+                        console.log("🔓 Detected tokens in URL, manually setting session...");
                         const { data, error } = await supabase.auth.setSession({
                             access_token,
                             refresh_token

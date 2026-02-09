@@ -199,12 +199,19 @@ export default function CaseDetailPage({ params }) {
         }
     };
 
-    // Simple markdown-ish parser for the summary
+    // Simple markdown-ish parser for the summary (safe - no dangerouslySetInnerHTML)
     const renderSummary = (text) => {
         if (!text) return 'Sin resumen disponible.';
         return text.split('\n').map((line, i) => {
-            const formatted = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            return <div key={i} dangerouslySetInnerHTML={{ __html: formatted }} style={{ marginBottom: '0.4rem' }} />;
+            // Split by **bold** markers and render safely with React
+            const parts = line.split(/\*\*(.*?)\*\*/g);
+            return (
+                <div key={i} style={{ marginBottom: '0.4rem' }}>
+                    {parts.map((part, j) =>
+                        j % 2 === 1 ? <strong key={j}>{part}</strong> : part
+                    )}
+                </div>
+            );
         });
     };
 

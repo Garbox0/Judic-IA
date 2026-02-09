@@ -37,7 +37,7 @@ export async function GET(request) {
             const { data: { user } } = await supabase.auth.getUser();
             let role = user?.user_metadata?.role;
 
-            console.log(`[Auth Callback] User Authenticated: ${user?.email}, Metadata Role: ${role}`);
+            console.log(`[Auth Callback] User Authenticated, Metadata Role: ${role}`);
 
             // 🛡️ ROBUST ARCHITECTURE: Check DB if metadata fails
             if (!role) {
@@ -60,16 +60,17 @@ export async function GET(request) {
 
             // Intelligent Redirect based on Role
             if (role === 'lawyer') {
-                // FORCE MAIN DOMAIN for lawyers
-                const dashboardUrl = isDev ? `${origin}/dashboard` : 'https://judic-ia.com/dashboard';
-                console.log(`[Auth Callback] Redirecting Lawyer to: ${dashboardUrl}`);
-                return NextResponse.redirect(dashboardUrl);
+                // Sign out after confirmation - lawyer must login explicitly with credentials
+                await supabase.auth.signOut();
+                const loginUrl = isDev ? `${origin}/login?confirmed=true` : 'https://judic-ia.com/login?confirmed=true';
+                console.log(`[Auth Callback] Lawyer email confirmed, redirecting to login: ${loginUrl}`);
+                return NextResponse.redirect(loginUrl);
             }
             else if (role === 'client') {
                 // SECURITY: Sign out immediately if this was just a confirmation link for a client
                 // Clients should log in explicitly or via magic link to the client portal
                 await supabase.auth.signOut();
-                console.log(`🔒 Client ${user?.email} signed out after confirmation - redirecting to login`);
+                console.log(`[Auth Callback] Client signed out after confirmation - redirecting to login`);
 
                 const loginUrl = new URL(clientLoginBase);
                 if (lawyerId) loginUrl.searchParams.set('lawyerId', lawyerId);
@@ -79,9 +80,10 @@ export async function GET(request) {
                 return NextResponse.redirect(loginUrl);
             }
 
-            // Fallback for unknown roles - likely admin or new lawyer
-            const fallbackUrl = isDev ? `${origin}/dashboard` : 'https://judic-ia.com/dashboard';
-            console.log(`[Auth Callback] Unknown role, falling back to: ${fallbackUrl}`);
+            // Fallback for unknown roles - sign out and redirect to login
+            await supabase.auth.signOut();
+            const fallbackUrl = isDev ? `${origin}/login?confirmed=true` : 'https://judic-ia.com/login?confirmed=true';
+            console.log(`[Auth Callback] Unknown role, signing out and redirecting to login: ${fallbackUrl}`);
             return NextResponse.redirect(fallbackUrl);
 
         } else {

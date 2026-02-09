@@ -375,7 +375,7 @@ function RegisterContent() {
                     })
                     .eq('id', cid)
                     .is('claimed_by_email', null); // Only claim if not already claimed
-                console.log("✅ CID claimed by:", email);
+                console.log("✅ CID claimed successfully");
             }
 
             // SUCCESS FLOW

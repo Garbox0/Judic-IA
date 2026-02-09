@@ -83,7 +83,7 @@ export default function AuthFormContent() {
 
                 // 🔐 NEW: Check if CID is already claimed. If so, force login.
                 if (inquiry.claimed_by_email) {
-                    console.log("📝 CID already claimed by:", inquiry.claimed_by_email);
+                    console.log("📝 CID already claimed, forcing login mode");
                     setIsLogin(true);
                 }
 
@@ -142,7 +142,7 @@ export default function AuthFormContent() {
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session) {
-                console.log("⚡ Auth Event: SIGNED_IN", session.user.email);
+                console.log("⚡ Auth Event: SIGNED_IN");
 
                 // Safeguard: Check if this is a lawyer
                 const userRole = session.user?.user_metadata?.role;
@@ -365,7 +365,7 @@ export default function AuthFormContent() {
                         })
                         .eq('id', cid)
                         .is('claimed_by_email', null); // Only claim if not already claimed
-                    console.log("✅ CID claimed by:", email);
+                    console.log("✅ CID claimed successfully");
                 }
 
                 if (data.session) {

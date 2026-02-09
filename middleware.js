@@ -90,7 +90,10 @@ export async function middleware(request) {
         lowerPath.includes('/xmlrpc.php') ||
         lowerPath.includes('/config.php') ||
         lowerPath.includes('/admin.php') ||
-        lowerPath.includes('/shell') ||
+        lowerPath.includes('/shell.php') ||
+        lowerPath.includes('/webshell') ||
+        lowerPath.includes('/c99shell') ||
+        lowerPath.includes('/r57shell') ||
         lowerPath.includes('/eval') ||
         lowerPath.includes('/cgi-bin') ||
         lowerPath.includes('/etc/passwd') ||

@@ -37,7 +37,6 @@ export default function CommunityChatWidget() {
                     chat_conversations (
                         id,
                         title,
-                        is_group,
                         updated_at
                     )
                 `)
@@ -48,8 +47,7 @@ export default function CommunityChatWidget() {
 
             const formatted = data.map(item => ({
                 id: item.conversation_id,
-                name: item.chat_conversations.title || 'Conversación',
-                is_group: item.chat_conversations.is_group
+                name: item.chat_conversations.title || 'Conversación'
             }));
 
             setConversations(formatted);

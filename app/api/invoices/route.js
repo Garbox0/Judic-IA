@@ -1,37 +1,26 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+
+const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 // GET: Obtener facturas del usuario autenticado
 export async function GET(req) {
     try {
-        // Crear cliente con cookies para obtener el usuario autenticado
-        const cookieStore = await cookies();
-
-        const supabase = createServerClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-            {
-                cookies: {
-                    getAll() {
-                        return cookieStore.getAll();
-                    },
-                },
-            }
-        );
-
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-        if (authError || !user) {
-            return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+        // Auth via Bearer token
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader) {
+            return NextResponse.json({ error: "No autorizado - falta token" }, { status: 401 });
         }
 
-        // Usar service role para leer las facturas (bypass RLS issues)
-        const supabaseAdmin = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL,
-            process.env.SUPABASE_SERVICE_ROLE_KEY
-        );
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+
+        if (authError || !user) {
+            return NextResponse.json({ error: "Token inválido o expirado" }, { status: 401 });
+        }
 
         const { data: invoices, error } = await supabaseAdmin
             .from("invoices")

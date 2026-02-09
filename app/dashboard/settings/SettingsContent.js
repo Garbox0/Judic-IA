@@ -180,7 +180,10 @@ export default function SettingsPage({ isDemo = false }) {
     const fetchInvoices = async () => {
         setInvoicesLoading(true);
         try {
-            const res = await fetch('/api/invoices');
+            const { data: { session } } = await supabase.auth.getSession();
+            const res = await fetch('/api/invoices', {
+                headers: session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}
+            });
             if (res.ok) {
                 const data = await res.json();
                 setInvoices(data.invoices || []);
@@ -395,7 +398,7 @@ export default function SettingsPage({ isDemo = false }) {
     useEffect(() => {
         if (!user || isDemo) return;
 
-        console.log("🔌 Conectando listener de perfil para:", user.id);
+        console.log("🔌 Conectando listener de perfil...");
         const channel = supabase
             .channel('profile_realtime')
             .on(
@@ -459,9 +462,13 @@ export default function SettingsPage({ isDemo = false }) {
 
         try {
             // Utilizar el endpoint del servidor
+            const { data: { session } } = await supabase.auth.getSession();
             const response = await fetch('/api/mp/subscription/create', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
                 body: JSON.stringify({ userId: user.id })
             });
 

@@ -62,8 +62,13 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
     if (isDemo) return; // Skip Auth Check in Demo Mode
 
     const checkSession = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        router.push('/login');
+        return;
+      }
+      const user = session.user;
+      if (!user) {
         router.push('/login');
         return;
       }
@@ -92,7 +97,10 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
           console.log("🎭 New User detected, activating Trial...");
           fetch('/api/demo/activate', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`
+            },
             body: JSON.stringify({ user_id: user.id })
           }).then(res => res.json()).then(data => {
             if (data.ok) {
