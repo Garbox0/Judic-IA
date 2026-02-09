@@ -1,5 +1,7 @@
-import { createClient } from '../../lib/supabase-server';
+import { createClient } from '../../../lib/supabase-server';
 import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
     const { searchParams, origin } = new URL(request.url);
@@ -9,6 +11,14 @@ export async function GET(request) {
     // Custom params passing through
     const lawyerId = searchParams.get('lawyerId');
     const cid = searchParams.get('cid');
+
+    // Determine domain context
+    const isClientSubdomain = hostname.startsWith('consultas.');
+    // If running on main domain, use that. If on client subdomain, use that.
+    // The issue might be that origin comes from the request, which might be the subdomain if redirected there?
+    // But usually Supabase redirects to the site URL.
+
+    console.log(`[Auth Callback] Processing for host: ${hostname}, Code present: ${!!code}`);
 
     // Determine client login base URL
     const isDev = hostname.includes('localhost');
@@ -20,13 +30,14 @@ export async function GET(request) {
         const supabase = await createClient();
 
         // Exchange the code for a session
-        // This happens on the server, avoiding client-side PKCE verifier issues
         const { error } = await supabase.auth.exchangeCodeForSession(code);
 
         if (!error) {
             // Get user to check role
             const { data: { user } } = await supabase.auth.getUser();
             let role = user?.user_metadata?.role;
+
+            console.log(`[Auth Callback] User Authenticated: ${user?.email}, Metadata Role: ${role}`);
 
             // 🛡️ ROBUST ARCHITECTURE: Check DB if metadata fails
             if (!role) {
@@ -35,40 +46,47 @@ export async function GET(request) {
                     .select('role')
                     .eq('id', user?.id)
                     .maybeSingle();
-                if (profile?.role) role = profile.role;
+                if (profile?.role) {
+                    role = profile.role;
+                    console.log(`[Auth Callback] Role found in DB: ${role}`);
+                }
             }
 
             // fail-safe context check
-            if (!role && (lawyerId || cid)) role = 'client';
-
-            // console.log(`✅ Auth confirmed for ${user?.email} - Role: ${role}`);
+            if (!role && (lawyerId || cid)) {
+                role = 'client';
+                console.log(`[Auth Callback] Role inferred as client from context params`);
+            }
 
             // Intelligent Redirect based on Role
             if (role === 'lawyer') {
-                return NextResponse.redirect(`${origin}/dashboard`);
+                // FORCE MAIN DOMAIN for lawyers
+                const dashboardUrl = isDev ? `${origin}/dashboard` : 'https://judic-ia.com/dashboard';
+                console.log(`[Auth Callback] Redirecting Lawyer to: ${dashboardUrl}`);
+                return NextResponse.redirect(dashboardUrl);
             }
             else if (role === 'client') {
-                // SECURITY: Sign out immediately after confirming email
-                // Client must log in manually with their credentials
-                // This prevents the confirmation link from being a "magic login link"
+                // SECURITY: Sign out immediately if this was just a confirmation link for a client
+                // Clients should log in explicitly or via magic link to the client portal
                 await supabase.auth.signOut();
-
-                console.log(`🔒 Client ${user?.email} signed out after confirmation - must log in manually`);
+                console.log(`🔒 Client ${user?.email} signed out after confirmation - redirecting to login`);
 
                 const loginUrl = new URL(clientLoginBase);
                 if (lawyerId) loginUrl.searchParams.set('lawyerId', lawyerId);
                 if (cid) loginUrl.searchParams.set('cid', cid);
-                loginUrl.searchParams.set('confirmed', 'true'); // Flag to show success message
+                loginUrl.searchParams.set('confirmed', 'true');
 
                 return NextResponse.redirect(loginUrl);
             }
 
-            // Fallback for unknown roles
-            return NextResponse.redirect(`${origin}/dashboard`);
+            // Fallback for unknown roles - likely admin or new lawyer
+            const fallbackUrl = isDev ? `${origin}/dashboard` : 'https://judic-ia.com/dashboard';
+            console.log(`[Auth Callback] Unknown role, falling back to: ${fallbackUrl}`);
+            return NextResponse.redirect(fallbackUrl);
+
         } else {
             console.error('Auth Code Exchange Error:', error);
-            // KICK-OUT: If auth fails, redirect to the main landing page of the current origin
-            return NextResponse.redirect(`${origin}`);
+            return NextResponse.redirect(`${origin}/login?error=auth_code_error`);
         }
     }
 

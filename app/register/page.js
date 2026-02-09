@@ -308,7 +308,7 @@ export default function RegisterPage() {
             email,
             password,
             options: {
-                emailRedirectTo: `${window.location.origin}/auth/callback`,
+                emailRedirectTo: `${process.env.NODE_ENV === 'development' ? window.location.origin : 'https://judic-ia.com'}/auth/callback`,
                 data: {
                     first_name: firstName,
                     last_name: lastName,
@@ -682,41 +682,39 @@ export default function RegisterPage() {
                         )}
                     </form>
 
-                    {/* FULL SCREEN SUCCESS MODAL */}
-                    {message && (
-                        <div className="register-success-modal">
-                            <div className="success-modal-content">
-                                <div className="success-icon-large">
-                                    <ShieldCheck size={80} />
-                                </div>
-                                <h2 className="success-title-large">¡Registro Confirmado!</h2>
-                                <p className="success-text-large">
-                                    Hemos enviado un correo de validación a:<br />
-                                    <span className="success-highlight">{email}</span>
-                                </p>
-                                <p className="text-slate-400 text-sm mb-6">
-                                    ⚠️ Es <strong>fundamental</strong> que revises tu bandeja de entrada (y Spam) para activar tu cuenta.
-                                </p>
-
-                                <div className="redirect-timer">
-                                    Redirigiendo al login en <strong>{redirectCountdown}</strong> segundos...
-                                </div>
-                                <div className="mt-6">
-                                    <Link href="/login" className="btn-register-action" style={{ padding: '0.8rem 2rem', fontSize: '0.9rem' }}>
-                                        Ir al Login Ahora
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="divider"><span>o</span></div>
-
                     <footer className="register-footer">
                         <p>¿Ya tienes una cuenta? <Link href="/login" className="link-gold">Inicia Sesión →</Link></p>
                     </footer>
                 </div>
             </div>
+
+            {/* FULL SCREEN SUCCESS MODAL - Moved outside to escape backdrop-filter context */}
+            {message && (
+                <div className="register-success-modal">
+                    <div className="success-modal-content">
+                        <div className="success-icon-large">
+                            <ShieldCheck size={80} />
+                        </div>
+                        <h2 className="success-title-large">¡Registro Confirmado!</h2>
+                        <p className="success-text-large">
+                            Hemos enviado un correo de validación a:<br />
+                            <span className="success-highlight">{email}</span>
+                        </p>
+                        <p className="text-slate-400 text-sm mb-6 success-subtext">
+                            ⚠️ Es <strong>fundamental</strong> que revises tu bandeja de entrada (y Spam) para activar tu cuenta.
+                        </p>
+
+                        <div className="redirect-timer">
+                            Redirigiendo al login en <strong>{redirectCountdown}</strong> segundos...
+                        </div>
+                        <div className="mt-6">
+                            <Link href="/login" className="btn-register-action" style={{ padding: '0.8rem 2rem', fontSize: '0.9rem' }}>
+                                Ir al Login Ahora
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
 
 
         </main>

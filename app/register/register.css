@@ -742,3 +742,31 @@
         transform: translateY(-10px);
     }
 }
+
+/* LIGHT THEME MODAL OVERRIDES */
+.light-theme .register-success-modal {
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.light-theme .success-modal-content {
+    background: #ffffff;
+    box-shadow: 0 0 60px rgba(34, 197, 94, 0.15);
+    border-color: #22c55e;
+}
+
+.light-theme .success-title-large {
+    color: #0f172a;
+}
+
+.light-theme .success-text-large {
+    color: #334155;
+}
+
+.light-theme .success-subtext {
+    color: #64748b !important;
+}
+
+.light-theme .redirect-timer {
+    background: #f1f5f9;
+    color: #475569;
+}
