@@ -1097,64 +1097,266 @@ body::before {
     color: var(--accent);
 }
 
+/* 🏛️ FOOTER 3.0 PREMIUM OVERHAUL */
 .footer-premium-v3 {
-    background: rgba(1, 4, 16, 0.8);
-    border-top: 1px solid var(--glass-border);
-    margin-top: 4rem;
+    background: radial-gradient(circle at 50% 0%, rgba(251, 191, 36, 0.03), transparent 70%), #010410;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 6rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
 }
 
-.footer-nav-container {
+.footer-premium-v3::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.2), transparent);
+}
+
+.footer-main-grid {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 3rem 2rem;
+    display: grid;
+    grid-template-columns: 1.2fr 2fr 1.5fr;
+    gap: 4rem;
+    align-items: start;
+}
+
+/* --- Brand Zone --- */
+.footer-brand-zone {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 2rem;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
-.footer-brand-side {
+.footer-brand-logo {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 12px;
+    text-decoration: none;
 }
 
-.footer-logo {
-    width: 32px;
-    opacity: 0.8;
+.footer-brand-name {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -0.02em;
 }
 
-.footer-info {
-    font-size: 0.85rem;
+.footer-brand-tagline {
+    font-size: 0.9rem;
+    line-height: 1.6;
     color: var(--text-dim);
 }
 
-.footer-info strong {
-    color: var(--text-secondary);
+.footer-brand-tagline span {
     display: block;
-    font-size: 1rem;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
+/* --- Navigation Groups --- */
+.footer-nav-groups {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.nav-group h4 {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.nav-group a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-group a:hover {
+    color: var(--accent);
+    transform: translateX(4px);
+}
+
+/* --- Security Zone --- */
+.footer-security-zone {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+}
+
+.security-title {
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.security-title-icon {
+    color: var(--accent);
+    filter: drop-shadow(0 0 8px var(--accent-glow));
+}
+
+.badge-icon.clamav {
+    color: #ef4444;
+}
+
+.trust-badges-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.trust-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 600;
+    justify-content: flex-start;
+    /* Align content to the left inside the tile */
+}
+
+.trust-badge:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    color: white;
+}
+
+.trust-badge:first-child {
+    grid-column: span 2;
+    justify-content: center;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
     margin-bottom: 2px;
 }
 
-.footer-links {
+.trust-badge:first-child .badge-icon {
+    width: 20px;
+    /* Controlled size for "gigantesco" fix */
+    height: 20px;
+}
+
+.badge-icon {
+    opacity: 0.7;
+}
+
+.badge-score-small {
+    background: #10b981;
+    color: white;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 900;
+}
+
+/* --- Fiscal Row --- */
+.footer-fiscal-row {
+    max-width: 1200px;
+    margin: 4rem auto 0;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
     display: flex;
-    gap: 1.2rem;
+    justify-content: space-between;
+    align-items: center;
     color: var(--text-dim);
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     flex-wrap: wrap;
+    gap: 1rem;
 }
 
-.footer-links a {
-    color: var(--text-dim);
-    text-decoration: none;
-    transition: 0.3s;
+.fiscal-separator {
+    opacity: 0.3;
+    padding: 0 4px;
 }
 
+/* light theme compatibility */
+.light-theme .footer-premium-v3 {
+    background: radial-gradient(circle at 50% 0%, rgba(183, 121, 31, 0.05), transparent 70%), #f8f7f4;
+    border-top: 1px solid rgba(15, 23, 42, 0.05);
+}
 
-.footer-links a:hover {
+.light-theme .footer-brand-name,
+.light-theme .nav-group h4,
+.light-theme .security-title {
+    color: var(--text-primary);
+}
+
+.light-theme .footer-security-zone {
+    background: white;
+    border-color: rgba(15, 23, 42, 0.05);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+}
+
+.light-theme .trust-badge {
+    background: #f1f5f9;
+    border-color: transparent;
+    color: var(--text-secondary);
+}
+
+.light-theme .trust-badge:hover {
+    background: rgba(183, 121, 31, 0.08);
     color: var(--accent);
 }
+
+@media (max-width: 1024px) {
+    .footer-main-grid {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .footer-nav-groups {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        text-align: center;
+    }
+
+    .nav-group a:hover {
+        transform: none;
+    }
+
+    .footer-brand-zone,
+    .footer-security-zone {
+        text-align: center;
+        align-items: center;
+    }
+
+    .footer-brand-logo {
+        justify-content: center;
+    }
+}
+
 
 /* --- CSP COMPLIANCE CLASSES --- */
 .stat-icon-wrapper {
@@ -1196,146 +1398,36 @@ body::before {
 }
 
 
-/* 🛡️ TRUST BADGES SYSTEM */
+/* 🛡️ TRUST BADGES SYSTEM - BENTO ASYMMETRY */
+/* This section is now part of the footer overhaul, but keeping the comment for context if needed */
+/*
 .trust-badges-container {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.8rem;
-    align-items: center;
-    justify-items: end;
-    /* Keep them aligned to the right side generally */
+    grid-template-columns: repeat(2, minmax(140px, auto));
+    gap: 10px;
+    justify-content: flex-end;
+    max-width: 500px;
+    margin-left: auto;
 }
 
 .trust-badge {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 99px;
-    font-size: 0.72rem;
-    color: var(--text-dim);
+    gap: 12px;
+    padding: 10px 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
     font-weight: 500;
     text-decoration: none;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
-    backdrop-filter: blur(5px);
-    width: 200px;
-    /* Fixed width for perfect alignment */
-    justify-content: flex-start;
+    backdrop-filter: blur(10px);
 }
 
-.trust-badge:hover {
-    background: rgba(251, 191, 36, 0.05);
-    border-color: rgba(251, 191, 36, 0.2);
-    transform: translateX(-5px);
-    color: var(--text-secondary);
-}
-
-.badge-icon {
-    width: 16px;
-    height: 16px;
-    color: var(--accent);
-    opacity: 0.8;
-}
-
-.badge-score-aplus {
-    background: #10b981;
-    color: white;
-    font-weight: 900;
-    font-size: 0.65rem;
-    padding: 2px 6px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 24px;
-    line-height: 1;
-}
-
-.cf-icon {
-    width: 18px;
-    height: 18px;
-}
-
-.trust-badge strong {
-    color: var(--text-secondary);
-    margin-left: auto;
-    /* Push the strong text to the right for a clean "grid" feel */
-}
-
-@media (max-width: 1024px) {
-    .trust-badges-container {
-        align-items: center;
-        width: 100%;
-        margin-top: 2rem;
-        order: 3;
-    }
-
-    .trust-badge {
-        justify-content: center;
-        width: 100%;
-        max-width: 280px;
-    }
-
-    .trust-badge strong {
-        margin-left: 4px;
-    }
-}
-
-@media (max-width: 600px) {
-    .trust-badges-container {
-        grid-template-columns: 1fr;
-        justify-items: center;
-        gap: 0.6rem;
-    }
-
-    .trust-badge {
-        width: 100%;
-        max-width: none;
-        padding: 10px 20px;
-        font-size: 0.75rem;
-    }
-}
-
-
-
-/* FISCAL INFO ROW */
-.footer-fiscal-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 1rem 2rem 1.5rem;
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    border-top: 1px solid rgba(255, 255, 255, 0.04);
-    flex-wrap: wrap;
-}
-
-.footer-fiscal-row span {
-    white-space: nowrap;
-}
-
-.fiscal-separator {
-    color: rgba(255, 255, 255, 0.15);
-    font-size: 0.6rem;
-}
-
-@media (max-width: 600px) {
-    .footer-fiscal-row {
-        flex-direction: column;
-        gap: 0.25rem;
-        text-align: center;
-    }
-
-    .fiscal-separator {
-        display: none;
-    }
-}
-
-/* --- RESPONSIVE ADJUSTMENTS --- */
+/* --- RESPONSIVE ADJUSTMENTS (GENERAL) --- */
 @media (max-width: 1100px) {
     .hero-grid {
         grid-template-columns: 1fr;

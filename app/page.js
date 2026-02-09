@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import styles from "./page.module.css";
 import Link from "next/link";
 import Image from "next/image";
-import { Clock, Shield, Zap, Scale, BookOpen, Users, FolderOpen, Calculator, Calendar, FileText, BarChart2, PlayCircle, Lock, Sun, Moon, CheckCircle } from 'lucide-react';
+import { Clock, Shield, Zap, Scale, BookOpen, Users, FolderOpen, Calculator, Calendar, FileText, BarChart2, PlayCircle, Lock, Sun, Moon, CheckCircle, ShieldCheck } from 'lucide-react';
 import "./landing.css"; // Version 3.0 Styles
 
 export default function Home() {
@@ -428,64 +428,90 @@ export default function Home() {
 
 
 
-      {/* 🏛️ FOOTER 3.0 */}
+      {/* 🏛️ FOOTER 3.0 PREMIUM */}
       <footer className="footer-premium-v3">
-        <div className="footer-nav-container">
-          <div className="footer-brand-side">
-            <Image
-              src="/judic-ia-mark.png"
-              alt="Judic-IA Logo"
-              className="nav-logo"
-              width={46}
-              height={62}
-              priority
-            />
-            <div className="footer-info">
-              <strong>Judic-IA</strong>
+        <div className="footer-main-grid">
+          {/* 1. BRAND ZONE */}
+          <div className="footer-brand-zone">
+            <Link href="/" className="footer-brand-logo">
+              <Image src="/judic-ia-mark.png" alt="Judic-IA" width={40} height={52} className="footer-logo-img" />
+              <span className="footer-brand-name">Judic-IA</span>
+            </Link>
+            <p className="footer-brand-tagline">
+              Inteligencia Legal Avanzada <br />
               <span>© 2026 — Judic-IA Argentina</span>
+            </p>
+          </div>
+
+          {/* 2. NAVIGATION GROUPS */}
+          <div className="footer-nav-groups">
+            <div className="nav-group">
+              <h4>Plataforma</h4>
+              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/pricing">Precios</Link>
+              <Link href="/#servicios">Servicios</Link>
+              <Link href="/demo">Demo</Link>
+            </div>
+
+            <div className="nav-group">
+              <h4>Soporte</h4>
+              <a href="mailto:Soporte@judic-ia.com">Ayuda Técnica</a>
+              <a href="mailto:Billing@judic-ia.com">Ventas y Facturación</a>
+              <Link href="/legal?tab=seguridad">Centro de Seguridad</Link>
+            </div>
+
+            <div className="nav-group">
+              <h4>Legal</h4>
+              <Link href="/legal?tab=terminos">Términos de Uso</Link>
+              <Link href="/legal?tab=privacidad">Privacidad</Link>
+              <Link href="/legal">Aviso Legal</Link>
+              <Link href="/legal?tab=cookies">Cookies</Link>
             </div>
           </div>
 
-          <div className="footer-links">
-            <Link href="/legal">Legal</Link>
-            <Link href="/legal?tab=seguridad">Seguridad</Link>
-            <Link href="/legal?tab=privacidad">Privacidad</Link>
-            <Link href="/legal?tab=terminos">Términos</Link>
-            <a href="mailto:Billing@judic-ia.com">Ventas</a>
-            <a href="mailto:Soporte@judic-ia.com">Soporte</a>
-          </div>
+          {/* 3. SECURITY & TRUST ZONE */}
+          <div className="footer-security-zone">
+            <h4 className="security-title">
+              <ShieldCheck size={18} className="security-title-icon" />
+              Seguridad y Cumplimiento
+            </h4>
+            <div className="trust-badges-container">
+              <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer" className="trust-badge" title="CDN & Security by Cloudflare">
+                <svg className="badge-icon cf-icon" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M22.84 10.605a5.163 5.163 0 00-4.321-4.148c-.682-1.846-2.454-3.15-4.519-3.15-2.007 0-3.743 1.233-4.463 2.992a5.576 5.576 0 00-4.707 3.43A4.542 4.542 0 002.5 14.167c0 2.507 2.031 4.54 4.537 4.54H17.41c3.087 0 5.59-2.503 5.59-5.59 0-1.077-.323-2.083-.87-2.922h.71z" />
+                </svg>
+                <span>Cloudflare Protected</span>
+              </a>
 
-          <div className="trust-badges-container">
-            <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer" className="trust-badge">
-              <svg className="badge-icon cf-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M22.84 10.605a5.163 5.163 0 00-4.321-4.148c-.682-1.846-2.454-3.15-4.519-3.15-2.007 0-3.743 1.233-4.463 2.992a5.576 5.576 0 00-4.707 3.43A4.542 4.542 0 002.5 14.167c0 2.507 2.031 4.54 4.537 4.54H17.41c3.087 0 5.59-2.503 5.59-5.59 0-1.077-.323-2.083-.87-2.922h.71z" />
-              </svg>
-              Protected by <strong>Cloudflare</strong>
-            </a>
+              <a href="https://safeweb.norton.com/report?url=https://www.judic-ia.com/" target="_blank" rel="noopener noreferrer" className="trust-badge" title="Web Segura - Norton">
+                <CheckCircle className="badge-icon norton" size={12} />
+                <span>Norton Verified</span>
+              </a>
 
-            <a href="https://safeweb.norton.com/report?url=https://www.judic-ia.com/" target="_blank" rel="noopener noreferrer" className="trust-badge" title="Verificado por Norton Safe Web">
-              <CheckCircle className="badge-icon norton-icon-color" size={14} />
-              Norton Safe Web <strong>Verified</strong>
-            </a>
+              <a href="https://observatory.mozilla.org/analyze/www.judic-ia.com" target="_blank" rel="noopener noreferrer" className="trust-badge" title="Score A+">
+                <span className="badge-score-small">A+</span>
+                <span>Mozilla Score</span>
+              </a>
 
-            <a href="https://observatory.mozilla.org/analyze/www.judic-ia.com" target="_blank" rel="noopener noreferrer" className="trust-badge" title="HTTP Observatory Score A+">
-              <span className="badge-score-aplus">A+</span>
-              HTTP Observatory <strong>Score</strong>
-            </a>
+              <div className="trust-badge">
+                <Shield className="badge-icon" size={12} />
+                <span>AES-256 AES</span>
+              </div>
 
-            <div className="trust-badge">
-              <Shield className="badge-icon" size={14} />
-              AES-256 <strong>Encrypted</strong>
-            </div>
+              <div className="trust-badge">
+                <Lock className="badge-icon" size={12} />
+                <span>ISO 27001 Ready</span>
+              </div>
 
-            <div className="trust-badge">
-              <Lock className="badge-icon" size={14} />
-              ISO 27001 <strong>Ready</strong>
-            </div>
+              <div className="trust-badge">
+                <Scale className="badge-icon" size={12} />
+                <span>Ley 25.326</span>
+              </div>
 
-            <div className="trust-badge">
-              <Scale className="badge-icon" size={14} />
-              Ley 25.326 <strong>Compliant</strong>
+              <a href="https://www.clamav.net/" target="_blank" rel="noopener noreferrer" className="trust-badge" title="ClamAV Secure - Antivirus">
+                <ShieldCheck className="badge-icon clamav" size={12} />
+                <span>ClamAV Secure</span>
+              </a>
             </div>
           </div>
         </div>
