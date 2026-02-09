@@ -1,7 +1,7 @@
 "use client";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, Download, Maximize2, FileText, Scale } from 'lucide-react';
+import { ChevronLeft, Download, Maximize2, FileText, Scale, ShieldCheck } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const PdfReader = dynamic(() => import('@/app/components/PdfReader'), {
@@ -52,6 +52,10 @@ export default function LegislationViewerPage() {
                     </div>
                 </div>
                 <div className="header-right">
+                    <div className="vt-badge" title="Scanned by ClamAV Antivirus">
+                        <ShieldCheck size={14} className="text-red-500" />
+                        <span>ClamAV <strong>Secure</strong></span>
+                    </div>
                     <a href={pdfPath} download className="action-btn" title="Descargar PDF">
                         <Download size={18} />
                     </a>
@@ -84,10 +88,48 @@ export default function LegislationViewerPage() {
                     border: 1px solid rgba(255,255,255,0.05);
                 }
 
-                .header-left {
+                .header-left, .header-right {
                     display: flex;
                     align-items: center;
                     gap: 1.5rem;
+                }
+
+                .header-right {
+                    gap: 1rem;
+                }
+
+                .vt-badge {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    background: rgba(239, 68, 68, 0.1);
+                    border: 1px solid rgba(239, 68, 68, 0.2);
+                    padding: 0.4rem 0.8rem;
+                    border-radius: 20px;
+                    font-size: 0.75rem;
+                    color: #94a3b8;
+                    cursor: help;
+                    transition: 0.2s;
+                }
+                
+                .vt-badge:hover {
+                    background: rgba(239, 68, 68, 0.2);
+                    color: white;
+                }
+                
+                .vt-badge strong {
+                    color: #22c55e;
+                    margin-left: 3px;
+                }
+
+                :global(.light-theme) .vt-badge {
+                    background: rgba(239, 68, 68, 0.05);
+                    border-color: rgba(239, 68, 68, 0.2);
+                    color: #475569;
+                }
+                :global(.light-theme) .vt-badge:hover {
+                    background: rgba(239, 68, 68, 0.1);
+                    color: #0f172a;
                 }
 
                 .back-btn {
@@ -136,6 +178,9 @@ export default function LegislationViewerPage() {
                         font-size: 0.95rem;
                         max-width: 50vw;
                     }
+                    .vt-badge span:last-child {
+                        display: none; /* Hide text on small screens */
+                    }
                 }
 
                 .action-btn {
@@ -179,7 +224,6 @@ export default function LegislationViewerPage() {
                     border: none;
                 }
 
-                /* GLASS PANEL REUSE (copied here for standalone style scope) */
                 .glass-panel {
                     background: rgba(30, 41, 59, 0.4);
                     backdrop-filter: blur(12px);
@@ -216,7 +260,7 @@ export default function LegislationViewerPage() {
 
                 /* LIGHT THEME OVERRIDES */
                 :global(.light-theme) .viewer-container {
-                    background: #cbd5e1; /* Slate 300 - Comfortable Gray */
+                    background: #cbd5e1;
                     color: #0f172a;
                 }
 
@@ -245,7 +289,7 @@ export default function LegislationViewerPage() {
                 }
 
                 :global(.light-theme) .pdf-wrapper {
-                    background: #94a3b8; /* Darker slate frame for contrast against white PDF */
+                    background: #94a3b8;
                     border-color: rgba(15, 23, 42, 0.1);
                 }
             `}</style>

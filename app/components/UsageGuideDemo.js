@@ -6,7 +6,7 @@ import { HelpCircle, X, ChevronRight, BookOpen } from 'lucide-react';
  * UsageGuideDemo Component specifically for Sandbox/Demo environment
  * Renders a floating gold help icon that opens a blurred modal with demo-specific instructions.
  */
-export default function UsageGuideDemo({ content }) {
+export default function UsageGuideDemo({ content, mode = 'fixed' }) {
     const [isOpen, setIsOpen] = useState(false);
 
     // Simple markdown renderer for the demo content
@@ -87,11 +87,11 @@ export default function UsageGuideDemo({ content }) {
         <>
             {/* TRIGGER BUTTON */}
             <button
-                onClick={() => setIsOpen(true)}
-                className="usage-guide-trigger"
+                onClick={(e) => { e.stopPropagation(); setIsOpen(true); }}
+                className={mode === 'inline' ? 'usage-guide-inline-trigger' : 'usage-guide-trigger'}
                 title="Guía de la Demo"
             >
-                <HelpCircle size={20} />
+                <HelpCircle size={mode === 'inline' ? 14 : 20} />
             </button>
 
             {/* FLOATING MODAL */}

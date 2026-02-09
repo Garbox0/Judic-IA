@@ -8,7 +8,8 @@ import {
     FolderOpen,
     Calendar,
     BookOpen,
-    Settings
+    Settings,
+    Globe
 } from 'lucide-react';
 import UsageGuideDemo from '@/app/components/UsageGuideDemo';
 import { demoManuals } from '@/app/lib/demoManuals';
@@ -64,6 +65,14 @@ export default function DemoDashboardHome() {
             icon: <BookOpen size={24} />,
             link: '/dashboard/library',
             color: '#a855f7'
+        },
+        {
+            id: 'federal',
+            title: 'Hub Federal',
+            desc: 'Bus-Justicia y red de corresponsalía nacional.',
+            icon: <Globe size={24} />,
+            link: '/dashboard/federal',
+            color: 'var(--accent)'
         },
         {
             id: 'settings',

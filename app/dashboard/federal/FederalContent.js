@@ -2,29 +2,30 @@
 import React, { useState, useEffect } from 'react';
 import {
     Globe,
-    Search,
     ArrowRight,
     MapPin,
     ShieldCheck,
     HelpCircle,
-    ExternalLink,
     Clock,
     UserPlus,
     BookOpen,
-    LifeBuoy,
     MessageCircle,
-    ChevronRight,
-    ChevronLeft
+    ChevronDown,
+    AlertCircle
 } from 'lucide-react';
 import { supabase } from '@/app/lib/supabase';
+import { toast } from 'sonner';
 import './federal.css';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
 
 export default function FederalContent() {
-    const [searchResults, setSearchResults] = useState([]); // [NEW] Directory State
+    const [searchResults, setSearchResults] = useState([]);
+    const [selectedProv, setSelectedProv] = useState("");
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [searching, setSearching] = useState(false);
+    const [directoryFeedback, setDirectoryFeedback] = useState(null);
 
     useEffect(() => {
         let channel;
@@ -34,15 +35,12 @@ export default function FederalContent() {
                 const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
                 if (!error) {
                     setProfile(data);
-
-                    // Supabase Realtime for instant unblocking
                     channel = supabase
                         .channel('federal_auth_sync')
                         .on(
                             'postgres_changes',
                             { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
                             (payload) => {
-                                console.log("🔄 Update de perfil en FederalHub:", payload.new);
                                 if (payload.new.verification_status === 'verified') {
                                     setProfile(payload.new);
                                 }
@@ -57,19 +55,101 @@ export default function FederalContent() {
         return () => { if (channel) supabase.removeChannel(channel); };
     }, []);
 
+    const handleSearch = async (prov) => {
+        setSelectedProv(prov);
+        if (!prov) {
+            setSearchResults([]);
+            return;
+        }
+        setSearching(true);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('id, full_name, especialidades, jurisdiccion, coverage_areas, avatar_url, biography')
+                .eq('is_correspondent', true)
+                .eq('verification_status', 'verified')
+                .eq('role', 'lawyer')
+                .ilike('jurisdiccion', `%${prov}%`)
+                .neq('id', user?.id)
+                .limit(20);
+
+            if (error) throw error;
+            setSearchResults(data || []);
+        } catch (err) {
+            console.error("Search error:", err);
+            setSearchResults([]);
+        } finally {
+            setSearching(false);
+        }
+    };
+
+    const handleStartChat = async (lawyer) => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            // Check if conversation already exists between these two users
+            const { data: existingParticipations } = await supabase
+                .from('chat_participants')
+                .select('conversation_id')
+                .eq('user_id', user.id);
+
+            if (existingParticipations && existingParticipations.length > 0) {
+                const myConvoIds = existingParticipations.map(p => p.conversation_id);
+                const { data: sharedConvo } = await supabase
+                    .from('chat_participants')
+                    .select('conversation_id')
+                    .eq('user_id', lawyer.id)
+                    .in('conversation_id', myConvoIds)
+                    .limit(1)
+                    .single();
+
+                if (sharedConvo) {
+                    // Open existing conversation
+                    window.dispatchEvent(new CustomEvent('judicia-open-chat', {
+                        detail: { conversationId: sharedConvo.conversation_id, partnerName: lawyer.full_name }
+                    }));
+                    toast.success(`Chat con ${lawyer.full_name} abierto`);
+                    return;
+                }
+            }
+
+            // Create new conversation
+            const { data: newConvo, error } = await supabase
+                .from('chat_conversations')
+                .insert([{ title: lawyer.full_name }])
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            await supabase.from('chat_participants').insert([
+                { conversation_id: newConvo.id, user_id: user.id },
+                { conversation_id: newConvo.id, user_id: lawyer.id }
+            ]);
+
+            window.dispatchEvent(new CustomEvent('judicia-open-chat', {
+                detail: { conversationId: newConvo.id, partnerName: lawyer.full_name }
+            }));
+            toast.success(`Conversación iniciada con ${lawyer.full_name}`);
+        } catch (err) {
+            console.error("Error starting chat:", err);
+            toast.error("Error iniciando chat: " + err.message);
+        }
+    };
+
+    const showDirectoryMsg = (msg) => {
+        setDirectoryFeedback(msg);
+        setTimeout(() => setDirectoryFeedback(null), 4000);
+    };
 
     if (loading) return <div className="p-8 text-center opacity-50">Cargando Hub Federal...</div>;
 
-    // Access Control: Block if not verified (except for specific demo emails if necessary)
+    // Access Control
     if (profile?.verification_status !== 'verified' && profile?.email !== 'demo@judicia.com') {
         return (
-            <div className="federal-container">
-                <nav className="breadcrumb">
-                    <span className="breadcrumb-item">Hub Federal</span>
-                    <span className="breadcrumb-separator">/</span>
-                    <span className="breadcrumb-current">Acceso Restringido</span>
-                </nav>
-
+            <div className="fed-container">
                 <div className="fed-restricted-container">
                     <div className="fed-restricted-icon-box">
                         <ShieldCheck size={40} />
@@ -88,7 +168,7 @@ export default function FederalContent() {
                         </p>
                     </div>
                     <div className="fed-restricted-btn-wrapper">
-                        <a href="/dashboard/settings?tab=profile" className="fed-btn fed-btn-primary">
+                        <a href="/dashboard/settings?tab=profile" className="fed-action-btn-gold">
                             Ver Estado de Mi Perfil
                         </a>
                     </div>
@@ -98,211 +178,172 @@ export default function FederalContent() {
     }
 
     return (
-        <div className="federal-container">
+        <div className="fed-container">
             <UsageGuide content={dashboardManuals.federal} mode="inline" />
-            <header className="federal-header">
+
+            <header className="fed-header">
                 <div className="fed-badge">Módulo Interjurisdiccional</div>
                 <h1>Hub Federal <Globe size={28} className="text-amber-400" /></h1>
-                <p>Recursos centrales, red de corresponsales y acceso a organismos nacionales.</p>
+                <p>Nexo interjurisdiccional para la Red de Colegas y Recursos Nacionales.</p>
             </header>
 
-            <div className="federal-grid">
-                {/* 1. COMUNIDAD DE ABOGADOS (Priorizada) */}
+            <div className="fed-grid">
+                {/* 1. RED DE CORRESPONSALES */}
                 <div className="fed-card">
-                    <div className="fed-card-icon">
+                    <div className="fed-icon-box" style={{ background: 'rgba(251, 191, 36, 0.1)', color: '#fbbf24' }}>
                         <UserPlus size={24} />
                     </div>
-                    <h3>Comunidad de Abogados</h3>
-                    <p>
-                        Encontrá colegas verificados en todo el país.
-                        Red de colaboración exclusiva para matriculados.
-                    </p>
-                    <div className="stg-f-group">
-                        <select
-                            className="stg-dark-input"
-                            onChange={async (e) => {
-                                const prov = e.target.value;
-                                if (!prov) {
-                                    setSearchResults([]);
-                                    return;
-                                }
+                    <h3>Red de Corresponsales</h3>
+                    <p>Colaborá con colegas verificados de todo el país para delegar tareas judiciales locales en un entorno seguro.</p>
 
-                                try {
-                                    const { data: { user } } = await supabase.auth.getUser();
-                                    const { data, error } = await supabase
-                                        .from('profiles')
-                                        .select('id, full_name, especialidades, jurisdiccion, coverage_areas, avatar_url')
-                                        .eq('is_correspondent', true)
-                                        .eq('jurisdiccion', prov)
-                                        .neq('id', user?.id)
-                                        .limit(10);
-
-                                    if (error) throw error;
-                                    setSearchResults(data || []);
-                                } catch (err) {
-                                    console.error("Search error:", err);
-                                    setSearchResults([]);
-                                }
-                            }}
-                        >
-                            <option value="">Filtrar por Jurisdicción</option>
-                            <option value="CABA">CABA</option>
-                            <option value="Buenos Aires">Buenos Aires</option>
-                            <option value="Catamarca">Catamarca</option>
-                            <option value="Chaco">Chaco</option>
-                            <option value="Chubut">Chubut</option>
-                            <option value="Córdoba">Córdoba</option>
-                            <option value="Corrientes">Corrientes</option>
-                            <option value="Entre Ríos">Entre Ríos</option>
-                            <option value="Formosa">Formosa</option>
-                            <option value="Jujuy">Jujuy</option>
-                            <option value="La Pampa">La Pampa</option>
-                            <option value="La Rioja">La Rioja</option>
-                            <option value="Mendoza">Mendoza</option>
-                            <option value="Misiones">Misiones</option>
-                            <option value="Neuquén">Neuquén</option>
-                            <option value="Río Negro">Río Negro</option>
-                            <option value="Salta">Salta</option>
-                            <option value="San Juan">San Juan</option>
-                            <option value="San Luis">San Luis</option>
-                            <option value="Santa Cruz">Santa Cruz</option>
-                            <option value="Santa Fe">Santa Fe</option>
-                            <option value="Santiago del Estero">Santiago del Estero</option>
-                            <option value="Tierra del Fuego">Tierra del Fuego</option>
-                            <option value="Tucumán">Tucumán</option>
-                        </select>
+                    <div className="fed-select-group">
+                        <label htmlFor="jurisdiccion-select">Jurisdicción de Búsqueda</label>
+                        <div className="fed-select-wrapper">
+                            <select
+                                id="jurisdiccion-select"
+                                className="fed-select"
+                                value={selectedProv}
+                                onChange={(e) => handleSearch(e.target.value)}
+                            >
+                                <option value="">Selecciona una Provincia...</option>
+                                <option value="CABA">CABA</option>
+                                <option value="Buenos Aires">Buenos Aires</option>
+                                <option value="Catamarca">Catamarca</option>
+                                <option value="Chaco">Chaco</option>
+                                <option value="Chubut">Chubut</option>
+                                <option value="Córdoba">Córdoba</option>
+                                <option value="Corrientes">Corrientes</option>
+                                <option value="Entre Ríos">Entre Ríos</option>
+                                <option value="Formosa">Formosa</option>
+                                <option value="Jujuy">Jujuy</option>
+                                <option value="La Pampa">La Pampa</option>
+                                <option value="La Rioja">La Rioja</option>
+                                <option value="Mendoza">Mendoza</option>
+                                <option value="Misiones">Misiones</option>
+                                <option value="Neuquén">Neuquén</option>
+                                <option value="Río Negro">Río Negro</option>
+                                <option value="Salta">Salta</option>
+                                <option value="San Juan">San Juan</option>
+                                <option value="San Luis">San Luis</option>
+                                <option value="Santa Cruz">Santa Cruz</option>
+                                <option value="Santa Fe">Santa Fe</option>
+                                <option value="Santiago del Estero">Santiago del Estero</option>
+                                <option value="Tierra del Fuego">Tierra del Fuego</option>
+                                <option value="Tucumán">Tucumán</option>
+                            </select>
+                            <div className="fed-chevron">
+                                <ChevronDown size={20} />
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="mt-4 flex flex-col gap-3">
-                        {searchResults.length === 0 && (
-                            <div className="p-4 border border-white/10 rounded-xl bg-white/5 opacity-60 text-center text-sm">
-                                No se encontraron colegas disponibles en esta jurisdicción.
+                    <div className="fed-lawyer-list">
+                        {searching && (
+                            <div className="p-6 text-center opacity-40 text-sm">Buscando...</div>
+                        )}
+                        {!searching && !selectedProv && (
+                            <div className="fed-lawyer-placeholder">
+                                <MapPin size={24} className="opacity-50" />
+                                <span>Seleccioná una provincia para ver colegas disponibles.</span>
+                            </div>
+                        )}
+                        {!searching && selectedProv && searchResults.length === 0 && (
+                            <div className="fed-lawyer-placeholder">
+                                <UserPlus size={24} className="opacity-50" />
+                                <span>No se encontraron colegas en esta jurisdicción.</span>
                             </div>
                         )}
                         {searchResults.map(lawyer => (
-                            <div key={lawyer.id} className="p-3 border border-white/10 rounded-xl bg-white/5 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
+                            <div key={lawyer.id} className="fed-lawyer-card">
+                                <div className="fed-lawyer-info">
+                                    <div className="fed-lawyer-avatar">
                                         {lawyer.avatar_url ? (
-                                            <img src={lawyer.avatar_url} alt={lawyer.full_name} className="w-full h-full object-cover" />
+                                            <img src={lawyer.avatar_url} alt={lawyer.full_name} />
                                         ) : (
                                             (lawyer.full_name || 'U').charAt(0)
                                         )}
                                     </div>
-                                    <div className="flex-1">
-                                        <h4 className="m-0 text-sm font-semibold">{lawyer.full_name || 'Colega'}</h4>
-                                        <div className="text-xs opacity-60 truncate max-w-[180px]">
+                                    <div className="fed-lawyer-details">
+                                        <h4>{lawyer.full_name || 'Colega'}</h4>
+                                        <span className="fed-lawyer-specialty">
                                             {lawyer.especialidades && lawyer.especialidades.length > 0
-                                                ? lawyer.especialidades.slice(0, 2).join(', ')
+                                                ? lawyer.especialidades.slice(0, 2).join(' • ')
                                                 : 'Generalista'}
-                                        </div>
+                                        </span>
                                         {lawyer.coverage_areas && (
-                                            <div className="text-[10px] text-amber-400/80 italic mt-0.5">
-                                                Zona: {lawyer.coverage_areas}
-                                            </div>
+                                            <span className="fed-lawyer-zone">Zona: {lawyer.coverage_areas}</span>
                                         )}
                                     </div>
                                 </div>
                                 <button
-                                    className="fed-btn fed-btn-primary text-xs py-1.5 px-3 rounded-lg"
+                                    className="fed-lawyer-action-btn"
                                     title="Iniciar conversación"
-                                    onClick={async () => {
-                                        try {
-                                            const { data: { user } } = await supabase.auth.getUser();
-                                            if (!user) return;
-
-                                            // 1. Check if conversation already exists (is_group=false and both participants)
-                                            // Simplification: just create a new one for now as per previous logic, 
-                                            // but better logic would be to find existing.
-
-                                            // 2. Create Conversation
-                                            const { data: newConvo, error } = await supabase
-                                                .from('chat_conversations')
-                                                .insert([{ title: lawyer.full_name, is_group: false }])
-                                                .select()
-                                                .single();
-
-                                            if (error) throw error;
-
-                                            // 3. Add Participants
-                                            if (newConvo) {
-                                                await supabase.from('chat_participants').insert([
-                                                    { conversation_id: newConvo.id, user_id: user.id },
-                                                    { conversation_id: newConvo.id, user_id: lawyer.id }
-                                                ]);
-
-                                                // 4. Emit Open Event
-                                                const event = new CustomEvent('judicia-open-chat', {
-                                                    detail: { conversationId: newConvo.id, partnerName: lawyer.full_name }
-                                                });
-                                                window.dispatchEvent(event);
-                                            }
-                                        } catch (err) {
-                                            console.error("Error starting chat:", err);
-                                            toast?.error("Error iniciando chat: " + err.message);
-                                        }
-                                    }}
+                                    onClick={() => handleStartChat(lawyer)}
                                 >
-                                    <MessageCircle size={14} />
+                                    <MessageCircle size={18} />
                                 </button>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* 2. DIRECTORIO Y RECURSOS */}
+                {/* 2. DIRECTORIO NACIONAL */}
                 <div className="fed-card">
-                    <div className="fed-card-icon">
+                    <div className="fed-icon-box" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
                         <Clock size={24} />
                     </div>
-                    <h3>Organismos y Trámites</h3>
-                    <p>
-                        Información clave de contacto y procedimientos específicos
-                        para cada oficina judicial del país.
-                    </p>
-                    <div className="fed-list-col">
-                        <button className="fed-btn fed-btn-outline w-full justify-between">
+                    <h3>Directorio Nacional</h3>
+                    <p>Buscador de organismos judiciales, padrones y contactos oficiales de todo el territorio nacional.</p>
+
+                    {directoryFeedback && (
+                        <div className="fed-feedback-bar">
+                            <AlertCircle size={16} className="text-blue-400 shrink-0" />
+                            <span>{directoryFeedback}</span>
+                        </div>
+                    )}
+
+                    <div className="fed-btn-list">
+                        <button className="fed-full-btn" onClick={() => showDirectoryMsg("Próximamente: Buscador de Padrones Nacionales.")}>
                             <div className="flex items-center gap-3">
-                                <Search size={18} className="text-blue-400" />
-                                <div className="text-left">
-                                    <div className="text-sm font-semibold">Padrones de Abogados</div>
-                                    <div className="text-xs opacity-60">Consulta pública por jurisdicción</div>
+                                <div className="fed-btn-icon-box text-blue-400">
+                                    <Globe size={18} />
                                 </div>
+                                <span>Padrones Federales</span>
                             </div>
-                            <ArrowRight size={16} />
+                            <ArrowRight size={18} className="fed-btn-arrow" />
                         </button>
-                        <button className="fed-btn fed-btn-outline w-full justify-between">
+                        <button className="fed-full-btn" onClick={() => showDirectoryMsg("Próximamente: Base de datos de oficinas judiciales.")}>
                             <div className="flex items-center gap-3">
-                                <HelpCircle size={18} className="text-emerald-400" />
-                                <div className="text-left">
-                                    <div className="text-sm font-semibold">Oficinas Judiciales</div>
-                                    <div className="text-xs opacity-60">Soporte y contacto oficial</div>
+                                <div className="fed-btn-icon-box text-emerald-400">
+                                    <HelpCircle size={18} />
                                 </div>
+                                <span>Oficinas Judiciales</span>
                             </div>
-                            <ArrowRight size={16} />
+                            <ArrowRight size={18} className="fed-btn-arrow" />
                         </button>
                     </div>
                 </div>
 
-                {/* 3. GUÍAS DE SUPERVIVENCIA */}
+                {/* 3. GUÍAS PRO */}
                 <div className="fed-card">
-                    <div className="fed-card-icon">
+                    <div className="fed-icon-box" style={{ background: 'rgba(168, 85, 247, 0.1)', color: '#a855f7' }}>
                         <BookOpen size={24} />
                     </div>
                     <h3>Guías de Supervivencia</h3>
-                    <p>
-                        Protocolos paso a paso para trámites complejos en diversas
-                        jurisdicciones. Creado por y para abogados.
-                    </p>
+                    <p>Protocolos paso a paso para trámites ante organismos específicos y tribunales de distintas provincias.</p>
                     <div className="mt-4">
-                        <button className="fed-btn fed-btn-outline w-full justify-center">
-                            Ver Todas las Guías
+                        <button
+                            className="fed-full-btn"
+                            style={{ justifyContent: 'center', borderColor: 'rgba(251, 191, 36, 0.3)', color: '#fbbf24' }}
+                            onClick={() => toast.info("Próximamente: Protocolos PRO por jurisdicción.")}
+                        >
+                            <ShieldCheck size={18} className="mr-2" /> Explorar Protocolos PRO
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div className="fed-footer-disclaimer">
+            <div className="fed-footer">
                 <p>© 2026 Judic-IA • Centro de Recursos Interjurisdiccionales</p>
             </div>
         </div>

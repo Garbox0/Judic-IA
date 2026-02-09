@@ -191,3 +191,38 @@ export const demoLibrary = [
         created_at: new Date(Date.now() - 150000000).toISOString()
     }
 ];
+
+export const demoLawyers = [
+    {
+        id: "lawyer-1",
+        full_name: "Dra. Elena Soria",
+        especialidades: ["Derecho Laboral", "Sucesiones"],
+        jurisdiccion: "CABA",
+        coverage_areas: "Zona Tribunales",
+        avatar_url: null
+    },
+    {
+        id: "lawyer-2",
+        full_name: "Dr. Carlos Méndez",
+        especialidades: ["Daños y Perjuicios", "Seguros"],
+        jurisdiccion: "Córdoba",
+        coverage_areas: "Ciudad de Córdoba",
+        avatar_url: null
+    },
+    {
+        id: "lawyer-3",
+        full_name: "Dra. Julia Rivas",
+        especialidades: ["Derecho de Familia", "Civil"],
+        jurisdiccion: "Santa Fe",
+        coverage_areas: "Rosario y alrededores",
+        avatar_url: null
+    },
+    {
+        id: "lawyer-4",
+        full_name: "Dr. Ricardo Luque",
+        especialidades: ["Derecho Penal", "Amparos"],
+        jurisdiccion: "Mendoza",
+        coverage_areas: "Mendoza Capital",
+        avatar_url: null
+    }
+];

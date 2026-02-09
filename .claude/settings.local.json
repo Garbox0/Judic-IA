@@ -12,7 +12,9 @@
       "Bash(ssh:*)",
       "Bash(where:*)",
       "Bash(plink:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(dir /s /b \"d:\\\\Antigravity\\\\Judic-IA\\\\app\\\\demo\\\\dashboard\")",
+      "Bash(findstr:*)"
     ]
   }
 }

@@ -19,7 +19,8 @@ import {
     Book,
     Calculator,
     Sun,
-    Moon
+    Moon,
+    Globe
 } from 'lucide-react';
 import SafeChatWidget from '../../components/SafeChatWidget'; // Corrected path
 
@@ -143,6 +144,10 @@ export default function DemoDashboardLayout({ children }) {
                     <Link href={`${basePath}/library`} className={`nav-item ${pathname.includes('/library') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
                         <BookOpen size={18} className="nav-icon" />
                         <span>Biblioteca</span>
+                    </Link>
+                    <Link href={`${basePath}/federal`} className={`nav-item ${pathname.includes('/federal') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+                        <Globe size={18} className="nav-icon" />
+                        <span>Hub Federal</span>
                     </Link>
                     <Link href={`${basePath}/settings`} className={`nav-item ${pathname.includes('/settings') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
                         <Settings size={18} className="nav-icon" />

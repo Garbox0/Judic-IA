@@ -110,5 +110,20 @@ Este es tu centro de mando en el entorno Sandbox.
 ### ⚖️ Demo vs. Versión Full
 *   **En esta Demo:** Experimentas con datos pre-cargados para conocer la interfaz y el alcance de las herramientas.
 *   **En el Gabinete Real:** Operas sobre tu verdadera cartera de clientes. El Dashboard te ofrece "Insights" predictivos sobre tu rentabilidad, carga horaria y probabilidad de éxito en tus litigios basándose en tu historial real.
+`,
+
+    federal: `
+## Hub Federal e Interjurisdiccional
+
+Herramientas diseñadas para facilitar la práctica legal fuera de tu jurisdicción habitual.
+
+### ¿Cómo usar esta demo?
+1.  **Directorio de Corresponsales:** Selecciona una provincia (ej. Córdoba o Santa Fe) para ver cómo Judic-IA te conecta con colegas verificados para delegar tareas locales.
+2.  **Simulación de Chat:** Haz clic en el ícono de mensaje para ver cómo se iniciaría una colaboración profesional.
+3.  **Recursos Centrales:** Explora las guías de organismos nacionales y padrones.
+
+### ⚖️ Demo vs. Versión Full
+*   **En esta Demo:** Resultados estáticos de colegas y guías de referencia rápidas.
+*   **En el Gabinete Real:** Integración directa con **Bus-Justicia** para el seguimiento de oficios y testimonios. Acceso a una red real de miles de abogados verificados con sistema de chat encriptado y herramientas de gestión de corresponsalía integradas.
 `
 };
