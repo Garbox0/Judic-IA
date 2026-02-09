@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { verifyAuth } from '@/lib/api-auth';
 
 // SYSTEM PROMPT FOR GENERATION
 const DOC_GEN_SYSTEM_PROMPT = `
@@ -21,6 +22,10 @@ TU SALIDA DEBE SER ÚNICAMENTE EL TEXTO DEL DOCUMENTO, SIN EXPLICACIONES PREVIAS
 `;
 
 export async function POST(request) {
+    // 🛡️ Auth required (consumes OpenRouter API credits)
+    const auth = await verifyAuth(request);
+    if (auth.error) return auth.response;
+
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) return NextResponse.json({ error: "Falta API Key" }, { status: 500 });
 

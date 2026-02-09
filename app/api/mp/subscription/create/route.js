@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { verifyAuthAndOwnership } from "@/lib/api-auth";
 
 export async function POST(req) {
     const { userId } = await req.json();
@@ -6,6 +7,10 @@ export async function POST(req) {
     if (!userId) {
         return NextResponse.json({ error: "missing userId" }, { status: 400 });
     }
+
+    // 🛡️ Verify authenticated user matches the requested userId
+    const auth = await verifyAuthAndOwnership(req, userId);
+    if (auth.error) return auth.response;
 
     const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
     const planId =

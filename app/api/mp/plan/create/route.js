@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
+import { verifyAdmin } from "@/lib/api-auth";
 
-export async function POST() {
+export async function POST(request) {
+    // 🛡️ Only admin can create MP plans
+    const auth = await verifyAdmin(request);
+    if (auth.error) return auth.response;
+
     try {
         const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
 

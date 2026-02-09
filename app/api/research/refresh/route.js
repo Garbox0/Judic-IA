@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { verifyAuth } from '@/lib/api-auth';
 
 export async function POST(request) {
     const { query, excludeUrls, mode, userId } = await request.json();
@@ -8,6 +9,10 @@ export async function POST(request) {
     if (mode === 'demo') {
         return NextResponse.json({ error: "El refresco de resultados no está disponible en modo Demo." }, { status: 403 });
     }
+
+    // 🛡️ Auth required for non-demo mode
+    const auth = await verifyAuth(request);
+    if (auth.error) return auth.response;
 
     const braveApiKey = process.env.BRAVE_SEARCH_API_KEY;
 

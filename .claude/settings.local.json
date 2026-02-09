@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(vercel env ls:*)",
+      "Bash(curl:*)",
+      "Bash(git reset:*)",
+      "Bash(npx next lint:*)",
+      "Bash(npx next build:*)",
+      "Bash(ssh:*)",
+      "Bash(where:*)",
+      "Bash(plink:*)",
+      "Bash(find:*)"
+    ]
+  }
+}

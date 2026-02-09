@@ -122,78 +122,116 @@ export default function FederalContent() {
                             className="stg-dark-input"
                             onChange={async (e) => {
                                 const prov = e.target.value;
-                                if (!prov) return;
+                                if (!prov) {
+                                    setSearchResults([]);
+                                    return;
+                                }
 
-                                // Real Search Logic
                                 try {
                                     const { data: { user } } = await supabase.auth.getUser();
                                     const { data, error } = await supabase
                                         .from('profiles')
-                                        .select('id, full_name, role')
-                                        .neq('id', user?.id) // Exclude self
-                                        .limit(5); // Limit for UI space
+                                        .select('id, full_name, especialidades, jurisdiccion, coverage_areas, avatar_url')
+                                        .eq('is_correspondent', true)
+                                        .eq('jurisdiccion', prov)
+                                        .neq('id', user?.id)
+                                        .limit(10);
 
-                                    if (data) {
-                                        // Mocking Metadata for demo niceness since we lack 'specialization' column in profiles yet
-                                        const enriched = data.map(d => ({
-                                            ...d,
-                                            specialization: ['Civil', 'Penal', 'Laboral'][Math.floor(Math.random() * 3)],
-                                            location: prov
-                                        }));
-                                        setSearchResults(enriched);
-                                    }
+                                    if (error) throw error;
+                                    setSearchResults(data || []);
                                 } catch (err) {
-                                    console.error(err);
+                                    console.error("Search error:", err);
+                                    setSearchResults([]);
                                 }
                             }}
                         >
                             <option value="">Filtrar por Jurisdicción</option>
                             <option value="CABA">CABA</option>
                             <option value="Buenos Aires">Buenos Aires</option>
-                            <option value="Santa Fe">Santa Fe</option>
+                            <option value="Catamarca">Catamarca</option>
+                            <option value="Chaco">Chaco</option>
+                            <option value="Chubut">Chubut</option>
+                            <option value="Córdoba">Córdoba</option>
+                            <option value="Corrientes">Corrientes</option>
+                            <option value="Entre Ríos">Entre Ríos</option>
+                            <option value="Formosa">Formosa</option>
+                            <option value="Jujuy">Jujuy</option>
+                            <option value="La Pampa">La Pampa</option>
+                            <option value="La Rioja">La Rioja</option>
                             <option value="Mendoza">Mendoza</option>
+                            <option value="Misiones">Misiones</option>
+                            <option value="Neuquén">Neuquén</option>
+                            <option value="Río Negro">Río Negro</option>
+                            <option value="Salta">Salta</option>
+                            <option value="San Juan">San Juan</option>
+                            <option value="San Luis">San Luis</option>
+                            <option value="Santa Cruz">Santa Cruz</option>
+                            <option value="Santa Fe">Santa Fe</option>
+                            <option value="Santiago del Estero">Santiago del Estero</option>
+                            <option value="Tierra del Fuego">Tierra del Fuego</option>
+                            <option value="Tucumán">Tucumán</option>
                         </select>
                     </div>
 
                     <div className="mt-4 flex flex-col gap-3">
                         {searchResults.length === 0 && (
                             <div className="p-4 border border-white/10 rounded-xl bg-white/5 opacity-60 text-center text-sm">
-                                Selecciona una provincia para buscar colegas.
+                                No se encontraron colegas disponibles en esta jurisdicción.
                             </div>
                         )}
                         {searchResults.map(lawyer => (
                             <div key={lawyer.id} className="p-3 border border-white/10 rounded-xl bg-white/5 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
-                                        {(lawyer.full_name || 'U').charAt(0)}
+                                    <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
+                                        {lawyer.avatar_url ? (
+                                            <img src={lawyer.avatar_url} alt={lawyer.full_name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            (lawyer.full_name || 'U').charAt(0)
+                                        )}
                                     </div>
-                                    <div>
+                                    <div className="flex-1">
                                         <h4 className="m-0 text-sm font-semibold">{lawyer.full_name || 'Colega'}</h4>
-                                        <span className="text-xs opacity-60">{lawyer.specialization} • {lawyer.location}</span>
+                                        <div className="text-xs opacity-60 truncate max-w-[180px]">
+                                            {lawyer.especialidades && lawyer.especialidades.length > 0
+                                                ? lawyer.especialidades.slice(0, 2).join(', ')
+                                                : 'Generalista'}
+                                        </div>
+                                        {lawyer.coverage_areas && (
+                                            <div className="text-[10px] text-amber-400/80 italic mt-0.5">
+                                                Zona: {lawyer.coverage_areas}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <button
-                                    className="fed-btn fed-btn-primary text-xs py-1 px-3"
+                                    className="fed-btn fed-btn-primary text-xs py-1.5 px-3 rounded-lg"
+                                    title="Iniciar conversación"
                                     onClick={async () => {
                                         try {
                                             const { data: { user } } = await supabase.auth.getUser();
                                             if (!user) return;
 
-                                            // 1. Create/Get Conversation
+                                            // 1. Check if conversation already exists (is_group=false and both participants)
+                                            // Simplification: just create a new one for now as per previous logic, 
+                                            // but better logic would be to find existing.
+
+                                            // 2. Create Conversation
                                             const { data: newConvo, error } = await supabase
                                                 .from('chat_conversations')
                                                 .insert([{ title: lawyer.full_name, is_group: false }])
                                                 .select()
                                                 .single();
 
-                                            // 2. Add Participants (If created)
+                                            if (error) throw error;
+
+                                            // 3. Add Participants
                                             if (newConvo) {
                                                 await supabase.from('chat_participants').insert([
                                                     { conversation_id: newConvo.id, user_id: user.id },
                                                     { conversation_id: newConvo.id, user_id: lawyer.id }
                                                 ]);
 
-                                                // 3. Emit Open Event
+                                                // 4. Emit Open Event
                                                 const event = new CustomEvent('judicia-open-chat', {
                                                     detail: { conversationId: newConvo.id, partnerName: lawyer.full_name }
                                                 });
@@ -201,7 +239,7 @@ export default function FederalContent() {
                                             }
                                         } catch (err) {
                                             console.error("Error starting chat:", err);
-                                            alert("Error iniciando chat. Asegúrate de haber corrido la migración.");
+                                            toast?.error("Error iniciando chat: " + err.message);
                                         }
                                     }}
                                 >

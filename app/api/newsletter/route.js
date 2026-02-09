@@ -2,10 +2,21 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { getHtmlEmail } from '@/lib/email-template';
+import { checkRateLimit, getClientIP } from '@/lib/rate-limiter';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request) {
+    // 🛡️ Rate limiting: 3 requests per minute per IP (anti-spam)
+    const ip = getClientIP(request);
+    const rateCheck = checkRateLimit(`newsletter:${ip}`, 3, 60000);
+    if (!rateCheck.allowed) {
+        return NextResponse.json(
+            { error: 'Demasiadas solicitudes. Intenta de nuevo en 1 minuto.' },
+            { status: 429, headers: { 'Retry-After': '60' } }
+        );
+    }
+
     try {
         const { email } = await request.json();
 
@@ -41,7 +52,7 @@ export async function POST(request) {
         // 2. Notificación interna (Hola@judic-ia.com)
         try {
             await resend.emails.send({
-                from: 'Judic-IA Ads <security@judic-ia.com>',
+                from: 'Judic-IA <hola@judic-ia.com>',
                 to: 'hola@judic-ia.com',
                 subject: '🚀 Nuevo Interesado en Newsletter',
                 html: getHtmlEmail({

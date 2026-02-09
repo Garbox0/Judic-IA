@@ -1,5 +1,6 @@
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { createClient } from '@supabase/supabase-js';
+import { verifyAuthAndOwnership } from '@/lib/api-auth';
 
 const client = new MercadoPagoConfig({
     accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN
@@ -9,11 +10,14 @@ export async function POST(request) {
     try {
         const body = await request.json();
         const { userId, userEmail } = body;
-        console.log('📦 Checkout Body:', { userId, userEmail });
 
         if (!userId) {
             return new Response(JSON.stringify({ error: 'User ID is required' }), { status: 400 });
         }
+
+        // 🛡️ Verify authenticated user matches the requested userId
+        const auth = await verifyAuthAndOwnership(request, userId);
+        if (auth.error) return auth.response;
 
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://judic-ia.com';
         const webhookUrl = process.env.WEBHOOK_URL || siteUrl;

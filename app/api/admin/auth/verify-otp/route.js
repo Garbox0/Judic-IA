@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { checkRateLimit, getClientIP } from '@/lib/rate-limiter';
 
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -12,6 +13,17 @@ export async function POST(request) {
 
         if (!email || !otp) {
             return NextResponse.json({ error: 'Faltan datos' }, { status: 400 });
+        }
+
+        // 🛡️ Rate limiting: 5 attempts per minute per IP (brute-force protection)
+        const ip = getClientIP(request);
+        const rateCheck = checkRateLimit(`verify-otp:${ip}`, 5, 60000);
+        if (!rateCheck.allowed) {
+            console.warn(`⚠️ OTP brute-force attempt blocked: ${ip}`);
+            return NextResponse.json(
+                { error: 'Demasiados intentos. Esperá 1 minuto.' },
+                { status: 429, headers: { 'Retry-After': '60' } }
+            );
         }
 
         // 1. Verify OTP in DB

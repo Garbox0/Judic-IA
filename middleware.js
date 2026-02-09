@@ -71,6 +71,44 @@ export async function middleware(request) {
         return BLOCKED_COUNTRY_RESPONSE;
     }
 
+    // 🪤 -0.5 HONEYPOT: Bloqueo de rutas de ataque comunes
+    // Si alguien toca estas rutas, es un bot o atacante - no hay nada legítimo acá
+    const lowerPath = pathname.toLowerCase();
+    const isAttackPath =
+        lowerPath.includes('/wp-admin') ||
+        lowerPath.includes('/wp-login') ||
+        lowerPath.includes('/wp-content') ||
+        lowerPath.includes('/wp-includes') ||
+        lowerPath.includes('/wordpress') ||
+        lowerPath.includes('/phpmy') ||
+        lowerPath.includes('/phpmyadmin') ||
+        lowerPath.includes('/adminer') ||
+        lowerPath.includes('/.env') ||
+        lowerPath.includes('/.git') ||
+        lowerPath.includes('/.htaccess') ||
+        lowerPath.includes('/.htpasswd') ||
+        lowerPath.includes('/xmlrpc.php') ||
+        lowerPath.includes('/config.php') ||
+        lowerPath.includes('/admin.php') ||
+        lowerPath.includes('/shell') ||
+        lowerPath.includes('/eval') ||
+        lowerPath.includes('/cgi-bin') ||
+        lowerPath.includes('/etc/passwd') ||
+        lowerPath.includes('/proc/self') ||
+        lowerPath.includes('/vendor/phpunit') ||
+        lowerPath.includes('/telescope') ||
+        lowerPath.includes('/debug/') ||
+        lowerPath.includes('/actuator') ||
+        lowerPath.includes('/solr') ||
+        lowerPath.includes('/console') ||
+        lowerPath.includes('/manager/html') ||
+        lowerPath.includes('/remote/login');
+
+    if (isAttackPath) {
+        console.warn(`🪤 HONEYPOT: ${pathname} from ${ip} (${country || 'unknown'})`);
+        return new NextResponse(null, { status: 404 });
+    }
+
     // 🛡️ 0. SEGURIDAD (CSP Relaxed for Debugging)
     const nonce = crypto.randomUUID()
     // Fallback to VPS URL (HTTPS) if Env Var not loaded

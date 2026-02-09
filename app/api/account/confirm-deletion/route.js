@@ -80,7 +80,7 @@ export async function POST(request) {
         // 5. Send Goodbye Email (Best Effort)
         try {
             await resend.emails.send({
-                from: 'Judic-IA <noreply@judic-ia.com>',
+                from: 'Soporte Judic-IA <soporte@judic-ia.com>',
                 to: user.email,
                 subject: '👋 Tu cuenta ha sido eliminada',
                 html: getHtmlEmail({

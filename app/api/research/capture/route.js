@@ -3,8 +3,13 @@ import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
 import minioClient, { ensureBucket, BUCKET_NAME } from '@/app/lib/minio';
 import crypto from 'crypto';
+import { verifyAuth } from '@/lib/api-auth';
 
 export async function POST(request) {
+    // 🛡️ Auth required (resource-intensive: Puppeteer + MinIO)
+    const auth = await verifyAuth(request);
+    if (auth.error) return auth.response;
+
     try {
         const body = await request.json();
         const { url, title } = body;

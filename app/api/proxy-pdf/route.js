@@ -1,10 +1,39 @@
 import { NextResponse } from 'next/server';
 import https from 'https';
 
-// Create an agent that ignores SSL errors (common in gov.ar sites)
-const httpsAgent = new https.Agent({
-    rejectUnauthorized: false
-});
+// 🛡️ ALLOWED DOMAINS for PDF proxy (prevents SSRF)
+// Only judicial/government domains that legitimately need SSL bypass
+const ALLOWED_DOMAINS = [
+    '.gov.ar',
+    '.gob.ar',
+    '.judiciary.gov.ar',
+    'archivos.judic-ia.com',
+];
+
+function isAllowedUrl(url) {
+    try {
+        const parsed = new URL(url);
+        // Block internal/private IPs
+        const hostname = parsed.hostname.toLowerCase();
+        if (hostname === 'localhost' ||
+            hostname === '127.0.0.1' ||
+            hostname.startsWith('10.') ||
+            hostname.startsWith('192.168.') ||
+            hostname.startsWith('172.') ||
+            hostname === '0.0.0.0' ||
+            hostname === '169.254.169.254' || // AWS metadata
+            hostname.endsWith('.internal') ||
+            hostname.endsWith('.local')) {
+            return false;
+        }
+        // Only allow HTTPS
+        if (parsed.protocol !== 'https:') return false;
+        // Check against allowed domain suffixes
+        return ALLOWED_DOMAINS.some(d => hostname.endsWith(d));
+    } catch {
+        return false;
+    }
+}
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
@@ -14,8 +43,14 @@ export async function GET(request) {
         return NextResponse.json({ error: 'Missing URL' }, { status: 400 });
     }
 
+    // 🛡️ SSRF Protection: Only allow whitelisted domains
+    if (!isAllowedUrl(targetUrl)) {
+        console.warn(`🚫 Proxy blocked non-whitelisted URL: ${targetUrl}`);
+        return NextResponse.json({ error: 'URL not allowed' }, { status: 403 });
+    }
+
     try {
-        // HACK: Bypass SSL for government sites
+        // SSL bypass only for whitelisted government sites
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
         const response = await fetch(targetUrl, {
@@ -38,9 +73,7 @@ export async function GET(request) {
                 'Content-Type': contentType,
                 'Content-Disposition': 'inline',
                 'Cache-Control': 'public, max-age=3600',
-                // Important to allow iframe
-                'X-Frame-Options': 'ALLOW',
-                'Access-Control-Allow-Origin': '*'
+                'X-Frame-Options': 'SAMEORIGIN',
             },
         });
 
@@ -48,7 +81,6 @@ export async function GET(request) {
         console.error("Proxy Error:", error);
         return NextResponse.json({ error: 'Error fetching PDF' }, { status: 500 });
     } finally {
-        // Restore SSL security
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
     }
 }

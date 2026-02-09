@@ -3,8 +3,13 @@ import { Resend } from 'resend';
 import { sendEmail } from '../../../lib/resend';
 import { getHtmlEmail } from '../../../../lib/email-template';
 import { createClient } from '@supabase/supabase-js';
+import { verifyAuth } from '@/lib/api-auth';
 
 export async function POST(request) {
+    // 🛡️ Auth required (prevents abuse for email spamming)
+    const auth = await verifyAuth(request);
+    if (auth.error) return auth.response;
+
     const resendApiKey = process.env.RESEND_API_KEY;
 
     if (!resendApiKey) {
@@ -25,7 +30,7 @@ export async function POST(request) {
         await sendEmail({
             resendClient: resend,
             to: email,
-            from: 'noreply@judic-ia.com',
+            from: 'Soporte Judic-IA <soporte@judic-ia.com>',
             subject: '🔐 Tu contraseña de Judic-IA ha sido modificada',
             html: getHtmlEmail({
                 heading: '🔐 Clave Modificada',

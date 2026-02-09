@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { generateAlternatives } from '@/lib/queryEnhancer';
+import { verifyAuth } from '@/lib/api-auth';
 
 /**
  * API Endpoint: Alternative Queries Generator
  * Generates alternative search queries when initial results are poor
  */
 export async function POST(request) {
+    // 🛡️ Auth required (consumes API credits)
+    const auth = await verifyAuth(request);
+    if (auth.error) return auth.response;
+
     try {
         const { query, jurisdiction = 'Nacional' } = await request.json();
 

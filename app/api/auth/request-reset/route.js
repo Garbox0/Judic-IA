@@ -68,7 +68,7 @@ export async function POST(request) {
         await sendEmail({
             resendClient: resend,
             to: email,
-            from: 'noreply@judic-ia.com',
+            from: 'Soporte Judic-IA <soporte@judic-ia.com>',
             subject: '🔐 Recupera tu acceso a Judic-IA',
             html: getHtmlEmail({
                 heading: '🔐 Recuperar Acceso',

@@ -7,7 +7,8 @@ export async function GET(request) {
     const token = searchParams.get('hub.verify_token');
     const challenge = searchParams.get('hub.challenge');
 
-    if (mode === 'subscribe' && token === 'judicia_secret') {
+    const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN || 'judicia_secret';
+    if (mode === 'subscribe' && token === verifyToken) {
         return new NextResponse(challenge);
     }
     return new NextResponse('Error', { status: 403 });

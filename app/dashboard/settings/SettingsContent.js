@@ -193,8 +193,11 @@ export default function SettingsPage({ isDemo = false }) {
     };
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
     };
 
     const toggleSpecialty = (spec) => {
@@ -335,6 +338,8 @@ export default function SettingsPage({ isDemo = false }) {
                 biography: formData.biography,
                 jurisdiccion: formData.jurisdiccion,
                 especialidades: formData.especialidades,
+                is_correspondent: formData.is_correspondent,
+                coverage_areas: formData.coverage_areas,
                 matricula: (formData.tomo || formData.folio)
                     ? `T° ${formData.tomo || ''} F° ${formData.folio || ''}`.trim()
                     : formData.matricula,
@@ -665,13 +670,13 @@ export default function SettingsPage({ isDemo = false }) {
                                                 {formData.is_correspondent && (
                                                     <div className="stg-coverage-section">
                                                         <div className="stg-f-group">
-                                                            <label htmlFor="coverage_zones" className="stg-label">Zonas de Cobertura</label>
+                                                            <label htmlFor="coverage_areas" className="stg-label">Zonas de Cobertura</label>
                                                             <input
-                                                                id="coverage_zones"
-                                                                name="coverage_zones"
+                                                                id="coverage_areas"
+                                                                name="coverage_areas"
                                                                 className="stg-dark-input"
                                                                 placeholder="Ej: Neuquén Capital, Plottier, Centenario..."
-                                                                value={formData.coverage_zones}
+                                                                value={formData.coverage_areas}
                                                                 onChange={handleChange}
                                                             />
                                                             <p className="stg-hint">Mencioná las localidades o departamentos donde podés diligenciar trámites.</p>

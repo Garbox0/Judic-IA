@@ -2,8 +2,19 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { sendEmail } from '../../../lib/resend';
 import { getHtmlEmail } from '@/lib/email-template';
+import { checkRateLimit, getClientIP } from '@/lib/rate-limiter';
 
 export async function POST(request) {
+    // 🛡️ Rate limiting (called during registration - no auth token available)
+    const ip = getClientIP(request);
+    const rateCheck = checkRateLimit(`notify-reg:${ip}`, 3, 60000);
+    if (!rateCheck.allowed) {
+        return NextResponse.json(
+            { error: 'Too many requests' },
+            { status: 429, headers: { 'Retry-After': '60' } }
+        );
+    }
+
     const resendApiKey = process.env.RESEND_API_KEY;
 
     if (!resendApiKey) {
@@ -24,7 +35,7 @@ export async function POST(request) {
         await sendEmail({
             resendClient: resend,
             to: 'gbrlescalada@gmail.com',
-            from: 'noreply@judic-ia.com',
+            from: 'Soporte Judic-IA <soporte@judic-ia.com>',
             subject: '🆕 Nuevo Abogado Registrado en Judic-IA',
             html: getHtmlEmail({
                 heading: 'Nuevo Registro',
