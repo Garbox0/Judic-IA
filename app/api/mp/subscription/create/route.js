@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { verifyAuthAndOwnership } from "@/lib/api-auth";
+import { MercadoPagoConfig, PreApproval } from 'mercadopago';
+
+const client = new MercadoPagoConfig({ accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN });
 
 export async function POST(req) {
     const { userId } = await req.json();
@@ -12,64 +15,47 @@ export async function POST(req) {
     const auth = await verifyAuthAndOwnership(req, userId);
     if (auth.error) return auth.response;
 
-    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
-    const planId =
-        process.env.MP_PREAPPROVAL_PLAN_ID ||
-        process.env.NEXT_PUBLIC_MP_PREAPPROVAL_PLAN_ID;
+    const planId = process.env.MP_PREAPPROVAL_PLAN_ID;
+    if (!planId) {
+        return NextResponse.json({ error: "Server Error: Missing Plan Configuration" }, { status: 500 });
+    }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://judic-ia.com";
 
-    const body = {
-        subscription_plan_id: planId, // NOTE: This might be ignored by 'checkout/preferences' but kept for legacy/tracking
-        external_reference: userId,
-        statement_descriptor: "JUDIC-IA PRO",
-        notification_url: `${appUrl}/api/mp/webhook`,
-        auto_return: appUrl.includes("localhost") ? undefined : "approved",
-
-        // 🔑 ITEM OBLIGATORIO (dummy para validación de MP)
-        items: [
-            {
-                id: "judic-ia-plan",
-                title: "Suscripción Judic-IA – Plan Profesional",
-                description: "Acceso completo a la plataforma Judic-IA",
-                quantity: 1,
-                unit_price: 25000,
-                currency_id: "ARS",
-                category_id: "services"
-            },
-        ],
-
-        back_urls: {
-            success: `${appUrl}/dashboard/settings?tab=billing`,
-            failure: `${appUrl}/dashboard/settings?tab=billing`,
-            pending: `${appUrl}/dashboard/settings?tab=billing`,
-        },
-    };
-
     try {
-        console.log("Creating Subscription Preference:", JSON.stringify(body));
-        const r = await fetch("https://api.mercadopago.com/checkout/preferences", {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-        });
+        // Create a Preapproval (Subscription) Request linked to the Plan
+        // Documentation: https://www.mercadopago.com.ar/developers/en/reference/preapproval/create
 
-        const data = await r.json();
+        // However, since we already have a Plan ID (preapproval_plan_id), 
+        // the most robust way to subscribe a user is often to just send them to the Plan's "init_point" 
+        // OR create a specific preapproval for them if we want to track external_reference (userId).
 
-        if (!r.ok) {
-            console.error("MP Preference Error:", data);
-            return NextResponse.json({ error: data }, { status: 500 });
-        }
+        const preapproval = new PreApproval(client);
+
+        const subscriptionData = {
+            body: {
+                preapproval_plan_id: planId,
+                payer_email: auth.user.email, // Email from auth token
+                external_reference: userId,
+                back_url: `${appUrl}/dashboard/settings?status=success`,
+                status: "pending"
+            }
+        };
+
+        console.log("Creating Subscription for Plan:", planId);
+        const result = await preapproval.create(subscriptionData);
 
         return NextResponse.json({
             ok: true,
-            init_point: data.init_point,
+            init_point: result.init_point, // URL where user approves the subscription
+            id: result.id
         });
+
     } catch (error) {
-        console.error("Server Error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error("Subscription Error:", error);
+        return NextResponse.json({
+            error: error.message || "Error creating subscription",
+            details: error.cause
+        }, { status: 500 });
     }
 }
