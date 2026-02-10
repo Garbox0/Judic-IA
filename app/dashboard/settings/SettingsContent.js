@@ -288,9 +288,13 @@ export default function SettingsPage({ isDemo = false }) {
                 if (status === 'approved' || preapproval_id || formData.plan_tier === 'starter') {
                     // Solo mostramos toast si la verificación cambia algo importante
                     try {
+                        const { data: { session: syncSession } } = await supabase.auth.getSession();
                         const res = await fetch('/api/mp/subscription/sync', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                ...(syncSession?.access_token ? { 'Authorization': `Bearer ${syncSession.access_token}` } : {})
+                            },
                             body: JSON.stringify({
                                 userId: user.id,
                                 preapproval_id: preapproval_id
@@ -879,9 +883,13 @@ export default function SettingsPage({ isDemo = false }) {
                                                             onClick={async () => {
                                                                 setSaving(true);
                                                                 try {
+                                                                    const { data: { session: cancelSession } } = await supabase.auth.getSession();
                                                                     const res = await fetch('/api/mp/subscription/cancel', {
                                                                         method: 'POST',
-                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                        headers: {
+                                                                            'Content-Type': 'application/json',
+                                                                            ...(cancelSession?.access_token ? { 'Authorization': `Bearer ${cancelSession.access_token}` } : {})
+                                                                        },
                                                                         body: JSON.stringify({ userId: user.id })
                                                                     });
                                                                     const d = await res.json();
