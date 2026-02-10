@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 // Load env vars
 dotenv.config({ path: '.env.local' });
 
-const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN_PROD || process.env.MERCADOPAGO_ACCESS_TOKEN;
 
 if (!accessToken) {
     console.error("❌ MERCADOPAGO_ACCESS_TOKEN not found in .env.local");
