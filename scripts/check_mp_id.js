@@ -25,6 +25,7 @@ async function checkId() {
             console.log(`   Internal ID: ${data.id}`);
             console.log(`   Reason: ${data.reason}`);
             console.log(`   Auto Recurring: ${JSON.stringify(data.auto_recurring)}`);
+            console.log(`   Init Point: ${data.init_point}`);
             console.log("   ---");
             console.log("   CONCLUSION: You have a valid plan ID, but the codebase uses 'checkout/preferences' endpoint.");
         } else {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyAuthAndOwnership } from "@/lib/api-auth";
-import { MercadoPagoConfig, PreApproval } from 'mercadopago';
+import { MercadoPagoConfig, PreApproval, PreApprovalPlan } from 'mercadopago';
 
 const client = new MercadoPagoConfig({ accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN });
 
@@ -23,32 +23,27 @@ export async function POST(req) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://judic-ia.com";
 
     try {
-        // Create a Preapproval (Subscription) Request linked to the Plan
-        // Documentation: https://www.mercadopago.com.ar/developers/en/reference/preapproval/create
+        // Fetch the Plan details to get the generic init_point
+        // We do this instead of creating a specific PreApproval because the SDK/API might require card_token for direct creation,
+        // whereas we want to redirect the user to the hosted checkout.
+        const preApprovalPlan = new PreApprovalPlan(client);
+        const plan = await preApprovalPlan.get({ id: planId });
 
-        // However, since we already have a Plan ID (preapproval_plan_id), 
-        // the most robust way to subscribe a user is often to just send them to the Plan's "init_point" 
-        // OR create a specific preapproval for them if we want to track external_reference (userId).
+        if (!plan.init_point) {
+            throw new Error("Plan does not have an init_point");
+        }
 
-        const preapproval = new PreApproval(client);
-
-        const subscriptionData = {
-            body: {
-                preapproval_plan_id: planId,
-                payer_email: auth.user.email, // Email from auth token
-                external_reference: userId,
-                back_url: `${appUrl}/dashboard/settings?status=success`,
-                status: "pending"
-            }
-        };
-
-        console.log("Creating Subscription for Plan:", planId);
-        const result = await preapproval.create(subscriptionData);
+        // Construct the final URL with user context
+        // MercadoPago allows appending external_reference to the init_point
+        const checkoutUrl = new URL(plan.init_point);
+        checkoutUrl.searchParams.set("external_reference", userId);
+        checkoutUrl.searchParams.set("payer_email", auth.user.email);
+        checkoutUrl.searchParams.set("back_url", `${appUrl}/dashboard/settings?status=success`);
 
         return NextResponse.json({
             ok: true,
-            init_point: result.init_point, // URL where user approves the subscription
-            id: result.id
+            init_point: checkoutUrl.toString(),
+            id: planId // We return planId as the reference ID since we aren't creating a preapproval instance yet
         });
 
     } catch (error) {
