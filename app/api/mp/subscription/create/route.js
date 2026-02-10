@@ -78,7 +78,7 @@ export async function POST(req) {
         // We do this instead of creating a specific PreApproval because the SDK/API might require card_token for direct creation,
         // whereas we want to redirect the user to the hosted checkout.
         const preApprovalPlan = new PreApprovalPlan(client);
-        const plan = await preApprovalPlan.get({ id: planIdEnv.value });
+        const plan = await preApprovalPlan.get({ preApprovalPlanId: planIdEnv.value });
 
         if (!plan.init_point) {
             throw new Error("Plan does not have an init_point");
