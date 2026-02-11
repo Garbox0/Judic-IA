@@ -34,8 +34,9 @@ export default function LegislationViewerPage() {
     // Using Env Var to avoid exposing hardcoded IP, preparing for future HTTPS domain.
     const VPS_BASE_URL = process.env.NEXT_PUBLIC_LEGISLATION_URL || 'https://judic-ia.com/legislation';
 
-    // If external URL (e.g. KB) proxy it through our server to avoid CORS; otherwise construct VPS path for legislation
-    const pdfPath = externalUrl
+    // Build content URL: proxy for external (KB), direct VPS path for legislation
+    const isExternal = !!externalUrl;
+    const contentUrl = isExternal
         ? `/api/kb-proxy?url=${encodeURIComponent(decodeURIComponent(externalUrl))}`
         : `${VPS_BASE_URL}/${province}/${filename}`;
 
@@ -43,7 +44,7 @@ export default function LegislationViewerPage() {
         <div className="viewer-container">
             <header className="viewer-header glass-panel">
                 <div className="header-left">
-                    <Link href={externalUrl ? "/dashboard/library" : "/dashboard/legislation"} className="back-btn">
+                    <Link href={isExternal ? "/dashboard/library" : "/dashboard/legislation"} className="back-btn">
                         <ChevronLeft size={20} />
                     </Link>
                     <div className="title-wrapper">
@@ -52,20 +53,39 @@ export default function LegislationViewerPage() {
                     </div>
                 </div>
                 <div className="header-right">
-                    <div className="vt-badge" title="Scanned by ClamAV Antivirus">
-                        <ShieldCheck size={14} className="text-red-500" />
-                        <span>ClamAV <strong>Secure</strong></span>
-                    </div>
-                    <a href={pdfPath} download className="action-btn" title="Descargar PDF">
-                        <Download size={18} />
-                    </a>
+                    {!isExternal && (
+                        <div className="vt-badge" title="Scanned by ClamAV Antivirus">
+                            <ShieldCheck size={14} className="text-red-500" />
+                            <span>ClamAV <strong>Secure</strong></span>
+                        </div>
+                    )}
+                    {isExternal ? (
+                        <a href={decodeURIComponent(externalUrl)} target="_blank" rel="noopener noreferrer" className="action-btn" title="Abrir en SAIJ">
+                            <Maximize2 size={18} />
+                        </a>
+                    ) : (
+                        <a href={contentUrl} download className="action-btn" title="Descargar PDF">
+                            <Download size={18} />
+                        </a>
+                    )}
                 </div>
             </header>
 
             <main className="viewer-content">
-                <div className="pdf-wrapper glass-panel">
-                    <PdfReader url={pdfPath} />
-                </div>
+                {isExternal ? (
+                    <div className="kb-iframe-wrapper glass-panel">
+                        <iframe
+                            src={contentUrl}
+                            className="kb-iframe"
+                            title={displayTitle || "Recurso Legal"}
+                            sandbox="allow-same-origin allow-scripts allow-popups"
+                        />
+                    </div>
+                ) : (
+                    <div className="pdf-wrapper glass-panel">
+                        <PdfReader url={contentUrl} />
+                    </div>
+                )}
             </main>
 
             <style jsx>{`
@@ -179,7 +199,7 @@ export default function LegislationViewerPage() {
                         max-width: 50vw;
                     }
                     .vt-badge span:last-child {
-                        display: none; /* Hide text on small screens */
+                        display: none;
                     }
                 }
 
@@ -218,11 +238,28 @@ export default function LegislationViewerPage() {
                     position: relative;
                 }
 
+                .kb-iframe-wrapper {
+                    flex: 1;
+                    border-radius: 16px;
+                    overflow: hidden;
+                    border: 1px solid rgba(255,255,255,0.05);
+                    background: #fff;
+                    position: relative;
+                }
+
+                .kb-iframe {
+                    width: 100%;
+                    height: 100%;
+                    border: none;
+                    background: #fff;
+                }
+
                 .pdf-frame {
                     width: 100%;
                     height: 100%;
                     border: none;
                 }
+
 
                 .glass-panel {
                     background: rgba(30, 41, 59, 0.4);
