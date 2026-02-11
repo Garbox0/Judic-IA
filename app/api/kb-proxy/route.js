@@ -183,35 +183,13 @@ export async function GET(request) {
         });
 
     } catch (error) {
-        console.error('❌ KB Proxy Error:', error.message);
-
-        // Fallback: try a simple fetch (might work for some URLs that serve PDFs directly)
-        try {
-            const res = await fetch(targetUrl, {
-                headers: { 'User-Agent': 'Mozilla/5.0 Judic-IA/1.0' }
-            });
-
-            if (res.ok) {
-                const contentType = res.headers.get('content-type') || '';
-                if (contentType.includes('pdf')) {
-                    const buffer = Buffer.from(await res.arrayBuffer());
-                    return new NextResponse(buffer, {
-                        status: 200,
-                        headers: {
-                            'Content-Type': 'application/pdf',
-                            'Cache-Control': 'public, max-age=3600',
-                            'X-KB-Cache': 'FALLBACK',
-                        },
-                    });
-                }
-            }
-        } catch (fallbackErr) {
-            console.error('❌ KB Proxy Fallback also failed:', fallbackErr.message);
-        }
+        console.error('❌ KB Proxy Error:', error);
 
         return NextResponse.json({
-            error: 'Failed to capture document',
-            details: error.message
+            error: 'KB Proxy Failed',
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+            code: error.code || 'UNKNOWN_ERROR'
         }, { status: 500 });
     }
 }
