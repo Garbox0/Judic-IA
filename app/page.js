@@ -449,7 +449,7 @@ export default function Home() {
             <div className="nav-group">
               <h4>Plataforma</h4>
               <Link href="/dashboard">Dashboard</Link>
-              <Link href="/pricing">Precios</Link>
+              <Link href="/#pricing">Precios</Link>
               <Link href="/#servicios">Servicios</Link>
               <Link href="/demo">Demo</Link>
             </div>
