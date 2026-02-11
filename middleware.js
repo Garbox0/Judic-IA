@@ -144,9 +144,9 @@ export async function middleware(request) {
     const cspHeader = [
         "default-src 'self'",
         `script-src 'self' 'nonce-${nonce}' ${trustedDomains} ${isDev ? "'unsafe-eval'" : ""}`,
-        `style-src 'self' 'unsafe-inline' ${trustedDomains}`,
-        `img-src 'self' data: blob: ${trustedDomains}`,
-        `font-src 'self' data: ${trustedDomains}`,
+        `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
+        `img-src 'self' data: blob: https://*.supabase.co https://*.google.com https://*.googleapis.com https://*.gstatic.com ${legislationOrigin}`,
+        `font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com`,
         `connect-src 'self' ${trustedDomains} wss://*.supabase.co https://www.saij.gob.ar https://*.saij.gob.ar https://api.mercadopago.com`,
         `frame-src 'self' ${trustedDomains}`,
         "object-src 'none'",
@@ -313,6 +313,7 @@ export async function middleware(request) {
 
     // 🛡️ 5. APLICACIÓN FINAL DE CABECERAS
     finalResponse.headers.set('X-Content-Type-Options', 'nosniff')
+    // ⚠️🚨 NO TOCAR O MORIMOS — Son meses para volver a hacer el formulario HSTS Preload si hacemos algo mal 🚨⚠️
     finalResponse.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
     finalResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
     finalResponse.headers.set('X-Frame-Options', 'SAMEORIGIN')
