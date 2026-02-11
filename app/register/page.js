@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw, Sparkles, Key, Lock, Eye, EyeOff } from 'lucide-react';
-import SecurityBadges from '../components/SecurityBadges';
 import { validateCuit, formatCuit } from '../lib/validation';
 import './register.css';
 
@@ -709,8 +708,6 @@ export default function RegisterPage() {
                     </footer>
                 </div>
             </div>
-
-            <SecurityBadges style={{ marginBottom: '4rem' }} />
 
             {/* FULL SCREEN SUCCESS MODAL - Moved outside to escape backdrop-filter context */}
             {message && (

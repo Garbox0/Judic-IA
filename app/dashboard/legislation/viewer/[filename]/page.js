@@ -34,16 +34,16 @@ export default function LegislationViewerPage() {
     // Using Env Var to avoid exposing hardcoded IP, preparing for future HTTPS domain.
     const VPS_BASE_URL = process.env.NEXT_PUBLIC_LEGISLATION_URL || 'https://judic-ia.com/legislation';
 
-    // If external URL (e.g. KB) use it, otherwise construct VPS path for legislation
+    // If external URL (e.g. KB) proxy it through our server to avoid CORS; otherwise construct VPS path for legislation
     const pdfPath = externalUrl
-        ? decodeURIComponent(externalUrl)
+        ? `/api/kb-proxy?url=${encodeURIComponent(decodeURIComponent(externalUrl))}`
         : `${VPS_BASE_URL}/${province}/${filename}`;
 
     return (
         <div className="viewer-container">
             <header className="viewer-header glass-panel">
                 <div className="header-left">
-                    <Link href="/dashboard/legislation" className="back-btn">
+                    <Link href={externalUrl ? "/dashboard/library" : "/dashboard/legislation"} className="back-btn">
                         <ChevronLeft size={20} />
                     </Link>
                     <div className="title-wrapper">

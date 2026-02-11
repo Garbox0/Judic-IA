@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw, Sparkles, ArrowLeft } from 'lucide-react';
-import SecurityBadges from '../../../components/SecurityBadges';
 import { supabase } from '../../../lib/supabase';
 import '../../../globals.css';
 
@@ -751,8 +750,6 @@ export default function ClientRegisterPage() {
                     <RegisterContent />
                 </Suspense>
             </div>
-
-            <SecurityBadges />
         </main>
     );
 }

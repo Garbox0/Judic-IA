@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon, Lock, Mail, AlertCircle, ArrowLeft } from 'lucide-react';
-import SecurityBadges from '../components/SecurityBadges';
 import './forgot-password.css';
 
 export default function ForgotPasswordPage() {
@@ -159,8 +158,6 @@ export default function ForgotPasswordPage() {
                     </div>
                 )}
             </div>
-
-            <SecurityBadges />
         </main>
     );
 }
