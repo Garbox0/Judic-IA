@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@next/third-parties": "^16.1.6",
+    "@sparticuz/chromium": "^143.0.4",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.89.0",
     "cheerio": "^1.2.0",
@@ -23,6 +24,7 @@
     "openai": "^6.15.0",
     "pdfjs-dist": "^5.4.296",
     "puppeteer": "^24.36.0",
+    "puppeteer-core": "^24.37.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-dropzone": "^14.3.8",

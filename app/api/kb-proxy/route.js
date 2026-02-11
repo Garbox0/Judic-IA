@@ -1,34 +1,63 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
-// Lazy import puppeteer only when needed (heavy dependency)
-let puppeteerModule = null;
-async function getPuppeteer() {
-    if (!puppeteerModule) {
-        puppeteerModule = (await import('puppeteer')).default;
-    }
-    return puppeteerModule;
-}
-
-// Lazy import minio
+// Lazy load MinIO
 let minioModule = null;
 async function getMinio() {
     if (!minioModule) {
         const mod = await import('@/app/lib/minio');
-        minioModule = { client: mod.default, ensureBucket: mod.ensureBucket, BUCKET_NAME: mod.BUCKET_NAME };
+        // mod.default is the client instance
+        minioModule = {
+            client: mod.default,
+            ensureBucket: mod.ensureBucket,
+            BUCKET_NAME: mod.BUCKET_NAME
+        };
     }
     return minioModule;
 }
 
 /**
- * GET /api/kb-proxy?url=<encoded_url>
- * 
- * Lazy-capture proxy for Knowledge Base resources.
- * 1. Checks MinIO cache for an existing PDF
- * 2. If not cached, uses Puppeteer to capture the page as PDF
- * 3. Uploads to MinIO for future requests
- * 4. Returns the PDF stream
+ * Robust Browser Launcher
+ * Tries mostly safe serverless strategy (chromium + puppeteer-core)
+ * Falls back to standard puppeteer (local dev / VPS with Chrome)
  */
+async function launchBrowser() {
+    let browser = null;
+
+    // 1. Try serverless-friendly approach (if packages exist)
+    try {
+        const chromium = (await import('@sparticuz/chromium')).default;
+        const puppeteerCore = (await import('puppeteer-core')).default;
+
+        // Optimize for speed/lambda
+        chromium.setHeadlessMode = true;
+        chromium.setGraphicsMode = false;
+
+        browser = await puppeteerCore.launch({
+            args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
+            defaultViewport: chromium.defaultViewport,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless,
+            ignoreHTTPSErrors: true,
+        });
+        console.log('🚀 Launched: puppeteer-core + @sparticuz/chromium');
+    } catch (e) {
+        // 2. Fallback to standard puppeteer (Dev / VPS)
+        console.warn('⚠️ Serverless chrome failed, falling back to standard puppeteer:', e.message);
+        try {
+            const puppeteer = (await import('puppeteer')).default;
+            browser = await puppeteer.launch({
+                headless: "new",
+                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+            });
+            console.log('🚀 Launched: standard puppeteer');
+        } catch (innerErr) {
+            throw new Error(`Failed to launch browser. Serverless: ${e.message}. Standard: ${innerErr.message}`);
+        }
+    }
+    return browser;
+}
+
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const targetUrl = searchParams.get('url');
@@ -37,56 +66,43 @@ export async function GET(request) {
         return NextResponse.json({ error: 'Missing url parameter' }, { status: 400 });
     }
 
-    // Security: Only allow known legal domains
+    // Security: Allowlist
     const ALLOWED_DOMAINS = [
-        'saij.gob.ar',
-        'servicios.infoleg.gob.ar',
-        'infoleg.gob.ar',
-        'pjn.gov.ar',
-        'csjn.gov.ar',
-        'scba.gov.ar',
-        'juba.scba.gov.ar',
-        'justiciacordoba.gob.ar',
-        'tsjcordoba.gob.ar',
-        'archivos.judic-ia.com', // Our own CDN
+        'saij.gob.ar', 'servicios.infoleg.gob.ar', 'infoleg.gob.ar',
+        'pjn.gov.ar', 'csjn.gov.ar', 'scba.gov.ar', 'juba.scba.gov.ar',
+        'justiciacordoba.gob.ar', 'tsjcordoba.gob.ar', 'archivos.judic-ia.com'
     ];
 
     try {
         const urlObj = new URL(targetUrl);
-        const isAllowed = ALLOWED_DOMAINS.some(d => urlObj.hostname.endsWith(d));
-
-        if (!isAllowed) {
-            console.warn(`⛔ KB Proxy blocked unauthorized domain: ${urlObj.hostname}`);
+        if (!ALLOWED_DOMAINS.some(d => urlObj.hostname.endsWith(d))) {
             return NextResponse.json({ error: 'Domain not allowed' }, { status: 403 });
         }
     } catch {
         return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
     }
 
-    // If it's already our CDN, just redirect
     if (targetUrl.includes('archivos.judic-ia.com')) {
         return NextResponse.redirect(targetUrl, 302);
     }
 
-    // Generate deterministic filename from URL hash (same as capture route)
     const hash = crypto.createHash('md5').update(targetUrl).digest('hex');
     const objectName = `kb_${hash.substring(0, 12)}.pdf`;
 
     try {
-        // 1. Check MinIO cache first
         const { client: minioClient, ensureBucket, BUCKET_NAME } = await getMinio();
-        await ensureBucket();
+        await ensureBucket(); // Might fail silently, that's ok
 
+        // 1. Check Cache
         try {
             const stat = await minioClient.statObject(BUCKET_NAME, objectName);
             if (stat) {
                 console.log(`✅ KB Cache HIT: ${objectName}`);
-                // Stream from MinIO
                 const stream = await minioClient.getObject(BUCKET_NAME, objectName);
+
+                // Convert stream to Buffer for Next.js response compatibility
                 const chunks = [];
-                for await (const chunk of stream) {
-                    chunks.push(chunk);
-                }
+                for await (const chunk of stream) chunks.push(chunk);
                 const buffer = Buffer.concat(chunks);
 
                 return new NextResponse(buffer, {
@@ -94,84 +110,47 @@ export async function GET(request) {
                     headers: {
                         'Content-Type': 'application/pdf',
                         'Content-Disposition': `inline; filename="${objectName}"`,
-                        'Cache-Control': 'public, max-age=86400', // 24h browser cache
+                        'Cache-Control': 'public, max-age=86400',
                         'X-KB-Cache': 'HIT',
                     },
                 });
             }
         } catch (e) {
-            // Object doesn't exist in MinIO, proceed to capture
-            console.log(`📦 KB Cache MISS: ${objectName}, will capture...`);
+            console.log(`📦 KB Cache MISS: ${objectName}`);
         }
 
-        // 2. Not cached → Use Puppeteer to capture
-        console.log(`📸 KB Proxy: Capturing ${targetUrl}`);
-        const puppeteer = await getPuppeteer();
-
-        const browser = await puppeteer.launch({
-            headless: "new",
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-        });
-
+        // 2. Capture
+        const browser = await launchBrowser();
         const page = await browser.newPage();
         await page.setViewport({ width: 1200, height: 1600 });
 
-        await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 60000 });
+        await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 45000 });
 
-        // Cleanup: remove nav, ads, images, standardize styles
+        // Cleanup DOM
         await page.evaluate(() => {
-            const elementsToRemove = [
-                'table[background="im/fondo.jpg"]',
-                'img',
-                '.noprint',
-                '#encabezado',
-                '#pie',
-                'header',
-                'footer',
-                'nav',
-                '.ads',
-                '.cookie-banner'
-            ];
-            elementsToRemove.forEach(selector => {
-                document.querySelectorAll(selector).forEach(e => e.remove());
-            });
-
-            // Standardize appearance
-            document.body.style.fontFamily = "'Roboto', 'Helvetica', 'Arial', sans-serif";
-            document.body.style.fontSize = "12pt";
-            document.body.style.lineHeight = "1.5";
-            document.body.style.color = "#000";
+            const selectors = ['header', 'footer', 'nav', '.ads', '.cookie-banner', '#encabezado', '#pie', '.noprint'];
+            selectors.forEach(s => document.querySelectorAll(s).forEach(e => e.remove()));
             document.body.style.background = "#fff";
-            document.body.style.margin = "0";
-            document.body.style.padding = "20px";
-
-            document.querySelectorAll('table').forEach(t => {
-                t.style.width = "100%";
-                t.style.maxWidth = "none";
-            });
         });
 
-        // Generate PDF
         const pdfBuffer = await page.pdf({
             format: 'A4',
             printBackground: true,
-            margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' }
+            margin: { top: '15mm', bottom: '15mm', left: '15mm', right: '15mm' }
         });
 
         await browser.close();
 
-        // 3. Upload to MinIO for cache
+        // 3. Cache Upload
         try {
             await minioClient.putObject(BUCKET_NAME, objectName, Buffer.from(pdfBuffer), pdfBuffer.length, {
                 'Content-Type': 'application/pdf',
                 'x-amz-meta-original-url': targetUrl
             });
-            console.log(`🚀 KB Proxy: Cached as ${objectName}`);
-        } catch (uploadErr) {
-            console.error('⚠️ MinIO upload failed (serving anyway):', uploadErr.message);
+        } catch (e) {
+            console.error('⚠️ MinIO upload failed', e.message);
         }
 
-        // 4. Return the PDF
         return new NextResponse(Buffer.from(pdfBuffer), {
             status: 200,
             headers: {
@@ -185,11 +164,21 @@ export async function GET(request) {
     } catch (error) {
         console.error('❌ KB Proxy Error:', error);
 
+        // FATAL ERROR FALLBACK (Try simple fetch as last resort)
+        try {
+            const res = await fetch(targetUrl);
+            if (res.ok && res.headers.get('content-type')?.includes('pdf')) {
+                return new NextResponse(await res.arrayBuffer(), {
+                    headers: { 'Content-Type': 'application/pdf', 'X-KB-Cache': 'FALLBACK_FETCH' }
+                });
+            }
+        } catch { }
+
         return NextResponse.json({
             error: 'KB Proxy Failed',
             details: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-            code: error.code || 'UNKNOWN_ERROR'
+            hint: 'To fix 500 on Vercel: npm install puppeteer-core @sparticuz/chromium',
+            code: error.code || 'UNKNOWN'
         }, { status: 500 });
     }
 }
