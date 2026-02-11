@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
+import { Sun, Moon, KeyRound, ShieldCheck, AlertCircle, ArrowLeft } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-// import SafeChatWidget from '../../../components/SafeChatWidget';
 import './update-password.css';
+import '../../../globals.css';
 
 export default function ClientUpdatePasswordPage() {
     const router = useRouter();
@@ -18,12 +20,37 @@ export default function ClientUpdatePasswordPage() {
     const [redirectCountdown, setRedirectCountdown] = useState(null);
     const [verifyingSession, setVerifyingSession] = useState(true);
     const [sessionError, setSessionError] = useState(null);
+    const [theme, setTheme] = useState('light');
+
+    // Load theme from cookies
+    useEffect(() => {
+        const themeCookie = document.cookie.split('; ').find(row => row.startsWith('app-theme='));
+        const savedTheme = themeCookie ? themeCookie.split('=')[1] : 'light';
+        setTheme(savedTheme);
+    }, []);
+
+    // Update body class and cookie when theme changes
+    useEffect(() => {
+        if (theme === 'light') {
+            document.body.classList.add('light-theme');
+        } else {
+            document.body.classList.remove('light-theme');
+        }
+        // Save to cookie for SSR/Middleware (shared across subdomains)
+        const expiry = new Date();
+        expiry.setFullYear(expiry.getFullYear() + 1);
+        document.cookie = `app-theme=${theme}; path=/; domain=.judic-ia.com; expires=${expiry.toUTCString()}; SameSite=Lax`;
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+    };
 
     // Verify Session on Load (Recovery Flow)
     useEffect(() => {
         const checkSession = async () => {
             // Check if we have a hash with tokens (Supabase sends #access_token=...)
-            const hasAuthHash = window.location.hash && window.location.hash.includes('access_token');
+            const hasAuthHash = typeof window !== 'undefined' && window.location.hash && window.location.hash.includes('access_token');
 
             if (hasAuthHash) {
                 try {
@@ -155,7 +182,6 @@ export default function ClientUpdatePasswordPage() {
                 }
             } catch (notifyError) {
                 console.error("⚠️ Failed to send password change notification:", notifyError);
-                // We do NOT block the success flow if the email fails
             }
 
             setSuccess(true);
@@ -171,109 +197,148 @@ export default function ClientUpdatePasswordPage() {
         }
     };
 
+    const [homeUrl, setHomeUrl] = useState('https://judic-ia.com/?public=true');
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
+            setHomeUrl('/');
+        }
+    }, []);
+
     return (
         <main className="auth-main">
-            <div className="auth-container">
-                <div className="glass-premium fade-in">
-                    {!success ? (
-                        <>
-                            <header className="brand-header">
-                                <img src="/logo.png" alt="Logo" className="brand-logo-img" width="60" height="60" />
-                                <h1 className="brand-name-premium">Actualizar Clave</h1>
-                                <p className="brand-status">Acceso Seguro • Clientes</p>
-                            </header>
+            <a href={homeUrl} className="btn-back-auth-fixed">
+                <ArrowLeft size={16} /> Volver al Inicio
+            </a>
 
-                            {verifyingSession ? (
-                                <div style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem 0' }}>
-                                    <p>Verificando credenciales de seguridad...</p>
+            <button
+                onClick={toggleTheme}
+                className="theme-toggle-auth-fixed"
+                aria-label="Alternar tema"
+            >
+                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+
+            <div className="auth-card glass-premium fade-in">
+                {!success ? (
+                    <>
+                        <header className="brand-header">
+                            <Image
+                                src="/judic-ia-mark.png"
+                                alt="Judic-IA Logo"
+                                className="brand-logo-premium"
+                                width={48}
+                                height={64}
+                                style={{ objectFit: 'contain' }}
+                                priority
+                            />
+                            <h1 className="brand-name-premium">Actualizar Clave</h1>
+                            <div className="brand-status">Acceso Seguro • Clientes</div>
+                        </header>
+
+                        {verifyingSession ? (
+                            <div style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem 0' }}>
+                                <p>Verificando credenciales de seguridad...</p>
+                            </div>
+                        ) : sessionError ? (
+                            <div className="confirmed-ui slide-up">
+                                <div className="success-icon-premium error" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5', borderColor: 'rgba(239, 68, 68, 0.2)', boxShadow: 'none', margin: '0 auto 1.5rem' }}>
+                                    <AlertCircle size={32} />
                                 </div>
-                            ) : sessionError ? (
-                                <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-                                    <div style={{ width: '60px', height: '60px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', border: '1px solid rgba(239, 68, 68, 0.3)' }}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>
-                                    <h3 style={{ color: '#fca5a5', marginBottom: '1rem' }}>Acceso Denegado</h3>
-                                    <p style={{ color: '#94a3b8', marginBottom: '2rem' }}>{sessionError}</p>
-                                    <Link href="/auth/forgot-password" style={{ color: '#fbbf24', textDecoration: 'none', fontWeight: 'bold' }}>
-                                        Solicitar nuevo enlace →
-                                    </Link>
+                                <h3 className="brand-name-premium" style={{ color: '#fca5a5', fontSize: '1.5rem', marginBottom: '1rem' }}>Acceso Denegado</h3>
+                                <p className="confirmed-text" style={{ marginBottom: '2rem' }}>{sessionError}</p>
+                                <Link href="/auth/forgot-password" style={{ color: '#fbbf24', textDecoration: 'none', fontWeight: 'bold' }}>
+                                    Solicitar nuevo enlace →
+                                </Link>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleUpdatePassword} className="premium-form">
+                                <div className="input-field">
+                                    <label htmlFor="password">Nueva Contraseña</label>
+                                    <div className="pass-input-wrapper">
+                                        <input
+                                            id="password"
+                                            name="password"
+                                            type={showPassword ? "text" : "password"}
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            placeholder="••••••••"
+                                            required
+                                        />
+                                        <button type="button" className="eye-toggle-premium" onClick={() => setShowPassword(!showPassword)}>
+                                            {showPassword ? (
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                            ) : (
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11-8 11-8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
-                            ) : (
-                                <form onSubmit={handleUpdatePassword}>
-                                    <div className="input-field">
-                                        <label>Nueva Contraseña</label>
-                                        <div className="pass-input-wrapper">
-                                            <input
-                                                type={showPassword ? "text" : "password"}
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                placeholder="••••••••"
-                                                required
-                                            />
-                                            <button type="button" className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
-                                                {showPassword ? (
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                                ) : (
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                                )}
-                                            </button>
-                                        </div>
+
+                                <div className="input-field">
+                                    <label htmlFor="confirmPassword">Confirmar Contraseña</label>
+                                    <div className="pass-input-wrapper">
+                                        <input
+                                            id="confirmPassword"
+                                            name="confirmPassword"
+                                            type={showConfirmPassword ? "text" : "password"}
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            placeholder="••••••••"
+                                            required
+                                        />
+                                        <button type="button" className="eye-toggle-premium" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                            {showConfirmPassword ? (
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                            ) : (
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11-8 11-8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                            )}
+                                        </button>
                                     </div>
+                                </div>
 
-                                    <div className="input-field">
-                                        <label>Confirmar Contraseña</label>
-                                        <div className="pass-input-wrapper">
-                                            <input
-                                                type={showConfirmPassword ? "text" : "password"}
-                                                value={confirmPassword}
-                                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                                placeholder="••••••••"
-                                                required
-                                            />
-                                            <button type="button" className="toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                                                {showConfirmPassword ? (
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                                ) : (
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                                )}
-                                            </button>
-                                        </div>
+                                <div className="password-checklist-premium">
+                                    <p className={passwordValidations.length ? 'valid' : ''}>{passwordValidations.length ? '✓' : '✗'} Mínimo 8 caracteres</p>
+                                    <p className={passwordValidations.uppercase ? 'valid' : ''}>{passwordValidations.uppercase ? '✓' : '✗'} Al menos 1 Mayúscula</p>
+                                    <p className={passwordValidations.number ? 'valid' : ''}>{passwordValidations.number ? '✓' : '✗'} Al menos 1 Número</p>
+                                    <p className={passwordValidations.symbol ? 'valid' : ''}>{passwordValidations.symbol ? '✓' : '✗'} Al menos 1 Símbolo</p>
+                                    {confirmPassword && (
+                                        <p className={passwordsMatch ? 'valid' : 'invalid'}>{passwordsMatch ? '✓' : '✗'} Las contraseñas coinciden</p>
+                                    )}
+                                </div>
+
+                                {error && (
+                                    <div className="error-premium">
+                                        <AlertCircle size={18} />
+                                        <span>{error}</span>
                                     </div>
+                                )}
 
-                                    <div className="password-checklist-premium">
-                                        <p className={passwordValidations.length ? 'valid' : ''}>{passwordValidations.length ? '✓' : '✗'} Mínimo 8 caracteres</p>
-                                        <p className={passwordValidations.uppercase ? 'valid' : ''}>{passwordValidations.uppercase ? '✓' : '✗'} Al menos 1 Mayúscula</p>
-                                        <p className={passwordValidations.number ? 'valid' : ''}>{passwordValidations.number ? '✓' : '✗'} Al menos 1 Número</p>
-                                        <p className={passwordValidations.symbol ? 'valid' : ''}>{passwordValidations.symbol ? '✓' : '✗'} Al menos 1 Símbolo</p>
-                                        {confirmPassword && (
-                                            <p className={passwordsMatch ? 'valid' : 'invalid'}>{passwordsMatch ? '✓' : '✗'} Las contraseñas coinciden</p>
-                                        )}
-                                    </div>
-
-                                    {error && <div className="error-premium">{error}</div>}
-
-                                    <button type="submit" disabled={loading || !isPasswordStrong || !passwordsMatch} className="btn-gold-action">
-                                        {loading ? 'Actualizando...' : 'Confirmar Nueva Contraseña'}
-                                    </button>
-                                </form>
-                            )}
-                        </>
-                    ) : (
-                        <div className="success-ui">
-                            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
-                            <h2 style={{ color: '#fbbf24', marginBottom: '1rem' }}>¡Contraseña Actualizada!</h2>
-                            <p style={{ color: '#94a3b8', lineHeight: '1.6', marginBottom: '2rem' }}>
-                                Tu acceso ha sido restaurado exitosamente.
-                                <br />
-                                Redirigiendo al login en <strong>{redirectCountdown}</strong> segundos...
-                            </p>
-                            <Link href="/auth/login" style={{ color: '#fbbf24', fontWeight: 'bold', textDecoration: 'none' }}>
-                                Ir al Login Ahora →
-                            </Link>
+                                <button type="submit" disabled={loading || !isPasswordStrong || !passwordsMatch} className="btn-gold-action">
+                                    {loading ? 'Actualizando...' : 'Confirmar Nueva Contraseña'}
+                                </button>
+                            </form>
+                        )}
+                    </>
+                ) : (
+                    <div className="confirmed-ui slide-up">
+                        <div className="success-icon" style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>
+                            <ShieldCheck size={48} className="text-emerald" style={{ color: '#10b981' }} />
                         </div>
-                    )}
-                </div>
+                        <h2 className="brand-name-premium" style={{ color: '#fbbf24', fontSize: '1.8rem', marginBottom: '1rem' }}>¡Clave Actualizada!</h2>
+                        <p className="confirmed-text" style={{ color: '#94a3b8', lineHeight: '1.6', marginBottom: '2rem' }}>
+                            Tu acceso ha sido restaurado exitosamente. Ya puedes ingresar con tu nueva contraseña.
+                        </p>
+                        {redirectCountdown !== null && (
+                            <div style={{ marginBottom: '1.5rem', fontWeight: 600, color: '#fbbf24', fontSize: '0.9rem' }}>
+                                Redirigiendo al login en <strong>{redirectCountdown}</strong> segundos...
+                            </div>
+                        )}
+                        <Link href="/auth/login" className="btn-gold-action" style={{ display: 'block', textDecoration: 'none' }}>
+                            Ir al Login Ahora
+                        </Link>
+                    </div>
+                )}
             </div>
-
-
         </main>
     );
 }

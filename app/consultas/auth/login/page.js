@@ -3,7 +3,8 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, ArrowLeft } from 'lucide-react';
+
 import { supabase } from '../../../lib/supabase';
 import '../../../globals.css';
 
@@ -301,7 +302,7 @@ function LoginContent() {
 
     return (
         <>
-            <a href={homeUrl} className="btn-back-auth-fixed">← Volver al Inicio</a>
+            <a href={homeUrl} className="btn-back-auth-fixed"><ArrowLeft size={16} /> Volver al Inicio</a>
 
             <button
                 onClick={toggleTheme}
@@ -366,6 +367,7 @@ function LoginContent() {
                                     id="email"
                                     name="email"
                                     type="email"
+                                    autoComplete="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="tu@email.com"
@@ -379,6 +381,7 @@ function LoginContent() {
                                         id="password"
                                         name="password"
                                         type={showPassword ? "text" : "password"}
+                                        autoComplete="current-password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="••••••••"

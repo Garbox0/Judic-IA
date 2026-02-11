@@ -3,7 +3,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sun, Moon, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw, Sparkles } from 'lucide-react';
+import { Sun, Moon, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw, Sparkles, ArrowLeft } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import '../../../globals.css';
 
@@ -417,7 +417,7 @@ function RegisterContent() {
 
     return (
         <>
-            <a href={homeUrl} className="btn-back-auth-fixed">← Volver al Inicio</a>
+            <a href={homeUrl} className="btn-back-auth-fixed"><ArrowLeft size={16} /> Volver al Inicio</a>
 
             <button
                 onClick={toggleTheme}
