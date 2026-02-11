@@ -5,6 +5,7 @@ import styles from "./page.module.css";
 import Link from "next/link";
 import Image from "next/image";
 import { Clock, Shield, Zap, Scale, BookOpen, Users, FolderOpen, Calculator, Calendar, FileText, BarChart2, PlayCircle, Lock, Sun, Moon, CheckCircle, ShieldCheck } from 'lucide-react';
+import SecurityBadges from './components/SecurityBadges';
 import "./landing.css"; // Version 3.0 Styles
 
 export default function Home() {
@@ -471,48 +472,7 @@ export default function Home() {
 
           {/* 3. SECURITY & TRUST ZONE */}
           <div className="footer-security-zone">
-            <h4 className="security-title">
-              <ShieldCheck size={18} className="security-title-icon" />
-              Seguridad y Cumplimiento
-            </h4>
-            <div className="trust-badges-container">
-              <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer" className="trust-badge" title="CDN & Security by Cloudflare">
-                <svg className="badge-icon cf-icon" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M22.84 10.605a5.163 5.163 0 00-4.321-4.148c-.682-1.846-2.454-3.15-4.519-3.15-2.007 0-3.743 1.233-4.463 2.992a5.576 5.576 0 00-4.707 3.43A4.542 4.542 0 002.5 14.167c0 2.507 2.031 4.54 4.537 4.54H17.41c3.087 0 5.59-2.503 5.59-5.59 0-1.077-.323-2.083-.87-2.922h.71z" />
-                </svg>
-                <span>Cloudflare Protected</span>
-              </a>
-
-              <a href="https://safeweb.norton.com/report?url=https://www.judic-ia.com/" target="_blank" rel="noopener noreferrer" className="trust-badge" title="Web Segura - Norton">
-                <CheckCircle className="badge-icon norton" size={12} />
-                <span>Norton Verified</span>
-              </a>
-
-              <a href="https://observatory.mozilla.org/analyze/www.judic-ia.com" target="_blank" rel="noopener noreferrer" className="trust-badge" title="Score A+">
-                <span className="badge-score-small">A+</span>
-                <span>Mozilla Score</span>
-              </a>
-
-              <div className="trust-badge">
-                <Shield className="badge-icon" size={12} />
-                <span>Cifrado E2E</span>
-              </div>
-
-              <div className="trust-badge">
-                <Lock className="badge-icon" size={12} />
-                <span>ISO 27001 Aligned</span>
-              </div>
-
-              <div className="trust-badge">
-                <Scale className="badge-icon" size={12} />
-                <span>Ley 25.326</span>
-              </div>
-
-              <a href="https://www.ssllabs.com/ssltest/analyze.html?d=judic-ia.com" target="_blank" rel="noopener noreferrer" className="trust-badge" title="SSL Labs A+ Rating">
-                <ShieldCheck className="badge-icon clamav" size={12} />
-                <span>SSL A+ Rating</span>
-              </a>
-            </div>
+            <SecurityBadges className="footer-badges-override" />
           </div>
         </div>
 

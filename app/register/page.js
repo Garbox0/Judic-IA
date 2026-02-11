@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw, Sparkles, Key, Lock, Eye, EyeOff } from 'lucide-react';
+import SecurityBadges from '../components/SecurityBadges';
 import { validateCuit, formatCuit } from '../lib/validation';
 import './register.css';
 
@@ -411,53 +412,62 @@ export default function RegisterPage() {
                                 <fieldset className="cuit-fieldset fieldset-reset">
                                     <legend id="cuit-label" className="legend-cuit">CUIT / CUIL</legend>
                                     <div className="cuit-inputs-row">
-                                        <input
-                                            name="cuitPrefix"
-                                            aria-label="CUIT Prefix"
-                                            autoComplete="off"
-                                            type="text"
-                                            placeholder="20"
-                                            value={cuitPrefix}
-                                            onChange={e => {
-                                                const val = e.target.value;
-                                                if (val.length <= 2 && /^\d*$/.test(val)) setCuitPrefix(val);
-                                            }}
-                                            required
-                                            maxLength={2}
-                                            className="cuit-input-s"
-                                        />
+                                        <div className="cuit-input-group">
+                                            <label htmlFor="cuitPrefix" className="sr-only">Prefijo CUIT</label>
+                                            <input
+                                                id="cuitPrefix"
+                                                name="cuitPrefix"
+                                                autoComplete="off"
+                                                type="text"
+                                                placeholder="20"
+                                                value={cuitPrefix}
+                                                onChange={e => {
+                                                    const val = e.target.value;
+                                                    if (val.length <= 2 && /^\d*$/.test(val)) setCuitPrefix(val);
+                                                }}
+                                                required
+                                                maxLength={2}
+                                                className="cuit-input-s"
+                                            />
+                                        </div>
                                         <span className="cuit-separator">-</span>
-                                        <input
-                                            name="cuitDni"
-                                            aria-label="CUIT DNI"
-                                            autoComplete="off"
-                                            type="text"
-                                            placeholder="12345678"
-                                            value={cuitDni}
-                                            onChange={e => {
-                                                const val = e.target.value;
-                                                if (val.length <= 8 && /^\d*$/.test(val)) setCuitDni(val);
-                                            }}
-                                            required
-                                            maxLength={8}
-                                            className="cuit-input-m"
-                                        />
+                                        <div className="cuit-input-group">
+                                            <label htmlFor="cuitDni" className="sr-only">N° de DNI</label>
+                                            <input
+                                                id="cuitDni"
+                                                name="cuitDni"
+                                                autoComplete="off"
+                                                type="text"
+                                                placeholder="12345678"
+                                                value={cuitDni}
+                                                onChange={e => {
+                                                    const val = e.target.value;
+                                                    if (val.length <= 8 && /^\d*$/.test(val)) setCuitDni(val);
+                                                }}
+                                                required
+                                                maxLength={8}
+                                                className="cuit-input-m"
+                                            />
+                                        </div>
                                         <span className="cuit-separator">-</span>
-                                        <input
-                                            name="cuitSuffix"
-                                            aria-label="CUIT Suffix"
-                                            autoComplete="off"
-                                            type="text"
-                                            placeholder="6"
-                                            value={cuitSuffix}
-                                            onChange={e => {
-                                                const val = e.target.value;
-                                                if (val.length <= 1 && /^\d*$/.test(val)) setCuitSuffix(val);
-                                            }}
-                                            required
-                                            maxLength={1}
-                                            className="cuit-input-xs"
-                                        />
+                                        <div className="cuit-input-group">
+                                            <label htmlFor="cuitSuffix" className="sr-only">Sufijo CUIT</label>
+                                            <input
+                                                id="cuitSuffix"
+                                                name="cuitSuffix"
+                                                autoComplete="off"
+                                                type="text"
+                                                placeholder="6"
+                                                value={cuitSuffix}
+                                                onChange={e => {
+                                                    const val = e.target.value;
+                                                    if (val.length <= 1 && /^\d*$/.test(val)) setCuitSuffix(val);
+                                                }}
+                                                required
+                                                maxLength={1}
+                                                className="cuit-input-xs"
+                                            />
+                                        </div>
                                     </div>
                                 </fieldset>
                                 {/* 🛡️ CUIT Validation Indicator */}
@@ -699,6 +709,8 @@ export default function RegisterPage() {
                     </footer>
                 </div>
             </div>
+
+            <SecurityBadges style={{ marginBottom: '4rem' }} />
 
             {/* FULL SCREEN SUCCESS MODAL - Moved outside to escape backdrop-filter context */}
             {message && (

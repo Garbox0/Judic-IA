@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw, Sparkles, ArrowLeft } from 'lucide-react';
+import SecurityBadges from '../../../components/SecurityBadges';
 import { supabase } from '../../../lib/supabase';
 import '../../../globals.css';
 
@@ -556,19 +557,23 @@ function RegisterContent() {
                             <div className="input-field">
                                 <label htmlFor="phone">Celular</label>
                                 <div className="phone-input-group">
-                                    <select
-                                        name="countryCode"
-                                        value={countryCode}
-                                        onChange={(e) => setCountryCode(e.target.value)}
-                                        className="country-select-premium"
-                                    >
-                                        <option value="+54 9">+54 9 (AR)</option>
-                                        <option value="+598">+598 (UY)</option>
-                                        <option value="+56">+56 (CL)</option>
-                                        <option value="+55">+55 (BR)</option>
-                                        <option value="+57">+57 (CO)</option>
-                                        <option value="+1">+1 (US/CA)</option>
-                                    </select>
+                                    <div className="country-code-container">
+                                        <label htmlFor="countryCode" className="sr-only">Código de País</label>
+                                        <select
+                                            id="countryCode"
+                                            name="countryCode"
+                                            value={countryCode}
+                                            onChange={(e) => setCountryCode(e.target.value)}
+                                            className="country-select-premium"
+                                        >
+                                            <option value="+54 9">+54 9 (AR)</option>
+                                            <option value="+598">+598 (UY)</option>
+                                            <option value="+56">+56 (CL)</option>
+                                            <option value="+55">+55 (BR)</option>
+                                            <option value="+57">+57 (CO)</option>
+                                            <option value="+1">+1 (US/CA)</option>
+                                        </select>
+                                    </div>
                                     <input
                                         id="phone"
                                         name="phone"
@@ -747,6 +752,7 @@ export default function ClientRegisterPage() {
                 </Suspense>
             </div>
 
+            <SecurityBadges />
         </main>
     );
 }
