@@ -107,7 +107,7 @@ export default function RegisterPage() {
     const passwordsMatch = password === confirmPassword && confirmPassword !== '';
     const emailsMatch = email.toLowerCase() === confirmEmail.toLowerCase() && email !== '';
 
-    // Passphrase Generator
+    // Passphrase Generator (Cryptographically Secure)
     const generateSecurePass = () => {
         const caps = "ABCDEFGHJKLMNPQRSTUVWXYZ";
         const lows = "abcdefghijkmnopqrstuvwxyz";
@@ -115,17 +115,29 @@ export default function RegisterPage() {
         const syms = "!@#$%&*+?=";
         const all = caps + lows + nums + syms;
 
+        const secureRandom = (max) => {
+            const array = new Uint32Array(1);
+            crypto.getRandomValues(array);
+            return array[0] % max;
+        };
+
         let pass = "";
-        pass += caps[Math.floor(Math.random() * caps.length)];
-        pass += lows[Math.floor(Math.random() * lows.length)];
-        pass += nums[Math.floor(Math.random() * nums.length)];
-        pass += syms[Math.floor(Math.random() * syms.length)];
+        pass += caps[secureRandom(caps.length)];
+        pass += lows[secureRandom(lows.length)];
+        pass += nums[secureRandom(nums.length)];
+        pass += syms[secureRandom(syms.length)];
 
         for (let i = 0; i < 12; i++) {
-            pass += all[Math.floor(Math.random() * all.length)];
+            pass += all[secureRandom(all.length)];
         }
 
-        const final = pass.split('').sort(() => 0.5 - Math.random()).join('');
+        // Fisher-Yates shuffle with secure random
+        const arr = pass.split('');
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = secureRandom(i + 1);
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        const final = arr.join('');
         setPassword(final);
         setConfirmPassword(final);
         setError(null);

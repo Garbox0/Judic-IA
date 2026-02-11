@@ -14,7 +14,14 @@
       "Bash(plink:*)",
       "Bash(find:*)",
       "Bash(dir /s /b \"d:\\\\Antigravity\\\\Judic-IA\\\\app\\\\demo\\\\dashboard\")",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(git -C \"d:/Antigravity/Judic-IA\" status --short)",
+      "Bash(git -C \"d:/Antigravity/Judic-IA\" log --oneline -3)",
+      "Bash(git -C \"d:/Antigravity/Judic-IA\" log --oneline origin/main..HEAD)",
+      "Bash(git -C \"d:/Antigravity/Judic-IA\" diff --name-only)",
+      "Bash(git -C \"d:/Antigravity/Judic-IA\" diff --cached --name-only)",
+      "Bash(git -C \"d:/Antigravity/Judic-IA\" diff HEAD -- \"app/dashboard/settings/SettingsContent.js\")",
+      "Bash(node scripts/create_mp_plans.js:*)"
     ]
   }
 }

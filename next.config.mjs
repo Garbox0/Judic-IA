@@ -16,7 +16,24 @@ const nextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
-          { key: 'X-DNS-Prefetch-Control', value: 'on' }
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://*.supabase.co",
+              "font-src 'self' data:",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.pwnedpasswords.com https://www.google-analytics.com https://www.googletagmanager.com https://api.mercadopago.com",
+              "frame-src 'self' https://www.mercadopago.com.ar https://www.mercadopago.com",
+              "frame-ancestors 'self'",
+              "form-action 'self'",
+              "base-uri 'self'",
+              "object-src 'none'",
+              "upgrade-insecure-requests",
+            ].join('; ')
+          }
         ],
       },
 

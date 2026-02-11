@@ -495,12 +495,12 @@ export default function Home() {
 
               <div className="trust-badge">
                 <Shield className="badge-icon" size={12} />
-                <span>AES-256 AES</span>
+                <span>Cifrado E2E</span>
               </div>
 
               <div className="trust-badge">
                 <Lock className="badge-icon" size={12} />
-                <span>ISO 27001 Ready</span>
+                <span>ISO 27001 Aligned</span>
               </div>
 
               <div className="trust-badge">
@@ -508,9 +508,9 @@ export default function Home() {
                 <span>Ley 25.326</span>
               </div>
 
-              <a href="https://www.clamav.net/" target="_blank" rel="noopener noreferrer" className="trust-badge" title="ClamAV Secure - Antivirus">
+              <a href="https://www.ssllabs.com/ssltest/analyze.html?d=judic-ia.com" target="_blank" rel="noopener noreferrer" className="trust-badge" title="SSL Labs A+ Rating">
                 <ShieldCheck className="badge-icon clamav" size={12} />
-                <span>ClamAV Secure</span>
+                <span>SSL A+ Rating</span>
               </a>
             </div>
           </div>

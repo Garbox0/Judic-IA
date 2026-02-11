@@ -20,7 +20,7 @@ export async function POST(request) {
     try {
         const { email } = await request.json();
 
-        if (!email || !email.includes('@')) {
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             return NextResponse.json({ error: 'Email inválido' }, { status: 400 });
         }
 
