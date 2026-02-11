@@ -144,7 +144,7 @@ export async function middleware(request) {
     const cspHeader = [
         "default-src 'self'",
         `script-src 'self' 'nonce-${nonce}' ${trustedDomains} ${isDev ? "'unsafe-eval'" : ""}`,
-        `style-src 'self' 'unsafe-inline' 'nonce-${nonce}' ${trustedDomains}`,
+        `style-src 'self' 'unsafe-inline' ${trustedDomains}`,
         `img-src 'self' data: blob: ${trustedDomains}`,
         `font-src 'self' data: ${trustedDomains}`,
         `connect-src 'self' ${trustedDomains} wss://*.supabase.co https://www.saij.gob.ar https://*.saij.gob.ar https://api.mercadopago.com`,
