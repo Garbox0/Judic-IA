@@ -195,9 +195,15 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
         setCapturingCases(prev => ({ ...prev, [index]: true }));
         try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const accessToken = session?.access_token;
+
             const res = await fetch('/api/research/capture', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(accessToken && { 'Authorization': `Bearer ${accessToken}` })
+                },
                 body: JSON.stringify({ url, title })
             });
 
@@ -462,9 +468,15 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                 if (avgScore < 50 || highQualityCases < 2) {
                     setTimeout(async () => {
                         try {
+                            const { data: { session: altSession } } = await supabase.auth.getSession();
+                            const altToken = altSession?.access_token;
+
                             const altRes = await fetch('/api/research/alternatives', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    ...(altToken && { 'Authorization': `Bearer ${altToken}` })
+                                },
                                 body: JSON.stringify({
                                     query: finalQuery,
                                     jurisdiction: scope === 'nacional' ? 'Nacional' : province

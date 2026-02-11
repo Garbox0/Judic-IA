@@ -50,7 +50,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
     // Case Conversion State
     const [converting, setConverting] = useState(false);
-    const [verificationStatus, setVerificationStatus] = useState('pending');
+    const [verificationStatus, setVerificationStatus] = useState(null); // null = loading, avoids flash
 
     // 1. INITIAL FETCH & AUTH
     useEffect(() => {
@@ -380,7 +380,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     return (
         <div className="clients-container">
             {/* 🔒 VERIFICATION BLOCK */}
-            {!isDemo && verificationStatus !== 'verified' && (
+            {!isDemo && verificationStatus && verificationStatus !== 'verified' && (
                 <VerificationPendingBlock status={verificationStatus} />
             )}
 
