@@ -319,9 +319,15 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                 console.log('✨ Attempting to enhance query...');
                 try {
                     const jurisdiction = scope === 'nacional' ? 'Nacional' : province;
+                    const { data: { session: enhanceSession } } = await supabase.auth.getSession();
+                    const enhanceToken = enhanceSession?.access_token;
+
                     const enhanceRes = await fetch('/api/research/enhance', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(enhanceToken && { 'Authorization': `Bearer ${enhanceToken}` })
+                        },
                         body: JSON.stringify({ query: finalQuery, jurisdiction })
                     });
 

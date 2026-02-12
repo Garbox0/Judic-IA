@@ -34,10 +34,15 @@ export default function LegislationViewerPage() {
     // Using Env Var to avoid exposing hardcoded IP, preparing for future HTTPS domain.
     const VPS_BASE_URL = process.env.NEXT_PUBLIC_LEGISLATION_URL || 'https://judic-ia.com/legislation';
 
-    // Build content URL: proxy for external (KB), direct VPS path for legislation
+    // Build content URL
     const isExternal = !!externalUrl;
+    const decodedExternalUrl = externalUrl ? decodeURIComponent(externalUrl) : '';
+
+    // If it's already a MinIO PDF, use it directly. Otherwise, go through kb-proxy.
     const contentUrl = isExternal
-        ? `/api/kb-proxy?url=${encodeURIComponent(decodeURIComponent(externalUrl))}`
+        ? (decodedExternalUrl.includes('archivos.judic-ia.com')
+            ? decodedExternalUrl
+            : `/api/kb-proxy?url=${encodeURIComponent(decodedExternalUrl)}&title=${encodeURIComponent(displayTitle || '')}`)
         : `${VPS_BASE_URL}/${province}/${filename}`;
 
     return (
@@ -59,33 +64,16 @@ export default function LegislationViewerPage() {
                             <span>ClamAV <strong>Secure</strong></span>
                         </div>
                     )}
-                    {isExternal ? (
-                        <a href={decodeURIComponent(externalUrl)} target="_blank" rel="noopener noreferrer" className="action-btn" title="Abrir en SAIJ">
-                            <Maximize2 size={18} />
-                        </a>
-                    ) : (
-                        <a href={contentUrl} download className="action-btn" title="Descargar PDF">
-                            <Download size={18} />
-                        </a>
-                    )}
+                    <a href={contentUrl} target="_blank" rel="noopener noreferrer" className="action-btn" title={isExternal ? "Abrir PDF" : "Descargar PDF"}>
+                        {isExternal ? <Maximize2 size={18} /> : <Download size={18} />}
+                    </a>
                 </div>
             </header>
 
             <main className="viewer-content">
-                {isExternal ? (
-                    <div className="kb-iframe-wrapper glass-panel">
-                        <iframe
-                            src={contentUrl}
-                            className="kb-iframe"
-                            title={displayTitle || "Recurso Legal"}
-                            sandbox="allow-same-origin allow-scripts allow-popups"
-                        />
-                    </div>
-                ) : (
-                    <div className="pdf-wrapper glass-panel">
-                        <PdfReader url={contentUrl} />
-                    </div>
-                )}
+                <div className="pdf-wrapper glass-panel">
+                    <PdfReader url={contentUrl} />
+                </div>
             </main>
 
             <style jsx>{`
@@ -238,27 +226,6 @@ export default function LegislationViewerPage() {
                     position: relative;
                 }
 
-                .kb-iframe-wrapper {
-                    flex: 1;
-                    border-radius: 16px;
-                    overflow: hidden;
-                    border: 1px solid rgba(255,255,255,0.05);
-                    background: #fff;
-                    position: relative;
-                }
-
-                .kb-iframe {
-                    width: 100%;
-                    height: 100%;
-                    border: none;
-                    background: #fff;
-                }
-
-                .pdf-frame {
-                    width: 100%;
-                    height: 100%;
-                    border: none;
-                }
 
 
                 .glass-panel {
@@ -330,6 +297,6 @@ export default function LegislationViewerPage() {
                     border-color: rgba(15, 23, 42, 0.1);
                 }
             `}</style>
-        </div>
+        </div >
     );
 }

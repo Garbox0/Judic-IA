@@ -870,7 +870,6 @@ ANÁLISIS DE LA CONSULTA:
         result.links = finalLinks;
 
         // --- PERSISTENCE (Higher threshold) ---
-        // --- PERSISTENCE (Higher threshold) ---
         if (secureUserId) {
             try {
                 const { data: savedReport } = await supabase.from('research_reports').insert({
@@ -885,6 +884,7 @@ ANÁLISIS DE LA CONSULTA:
                 }
 
                 // Persist only GOLD STANDARD results (score >= 60)
+                const persistedResults = [];
                 for (const r of searchResults) {
                     if (r.score >= 60 && !r.fromCache) {
                         await supabase.from('case_library').upsert({
@@ -894,13 +894,37 @@ ANÁLISIS DE LA CONSULTA:
                             jurisdiction: jurisdiction || 'Nacional'
                         }, { onConflict: 'url' });
 
-                        if (userOrgId) {
-                            await supabase.from('organization_library').upsert({
-                                org_id: userOrgId,
-                                case_url: r.link
-                            }, { onConflict: 'org_id, case_url' });
-                        }
+                        persistedResults.push(r);
                     }
+                }
+
+                // 📸 Fire-and-forget: Capture PDFs on VPS for all persisted results
+                if (persistedResults.length > 0) {
+                    const CAPTURE_URL = process.env.CAPTURE_SERVICE_URL || 'https://archivos.judic-ia.com';
+                    const CAPTURE_KEY = process.env.CAPTURE_API_KEY || 'judicia-capture-2026';
+
+                    // Don't await — run in background so user gets response immediately
+                    Promise.allSettled(
+                        persistedResults.map(async (r) => {
+                            try {
+                                const captureRes = await fetch(`${CAPTURE_URL}/capture`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'x-api-key': CAPTURE_KEY },
+                                    body: JSON.stringify({ url: r.link, title: r.title }),
+                                    signal: AbortSignal.timeout(120000),
+                                });
+                                const data = await captureRes.json();
+                                if (data.success && data.url) {
+                                    await supabase.from('case_library')
+                                        .update({ pdf_url: data.url })
+                                        .eq('url', r.link);
+                                    console.log(`📄 PDF captured: ${r.title?.substring(0, 40)} → ${data.url}`);
+                                }
+                            } catch (err) {
+                                console.error(`❌ PDF capture failed for ${r.link}:`, err.message);
+                            }
+                        })
+                    ).catch(() => { }); // Swallow — fire-and-forget
                 }
             } catch (dbErr) {
                 console.error("Database persistence error:", dbErr);

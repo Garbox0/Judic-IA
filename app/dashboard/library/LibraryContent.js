@@ -146,7 +146,7 @@ export default function LibraryPage() {
                             <div className="card-header">
                                 <span className="jurisdiction-tag">{item.jurisdiction || 'General'}</span>
                                 <Link
-                                    href={`/dashboard/legislation/viewer/knowledge-base?url=${encodeURIComponent(item.url)}&title=${encodeURIComponent(item.autos || 'Fallo de Base de Conocimiento')}`}
+                                    href={`/dashboard/legislation/viewer/knowledge-base?url=${encodeURIComponent(item.pdf_url || item.url)}&title=${encodeURIComponent(item.autos || 'Fallo de Base de Conocimiento')}`}
                                     className="card-link"
                                 >
                                     <ExternalLink size={18} />

@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
 /**
- * GET /api/kb-proxy?url=<encoded_url>
+ * GET /api/kb-proxy?url=<encoded_url>&title=<title>
  * 
- * Proxies Knowledge Base resources. Checks MinIO cache first,
+ * PDF-first KB proxy. Checks MinIO cache first,
  * then calls VPS capture service for PDF generation.
- * Returns the PDF or redirects to cached version.
+ * Always returns a PDF — no HTML fallback.
  */
 
 const CAPTURE_SERVICE_URL = process.env.CAPTURE_SERVICE_URL || 'https://archivos.judic-ia.com';
@@ -17,6 +17,7 @@ const ALLOWED_DOMAINS = [
     'saij.gob.ar', 'servicios.infoleg.gob.ar', 'infoleg.gob.ar',
     'pjn.gov.ar', 'csjn.gov.ar', 'scba.gov.ar', 'juba.scba.gov.ar',
     'justiciacordoba.gob.ar', 'tsjcordoba.gob.ar', 'archivos.judic-ia.com',
+    'cij.gov.ar',
 ];
 
 export async function GET(request) {
@@ -64,7 +65,7 @@ export async function GET(request) {
         // CDN check failed, continue to capture
     }
 
-    // 2. Call VPS capture service
+    // 2. Call VPS capture service to generate PDF on-demand
     try {
         console.log(`📸 Requesting capture from VPS: ${targetUrl}`);
 
@@ -75,14 +76,16 @@ export async function GET(request) {
                 'x-api-key': CAPTURE_API_KEY,
             },
             body: JSON.stringify({ url: targetUrl, title }),
-            signal: AbortSignal.timeout(90000), // 90s timeout for capture
+            signal: AbortSignal.timeout(90000),
         });
 
         if (!captureRes.ok) {
             const err = await captureRes.json().catch(() => ({}));
             console.error('❌ VPS capture failed:', err);
-            // Fallback to HTML proxy
-            return proxyHtml(targetUrl);
+            return NextResponse.json(
+                { error: 'PDF capture failed', details: err.error || 'Unknown error' },
+                { status: 502 }
+            );
         }
 
         const result = await captureRes.json();
@@ -92,58 +95,16 @@ export async function GET(request) {
             return NextResponse.redirect(result.url, 302);
         }
 
-        // Unexpected response, fallback
-        return proxyHtml(targetUrl);
+        return NextResponse.json(
+            { error: 'Capture returned unexpected response' },
+            { status: 500 }
+        );
 
     } catch (error) {
         console.error('❌ Capture service error:', error.message);
-        // Fallback: proxy the HTML directly
-        return proxyHtml(targetUrl);
-    }
-}
-
-/**
- * Fallback: proxy the HTML page directly (no PDF conversion).
- * Used when capture service is unavailable.
- */
-async function proxyHtml(targetUrl) {
-    try {
-        const response = await fetch(targetUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'es-AR,es;q=0.9',
-            },
-        });
-
-        if (!response.ok) {
-            return NextResponse.json({ error: `Upstream: ${response.status}` }, { status: response.status });
-        }
-
-        const contentType = response.headers.get('content-type') || 'text/html';
-
-        // Direct PDF — stream it through
-        if (contentType.includes('application/pdf')) {
-            return new NextResponse(await response.arrayBuffer(), {
-                headers: { 'Content-Type': 'application/pdf', 'Cache-Control': 'public, max-age=86400' },
-            });
-        }
-
-        // HTML — inject <base> for relative URLs
-        let html = await response.text();
-        const baseOrigin = new URL(targetUrl).origin;
-        const baseTag = `<base href="${baseOrigin}/">`;
-
-        if (/<head[^>]*>/i.test(html)) {
-            html = html.replace(/<head[^>]*>/i, (m) => `${m}\n${baseTag}`);
-        } else {
-            html = `${baseTag}\n${html}`;
-        }
-
-        return new NextResponse(html, {
-            headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
-        });
-    } catch (err) {
-        return NextResponse.json({ error: 'Proxy failed', details: err.message }, { status: 500 });
+        return NextResponse.json(
+            { error: 'Capture service unavailable', details: error.message },
+            { status: 503 }
+        );
     }
 }
