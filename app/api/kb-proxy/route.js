@@ -12,12 +12,33 @@ import crypto from 'crypto';
 const CAPTURE_SERVICE_URL = process.env.CAPTURE_SERVICE_URL || 'https://archivos.judic-ia.com';
 const CAPTURE_API_KEY = process.env.CAPTURE_API_KEY || 'judicia-capture-2026';
 
-// Security: only these domains are proxied
+// Security: only judicial/official domains are proxied (synced with research/route.js)
 const ALLOWED_DOMAINS = [
-    'saij.gob.ar', 'servicios.infoleg.gob.ar', 'infoleg.gob.ar',
-    'pjn.gov.ar', 'csjn.gov.ar', 'scba.gov.ar', 'juba.scba.gov.ar',
-    'justiciacordoba.gob.ar', 'tsjcordoba.gob.ar', 'archivos.judic-ia.com',
-    'cij.gov.ar',
+    // Federales / Nacionales
+    'csjn.gov.ar', 'pjn.gov.ar', 'cij.gov.ar',
+    'saij.gob.ar', 'infojus.gob.ar',
+    'mpf.gob.ar', 'mpd.gov.ar',
+    'boletinoficial.gob.ar',
+    'servicios.infoleg.gob.ar', 'infoleg.gob.ar',
+    // Provinciales
+    'scba.gov.ar', 'juba.scba.gov.ar', 'mpba.gov.ar',
+    'jusbaires.gob.ar', 'tsjbaires.gov.ar', 'mptutelar.gob.ar',
+    'justiciacordoba.gob.ar', 'tsjcordoba.gob.ar', 'web.justiciacordoba.gob.ar',
+    'justiciasantafe.gov.ar', 'jussantafe.gov.ar',
+    'jus.mendoza.gov.ar', 'poderjudicial.mendoza.gov.ar',
+    'justucuman.gov.ar', 'poder-judicial.tucuman.gov.ar',
+    'jusentrerios.gov.ar', 'justiciadesalta.gov.ar',
+    'jusmisiones.gov.ar', 'juscorrientes.gov.ar',
+    'justiciachaco.gov.ar', 'juschaco.gov.ar',
+    'jussanjuan.gov.ar', 'jusformosa.gov.ar',
+    'jusneuquen.gov.ar', 'jusrionegro.gov.ar',
+    'juschubut.gov.ar', 'jussantacruz.gov.ar',
+    'juslapampa.gob.ar', 'justiciasanluis.gov.ar',
+    'juscatamarca.gob.ar', 'justicialarioja.gob.ar',
+    'jussantiago.gov.ar', 'justiciajujuy.gov.ar',
+    'justierradelfuego.gov.ar',
+    // Interno
+    'archivos.judic-ia.com',
 ];
 
 export async function GET(request) {
