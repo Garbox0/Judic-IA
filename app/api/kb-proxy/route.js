@@ -65,6 +65,43 @@ export async function GET(request) {
         return NextResponse.redirect(targetUrl, 302);
     }
 
+    // If the URL is already a direct PDF, proxy it through instead of capturing
+    if (targetUrl.toLowerCase().endsWith('.pdf')) {
+        try {
+            console.log(`📎 Direct PDF proxy: ${targetUrl}`);
+            const pdfRes = await fetch(targetUrl, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                    'Accept': 'application/pdf,*/*',
+                },
+                signal: AbortSignal.timeout(30000),
+            });
+
+            if (!pdfRes.ok) {
+                return NextResponse.json(
+                    { error: `PDF source returned ${pdfRes.status}` },
+                    { status: pdfRes.status === 404 ? 404 : 502 }
+                );
+            }
+
+            const pdfBuffer = await pdfRes.arrayBuffer();
+            return new NextResponse(pdfBuffer, {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/pdf',
+                    'Content-Disposition': `inline; filename="${title || 'document'}.pdf"`,
+                    'Cache-Control': 'public, max-age=86400',
+                },
+            });
+        } catch (err) {
+            console.error('❌ Direct PDF proxy failed:', err.message);
+            return NextResponse.json(
+                { error: 'Could not fetch PDF', details: err.message },
+                { status: 502 }
+            );
+        }
+    }
+
     // Generate the expected object name (same logic as capture service)
     const hash = crypto.createHash('md5').update(targetUrl).digest('hex');
     const cleanTitle = (title || 'document')
