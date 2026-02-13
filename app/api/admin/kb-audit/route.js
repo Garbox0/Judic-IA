@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
 const CAPTURE_SERVICE_URL = process.env.CAPTURE_SERVICE_URL || 'https://archivos.judic-ia.com';
-const CAPTURE_API_KEY = process.env.CAPTURE_API_KEY || 'judicia-capture-2026';
+const CAPTURE_API_KEY = process.env.CAPTURE_API_KEY;
 
 export async function GET(request) {
     const supabaseAdmin = createClient(

@@ -139,6 +139,14 @@ export async function POST(request) {
             lawyerSpecialties, syncOnly // NEW: Skip AI response if just syncing
         } = body;
 
+        // 🛡️ INPUT VALIDATION
+        if (message && message.length > 10000) {
+            return NextResponse.json({ error: 'Mensaje demasiado largo (máx 10.000 caracteres)' }, { status: 400 });
+        }
+        if (history && history.length > 50) {
+            return NextResponse.json({ error: 'Historial demasiado largo (máx 50 mensajes)' }, { status: 400 });
+        }
+
         // 🛡️ SECURITY: Identify Authenticated User (Unified Cookie Lane)
         const cookieStore = await cookies();
         const hostname = request.headers.get('host') || '';

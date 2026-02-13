@@ -115,6 +115,11 @@ export async function POST(request) {
 
     const { query, jurisdiction, userId, mode } = await request.json();
 
+    // 🛡️ INPUT VALIDATION
+    if (!query || typeof query !== 'string' || query.length > 2000) {
+        return NextResponse.json({ error: 'Consulta inválida (máx 2.000 caracteres)' }, { status: 400 });
+    }
+
     const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
         process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -901,7 +906,7 @@ ANÁLISIS DE LA CONSULTA:
                 // 📸 Fire-and-forget: Capture PDFs on VPS for all persisted results
                 if (persistedResults.length > 0) {
                     const CAPTURE_URL = process.env.CAPTURE_SERVICE_URL || 'https://archivos.judic-ia.com';
-                    const CAPTURE_KEY = process.env.CAPTURE_API_KEY || 'judicia-capture-2026';
+                    const CAPTURE_KEY = process.env.CAPTURE_API_KEY;
 
                     // Don't await — run in background so user gets response immediately
                     Promise.allSettled(

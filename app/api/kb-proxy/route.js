@@ -10,7 +10,7 @@ import crypto from 'crypto';
  */
 
 const CAPTURE_SERVICE_URL = process.env.CAPTURE_SERVICE_URL || 'https://archivos.judic-ia.com';
-const CAPTURE_API_KEY = process.env.CAPTURE_API_KEY || 'judicia-capture-2026';
+const CAPTURE_API_KEY = process.env.CAPTURE_API_KEY;
 
 // Security: only judicial/official domains are proxied (synced with research/route.js)
 const ALLOWED_DOMAINS = [
