@@ -87,7 +87,9 @@ async function supabaseRequest(path, options = {}) {
         console.error(`  ❌ Supabase error (${res.status}):`, await res.text());
         return null;
     }
-    return res.json();
+    const text = await res.text();
+    if (!text) return null;
+    return JSON.parse(text);
 }
 
 function formatSize(bytes) {
