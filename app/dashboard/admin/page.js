@@ -10,7 +10,6 @@ import {
     Activity,
     Search,
     ShieldCheck,
-    TrendingUp,
     AlertCircle,
     RefreshCw,
     Download,
@@ -18,11 +17,7 @@ import {
     CheckCircle2,
     XCircle,
     Power,
-    Edit3,
-    Calendar,
-    ArrowUpRight,
     Mail,
-    Lock,
     BadgeCheck,
     ShieldAlert,
     ShieldQuestion,
@@ -367,8 +362,8 @@ export default function AdminPage() {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${session?.access_token}` }
             });
-            if (!res.ok) throw new Error('Falló la auditoría');
             const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Falló la auditoría');
             showNotification('success', `Auditoría completa: ${data.report?.valid_pdfs || 0} PDFs válidos`);
             fetchAuditReport();
         } catch (e) {
@@ -379,14 +374,19 @@ export default function AdminPage() {
     };
 
     const getChartData = () => {
+        if (users.length === 0) return [];
+        // Group users by plan tier and show AI usage
+        const proUsers = users.filter(u => u.plan_tier === 'professional' && u.subscription_status === 'active');
+        const freeUsers = users.filter(u => u.plan_tier !== 'professional' || u.subscription_status !== 'active');
+        const proMessages = proUsers.reduce((acc, u) => acc + (u.ai_messages_used || 0), 0);
+        const freeMessages = freeUsers.reduce((acc, u) => acc + (u.ai_messages_used || 0), 0);
+        const proInquiries = proUsers.reduce((acc, u) => acc + (u.inquiries_used || 0), 0);
+        const freeInquiries = freeUsers.reduce((acc, u) => acc + (u.inquiries_used || 0), 0);
         return [
-            { name: 'Lun', val: 40 },
-            { name: 'Mar', val: 65 },
-            { name: 'Mié', val: 45 },
-            { name: 'Jue', val: 90 },
-            { name: 'Vie', val: 75 },
-            { name: 'Sáb', val: 30 },
-            { name: 'Dom', val: 20 },
+            { name: 'Msjs Pro', val: proMessages, color: 'var(--gold)' },
+            { name: 'Msjs Free', val: freeMessages, color: 'var(--admin-stroke-vibrant)' },
+            { name: 'Consult Pro', val: proInquiries, color: 'var(--emerald)' },
+            { name: 'Consult Free', val: freeInquiries, color: 'var(--admin-stroke-vibrant)' },
         ];
     };
 
@@ -519,30 +519,43 @@ export default function AdminPage() {
                     </div>
 
                     {/* --- CONTENT LAYOUT --- */}
-                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                        {/* Sidebar Chart */}
-                        <div className="glass-card p-10 flex flex-col items-center">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-admin-muted mb-10 w-full text-center">Niveles de Actividad</h3>
-                            <div className="w-full h-[300px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={getChartData()}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--admin-stroke)" vertical={false} />
-                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--admin-text-muted)', fontSize: 9, fontWeight: 900 }} />
-                                        <YAxis hide />
-                                        <Tooltip cursor={{ fill: 'rgba(255,255,255,0.02)' }} contentStyle={{ backgroundColor: 'var(--admin-surface-vibrant)', border: '1px solid var(--admin-stroke)', borderRadius: '12px', backdropFilter: 'blur(10px)' }} />
-                                        <Bar dataKey="val" radius={[8, 8, 0, 0]} barSize={36}>
-                                            {getChartData().map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={index === 2 ? 'var(--gold)' : 'var(--admin-stroke-vibrant)'} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
+                    <div className="space-y-8">
+                        {/* Activity Chart Row */}
+                        <div className="glass-card p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-admin-muted">Distribución de Consumo</h3>
+                                <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest">
+                                    <span className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-gold" /> Pro</span>
+                                    <span className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-emerald" /> Consultas</span>
+                                    <span className="flex items-center gap-2"><span className="w-3 h-3 rounded opacity-30" style={{ background: 'var(--admin-stroke-vibrant)' }} /> Free</span>
+                                </div>
                             </div>
+                            {getChartData().length > 0 ? (
+                                <div style={{ width: '100%', height: 200 }}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={getChartData()} margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="var(--admin-stroke)" vertical={false} />
+                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--admin-text-muted)', fontSize: 9, fontWeight: 900 }} />
+                                            <YAxis hide />
+                                            <Tooltip cursor={{ fill: 'rgba(255,255,255,0.02)' }} contentStyle={{ backgroundColor: 'var(--admin-surface-vibrant)', border: '1px solid var(--admin-stroke)', borderRadius: '12px' }} />
+                                            <Bar dataKey="val" radius={[8, 8, 0, 0]} barSize={48}>
+                                                {getChartData().map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                                ))}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-center h-[100px] text-admin-muted text-[10px] font-black uppercase tracking-widest opacity-40">
+                                    Cargando datos...
+                                </div>
+                            )}
                         </div>
 
                         {/* Main Tab Content */}
-                        <div className="xl:col-span-2">
-                            {activeTab === 'users' ? (
+                        <div>
+                            {activeTab === 'users' && (
                                 <div className="glass-card overflow-hidden flex flex-col border-emerald/5 animate-in fade-in slide-in-from-bottom-4 duration-700">
                                     <div className="p-10 border-b border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                                         <div className="space-y-1">
@@ -621,7 +634,8 @@ export default function AdminPage() {
                                         </div>
                                     </div>
                                 </div>
-                            ) : (
+                            )}
+                            {activeTab === 'verification' && (
                                 <div className="glass-card overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
                                     <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-6 py-10 px-10 border-b border-admin-stroke">
                                         <div className="space-y-1">

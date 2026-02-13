@@ -152,12 +152,14 @@ body.light-theme .table-row:hover {
 /* --- TAB SYSTEM --- */
 .admin-tabs {
     display: flex;
-    gap: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     padding: 0.5rem;
     background: var(--admin-surface);
     border: 1px solid var(--admin-stroke);
     border-radius: 18px;
     width: fit-content;
+    max-width: 100%;
 }
 
 .tab-trigger {
@@ -197,6 +199,12 @@ body.light-theme .table-row:hover {
     background: rgba(16, 185, 129, 0.1);
     border-color: rgba(16, 185, 129, 0.3);
     color: var(--emerald);
+}
+
+.tab-trigger.active.blue {
+    background: rgba(56, 189, 248, 0.1);
+    border-color: rgba(56, 189, 248, 0.3);
+    color: var(--blue);
 }
 
 /* --- ACTION BUTTONS --- */
