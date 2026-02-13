@@ -64,7 +64,12 @@ export default function LegislationViewerPage() {
                             <span>ClamAV <strong>Secure</strong></span>
                         </div>
                     )}
-                    <a href={contentUrl} target="_blank" rel="noopener noreferrer" className="action-btn" title={isExternal ? "Abrir PDF" : "Descargar PDF"}>
+                    {isExternal && (
+                        <a href={contentUrl} download className="action-btn download-btn" title="Descargar PDF">
+                            <Download size={18} />
+                        </a>
+                    )}
+                    <a href={contentUrl} target="_blank" rel="noopener noreferrer" className="action-btn" title={isExternal ? "Abrir en nueva pestaña" : "Descargar PDF"}>
                         {isExternal ? <Maximize2 size={18} /> : <Download size={18} />}
                     </a>
                 </div>
@@ -209,6 +214,15 @@ export default function LegislationViewerPage() {
                 .action-btn:hover {
                     background: #f59e0b;
                     transform: scale(1.05);
+                }
+
+                .download-btn {
+                    background: rgba(16, 185, 129, 0.9);
+                    color: white;
+                }
+
+                .download-btn:hover {
+                    background: rgba(16, 185, 129, 1);
                 }
 
                 .viewer-content {
