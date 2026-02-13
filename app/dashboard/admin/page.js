@@ -39,7 +39,7 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    ResponsiveContainer,
+
     Cell
 } from 'recharts';
 
@@ -531,21 +531,7 @@ export default function AdminPage() {
                                 </div>
                             </div>
                             {getChartData().length > 0 ? (
-                                <div style={{ width: '100%', height: 200 }}>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={getChartData()} margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="var(--admin-stroke)" vertical={false} />
-                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--admin-text-muted)', fontSize: 9, fontWeight: 900 }} />
-                                            <YAxis hide />
-                                            <Tooltip cursor={{ fill: 'rgba(255,255,255,0.02)' }} contentStyle={{ backgroundColor: 'var(--admin-surface-vibrant)', border: '1px solid var(--admin-stroke)', borderRadius: '12px' }} />
-                                            <Bar dataKey="val" radius={[8, 8, 0, 0]} barSize={48}>
-                                                {getChartData().map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                                ))}
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
+                                <ChartContainer data={getChartData()} />
                             ) : (
                                 <div className="flex items-center justify-center h-[100px] text-admin-muted text-[10px] font-black uppercase tracking-widest opacity-40">
                                     Cargando datos...
