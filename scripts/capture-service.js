@@ -236,6 +236,36 @@ app.get('/audit', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════
+// POST /audit/fix-urls — Fix broken PDF URLs in DB
+// ═══════════════════════════════════════════
+app.post('/audit/fix-urls', async (req, res) => {
+    console.log('🔧 Fix broken URLs request received');
+    try {
+        const { fixBrokenUrls } = require('./kb-audit');
+        const result = await fixBrokenUrls();
+        res.json({ success: true, result });
+    } catch (error) {
+        console.error('❌ Fix URLs error:', error.message);
+        res.status(500).json({ error: 'Fix failed', details: error.message });
+    }
+});
+
+// ═══════════════════════════════════════════
+// POST /audit/clean-orphans — Delete orphan files from MinIO
+// ═══════════════════════════════════════════
+app.post('/audit/clean-orphans', async (req, res) => {
+    console.log('🧹 Clean orphans request received');
+    try {
+        const { cleanOrphanFiles } = require('./kb-audit');
+        const result = await cleanOrphanFiles();
+        res.json({ success: true, result });
+    } catch (error) {
+        console.error('❌ Clean orphans error:', error.message);
+        res.status(500).json({ error: 'Clean failed', details: error.message });
+    }
+});
+
+// ═══════════════════════════════════════════
 // START
 // ═══════════════════════════════════════════
 app.listen(PORT, () => {

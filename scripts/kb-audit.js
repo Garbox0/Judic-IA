@@ -265,6 +265,117 @@ async function saveReport(report) {
 }
 
 // ═══════════════════════════════════════════
+// FIX: BROKEN PDF URLs
+// ═══════════════════════════════════════════
+async function fixBrokenUrls() {
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+        return { error: 'No Supabase credentials' };
+    }
+
+    console.log('\n🔧 Fixing broken PDF URLs...');
+
+    // 1. List all MinIO objects
+    const objects = [];
+    const stream = minioClient.listObjectsV2(BUCKET_NAME, '', true);
+    for await (const obj of stream) objects.push(obj);
+    const minioFiles = objects.map(o => o.name);
+
+    // 2. Get DB rows with pdf_url
+    const dbRows = await supabaseRequest('case_library?select=id,autos,pdf_url,url') || [];
+    const minioFileUrls = new Set(minioFiles.map(f => `${PUBLIC_BASE_URL}/${BUCKET_NAME}/${f}`));
+
+    // 3. Find broken ones
+    const broken = dbRows.filter(r => r.pdf_url && !minioFileUrls.has(r.pdf_url));
+
+    if (broken.length === 0) {
+        console.log('   ✅ No broken URLs found');
+        return { fixed: 0, details: [] };
+    }
+
+    const results = [];
+
+    for (const row of broken) {
+        // Extract the base name pattern (without hash suffix) from the broken URL
+        const brokenFilename = row.pdf_url.split('/').pop();
+        // Pattern: title_part_hash.pdf → extract title_part
+        const parts = brokenFilename.replace('.pdf', '').split('_');
+        parts.pop(); // Remove the hash
+        const namePattern = parts.join('_');
+
+        // Find a matching file in MinIO
+        const match = minioFiles.find(f => {
+            const fBase = f.replace('.pdf', '').split('_');
+            fBase.pop();
+            return fBase.join('_') === namePattern;
+        });
+
+        if (match) {
+            const newUrl = `${PUBLIC_BASE_URL}/${BUCKET_NAME}/${match}`;
+            console.log(`   🔗 ${row.id}: ${brokenFilename} → ${match}`);
+
+            await supabaseRequest(`case_library?id=eq.${row.id}`, {
+                method: 'PATCH',
+                body: { pdf_url: newUrl },
+                prefer: 'return=minimal',
+            });
+            results.push({ id: row.id, autos: row.autos, old_url: row.pdf_url, new_url: newUrl, status: 'fixed' });
+        } else {
+            // No match found — try to re-capture from original URL
+            console.log(`   ❌ No match for: ${brokenFilename} (${row.autos})`);
+            results.push({ id: row.id, autos: row.autos, old_url: row.pdf_url, status: 'no_match' });
+        }
+    }
+
+    const fixedCount = results.filter(r => r.status === 'fixed').length;
+    console.log(`   ✅ Fixed ${fixedCount}/${broken.length} broken URLs`);
+    return { fixed: fixedCount, total: broken.length, details: results };
+}
+
+// ═══════════════════════════════════════════
+// FIX: CLEAN ORPHAN FILES
+// ═══════════════════════════════════════════
+async function cleanOrphanFiles() {
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+        return { error: 'No Supabase credentials' };
+    }
+
+    console.log('\n🧹 Cleaning orphan files...');
+
+    // 1. List all MinIO objects
+    const objects = [];
+    const stream = minioClient.listObjectsV2(BUCKET_NAME, '', true);
+    for await (const obj of stream) objects.push(obj);
+
+    // 2. Get all pdf_urls from DB
+    const dbRows = await supabaseRequest('case_library?select=pdf_url') || [];
+    const dbPdfUrls = new Set(dbRows.map(r => r.pdf_url).filter(Boolean));
+
+    // 3. Find orphans (files in MinIO not referenced in DB)
+    const orphans = objects.filter(o => !dbPdfUrls.has(`${PUBLIC_BASE_URL}/${BUCKET_NAME}/${o.name}`));
+
+    if (orphans.length === 0) {
+        console.log('   ✅ No orphan files found');
+        return { deleted: 0, details: [] };
+    }
+
+    const results = [];
+    for (const orphan of orphans) {
+        try {
+            await minioClient.removeObject(BUCKET_NAME, orphan.name);
+            console.log(`   🗑️  Deleted: ${orphan.name} (${formatSize(orphan.size)})`);
+            results.push({ name: orphan.name, size: orphan.size, status: 'deleted' });
+        } catch (err) {
+            console.error(`   ❌ Failed to delete ${orphan.name}:`, err.message);
+            results.push({ name: orphan.name, size: orphan.size, status: 'error', error: err.message });
+        }
+    }
+
+    const deletedCount = results.filter(r => r.status === 'deleted').length;
+    console.log(`   ✅ Deleted ${deletedCount}/${orphans.length} orphan files`);
+    return { deleted: deletedCount, total: orphans.length, details: results };
+}
+
+// ═══════════════════════════════════════════
 // ENTRY POINT
 // ═══════════════════════════════════════════
 // If called directly
@@ -276,4 +387,4 @@ if (require.main === module) {
 }
 
 // Export for use in capture-service /audit endpoint
-module.exports = { runAudit };
+module.exports = { runAudit, fixBrokenUrls, cleanOrphanFiles };

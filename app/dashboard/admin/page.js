@@ -373,6 +373,34 @@ export default function AdminPage() {
         }
     };
 
+    const triggerAuditFix = async (action, label) => {
+        setAuditLoading(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const res = await fetch('/api/admin/kb-audit', {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${session?.access_token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ action }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || `Error en ${label}`);
+            const result = data.result || {};
+            if (action === 'fix-urls') {
+                showNotification('success', `URLs corregidas: ${result.fixed || 0}/${result.total || 0}`);
+            } else {
+                showNotification('success', `Archivos eliminados: ${result.deleted || 0}/${result.total || 0}`);
+            }
+            // Re-run audit to refresh report
+            triggerAudit();
+        } catch (e) {
+            showNotification('error', e.message || `Error en ${label}`);
+            setAuditLoading(false);
+        }
+    };
+
     const getChartData = () => {
         if (users.length === 0) return [];
         // Group users by plan tier and show AI usage
@@ -1098,9 +1126,18 @@ export default function AdminPage() {
 
                                                 {auditReport.details.orphan_db?.length > 0 && (
                                                     <div>
-                                                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-gold mb-3 flex items-center gap-2">
-                                                            <AlertCircle size={14} /> DB con PDF_URL Roto ({auditReport.details.orphan_db.length})
-                                                        </h4>
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-gold flex items-center gap-2">
+                                                                <AlertCircle size={14} /> DB con PDF_URL Roto ({auditReport.details.orphan_db.length})
+                                                            </h4>
+                                                            <button
+                                                                onClick={() => triggerAuditFix('fix-urls', 'Fix URLs')}
+                                                                disabled={auditLoading}
+                                                                className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/20 text-gold hover:bg-gold/20 transition-all disabled:opacity-50"
+                                                            >
+                                                                Reparar URLs
+                                                            </button>
+                                                        </div>
                                                         {auditReport.details.orphan_db.map((item, i) => (
                                                             <div key={i} className="table-row flex items-center justify-between gap-4">
                                                                 <span className="text-admin-primary text-xs font-bold truncate flex-1">{item.autos || 'Sin título'}</span>
@@ -1112,9 +1149,18 @@ export default function AdminPage() {
 
                                                 {auditReport.details.orphan_files?.length > 0 && (
                                                     <div>
-                                                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-blue mb-3 flex items-center gap-2">
-                                                            <FileText size={14} /> Archivos sin Registro en DB ({auditReport.details.orphan_files.length})
-                                                        </h4>
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-blue flex items-center gap-2">
+                                                                <FileText size={14} /> Archivos sin Registro en DB ({auditReport.details.orphan_files.length})
+                                                            </h4>
+                                                            <button
+                                                                onClick={() => triggerAuditFix('clean-orphans', 'Clean Orphans')}
+                                                                disabled={auditLoading}
+                                                                className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg bg-rose/10 border border-rose/20 text-rose hover:bg-rose/20 transition-all disabled:opacity-50"
+                                                            >
+                                                                Eliminar Huérfanos
+                                                            </button>
+                                                        </div>
                                                         {auditReport.details.orphan_files.map((item, i) => (
                                                             <div key={i} className="table-row flex items-center justify-between gap-4">
                                                                 <span className="text-admin-primary text-xs font-mono truncate flex-1">{item.name}</span>

@@ -89,3 +89,56 @@ export async function POST(request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export async function PATCH(request) {
+    const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY,
+        { auth: { persistSession: false } }
+    );
+
+    try {
+        // Verify admin
+        const authHeader = request.headers.get('Authorization');
+        if (!authHeader) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''));
+        if (authError || !user || user.email !== 'gbrlescalada@gmail.com') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        const { action } = await request.json();
+
+        const endpointMap = {
+            'fix-urls': '/audit/fix-urls',
+            'clean-orphans': '/audit/clean-orphans',
+        };
+
+        const endpoint = endpointMap[action];
+        if (!endpoint) {
+            return NextResponse.json({ error: 'Acción no válida' }, { status: 400 });
+        }
+
+        let res;
+        try {
+            res = await fetch(`${CAPTURE_SERVICE_URL}${endpoint}`, {
+                method: 'POST',
+                headers: { 'x-api-key': CAPTURE_API_KEY },
+                signal: AbortSignal.timeout(60000),
+            });
+        } catch (fetchError) {
+            return NextResponse.json({ error: 'No se pudo conectar al VPS', details: fetchError.message }, { status: 502 });
+        }
+
+        if (!res.ok) {
+            const text = await res.text();
+            return NextResponse.json({ error: `VPS error ${res.status}`, details: text }, { status: 502 });
+        }
+
+        const result = await res.json();
+        return NextResponse.json(result);
+    } catch (error) {
+        console.error('KB Audit PATCH error:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
