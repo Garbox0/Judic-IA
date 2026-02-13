@@ -9,10 +9,29 @@ const supabaseAdmin = createClient(
 
 export async function POST(request) {
     try {
+        // 🛡️ Require auth header
+        const authHeader = request.headers.get('Authorization');
+        if (!authHeader) {
+            return NextResponse.json({ error: 'No autorizado — falta token' }, { status: 401 });
+        }
+
+        const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(
+            authHeader.replace('Bearer ', '')
+        );
+        if (authError || !user) {
+            return NextResponse.json({ error: 'Token inválido o expirado' }, { status: 401 });
+        }
+
         const { email, otp } = await request.json();
 
         if (!email || !otp) {
             return NextResponse.json({ error: 'Faltan datos' }, { status: 400 });
+        }
+
+        // 🛡️ Email in token must match email in OTP request
+        if (user.email !== email) {
+            console.warn(`⚠️ OTP email mismatch: token=${user.email}, request=${email}`);
+            return NextResponse.json({ error: 'Email no coincide con sesión activa' }, { status: 403 });
         }
 
         // 🛡️ Rate limiting: 5 attempts per minute per IP (brute-force protection)
@@ -48,8 +67,9 @@ export async function POST(request) {
             .update({ verified: true })
             .eq('id', record.id);
 
-        // 3. Return Success
-        return NextResponse.json({ success: true });
+        // 3. Return Success with timestamp for AdminGuard
+        const verifiedAt = Date.now();
+        return NextResponse.json({ success: true, verifiedAt });
 
     } catch (error) {
         console.error('Verify OTP Error:', error);

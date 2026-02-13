@@ -43,8 +43,8 @@ export async function POST(request) {
             .single();
 
         if (profile?.role !== 'admin') {
-            console.warn('⚠️ [OTP] Non-admin user attempting access:', user.email);
-            // Still proceed but log it
+            console.warn('⚠️ [OTP] Non-admin user blocked:', user.email);
+            return NextResponse.json({ error: 'Acceso denegado — se requiere rol admin' }, { status: 403 });
         }
 
         // 3. Generate OTP

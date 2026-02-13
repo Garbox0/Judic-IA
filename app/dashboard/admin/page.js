@@ -34,7 +34,8 @@ import {
     CreditCard,
     DollarSign,
     Play,
-    Zap
+    Zap,
+    HardDrive
 } from 'lucide-react';
 import {
     BarChart,
@@ -69,9 +70,11 @@ export default function AdminPage() {
     const [currentUser, setCurrentUser] = useState(null);
     const [activeModal, setActiveModal] = useState(null);
     const [notifications, setNotifications] = useState([]);
-    const [activeTab, setActiveTab] = useState('users'); // 'users' | 'verification' | 'invoices' | 'subscriptions'
+    const [activeTab, setActiveTab] = useState('users'); // 'users' | 'verification' | 'invoices' | 'subscriptions' | 'kb-audit'
     const [adminInvoices, setAdminInvoices] = useState([]);
     const [uploadingInvoice, setUploadingInvoice] = useState(null);
+    const [auditReport, setAuditReport] = useState(null);
+    const [auditLoading, setAuditLoading] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -159,8 +162,9 @@ export default function AdminPage() {
             setLoading(false);
         }
 
-        // Also fetch invoices
+        // Also fetch invoices and audit
         fetchAdminInvoices();
+        fetchAuditReport();
     };
 
     const fetchAdminInvoices = async () => {
@@ -339,6 +343,41 @@ export default function AdminPage() {
         setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 4000);
     };
 
+    const fetchAuditReport = async () => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+            const res = await fetch('/api/admin/kb-audit', {
+                headers: { 'Authorization': `Bearer ${session.access_token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setAuditReport(data.report);
+            }
+        } catch (err) {
+            console.error('Error fetching audit report:', err);
+        }
+    };
+
+    const triggerAudit = async () => {
+        setAuditLoading(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const res = await fetch('/api/admin/kb-audit', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${session?.access_token}` }
+            });
+            if (!res.ok) throw new Error('Falló la auditoría');
+            const data = await res.json();
+            showNotification('success', `Auditoría completa: ${data.report?.valid_pdfs || 0} PDFs válidos`);
+            fetchAuditReport();
+        } catch (e) {
+            showNotification('error', e.message || 'Error ejecutando auditoría');
+        } finally {
+            setAuditLoading(false);
+        }
+    };
+
     const getChartData = () => {
         return [
             { name: 'Lun', val: 40 },
@@ -462,6 +501,18 @@ export default function AdminPage() {
                             {adminInvoices.filter(i => i.status === 'pending').length > 0 && (
                                 <span className="bg-amber-500 text-black text-[9px] font-black px-2 py-0.5 rounded-full ml-1 animate-pulse">
                                     {adminInvoices.filter(i => i.status === 'pending').length}
+                                </span>
+                            )}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('kb-audit')}
+                            className={`tab-trigger ${activeTab === 'kb-audit' ? 'active blue' : ''}`}
+                        >
+                            <HardDrive size={14} />
+                            PDF Status
+                            {auditReport?.invalid_files > 0 && (
+                                <span className="bg-rose text-white text-[9px] font-black px-2 py-0.5 rounded-full ml-1 animate-pulse">
+                                    {auditReport.invalid_files}
                                 </span>
                             )}
                         </button>
@@ -975,6 +1026,121 @@ export default function AdminPage() {
                                                 </div>
                                             )}
                                         </div>
+                                    </div>
+                                </div>
+                            )}
+                            {activeTab === 'kb-audit' && (
+                                <div className="glass-card overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    <div className="flex flex-col gap-6 py-10 px-10 border-b border-admin-stroke">
+                                        <div className="flex flex-wrap justify-between items-center gap-4">
+                                            <div className="space-y-1">
+                                                <h3 className="text-2xl font-black text-admin-primary tracking-tighter">Estado de PDFs</h3>
+                                                <p className="text-admin-muted text-[10px] font-black uppercase tracking-[0.3em] opacity-60">
+                                                    Auditoría del Bucket Knowledge-Base
+                                                    {auditReport?.ran_at && (
+                                                        <span className="ml-2 text-blue">• Última: {new Date(auditReport.ran_at).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={triggerAudit}
+                                                disabled={auditLoading}
+                                                className="premium-btn emerald"
+                                            >
+                                                {auditLoading ? (
+                                                    <><span className="animate-pulse">Auditando...</span><div className="w-4 h-4 border-2 border-emerald border-t-transparent rounded-full animate-spin" /></>
+                                                ) : (
+                                                    <><Play size={16} /> Ejecutar Auditoría</>
+                                                )}
+                                            </button>
+                                        </div>
+
+                                        {auditReport && (
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                <div className="bg-emerald/10 border border-emerald/20 rounded-xl p-4 text-center">
+                                                    <div className="text-2xl font-black text-emerald">{auditReport.valid_pdfs}</div>
+                                                    <div className="text-[9px] font-black uppercase tracking-widest text-emerald/60">PDFs Válidos</div>
+                                                </div>
+                                                <div className={`${auditReport.invalid_files > 0 ? 'bg-rose/10 border-rose/20' : 'bg-white/5 border-white/5'} border rounded-xl p-4 text-center`}>
+                                                    <div className={`text-2xl font-black ${auditReport.invalid_files > 0 ? 'text-rose' : 'text-admin-muted'}`}>{auditReport.invalid_files}</div>
+                                                    <div className="text-[9px] font-black uppercase tracking-widest text-admin-muted">Inválidos</div>
+                                                </div>
+                                                <div className={`${auditReport.duplicate_groups > 0 ? 'bg-gold/10 border-gold/20' : 'bg-white/5 border-white/5'} border rounded-xl p-4 text-center`}>
+                                                    <div className={`text-2xl font-black ${auditReport.duplicate_groups > 0 ? 'text-gold' : 'text-admin-muted'}`}>{auditReport.duplicate_groups}</div>
+                                                    <div className="text-[9px] font-black uppercase tracking-widest text-admin-muted">Duplicados</div>
+                                                </div>
+                                                <div className="bg-blue/10 border border-blue/20 rounded-xl p-4 text-center">
+                                                    <div className="text-2xl font-black text-blue">{auditReport.db_rows}</div>
+                                                    <div className="text-[9px] font-black uppercase tracking-widest text-blue/60">Registros DB</div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="admin-table-container mt-8 mx-10 mb-10 overflow-hidden">
+                                        {auditReport?.details ? (
+                                            <div className="space-y-6">
+                                                {auditReport.details.invalid?.length > 0 && (
+                                                    <div>
+                                                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-rose mb-3 flex items-center gap-2">
+                                                            <XCircle size={14} /> PDFs Inválidos ({auditReport.details.invalid.length})
+                                                        </h4>
+                                                        {auditReport.details.invalid.map((item, i) => (
+                                                            <div key={i} className="table-row flex items-center justify-between gap-4">
+                                                                <span className="text-admin-primary text-xs font-mono truncate flex-1">{item.name}</span>
+                                                                <span className="text-[9px] font-black uppercase text-rose/60 whitespace-nowrap">{item.reason}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {auditReport.details.orphan_db?.length > 0 && (
+                                                    <div>
+                                                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-gold mb-3 flex items-center gap-2">
+                                                            <AlertCircle size={14} /> DB con PDF_URL Roto ({auditReport.details.orphan_db.length})
+                                                        </h4>
+                                                        {auditReport.details.orphan_db.map((item, i) => (
+                                                            <div key={i} className="table-row flex items-center justify-between gap-4">
+                                                                <span className="text-admin-primary text-xs font-bold truncate flex-1">{item.autos || 'Sin título'}</span>
+                                                                <span className="text-[9px] font-mono text-admin-muted truncate max-w-[200px]">{item.pdf_url}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {auditReport.details.orphan_files?.length > 0 && (
+                                                    <div>
+                                                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-blue mb-3 flex items-center gap-2">
+                                                            <FileText size={14} /> Archivos sin Registro en DB ({auditReport.details.orphan_files.length})
+                                                        </h4>
+                                                        {auditReport.details.orphan_files.map((item, i) => (
+                                                            <div key={i} className="table-row flex items-center justify-between gap-4">
+                                                                <span className="text-admin-primary text-xs font-mono truncate flex-1">{item.name}</span>
+                                                                <span className="text-[9px] font-black text-admin-muted">{item.size > 1024 * 1024 ? `${(item.size / (1024 * 1024)).toFixed(1)} MB` : `${(item.size / 1024).toFixed(1)} KB`}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {auditReport.details.invalid?.length === 0 && auditReport.details.orphan_db?.length === 0 && auditReport.details.orphan_files?.length === 0 && (
+                                                    <div className="flex flex-col items-center justify-center py-20 animate-in fade-in zoom-in duration-500">
+                                                        <div className="w-20 h-20 bg-emerald/10 rounded-full flex items-center justify-center mb-6 border border-emerald/20">
+                                                            <CheckCircle2 size={40} className="text-emerald" />
+                                                        </div>
+                                                        <h4 className="text-admin-primary font-black uppercase tracking-[0.3em] text-sm mb-2">Todo Limpio</h4>
+                                                        <p className="text-admin-muted text-[10px] font-bold uppercase tracking-widest opacity-60">No se encontraron problemas en la última auditoría</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center py-32 animate-in fade-in zoom-in duration-500">
+                                                <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-8 border border-white/5">
+                                                    <HardDrive size={48} className="text-admin-muted opacity-20" />
+                                                </div>
+                                                <h4 className="text-admin-primary font-black uppercase tracking-[0.3em] text-sm mb-3 text-center">Sin Reportes</h4>
+                                                <p className="text-admin-muted text-[10px] font-bold uppercase tracking-widest opacity-60 text-center">Ejecutá una auditoría para ver el estado de los PDFs</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}

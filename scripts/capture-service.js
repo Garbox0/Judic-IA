@@ -221,6 +221,21 @@ app.post('/capture', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════
+// GET /audit — Run KB audit (called from admin panel)
+// ═══════════════════════════════════════════
+app.get('/audit', async (req, res) => {
+    console.log('🔍 Audit request received');
+    try {
+        const { runAudit } = require('./kb-audit');
+        const report = await runAudit();
+        res.json({ success: true, report });
+    } catch (error) {
+        console.error('❌ Audit error:', error.message);
+        res.status(500).json({ error: 'Audit failed', details: error.message });
+    }
+});
+
+// ═══════════════════════════════════════════
 // START
 // ═══════════════════════════════════════════
 app.listen(PORT, () => {

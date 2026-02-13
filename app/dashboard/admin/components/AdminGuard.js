@@ -18,9 +18,15 @@ export default function AdminGuard({ children }) {
     const router = useRouter();
 
     useEffect(() => {
-        const isVerified = sessionStorage.getItem('admin_access_token');
-        if (isVerified === 'granted') {
-            setVerified(true);
+        const verifiedAt = sessionStorage.getItem('admin_verified_at');
+        if (verifiedAt) {
+            const elapsed = Date.now() - parseInt(verifiedAt, 10);
+            const MAX_SESSION_MS = 24 * 60 * 60 * 1000; // 24 hours
+            if (elapsed < MAX_SESSION_MS) {
+                setVerified(true);
+            } else {
+                sessionStorage.removeItem('admin_verified_at');
+            }
         }
         setLoading(false);
     }, []);
@@ -110,9 +116,16 @@ export default function AdminGuard({ children }) {
         setLoading(true);
         setError('');
         try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            if (!token) throw new Error('Sesión expirada. Recargá la página.');
+
             const res = await fetch('/api/admin/auth/verify-otp', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ email, otp })
             });
 
@@ -121,7 +134,7 @@ export default function AdminGuard({ children }) {
 
             setSuccess('✓ Verificación exitosa. Accediendo al panel...');
             setTimeout(() => {
-                sessionStorage.setItem('admin_access_token', 'granted');
+                sessionStorage.setItem('admin_verified_at', String(data.verifiedAt || Date.now()));
                 setVerified(true);
             }, 1000);
         } catch (err) {
@@ -268,11 +281,10 @@ export default function AdminGuard({ children }) {
                                     <button
                                         onClick={resendOtp}
                                         disabled={loading}
-                                        className={`text-[10px] uppercase tracking-widest font-black transition-colors flex items-center gap-1 ${
-                                            canResend || timeLeft === 0
+                                        className={`text-[10px] uppercase tracking-widest font-black transition-colors flex items-center gap-1 ${canResend || timeLeft === 0
                                                 ? 'text-blue hover:text-blue/80'
                                                 : 'text-admin-muted/50 cursor-not-allowed'
-                                        }`}
+                                            }`}
                                     >
                                         <Mail size={12} />
                                         {loading ? 'Reenviando...' : 'Reenviar Código'}
