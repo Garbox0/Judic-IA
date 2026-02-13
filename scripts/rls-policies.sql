@@ -1,32 +1,33 @@
 -- ═══════════════════════════════════════════════════════
 -- JUDIC-IA — Row Level Security Policies
 -- Run this in Supabase SQL Editor (Dashboard > SQL Editor)
+-- Safe to re-run: drops existing policies before creating
 -- ═══════════════════════════════════════════════════════
 
 -- ─── PROFILES ───────────────────────────────────────
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- Users can read their own profile
+DROP POLICY IF EXISTS "profiles_select_own" ON public.profiles;
 CREATE POLICY "profiles_select_own" ON public.profiles
   FOR SELECT USING (auth.uid() = id);
 
--- Admin can read all profiles
+DROP POLICY IF EXISTS "profiles_select_admin" ON public.profiles;
 CREATE POLICY "profiles_select_admin" ON public.profiles
   FOR SELECT USING (
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
--- Users can update their own profile
+DROP POLICY IF EXISTS "profiles_update_own" ON public.profiles;
 CREATE POLICY "profiles_update_own" ON public.profiles
   FOR UPDATE USING (auth.uid() = id);
 
--- Admin can update all profiles
+DROP POLICY IF EXISTS "profiles_update_admin" ON public.profiles;
 CREATE POLICY "profiles_update_admin" ON public.profiles
   FOR UPDATE USING (
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
--- Lawyers can see client profiles assigned to them
+DROP POLICY IF EXISTS "profiles_select_assigned_clients" ON public.profiles;
 CREATE POLICY "profiles_select_assigned_clients" ON public.profiles
   FOR SELECT USING (
     assigned_lawyer_id = auth.uid()
@@ -35,18 +36,18 @@ CREATE POLICY "profiles_select_assigned_clients" ON public.profiles
 -- ─── RESEARCH REPORTS ───────────────────────────────
 ALTER TABLE public.research_reports ENABLE ROW LEVEL SECURITY;
 
--- Users see only their own reports
+DROP POLICY IF EXISTS "research_reports_select_own" ON public.research_reports;
 CREATE POLICY "research_reports_select_own" ON public.research_reports
   FOR SELECT USING (user_id = auth.uid());
 
--- Users can insert their own reports
+DROP POLICY IF EXISTS "research_reports_insert_own" ON public.research_reports;
 CREATE POLICY "research_reports_insert_own" ON public.research_reports
   FOR INSERT WITH CHECK (user_id = auth.uid());
 
 -- ─── CASE LIBRARY (shared, read for all, write for service_role) ──
 ALTER TABLE public.case_library ENABLE ROW LEVEL SECURITY;
 
--- All authenticated users can read (it's the shared library)
+DROP POLICY IF EXISTS "case_library_select_all" ON public.case_library;
 CREATE POLICY "case_library_select_all" ON public.case_library
   FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -56,29 +57,29 @@ CREATE POLICY "case_library_select_all" ON public.case_library
 -- ─── INQUIRIES ──────────────────────────────────────
 ALTER TABLE public.inquiries ENABLE ROW LEVEL SECURITY;
 
--- Client sees their own inquiries
+DROP POLICY IF EXISTS "inquiries_select_client" ON public.inquiries;
 CREATE POLICY "inquiries_select_client" ON public.inquiries
   FOR SELECT USING (client_auth_id = auth.uid());
 
--- Assigned lawyer sees their inquiries
+DROP POLICY IF EXISTS "inquiries_select_lawyer" ON public.inquiries;
 CREATE POLICY "inquiries_select_lawyer" ON public.inquiries
   FOR SELECT USING (assigned_lawyer_id = auth.uid());
 
--- Admin sees all inquiries
+DROP POLICY IF EXISTS "inquiries_select_admin" ON public.inquiries;
 CREATE POLICY "inquiries_select_admin" ON public.inquiries
   FOR SELECT USING (
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
--- Client can insert (create new inquiry)
+DROP POLICY IF EXISTS "inquiries_insert_client" ON public.inquiries;
 CREATE POLICY "inquiries_insert_client" ON public.inquiries
   FOR INSERT WITH CHECK (client_auth_id = auth.uid());
 
--- Lawyer can update their assigned inquiries
+DROP POLICY IF EXISTS "inquiries_update_lawyer" ON public.inquiries;
 CREATE POLICY "inquiries_update_lawyer" ON public.inquiries
   FOR UPDATE USING (assigned_lawyer_id = auth.uid());
 
--- Admin can update all
+DROP POLICY IF EXISTS "inquiries_update_admin" ON public.inquiries;
 CREATE POLICY "inquiries_update_admin" ON public.inquiries
   FOR UPDATE USING (
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
@@ -87,7 +88,7 @@ CREATE POLICY "inquiries_update_admin" ON public.inquiries
 -- ─── MESSAGES ───────────────────────────────────────
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
--- Users can see messages for inquiries they own or are assigned to
+DROP POLICY IF EXISTS "messages_select_own" ON public.messages;
 CREATE POLICY "messages_select_own" ON public.messages
   FOR SELECT USING (
     EXISTS (
@@ -97,7 +98,7 @@ CREATE POLICY "messages_select_own" ON public.messages
     )
   );
 
--- Users can insert messages for their own inquiries
+DROP POLICY IF EXISTS "messages_insert_own" ON public.messages;
 CREATE POLICY "messages_insert_own" ON public.messages
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -110,33 +111,36 @@ CREATE POLICY "messages_insert_own" ON public.messages
 -- ─── DEADLINES ──────────────────────────────────────
 ALTER TABLE public.deadlines ENABLE ROW LEVEL SECURITY;
 
--- Users see only their own deadlines
+DROP POLICY IF EXISTS "deadlines_select_own" ON public.deadlines;
 CREATE POLICY "deadlines_select_own" ON public.deadlines
   FOR SELECT USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "deadlines_insert_own" ON public.deadlines;
 CREATE POLICY "deadlines_insert_own" ON public.deadlines
   FOR INSERT WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "deadlines_update_own" ON public.deadlines;
 CREATE POLICY "deadlines_update_own" ON public.deadlines
   FOR UPDATE USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "deadlines_delete_own" ON public.deadlines;
 CREATE POLICY "deadlines_delete_own" ON public.deadlines
   FOR DELETE USING (user_id = auth.uid());
 
 -- ─── INVOICES ───────────────────────────────────────
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 
--- Users see only their own invoices
+DROP POLICY IF EXISTS "invoices_select_own" ON public.invoices;
 CREATE POLICY "invoices_select_own" ON public.invoices
   FOR SELECT USING (user_id = auth.uid());
 
--- Admin sees all invoices
+DROP POLICY IF EXISTS "invoices_select_admin" ON public.invoices;
 CREATE POLICY "invoices_select_admin" ON public.invoices
   FOR SELECT USING (
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
--- Admin can update invoices
+DROP POLICY IF EXISTS "invoices_update_admin" ON public.invoices;
 CREATE POLICY "invoices_update_admin" ON public.invoices
   FOR UPDATE USING (
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
@@ -145,7 +149,7 @@ CREATE POLICY "invoices_update_admin" ON public.invoices
 -- ─── ATTACHMENTS ────────────────────────────────────
 ALTER TABLE public.attachments ENABLE ROW LEVEL SECURITY;
 
--- Users see attachments for their inquiries
+DROP POLICY IF EXISTS "attachments_select_own" ON public.attachments;
 CREATE POLICY "attachments_select_own" ON public.attachments
   FOR SELECT USING (
     EXISTS (
@@ -155,6 +159,7 @@ CREATE POLICY "attachments_select_own" ON public.attachments
     )
   );
 
+DROP POLICY IF EXISTS "attachments_insert_own" ON public.attachments;
 CREATE POLICY "attachments_insert_own" ON public.attachments
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -167,7 +172,7 @@ CREATE POLICY "attachments_insert_own" ON public.attachments
 -- ─── KB AUDIT REPORTS ───────────────────────────────
 ALTER TABLE public.kb_audit_reports ENABLE ROW LEVEL SECURITY;
 
--- Only admin can see audit reports
+DROP POLICY IF EXISTS "kb_audit_select_admin" ON public.kb_audit_reports;
 CREATE POLICY "kb_audit_select_admin" ON public.kb_audit_reports
   FOR SELECT USING (
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
@@ -176,10 +181,11 @@ CREATE POLICY "kb_audit_select_admin" ON public.kb_audit_reports
 -- ─── DELETION OTPs ──────────────────────────────────
 ALTER TABLE public.deletion_otps ENABLE ROW LEVEL SECURITY;
 
--- Users see only their own OTPs
+DROP POLICY IF EXISTS "deletion_otps_select_own" ON public.deletion_otps;
 CREATE POLICY "deletion_otps_select_own" ON public.deletion_otps
   FOR SELECT USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "deletion_otps_insert_own" ON public.deletion_otps;
 CREATE POLICY "deletion_otps_insert_own" ON public.deletion_otps
   FOR INSERT WITH CHECK (user_id = auth.uid());
 
@@ -198,4 +204,4 @@ ALTER TABLE public.password_history ENABLE ROW LEVEL SECURITY;
 -- ═══════════════════════════════════════════════════════
 -- IMPORTANT: Verify your admin profile has role = 'admin'
 -- ═══════════════════════════════════════════════════════
--- UPDATE profiles SET role = 'admin' WHERE email = 'gbrlescalada@gmail.com';
+UPDATE profiles SET role = 'admin' WHERE email = 'gbrlescalada@gmail.com';
