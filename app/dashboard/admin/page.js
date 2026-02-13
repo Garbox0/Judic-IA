@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 import { getPlanLimit } from '@/lib/planLimits';
@@ -765,9 +765,10 @@ export default function AdminPage() {
                                                         const { data: { session } } = await supabase.auth.getSession();
                                                         const res = await fetch('/api/cron/check-expiry', {
                                                             method: 'GET',
-                                                            headers: { 'Authorization': `Bearer ${process.env.CRON_SECRET || 'dev-secret'}` }
+                                                            headers: { 'Authorization': `Bearer ${session?.access_token}` }
                                                         });
                                                         const data = await res.json();
+                                                        if (!res.ok) throw new Error(data.error || 'Error en CRON');
                                                         showNotification('success', `CRON Ejecutado: ${data.results?.renewed?.length || 0} renovadas, ${data.results?.downgraded?.length || 0} degradadas`);
                                                         initialFetch(currentUser?.id);
                                                     } catch (e) {
@@ -788,9 +789,10 @@ export default function AdminPage() {
                                                         const { data: { session } } = await supabase.auth.getSession();
                                                         const res = await fetch('/api/cron/reset-quotas', {
                                                             method: 'GET',
-                                                            headers: { 'Authorization': `Bearer ${process.env.CRON_SECRET || 'dev-secret'}` }
+                                                            headers: { 'Authorization': `Bearer ${session?.access_token}` }
                                                         });
                                                         const data = await res.json();
+                                                        if (!res.ok) throw new Error(data.error || 'Error reseteando cuotas');
                                                         showNotification('success', `Cuotas reseteadas: ${data.count || 0} usuarios`);
                                                         initialFetch(currentUser?.id);
                                                     } catch (e) {
@@ -1243,6 +1245,44 @@ function StatBox({ label, value, delta, icon: Icon, color }) {
                 <div className="text-5xl font-black text-admin-primary tracking-tighter group-hover:scale-[1.02] transition-transform origin-left">{value || 0}</div>
                 <div className="text-[10px] font-black uppercase tracking-[0.2em] text-admin-muted opacity-60">{label}</div>
             </div>
+        </div>
+    );
+}
+
+function ChartContainer({ data }) {
+    const containerRef = useRef(null);
+    const [width, setWidth] = useState(0);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const observer = new ResizeObserver(entries => {
+            for (const entry of entries) {
+                const w = entry.contentRect.width;
+                if (w > 0) setWidth(w);
+            }
+        });
+        observer.observe(containerRef.current);
+        // Initial measurement
+        const w = containerRef.current.getBoundingClientRect().width;
+        if (w > 0) setWidth(w);
+        return () => observer.disconnect();
+    }, []);
+
+    return (
+        <div ref={containerRef} style={{ width: '100%', minHeight: 180 }}>
+            {width > 0 && (
+                <BarChart width={width} height={180} data={data} margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--admin-stroke)" vertical={false} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--admin-text-muted)', fontSize: 9, fontWeight: 900 }} />
+                    <YAxis hide />
+                    <Tooltip cursor={{ fill: 'rgba(255,255,255,0.02)' }} contentStyle={{ backgroundColor: 'var(--admin-surface-vibrant)', border: '1px solid var(--admin-stroke)', borderRadius: '12px' }} />
+                    <Bar dataKey="val" radius={[8, 8, 0, 0]} barSize={48}>
+                        {data.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                    </Bar>
+                </BarChart>
+            )}
         </div>
     );
 }

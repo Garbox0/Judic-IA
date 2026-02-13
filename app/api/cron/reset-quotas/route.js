@@ -2,16 +2,25 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 export async function GET(req) {
-    // Secure this endpoint (Vercel automatically injects CRON_SECRET)
-    const authHeader = req.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        return new Response('Unauthorized', { status: 401 });
-    }
-
     const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
         process.env.SUPABASE_SERVICE_ROLE_KEY
     );
+
+    // Accept either CRON_SECRET (Vercel cron) or admin Bearer token
+    const authHeader = req.headers.get('authorization');
+    const isCron = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+    let isAdmin = false;
+    if (!isCron && authHeader?.startsWith('Bearer ')) {
+        const { data: { user } } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+        if (user) {
+            const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+            isAdmin = profile?.role === 'admin';
+        }
+    }
+    if (!isCron && !isAdmin) {
+        return new Response('Unauthorized', { status: 401 });
+    }
 
     try {
         const now = new Date();
