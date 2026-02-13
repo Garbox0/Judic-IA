@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import Link from 'next/link';
-import { Brain, Library, ExternalLink, Copy, Search, Filter } from 'lucide-react';
+import { Brain, Library, ExternalLink, Copy, FileText, Trash2, Check } from 'lucide-react';
 import { demoLibrary } from '../../lib/demoData';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
@@ -14,10 +14,14 @@ export default function LibraryPage() {
     const [jurisdictionFilter, setJurisdictionFilter] = useState('');
     const [cases, setCases] = useState([]);
     const [jurisdictions, setJurisdictions] = useState([]);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [toast, setToast] = useState(null);
+    const [deletingId, setDeletingId] = useState(null);
 
     useEffect(() => {
         fetchLibrary();
         fetchJurisdictions();
+        checkAdmin();
     }, []);
 
     useEffect(() => {
@@ -26,6 +30,24 @@ export default function LibraryPage() {
         }, 500);
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm, jurisdictionFilter]);
+
+    // Auto-hide toast
+    useEffect(() => {
+        if (!toast) return;
+        const t = setTimeout(() => setToast(null), 2500);
+        return () => clearTimeout(t);
+    }, [toast]);
+
+    const checkAdmin = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email === 'gbrlescalada@gmail.com') {
+            setIsAdmin(true);
+        }
+    };
+
+    const showToast = (message) => {
+        setToast(message);
+    };
 
     const fetchJurisdictions = async () => {
         const { data } = await supabase.from('case_library').select('jurisdiction');
@@ -82,6 +104,26 @@ export default function LibraryPage() {
             setCases(demoLibrary);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleCopy = (item) => {
+        navigator.clipboard.writeText(`${item.autos} - ${item.url}`);
+        showToast('Cita copiada al portapapeles');
+    };
+
+    const handleDelete = async (item) => {
+        if (!confirm(`¿Eliminar "${item.autos}" de la biblioteca?`)) return;
+        setDeletingId(item.id);
+        try {
+            const { error } = await supabase.from('case_library').delete().eq('id', item.id);
+            if (error) throw error;
+            setCases(prev => prev.filter(c => c.id !== item.id));
+            showToast('Recurso eliminado');
+        } catch (e) {
+            showToast('Error al eliminar');
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -145,33 +187,57 @@ export default function LibraryPage() {
                         <div key={item.id || item.url} className="library-card glass-panel">
                             <div className="card-header">
                                 <span className="jurisdiction-tag">{item.jurisdiction || 'General'}</span>
-                                <Link
-                                    href={`/dashboard/legislation/viewer/knowledge-base?url=${encodeURIComponent(item.pdf_url || item.url)}&title=${encodeURIComponent(item.autos || 'Fallo de Base de Conocimiento')}`}
-                                    className="card-link"
-                                >
-                                    <ExternalLink size={18} />
-                                </Link>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    {isAdmin && (
+                                        <button
+                                            className="btn-delete"
+                                            title="Eliminar recurso"
+                                            disabled={deletingId === item.id}
+                                            onClick={() => handleDelete(item)}
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    )}
+                                    <Link
+                                        href={`/dashboard/legislation/viewer/knowledge-base?url=${encodeURIComponent(item.pdf_url || item.url)}&title=${encodeURIComponent(item.autos || 'Fallo de Base de Conocimiento')}`}
+                                        className="card-link"
+                                    >
+                                        <ExternalLink size={18} />
+                                    </Link>
+                                </div>
                             </div>
                             <h3 className="card-title">{item.autos}</h3>
                             <p className="card-summary">{item.summary}</p>
                             <div className="card-footer">
-                                <button
-                                    className="btn-copy"
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(`${item.autos} - ${item.url}`);
-                                        alert("Cita copiada al portapapeles");
-                                    }}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                                >
-                                    <Copy size={12} /> Copiar Cita
-                                </button>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <button
+                                        className="btn-copy"
+                                        onClick={() => handleCopy(item)}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                    >
+                                        <Copy size={12} /> Copiar Cita
+                                    </button>
+                                    {item.pdf_url && (
+                                        <Link
+                                            href={`/dashboard/legislation/viewer/knowledge-base?url=${encodeURIComponent(item.pdf_url)}&title=${encodeURIComponent(item.autos || 'PDF')}`}
+                                            className="btn-pdf"
+                                        >
+                                            <FileText size={12} /> Ver PDF
+                                        </Link>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ))
                 )}
             </div>
 
-
+            {toast && (
+                <div className="library-toast">
+                    <Check size={16} />
+                    {toast}
+                </div>
+            )}
         </div>
     );
 }
