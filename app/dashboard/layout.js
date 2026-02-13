@@ -232,7 +232,7 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
           </Link>
           <Link href={isDemo ? `${basePath}/federal` : '/dashboard/federal'} className={`nav-item ${pathname.includes('/federal') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <Globe size={18} className="nav-icon" />
-            <span className="hub-federal-text">Hub Federal</span>
+            <span>Hub Federal</span>
           </Link>
           <Link href={isDemo ? `${basePath}/library` : '/dashboard/library'} className={`nav-item ${pathname.includes('/library') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <BookOpen size={18} className="nav-icon" />

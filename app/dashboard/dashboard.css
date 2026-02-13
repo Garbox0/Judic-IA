@@ -33,10 +33,6 @@
     z-index: 100;
 }
 
-.hub-federal-text {
-    color: #fde68a !important;
-    /* amber-200 */
-}
 
 .logo-section h1 {
     font-family: var(--font-playfair);

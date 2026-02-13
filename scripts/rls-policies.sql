@@ -1,8 +1,23 @@
 -- ═══════════════════════════════════════════════════════
--- JUDIC-IA — Row Level Security Policies
+-- JUDIC-IA — Row Level Security Policies (v2 — fixed recursion)
 -- Run this in Supabase SQL Editor (Dashboard > SQL Editor)
--- Safe to re-run: drops existing policies before creating
+-- Safe to re-run: drops existing policies/functions before creating
 -- ═══════════════════════════════════════════════════════
+
+-- ─── HELPER FUNCTION (avoids infinite recursion on profiles) ───
+-- SECURITY DEFINER = runs with the function owner's privileges (bypasses RLS)
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = 'admin'
+  );
+$$;
 
 -- ─── PROFILES ───────────────────────────────────────
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -13,9 +28,7 @@ CREATE POLICY "profiles_select_own" ON public.profiles
 
 DROP POLICY IF EXISTS "profiles_select_admin" ON public.profiles;
 CREATE POLICY "profiles_select_admin" ON public.profiles
-  FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+  FOR SELECT USING (public.is_admin());
 
 DROP POLICY IF EXISTS "profiles_update_own" ON public.profiles;
 CREATE POLICY "profiles_update_own" ON public.profiles
@@ -23,9 +36,7 @@ CREATE POLICY "profiles_update_own" ON public.profiles
 
 DROP POLICY IF EXISTS "profiles_update_admin" ON public.profiles;
 CREATE POLICY "profiles_update_admin" ON public.profiles
-  FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+  FOR UPDATE USING (public.is_admin());
 
 DROP POLICY IF EXISTS "profiles_select_assigned_clients" ON public.profiles;
 CREATE POLICY "profiles_select_assigned_clients" ON public.profiles
@@ -67,9 +78,7 @@ CREATE POLICY "inquiries_select_lawyer" ON public.inquiries
 
 DROP POLICY IF EXISTS "inquiries_select_admin" ON public.inquiries;
 CREATE POLICY "inquiries_select_admin" ON public.inquiries
-  FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+  FOR SELECT USING (public.is_admin());
 
 DROP POLICY IF EXISTS "inquiries_insert_client" ON public.inquiries;
 CREATE POLICY "inquiries_insert_client" ON public.inquiries
@@ -81,9 +90,7 @@ CREATE POLICY "inquiries_update_lawyer" ON public.inquiries
 
 DROP POLICY IF EXISTS "inquiries_update_admin" ON public.inquiries;
 CREATE POLICY "inquiries_update_admin" ON public.inquiries
-  FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+  FOR UPDATE USING (public.is_admin());
 
 -- ─── MESSAGES ───────────────────────────────────────
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
@@ -136,15 +143,11 @@ CREATE POLICY "invoices_select_own" ON public.invoices
 
 DROP POLICY IF EXISTS "invoices_select_admin" ON public.invoices;
 CREATE POLICY "invoices_select_admin" ON public.invoices
-  FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+  FOR SELECT USING (public.is_admin());
 
 DROP POLICY IF EXISTS "invoices_update_admin" ON public.invoices;
 CREATE POLICY "invoices_update_admin" ON public.invoices
-  FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+  FOR UPDATE USING (public.is_admin());
 
 -- ─── ATTACHMENTS ────────────────────────────────────
 ALTER TABLE public.attachments ENABLE ROW LEVEL SECURITY;
@@ -174,9 +177,7 @@ ALTER TABLE public.kb_audit_reports ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "kb_audit_select_admin" ON public.kb_audit_reports;
 CREATE POLICY "kb_audit_select_admin" ON public.kb_audit_reports
-  FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+  FOR SELECT USING (public.is_admin());
 
 -- ─── DELETION OTPs ──────────────────────────────────
 ALTER TABLE public.deletion_otps ENABLE ROW LEVEL SECURITY;

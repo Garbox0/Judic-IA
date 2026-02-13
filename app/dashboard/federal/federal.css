@@ -416,6 +416,289 @@
     transform: scale(1.02);
 }
 
+/* STATS ROW */
+.fed-stats-row {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.fed-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--muted, #94a3b8);
+}
+
+.fed-stat strong {
+    color: var(--foreground, #fff);
+    font-size: 1.1rem;
+}
+
+/* FULL-WIDTH CARD */
+.fed-card-full {
+    grid-column: 1 / -1;
+}
+
+/* DIRECTORY RESULTS */
+.fed-dir-results {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+    animation: feedbackSlideIn 0.3s ease;
+}
+
+.fed-dir-title {
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #10b981;
+    margin-bottom: 0.3rem;
+}
+
+.fed-dir-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    color: inherit;
+}
+
+.fed-dir-link:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.fed-dir-link-highlight {
+    border-color: rgba(251, 191, 36, 0.2);
+    background: rgba(251, 191, 36, 0.03);
+}
+
+.fed-dir-link-highlight:hover {
+    border-color: rgba(251, 191, 36, 0.4);
+    background: rgba(251, 191, 36, 0.08);
+}
+
+.fed-dir-link-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.fed-dir-link-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.fed-dir-link-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--foreground, #f8fafc);
+}
+
+.fed-dir-link-label {
+    font-size: 0.7rem;
+    color: var(--muted, #64748b);
+    margin-top: 0.1rem;
+}
+
+.fed-dir-link-arrow {
+    color: var(--muted, #64748b);
+    opacity: 0.5;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.fed-dir-link:hover .fed-dir-link-arrow {
+    opacity: 1;
+    color: #10b981;
+}
+
+/* GUIDES */
+.fed-guides-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.fed-guide-item {
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.fed-guide-item:hover {
+    border-color: rgba(168, 85, 247, 0.3);
+}
+
+.fed-guide-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.2rem;
+    background: transparent;
+    border: none;
+    color: var(--foreground, #fff);
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+}
+
+.fed-guide-header:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.fed-guide-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.fed-guide-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.fed-guide-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.fed-guide-meta {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.2rem;
+}
+
+.fed-guide-category {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #a855f7;
+    background: rgba(168, 85, 247, 0.1);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+}
+
+.fed-guide-difficulty {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+}
+
+.fed-guide-chevron {
+    color: var(--muted, #64748b);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.fed-guide-chevron-open {
+    transform: rotate(90deg);
+}
+
+.fed-guide-body {
+    padding: 0 1.2rem 1.2rem;
+    border-top: 1px solid var(--border, rgba(255, 255, 255, 0.05));
+    animation: feedbackSlideIn 0.3s ease;
+}
+
+.fed-guide-section {
+    margin-top: 1rem;
+}
+
+.fed-guide-section h4 {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted, #94a3b8);
+    margin-bottom: 0.75rem;
+}
+
+.fed-guide-steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.fed-guide-steps li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--foreground, #e2e8f0);
+}
+
+.fed-step-number {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+.fed-guide-tips {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.fed-guide-tips li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--muted, #cbd5e1);
+}
+
+.fed-tip-icon {
+    color: #10b981;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
 /* LIGHT THEME OVERRIDES */
 body.light-theme .fed-header h1 {
     background: linear-gradient(135deg, #0f172a, #fbbf24);
@@ -469,6 +752,43 @@ body.light-theme .fed-restricted-status-box {
 body.light-theme .fed-lawyer-placeholder {
     background: #f8fafc;
     border-color: #e2e8f0;
+}
+
+body.light-theme .fed-stat strong {
+    color: #0f172a;
+}
+
+body.light-theme .fed-dir-link {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+body.light-theme .fed-dir-link:hover {
+    background: #f1f5f9;
+}
+
+body.light-theme .fed-dir-link-name {
+    color: #0f172a;
+}
+
+body.light-theme .fed-dir-link-icon {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme .fed-guide-item {
+    border-color: #e2e8f0;
+}
+
+body.light-theme .fed-guide-header:hover {
+    background: #f8fafc;
+}
+
+body.light-theme .fed-guide-steps li {
+    color: #334155;
+}
+
+body.light-theme .fed-guide-body {
+    border-top-color: #f1f5f9;
 }
 
 /* RESPONSIVE */

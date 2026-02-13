@@ -5,19 +5,27 @@ import {
     ArrowRight,
     MapPin,
     ShieldCheck,
-    HelpCircle,
     Clock,
     UserPlus,
     BookOpen,
     MessageCircle,
     ChevronDown,
-    AlertCircle
+    ExternalLink,
+    Scale,
+    Building2,
+    GraduationCap,
+    FileText,
+    ChevronRight,
+    Users,
+    Landmark,
+    CheckCircle2
 } from 'lucide-react';
 import { supabase } from '@/app/lib/supabase';
 import { toast } from 'sonner';
 import './federal.css';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
+import { provincialDirectory, survivalGuides } from '@/app/lib/federalDirectory';
 
 export default function FederalContent() {
     const [searchResults, setSearchResults] = useState([]);
@@ -25,7 +33,14 @@ export default function FederalContent() {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [searching, setSearching] = useState(false);
-    const [directoryFeedback, setDirectoryFeedback] = useState(null);
+    const [networkStats, setNetworkStats] = useState({ total: 0, provinces: 0 });
+
+    // Directory state
+    const [dirProv, setDirProv] = useState("");
+    const [dirData, setDirData] = useState(null);
+
+    // Guides state
+    const [expandedGuide, setExpandedGuide] = useState(null);
 
     useEffect(() => {
         let channel;
@@ -52,8 +67,24 @@ export default function FederalContent() {
             setLoading(false);
         };
         fetchProfile();
+        fetchNetworkStats();
         return () => { if (channel) supabase.removeChannel(channel); };
     }, []);
+
+    const fetchNetworkStats = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('jurisdiccion')
+                .eq('is_correspondent', true)
+                .eq('verification_status', 'verified')
+                .eq('role', 'lawyer');
+            if (!error && data) {
+                const uniqueProvs = new Set(data.map(d => d.jurisdiccion).filter(Boolean));
+                setNetworkStats({ total: data.length, provinces: uniqueProvs.size });
+            }
+        } catch (e) { /* silent */ }
+    };
 
     const handleSearch = async (prov) => {
         setSelectedProv(prov);
@@ -89,7 +120,6 @@ export default function FederalContent() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            // Check if conversation already exists between these two users
             const { data: existingParticipations } = await supabase
                 .from('chat_participants')
                 .select('conversation_id')
@@ -106,7 +136,6 @@ export default function FederalContent() {
                     .single();
 
                 if (sharedConvo) {
-                    // Open existing conversation
                     window.dispatchEvent(new CustomEvent('judicia-open-chat', {
                         detail: { conversationId: sharedConvo.conversation_id, partnerName: lawyer.full_name }
                     }));
@@ -115,7 +144,6 @@ export default function FederalContent() {
                 }
             }
 
-            // Create new conversation
             const { data: newConvo, error } = await supabase
                 .from('chat_conversations')
                 .insert([{ title: lawyer.full_name }])
@@ -132,16 +160,28 @@ export default function FederalContent() {
             window.dispatchEvent(new CustomEvent('judicia-open-chat', {
                 detail: { conversationId: newConvo.id, partnerName: lawyer.full_name }
             }));
-            toast.success(`Conversación iniciada con ${lawyer.full_name}`);
+            toast.success(`Conversacion iniciada con ${lawyer.full_name}`);
         } catch (err) {
             console.error("Error starting chat:", err);
             toast.error("Error iniciando chat: " + err.message);
         }
     };
 
-    const showDirectoryMsg = (msg) => {
-        setDirectoryFeedback(msg);
-        setTimeout(() => setDirectoryFeedback(null), 4000);
+    const handleDirSearch = (prov) => {
+        setDirProv(prov);
+        if (!prov) {
+            setDirData(null);
+            return;
+        }
+        const found = provincialDirectory.find(d => d.province === prov);
+        setDirData(found || null);
+    };
+
+    const guideIcons = {
+        FileText: <FileText size={18} />,
+        Globe: <Globe size={18} />,
+        Users: <Users size={18} />,
+        Shield: <ShieldCheck size={18} />,
     };
 
     if (loading) return <div className="p-8 text-center opacity-50">Cargando Hub Federal...</div>;
@@ -154,17 +194,17 @@ export default function FederalContent() {
                     <div className="fed-restricted-icon-box">
                         <ShieldCheck size={40} />
                     </div>
-                    <h1 className="dashboard-page-title">Verificación Necesaria</h1>
+                    <h1 className="dashboard-page-title">Verificacion Necesaria</h1>
                     <p className="opacity-70 text-lg mb-8">
-                        Para acceder al Hub Federal y a la Comunidad de Abogados, tu matrícula profesional debe ser verificada por nuestro equipo técnico.
+                        Para acceder al Hub Federal y a la Comunidad de Abogados, tu matricula profesional debe ser verificada por nuestro equipo tecnico.
                     </p>
                     <div className="fed-restricted-status-box">
                         <h4 className="m-0 mb-3 flex items-center gap-2">
                             <Clock size={16} className="text-amber-400" />
-                            Estado actual: {profile?.verification_status === 'pending' ? 'Pendiente de Revisión' : 'Acción Requerida'}
+                            Estado actual: {profile?.verification_status === 'pending' ? 'Pendiente de Revision' : 'Accion Requerida'}
                         </h4>
                         <p className="text-sm opacity-60 m-0">
-                            Estamos validando tus credenciales con los colegios públicos correspondientes. Te notificaremos vía email cuando tu acceso sea habilitado.
+                            Estamos validando tus credenciales con los colegios publicos correspondientes. Te notificaremos via email cuando tu acceso sea habilitado.
                         </p>
                     </div>
                     <div className="fed-restricted-btn-wrapper">
@@ -182,9 +222,25 @@ export default function FederalContent() {
             <UsageGuide content={dashboardManuals.federal} mode="inline" />
 
             <header className="fed-header">
-                <div className="fed-badge">Módulo Interjurisdiccional</div>
+                <div className="fed-badge">Modulo Interjurisdiccional</div>
                 <h1>Hub Federal <Globe size={28} className="text-amber-400" /></h1>
                 <p>Nexo interjurisdiccional para la Red de Colegas y Recursos Nacionales.</p>
+
+                {/* Network stats */}
+                <div className="fed-stats-row">
+                    <div className="fed-stat">
+                        <Users size={16} />
+                        <span><strong>{networkStats.total}</strong> corresponsales activos</span>
+                    </div>
+                    <div className="fed-stat">
+                        <MapPin size={16} />
+                        <span><strong>{networkStats.provinces}</strong> provincias cubiertas</span>
+                    </div>
+                    <div className="fed-stat">
+                        <Landmark size={16} />
+                        <span><strong>25</strong> jurisdicciones en directorio</span>
+                    </div>
+                </div>
             </header>
 
             <div className="fed-grid">
@@ -194,10 +250,10 @@ export default function FederalContent() {
                         <UserPlus size={24} />
                     </div>
                     <h3>Red de Corresponsales</h3>
-                    <p>Colaborá con colegas verificados de todo el país para delegar tareas judiciales locales en un entorno seguro.</p>
+                    <p>Colabora con colegas verificados de todo el pais para delegar tareas judiciales locales en un entorno seguro.</p>
 
                     <div className="fed-select-group">
-                        <label htmlFor="jurisdiccion-select">Jurisdicción de Búsqueda</label>
+                        <label htmlFor="jurisdiccion-select">Jurisdiccion de Busqueda</label>
                         <div className="fed-select-wrapper">
                             <select
                                 id="jurisdiccion-select"
@@ -206,6 +262,106 @@ export default function FederalContent() {
                                 onChange={(e) => handleSearch(e.target.value)}
                             >
                                 <option value="">Selecciona una Provincia...</option>
+                                <option value="CABA">CABA</option>
+                                <option value="Buenos Aires">Buenos Aires</option>
+                                <option value="Catamarca">Catamarca</option>
+                                <option value="Chaco">Chaco</option>
+                                <option value="Chubut">Chubut</option>
+                                <option value="Cordoba">Cordoba</option>
+                                <option value="Corrientes">Corrientes</option>
+                                <option value="Entre Rios">Entre Rios</option>
+                                <option value="Formosa">Formosa</option>
+                                <option value="Jujuy">Jujuy</option>
+                                <option value="La Pampa">La Pampa</option>
+                                <option value="La Rioja">La Rioja</option>
+                                <option value="Mendoza">Mendoza</option>
+                                <option value="Misiones">Misiones</option>
+                                <option value="Neuquen">Neuquen</option>
+                                <option value="Rio Negro">Rio Negro</option>
+                                <option value="Salta">Salta</option>
+                                <option value="San Juan">San Juan</option>
+                                <option value="San Luis">San Luis</option>
+                                <option value="Santa Cruz">Santa Cruz</option>
+                                <option value="Santa Fe">Santa Fe</option>
+                                <option value="Santiago del Estero">Santiago del Estero</option>
+                                <option value="Tierra del Fuego">Tierra del Fuego</option>
+                                <option value="Tucuman">Tucuman</option>
+                            </select>
+                            <div className="fed-chevron">
+                                <ChevronDown size={20} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="fed-lawyer-list">
+                        {searching && (
+                            <div className="p-6 text-center opacity-40 text-sm">Buscando...</div>
+                        )}
+                        {!searching && !selectedProv && (
+                            <div className="fed-lawyer-placeholder">
+                                <MapPin size={24} className="opacity-50" />
+                                <span>Selecciona una provincia para ver colegas disponibles.</span>
+                            </div>
+                        )}
+                        {!searching && selectedProv && searchResults.length === 0 && (
+                            <div className="fed-lawyer-placeholder">
+                                <UserPlus size={24} className="opacity-50" />
+                                <span>No se encontraron colegas en esta jurisdiccion.</span>
+                            </div>
+                        )}
+                        {searchResults.map(lawyer => (
+                            <div key={lawyer.id} className="fed-lawyer-card">
+                                <div className="fed-lawyer-info">
+                                    <div className="fed-lawyer-avatar">
+                                        {lawyer.avatar_url ? (
+                                            <img src={lawyer.avatar_url} alt={lawyer.full_name} />
+                                        ) : (
+                                            (lawyer.full_name || 'U').charAt(0)
+                                        )}
+                                    </div>
+                                    <div className="fed-lawyer-details">
+                                        <h4>{lawyer.full_name || 'Colega'}</h4>
+                                        <span className="fed-lawyer-specialty">
+                                            {lawyer.especialidades && lawyer.especialidades.length > 0
+                                                ? lawyer.especialidades.slice(0, 2).join(' - ')
+                                                : 'Generalista'}
+                                        </span>
+                                        {lawyer.coverage_areas && (
+                                            <span className="fed-lawyer-zone">Zona: {lawyer.coverage_areas}</span>
+                                        )}
+                                    </div>
+                                </div>
+                                <button
+                                    className="fed-lawyer-action-btn"
+                                    title="Iniciar conversacion"
+                                    onClick={() => handleStartChat(lawyer)}
+                                >
+                                    <MessageCircle size={18} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* 2. DIRECTORIO NACIONAL */}
+                <div className="fed-card">
+                    <div className="fed-icon-box" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                        <Building2 size={24} />
+                    </div>
+                    <h3>Directorio Judicial Nacional</h3>
+                    <p>Acceso directo a portales judiciales, consulta de expedientes, colegios de abogados y MEV de cada jurisdiccion.</p>
+
+                    <div className="fed-select-group">
+                        <label htmlFor="dir-prov-select">Seleccionar Jurisdiccion</label>
+                        <div className="fed-select-wrapper">
+                            <select
+                                id="dir-prov-select"
+                                className="fed-select"
+                                value={dirProv}
+                                onChange={(e) => handleDirSearch(e.target.value)}
+                            >
+                                <option value="">Elegir jurisdiccion...</option>
+                                <option value="Federal">Justicia Nacional y Federal</option>
                                 <option value="CABA">CABA</option>
                                 <option value="Buenos Aires">Buenos Aires</option>
                                 <option value="Catamarca">Catamarca</option>
@@ -237,114 +393,156 @@ export default function FederalContent() {
                         </div>
                     </div>
 
-                    <div className="fed-lawyer-list">
-                        {searching && (
-                            <div className="p-6 text-center opacity-40 text-sm">Buscando...</div>
-                        )}
-                        {!searching && !selectedProv && (
-                            <div className="fed-lawyer-placeholder">
-                                <MapPin size={24} className="opacity-50" />
-                                <span>Seleccioná una provincia para ver colegas disponibles.</span>
-                            </div>
-                        )}
-                        {!searching && selectedProv && searchResults.length === 0 && (
-                            <div className="fed-lawyer-placeholder">
-                                <UserPlus size={24} className="opacity-50" />
-                                <span>No se encontraron colegas en esta jurisdicción.</span>
-                            </div>
-                        )}
-                        {searchResults.map(lawyer => (
-                            <div key={lawyer.id} className="fed-lawyer-card">
-                                <div className="fed-lawyer-info">
-                                    <div className="fed-lawyer-avatar">
-                                        {lawyer.avatar_url ? (
-                                            <img src={lawyer.avatar_url} alt={lawyer.full_name} />
-                                        ) : (
-                                            (lawyer.full_name || 'U').charAt(0)
-                                        )}
-                                    </div>
-                                    <div className="fed-lawyer-details">
-                                        <h4>{lawyer.full_name || 'Colega'}</h4>
-                                        <span className="fed-lawyer-specialty">
-                                            {lawyer.especialidades && lawyer.especialidades.length > 0
-                                                ? lawyer.especialidades.slice(0, 2).join(' • ')
-                                                : 'Generalista'}
-                                        </span>
-                                        {lawyer.coverage_areas && (
-                                            <span className="fed-lawyer-zone">Zona: {lawyer.coverage_areas}</span>
-                                        )}
-                                    </div>
-                                </div>
-                                <button
-                                    className="fed-lawyer-action-btn"
-                                    title="Iniciar conversación"
-                                    onClick={() => handleStartChat(lawyer)}
-                                >
-                                    <MessageCircle size={18} />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* 2. DIRECTORIO NACIONAL */}
-                <div className="fed-card">
-                    <div className="fed-icon-box" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-                        <Clock size={24} />
-                    </div>
-                    <h3>Directorio Nacional</h3>
-                    <p>Buscador de organismos judiciales, padrones y contactos oficiales de todo el territorio nacional.</p>
-
-                    {directoryFeedback && (
-                        <div className="fed-feedback-bar">
-                            <AlertCircle size={16} className="text-blue-400 shrink-0" />
-                            <span>{directoryFeedback}</span>
+                    {!dirData && (
+                        <div className="fed-lawyer-placeholder" style={{ marginTop: '1.5rem' }}>
+                            <Landmark size={24} className="opacity-50" />
+                            <span>Selecciona una jurisdiccion para ver portales y recursos.</span>
                         </div>
                     )}
 
-                    <div className="fed-btn-list">
-                        <button className="fed-full-btn" onClick={() => showDirectoryMsg("Próximamente: Buscador de Padrones Nacionales.")}>
-                            <div className="flex items-center gap-3">
-                                <div className="fed-btn-icon-box text-blue-400">
-                                    <Globe size={18} />
+                    {dirData && (
+                        <div className="fed-dir-results">
+                            <div className="fed-dir-title">{dirData.fullName}</div>
+
+                            <a href={dirData.poderJudicial.url} target="_blank" rel="noopener noreferrer" className="fed-dir-link">
+                                <div className="fed-dir-link-left">
+                                    <div className="fed-dir-link-icon" style={{ color: '#10b981' }}>
+                                        <Scale size={16} />
+                                    </div>
+                                    <div>
+                                        <div className="fed-dir-link-name">{dirData.poderJudicial.name}</div>
+                                        <div className="fed-dir-link-label">Poder Judicial</div>
+                                    </div>
                                 </div>
-                                <span>Padrones Federales</span>
-                            </div>
-                            <ArrowRight size={18} className="fed-btn-arrow" />
-                        </button>
-                        <button className="fed-full-btn" onClick={() => showDirectoryMsg("Próximamente: Base de datos de oficinas judiciales.")}>
-                            <div className="flex items-center gap-3">
-                                <div className="fed-btn-icon-box text-emerald-400">
-                                    <HelpCircle size={18} />
+                                <ExternalLink size={14} className="fed-dir-link-arrow" />
+                            </a>
+
+                            <a href={dirData.expedientes.url} target="_blank" rel="noopener noreferrer" className="fed-dir-link">
+                                <div className="fed-dir-link-left">
+                                    <div className="fed-dir-link-icon" style={{ color: '#3b82f6' }}>
+                                        <FileText size={16} />
+                                    </div>
+                                    <div>
+                                        <div className="fed-dir-link-name">{dirData.expedientes.name}</div>
+                                        <div className="fed-dir-link-label">Consulta de Expedientes</div>
+                                    </div>
                                 </div>
-                                <span>Oficinas Judiciales</span>
-                            </div>
-                            <ArrowRight size={18} className="fed-btn-arrow" />
-                        </button>
-                    </div>
+                                <ExternalLink size={14} className="fed-dir-link-arrow" />
+                            </a>
+
+                            <a href={dirData.colegio.url} target="_blank" rel="noopener noreferrer" className="fed-dir-link">
+                                <div className="fed-dir-link-left">
+                                    <div className="fed-dir-link-icon" style={{ color: '#a855f7' }}>
+                                        <GraduationCap size={16} />
+                                    </div>
+                                    <div>
+                                        <div className="fed-dir-link-name">{dirData.colegio.name}</div>
+                                        <div className="fed-dir-link-label">Colegio de Abogados</div>
+                                    </div>
+                                </div>
+                                <ExternalLink size={14} className="fed-dir-link-arrow" />
+                            </a>
+
+                            {dirData.mev && (
+                                <a href={dirData.mev.url} target="_blank" rel="noopener noreferrer" className="fed-dir-link fed-dir-link-highlight">
+                                    <div className="fed-dir-link-left">
+                                        <div className="fed-dir-link-icon" style={{ color: '#fbbf24' }}>
+                                            <Building2 size={16} />
+                                        </div>
+                                        <div>
+                                            <div className="fed-dir-link-name">{dirData.mev.name}</div>
+                                            <div className="fed-dir-link-label">Mesa de Entradas Virtual</div>
+                                        </div>
+                                    </div>
+                                    <ExternalLink size={14} className="fed-dir-link-arrow" />
+                                </a>
+                            )}
+
+                            {dirData.extras.length > 0 && dirData.extras.map((extra, i) => (
+                                <a key={i} href={extra.url} target="_blank" rel="noopener noreferrer" className="fed-dir-link">
+                                    <div className="fed-dir-link-left">
+                                        <div className="fed-dir-link-icon" style={{ color: '#64748b' }}>
+                                            <Globe size={16} />
+                                        </div>
+                                        <div>
+                                            <div className="fed-dir-link-name">{extra.name}</div>
+                                            <div className="fed-dir-link-label">Recurso Adicional</div>
+                                        </div>
+                                    </div>
+                                    <ExternalLink size={14} className="fed-dir-link-arrow" />
+                                </a>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                {/* 3. GUÍAS PRO */}
-                <div className="fed-card">
+                {/* 3. GUÍAS DE SUPERVIVENCIA */}
+                <div className="fed-card fed-card-full">
                     <div className="fed-icon-box" style={{ background: 'rgba(168, 85, 247, 0.1)', color: '#a855f7' }}>
                         <BookOpen size={24} />
                     </div>
-                    <h3>Guías de Supervivencia</h3>
-                    <p>Protocolos paso a paso para trámites ante organismos específicos y tribunales de distintas provincias.</p>
-                    <div className="mt-4">
-                        <button
-                            className="fed-full-btn"
-                            style={{ justifyContent: 'center', borderColor: 'rgba(251, 191, 36, 0.3)', color: '#fbbf24' }}
-                            onClick={() => toast.info("Próximamente: Protocolos PRO por jurisdicción.")}
-                        >
-                            <ShieldCheck size={18} className="mr-2" /> Explorar Protocolos PRO
-                        </button>
+                    <h3>Guias de Supervivencia Juridica</h3>
+                    <p>Protocolos paso a paso para tramites frecuentes ante organismos y tribunales.</p>
+
+                    <div className="fed-guides-list">
+                        {survivalGuides.map(guide => (
+                            <div key={guide.id} className="fed-guide-item">
+                                <button
+                                    className="fed-guide-header"
+                                    onClick={() => setExpandedGuide(expandedGuide === guide.id ? null : guide.id)}
+                                >
+                                    <div className="fed-guide-header-left">
+                                        <div className="fed-guide-icon">
+                                            {guideIcons[guide.icon] || <FileText size={18} />}
+                                        </div>
+                                        <div>
+                                            <div className="fed-guide-title">{guide.title}</div>
+                                            <div className="fed-guide-meta">
+                                                <span className="fed-guide-category">{guide.category}</span>
+                                                <span className="fed-guide-difficulty">{guide.difficulty}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <ChevronRight
+                                        size={18}
+                                        className={`fed-guide-chevron ${expandedGuide === guide.id ? 'fed-guide-chevron-open' : ''}`}
+                                    />
+                                </button>
+
+                                {expandedGuide === guide.id && (
+                                    <div className="fed-guide-body">
+                                        <div className="fed-guide-section">
+                                            <h4>Pasos</h4>
+                                            <ol className="fed-guide-steps">
+                                                {guide.steps.map((step, i) => (
+                                                    <li key={i}>
+                                                        <span className="fed-step-number">{i + 1}</span>
+                                                        <span>{step}</span>
+                                                    </li>
+                                                ))}
+                                            </ol>
+                                        </div>
+                                        <div className="fed-guide-section">
+                                            <h4>Tips</h4>
+                                            <ul className="fed-guide-tips">
+                                                {guide.tips.map((tip, i) => (
+                                                    <li key={i}>
+                                                        <CheckCircle2 size={14} className="fed-tip-icon" />
+                                                        <span>{tip}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
 
             <div className="fed-footer">
-                <p>© 2026 Judic-IA • Centro de Recursos Interjurisdiccionales</p>
+                <p>&copy; 2026 Judic-IA - Centro de Recursos Interjurisdiccionales</p>
             </div>
         </div>
     );
