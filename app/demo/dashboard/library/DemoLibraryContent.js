@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Brain, Library, ExternalLink, Copy, Search } from 'lucide-react';
+import { Brain, Library, ExternalLink, Copy, FileText, Check } from 'lucide-react';
 import { demoLibrary } from '@/app/lib/demoData';
 import '@/app/dashboard/library/library.css';
 import UsageGuideDemo from '@/app/components/UsageGuideDemo';
@@ -13,25 +13,30 @@ export default function DemoLibraryPage() {
     const [jurisdictionFilter, setJurisdictionFilter] = useState('');
     const [cases, setCases] = useState([]);
     const [jurisdictions, setJurisdictions] = useState([]);
+    const [toast, setToast] = useState(null);
 
     useEffect(() => {
-        // Load demo data
         const unique = [...new Set(demoLibrary.map(item => item.jurisdiction))].filter(Boolean);
         setJurisdictions(unique);
         fetchLibrary();
     }, []);
 
     useEffect(() => {
-        // Debounce search
         const delayDebounceFn = setTimeout(() => {
             fetchLibrary();
         }, 500);
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm, jurisdictionFilter]);
 
+    // Auto-hide toast
+    useEffect(() => {
+        if (!toast) return;
+        const t = setTimeout(() => setToast(null), 2500);
+        return () => clearTimeout(t);
+    }, [toast]);
+
     const fetchLibrary = () => {
         setLoading(true);
-        // Simulate local filtering
         let filtered = demoLibrary;
         if (searchTerm) {
             const lower = searchTerm.toLowerCase();
@@ -43,12 +48,15 @@ export default function DemoLibraryPage() {
         if (jurisdictionFilter) {
             filtered = filtered.filter(c => c.jurisdiction === jurisdictionFilter);
         }
-
-        // Simulate delay
         setTimeout(() => {
             setCases(filtered);
             setLoading(false);
         }, 300);
+    };
+
+    const handleCopy = (item) => {
+        navigator.clipboard.writeText(`${item.autos} - ${item.url}`);
+        setToast('Cita copiada al portapapeles');
     };
 
     return (
@@ -64,7 +72,7 @@ export default function DemoLibraryPage() {
             <header className="library-header">
                 <div className="header-content">
                     <h1><Brain size={48} className="header-icon-pink" /> Base de Conocimiento</h1>
-                    <p>Índice colaborativo de jurisprudencia y precedentes investigados.</p>
+                    <p>Indice colaborativo de jurisprudencia y precedentes investigados.</p>
                 </div>
                 <UsageGuideDemo content={demoManuals.library} />
 
@@ -72,6 +80,8 @@ export default function DemoLibraryPage() {
                     <input
                         id="demo-library-search"
                         name="library_search"
+                        aria-label="Buscar en biblioteca"
+                        autoComplete="off"
                         type="text"
                         placeholder="Buscar por autos, tema o fallo..."
                         value={searchTerm}
@@ -81,6 +91,8 @@ export default function DemoLibraryPage() {
                     <select
                         id="jurisdiction-select"
                         name="jurisdiction"
+                        aria-label="Filtrar por jurisdiccion"
+                        autoComplete="off"
                         value={jurisdictionFilter}
                         onChange={(e) => setJurisdictionFilter(e.target.value)}
                         className="jurisdiction-select"
@@ -100,32 +112,54 @@ export default function DemoLibraryPage() {
                     <div className="empty-state">
                         <span className="empty-state-icon-wrapper"><Library size={64} className="opacity-50" /></span>
                         <h3>No hay resultados</h3>
-                        <p>Prueba con otros términos de búsqueda.</p>
+                        <p>Prueba con otros terminos de busqueda.</p>
                     </div>
                 ) : (
                     cases.map(item => (
                         <div key={item.id || item.url} className="library-card glass-panel">
                             <div className="card-header">
                                 <span className="jurisdiction-tag">{item.jurisdiction || 'General'}</span>
-                                {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" className="card-link"><ExternalLink size={18} /></a>}
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <Link
+                                        href={`/demo/dashboard/legislation/viewer/knowledge-base?url=${encodeURIComponent(item.pdf_url || item.url)}&title=${encodeURIComponent(item.autos || 'Fallo de Base de Conocimiento')}`}
+                                        className="card-link"
+                                    >
+                                        <ExternalLink size={18} />
+                                    </Link>
+                                </div>
                             </div>
                             <h3 className="card-title">{item.autos}</h3>
                             <p className="card-summary">{item.summary}</p>
                             <div className="card-footer">
-                                <button
-                                    className="btn-copy flex-center-gap-6"
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(`${item.autos} - ${item.url}`);
-                                        alert("Cita copiada (Simulación)");
-                                    }}
-                                >
-                                    <Copy size={12} /> Copiar Cita
-                                </button>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <button
+                                        className="btn-copy"
+                                        onClick={() => handleCopy(item)}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                    >
+                                        <Copy size={12} /> Copiar Cita
+                                    </button>
+                                    {item.pdf_url && (
+                                        <Link
+                                            href={`/demo/dashboard/legislation/viewer/knowledge-base?url=${encodeURIComponent(item.pdf_url)}&title=${encodeURIComponent(item.autos || 'PDF')}`}
+                                            className="btn-pdf"
+                                        >
+                                            <FileText size={12} /> Ver PDF
+                                        </Link>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ))
                 )}
             </div>
+
+            {toast && (
+                <div className="library-toast">
+                    <Check size={16} />
+                    {toast}
+                </div>
+            )}
         </div>
     );
 }
