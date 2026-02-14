@@ -1,13 +1,11 @@
 "use client";
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { demoResearchHistory, demoFullResearchResult } from '@/app/lib/demoData';
-// TetrisLoader removed
 import {
     Briefcase,
     Gavel,
-    Home,
-    Building2,
     Search,
     Zap,
     RefreshCw,
@@ -15,7 +13,9 @@ import {
     Eye,
     FileText,
     ClipboardCopy,
-    Loader2
+    Loader2,
+    Sparkles,
+    AlertCircle,
 } from 'lucide-react';
 import '@/app/dashboard/research/research.css';
 
@@ -36,7 +36,7 @@ export default function DemoResearchPage() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
     const [searchStatus, setSearchStatus] = useState('');
-    const [refreshQuota, setRefreshQuota] = useState(5);
+    const [assistedMode, setAssistedMode] = useState(true);
 
     useEffect(() => {
         let timer;
@@ -49,20 +49,19 @@ export default function DemoResearchPage() {
     }, [loading, timeLeft]);
 
     useEffect(() => {
-        // Load demo history
         setHistory(demoResearchHistory);
     }, []);
 
     const handleRefreshCase = async (index) => {
-        if (refreshQuota <= 0) return;
         setRefreshingCases(prev => ({ ...prev, [index]: true }));
-
-        // Simulate fake refresh
         setTimeout(() => {
             setRefreshingCases(prev => ({ ...prev, [index]: false }));
             alert("En la demo, el refresco no cambia el resultado (Datos Mock).");
-            setRefreshQuota(prev => prev - 1);
         }, 1500);
+    };
+
+    const handleCapture = (index) => {
+        alert("La visualización de PDFs es una característica Pro no disponible en esta Demo.");
     };
 
     const renderContent = (content) => {
@@ -130,7 +129,6 @@ export default function DemoResearchPage() {
         setResults(null);
         setTimeLeft(60);
 
-        // SIMULATE SEARCH IN DEMO
         const analysisSteps = [
             'Iniciando ráfaga masiva de búsqueda (Brave Pro)...',
             'Escaneando depósitos de la CSJN y PJN...',
@@ -170,7 +168,7 @@ export default function DemoResearchPage() {
     return (
         <div className="research-container">
             <div className={`research-layout ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-                {/* HISTORY SIDEBAR */}
+                {/* HISTORY SIDEBAR — mirrors real dashboard */}
                 <>
                     <button
                         className="mobile-history-toggle"
@@ -187,34 +185,45 @@ export default function DemoResearchPage() {
                     <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`}>
                         {(sidebarOpen || true) && (
                             <div className="sidebar-header-row">
-                                <div
-                                    className="collapsed-icon-area"
-                                    onClick={() => setSidebarOpen(true)}
+                                <h4 className="sidebar-title">Historial</h4>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setSidebarOpen(!sidebarOpen); }}
+                                    className="sidebar-close-btn"
                                 >
-                                    <div className="vertical-trigger">
-                                        <span className="v-icon">🕒</span>
-                                        <span className="v-label">HISTORIAL</span>
-                                    </div>
-                                </div>
+                                    {sidebarOpen ? '✕' : '▶'}
+                                </button>
+                            </div>
+                        )}
 
-                                {sidebarOpen && (
-                                    <div className="history-list">
-                                        {history.map(item => (
-                                            <div
-                                                key={item.id}
-                                                className="history-item"
-                                                onClick={() => { setQuery(item.query); setResults(item.result_json); }}
-                                            >
-                                                <div className="history-item-query">
-                                                    {item.query}
-                                                </div>
-                                                <div className="history-item-meta">
-                                                    {new Date(item.created_at).toLocaleDateString()} • {item.jurisdiction}
-                                                </div>
-                                            </div>
-                                        ))}
+                        {!sidebarOpen && (
+                            <div
+                                className="collapsed-icon-area"
+                                onClick={() => setSidebarOpen(true)}
+                            >
+                                <div className="vertical-trigger">
+                                    <span className="v-icon">🕒</span>
+                                    <span className="v-label">HISTORIAL</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {sidebarOpen && (
+                            <div className="history-list history-list-container">
+                                {history.length === 0 && <p className="history-empty-text">Sin investigaciones recientes.</p>}
+                                {history.map(item => (
+                                    <div
+                                        key={item.id}
+                                        className="history-item history-item-box"
+                                        onClick={() => { setQuery(item.query); setResults(item.result_json); }}
+                                    >
+                                        <div className="history-item-query">
+                                            {item.query}
+                                        </div>
+                                        <div className="history-item-meta">
+                                            {new Date(item.created_at).toLocaleDateString()} • {item.jurisdiction}
+                                        </div>
                                     </div>
-                                )}
+                                ))}
                             </div>
                         )}
                     </aside>
@@ -222,9 +231,8 @@ export default function DemoResearchPage() {
 
                 <div className="main-content-area">
                     <nav className="research-nav">
-                        {/* Adjusted breadcrumb for demo */}
                         <div className="breadcrumb">
-                            <a href="/demo/dashboard" className="breadcrumb-item">Gabinete</a>
+                            <Link href="/demo/dashboard" className="breadcrumb-item">Gabinete</Link>
                             <span className="breadcrumb-separator">/</span>
                             <span className="breadcrumb-current">Terminal de Estrategia (Demo)</span>
                         </div>
@@ -232,10 +240,10 @@ export default function DemoResearchPage() {
 
                     <header className="research-header">
                         <div className="header-flex">
-                            <img
+                            <Image
                                 src="/judic-ia-mark.png"
                                 alt="Judic-IA Logo"
-                                className="logo-main object-contain"
+                                className="logo-main logo-main-contain"
                                 width={56}
                                 height={75}
                             />
@@ -243,12 +251,34 @@ export default function DemoResearchPage() {
                                 <h1 className="dashboard-page-title">Terminal de Estrategia Jurídica</h1>
                                 <p>Investigación avanzada, Ratio Decidendi y generación de estrategia blindada.</p>
                             </div>
+                            <UsageGuideDemo content={demoManuals.research} />
                         </div>
-
-                        <UsageGuideDemo content={demoManuals.research} />
                     </header>
 
                     <div className="search-box-container glass-panel">
+                        {/* MODE TOGGLE — visual only in demo */}
+                        <div className="mode-toggle-container">
+                            <button
+                                onClick={() => setAssistedMode(!assistedMode)}
+                                className={`mode-toggle ${assistedMode ? 'assisted' : 'expert'}`}
+                                title={assistedMode ? 'Modo Asistido: Sugerencias y mejoras automáticas' : 'Modo Experto: Búsqueda directa sin asistencia'}
+                            >
+                                {assistedMode ? (
+                                    <>
+                                        <Sparkles size={18} />
+                                        <span className="mode-label">Modo Asistido</span>
+                                        <span className="mode-hint">IA te ayuda a mejorar tu búsqueda</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Zap size={18} />
+                                        <span className="mode-label">Modo Experto</span>
+                                        <span className="mode-hint">Búsqueda directa sin asistencia</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+
                         <div className="jurisdiction-selector">
                             <label htmlFor="demo_res_scope_nacional" className={`radio-btn ${scope === 'nacional' ? 'active' : ''}`}>
                                 <input
@@ -289,16 +319,26 @@ export default function DemoResearchPage() {
                         </div>
 
                         {/* 💡 SEARCH TIPS */}
-                        <details className="search-tips-details mb-1rem w-full">
+                        <details className="search-tips-details tips-details">
                             <summary className="tips-summary">
                                 <Zap size={14} fill="#fbbf24" />
                                 <span>Tips para búsquedas de Alta Precisión</span>
                             </summary>
-                            <div className="tips-content">
-                                <p className="mb-0-5rem">Para obtener los mejores resultados, utilizá estos patrones:</p>
+                            <div className="tips-content tips-content-box">
+                                <p className="tips-intro-p">Para obtener los mejores resultados, utilizá estos patrones:</p>
                                 <ul className="tips-list">
-                                    <li className="mb-0-3rem"><strong>Tema + "fallo" o "sentencia":</strong> <span className="opacity-70">Ej: "despido sin causa fallo"</span></li>
-                                    <li className="mb-0-3rem"><strong>Frase exacta entre comillas:</strong> <span className="opacity-70">Ej: "daño moral" accidente tránsito</span></li>
+                                    <li className="tips-li">
+                                        <strong>Tema + "fallo" o "sentencia":</strong> <span className="tips-example">Ej: "despido sin causa fallo", "cuota alimentaria sentencia"</span>
+                                    </li>
+                                    <li className="tips-li">
+                                        <strong>Frase exacta entre comillas:</strong> <span className="tips-example">Ej: "daño moral" accidente tránsito</span>
+                                    </li>
+                                    <li className="tips-li">
+                                        <strong>Jurisdicción específica:</strong> <span className="tips-example">Ej: "mala praxis médica cordoba camara"</span>
+                                    </li>
+                                    <li>
+                                        <strong>Autos (si conocés):</strong> <span className="tips-example">Ej: "autos garcia c/ perez s/ daños"</span>
+                                    </li>
                                 </ul>
                             </div>
                         </details>
@@ -313,19 +353,17 @@ export default function DemoResearchPage() {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                             />
-                            <button type="submit" disabled={loading} className="flex-center-gap">
+                            <button type="submit" disabled={loading} className="btn-search-submit">
                                 {loading ? <Zap size={18} className="spin-animation" /> : <Search size={18} />}
                                 {loading ? 'Procesando Inteligencia...' : 'Generar Estrategia IA'}
                             </button>
                         </form>
 
-
-
                         {loading && (
-                            <div className="loader-container mt-2rem flex-center w-full">
-                                <div className="text-center">
+                            <div className="loader-container loader-wrapper">
+                                <div className="loader-text-wrapper">
                                     <Loader2 className="spin-animation text-amber-400" size={48} />
-                                    <p className="search-status-text">{searchStatus}</p>
+                                    <p className="loader-status-text">{searchStatus}</p>
                                 </div>
                             </div>
                         )}
@@ -336,18 +374,36 @@ export default function DemoResearchPage() {
                                     <button
                                         className="btn-action"
                                         onClick={() => {
-                                            const parts = ["🏦 DEMO RESULTS", results.strategy, results.calculation].filter(Boolean).join('\n');
+                                            const parts = [
+                                                "🏦 ESTUDIO LEGAL - INVESTIGACIÓN DE IA (JUDIC-IA) [DEMO]",
+                                                "",
+                                                "📜 NORMATIVA APLICABLE:",
+                                                results.laws,
+                                                "",
+                                                "⚖️ JURISPRUDENCIA & FALLOS:",
+                                                Array.isArray(results.cases) ? results.cases.map(c => `🔹 ${c.title}\n   ${c.summary}\n   Fuente: ${c.source}`).join('\n\n') : '',
+                                                "",
+                                                results.calculation ? `💰 LIQUIDACIÓN ESTIMAD@:\n${results.calculation}\n` : null,
+                                                results.evidence ? `🔍 PUNTOS DE PRUEBA:\n${results.evidence}\n` : null,
+                                                "💡 ESTRATEGIA SUGERIDA:",
+                                                results.strategy,
+                                                "",
+                                                "🔗 FUENTES & LINKS:",
+                                                results.links?.map(l => `- ${l.title}: ${l.url}`).join('\n') || "No hay enlaces digitales directos."
+                                            ].filter(Boolean).join('\n');
                                             navigator.clipboard.writeText(parts);
                                             setCopySuccess(true);
                                             setTimeout(() => setCopySuccess(false), 2000);
                                         }}
                                     >
-                                        <ClipboardCopy size={16} /> <span>Copiar Texto</span>
+                                        <ClipboardCopy size={16} />
+                                        <span>Copiar Texto</span>
                                     </button>
                                     {copySuccess && <span className="copy-toast">✨ ¡Copiado!</span>}
                                 </div>
                                 <button className="btn-action btn-pdf" onClick={handleDownloadPDF}>
-                                    <FileText size={16} /> <span>Exportar Informe</span>
+                                    <FileText size={16} />
+                                    <span>Exportar Informe de Estrategia</span>
                                 </button>
                             </div>
                         )}
@@ -356,8 +412,12 @@ export default function DemoResearchPage() {
                     {results && (
                         <div className="results-area">
                             {results.brave_used && (
-                                <div className="brave-badge">
+                                <div className="badge-brave">
                                     <span>🦁 Brave Search Pro Activo (Demo)</span>
+                                    <span className="opacity-60">•</span>
+                                    <span>Resultados en Tiempo Real</span>
+                                    <span className="quota-status-badge">•</span>
+                                    <span className="demo-quota-text">Refrescos Desactivados (Demo)</span>
                                 </div>
                             )}
 
@@ -375,23 +435,67 @@ export default function DemoResearchPage() {
                                 <div className="content">
                                     {Array.isArray(results.cases) ? (
                                         <div className="cases-grid">
-                                            {results.cases.map((c, i) => (
-                                                <div key={i} className={`case-item-card ${refreshingCases[i] ? 'refreshing' : ''}`}>
-                                                    <div className="case-content-wrapper">
-                                                        <div className="case-info">
-                                                            <h4 className="case-title"><Gavel size={16} className="text-amber-400" /> {c.title}</h4>
-                                                            <div className="case-summary-scroll"><p className="case-summary-text">{c.summary}</p></div>
-                                                            <span className="case-source">Fuente: {c.source || 'Referencia Legal'}</span>
-                                                        </div>
-                                                        <div className="case-actions">
-                                                            <button className="btn-preview-icon" onClick={() => handleRefreshCase(i)} disabled={refreshingCases[i]}>
-                                                                <RefreshCw size={16} className={refreshingCases[i] ? "spin-animation" : ""} />
-                                                            </button>
-                                                            {c.url && <a href={c.url.startsWith('http') ? c.url : `https://${c.url}`} target="_blank" rel="noreferrer" className="btn-link-icon"><ExternalLink size={16} /></a>}
+                                            {results.cases.length === 0 && <p className="case-empty-text">No se encontraron fallos digitales directos.</p>}
+                                            {results.cases.map((c, i) => {
+                                                let safeUrl = c.url;
+                                                if (safeUrl) {
+                                                    if (safeUrl.includes('://') && !safeUrl.startsWith('http')) {
+                                                        safeUrl = safeUrl.substring(safeUrl.lastIndexOf('http'));
+                                                    } else if (!safeUrl.startsWith('http')) {
+                                                        safeUrl = `https://${safeUrl}`;
+                                                    }
+                                                }
+                                                const isRefreshing = refreshingCases[i];
+                                                return (
+                                                    <div
+                                                        key={i}
+                                                        className={`case-item-card ${isRefreshing ? 'refreshing' : ''}`}
+                                                    >
+                                                        <div className="case-content-wrapper">
+                                                            <div className="case-info">
+                                                                <h4 className="case-title">
+                                                                    <Gavel size={16} className="text-amber-400" />
+                                                                    {c.title}
+                                                                </h4>
+                                                                <div className="case-summary-scroll">
+                                                                    <p className="case-summary-text">
+                                                                        {c.summary}
+                                                                    </p>
+                                                                </div>
+                                                                <span className="case-source">Fuente: {c.source || 'Referencia Legal'}</span>
+                                                            </div>
+                                                            {safeUrl && (
+                                                                <div className="case-actions">
+                                                                    <button
+                                                                        className="btn-preview-icon"
+                                                                        title="Buscar nueva alternativa (Refresh)"
+                                                                        onClick={() => handleRefreshCase(i)}
+                                                                        disabled={refreshingCases[i]}
+                                                                    >
+                                                                        <RefreshCw size={16} className={refreshingCases[i] ? "spin-animation" : ""} />
+                                                                    </button>
+                                                                    <a
+                                                                        href={safeUrl}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="btn-link-icon"
+                                                                        title="Abrir Fuente"
+                                                                    >
+                                                                        <ExternalLink size={16} />
+                                                                    </a>
+                                                                    <button
+                                                                        className="btn-preview-icon"
+                                                                        title="Visualizar (PDF Limpio)"
+                                                                        onClick={() => handleCapture(i)}
+                                                                    >
+                                                                        <Eye size={16} />
+                                                                    </button>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     ) : results.cases}
                                 </div>
@@ -404,6 +508,7 @@ export default function DemoResearchPage() {
                                     <div className="content">{renderContent(results.calculation)}</div>
                                 </section>
                             )}
+
                             {/* EVIDENCE */}
                             {results.evidence && results.evidence.length > 5 && (
                                 <section className="result-card glass-card evidence">
@@ -411,6 +516,7 @@ export default function DemoResearchPage() {
                                     <div className="content">{renderContent(results.evidence)}</div>
                                 </section>
                             )}
+
                             {/* STRATEGY */}
                             {results.strategy && results.strategy.length > 5 && (
                                 <section className="result-card glass-card strategy">
@@ -418,28 +524,41 @@ export default function DemoResearchPage() {
                                     <div className="content">{renderContent(results.strategy)}</div>
                                 </section>
                             )}
+
+                            {/* LINKS */}
+                            {results.links && results.links.length > 0 && (
+                                <section className="result-card links">
+                                    <h3>🔗 Recursos y Enlaces Útiles</h3>
+                                    <div className="links-grid">
+                                        {results.links.map((link, idx) => {
+                                            let safeUrl = link.url;
+                                            if (safeUrl.includes('://') && !safeUrl.startsWith('http')) {
+                                                safeUrl = safeUrl.substring(safeUrl.lastIndexOf('http'));
+                                            } else if (!safeUrl.startsWith('http')) {
+                                                safeUrl = `https://${safeUrl}`;
+                                            }
+                                            return (
+                                                <div key={idx} className="link-wrapper">
+                                                    <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="link-item">
+                                                        {link.title} ↗
+                                                    </a>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </section>
+                            )}
                         </div>
                     )}
 
                     {!results && !loading && (
-                        <div className="guided-research">
-                            <h3>💡 ¿Sobre qué quieres investigar hoy? (Simulación)</h3>
-                            <div className="categories-grid">
-                                <div className={`category-card glass-card ${activeCategory === 'laboral' ? 'active' : ''}`} onClick={() => { setPlaceholder('Jurisprudencia sobre despidos con justa causa en CABA'); setQuery(''); setActiveCategory('laboral'); }}>
-                                    <span className="icon"><Briefcase size={24} /></span>
-                                    <h4>Laboral</h4>
-                                    <p>Despidos, accidentes, trabajo en negro.</p>
-                                </div>
-                                <div className={`category-card glass-card ${activeCategory === 'penal' ? 'active' : ''}`} onClick={() => { setPlaceholder('Jurisprudencia sobre robo con arma de guerra'); setQuery(''); setActiveCategory('penal'); }}>
-                                    <span className="icon"><Gavel size={24} /></span>
-                                    <h4>Penal</h4>
-                                    <p>Robo con armas, abusos, delitos complejos.</p>
-                                </div>
-                            </div>
+                        <div className="empty-state">
+                            <p>✨ Escribí tu consulta legal y el sistema te ayudará a optimizarla automáticamente.</p>
                         </div>
                     )}
+
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }
