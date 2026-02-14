@@ -804,4 +804,22 @@ body.light-theme .fed-guide-body {
     .fed-grid {
         grid-template-columns: 1fr;
     }
+
+    .fed-stats-row {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+
+    .fed-card {
+        padding: 1.5rem;
+    }
+
+    .fed-guide-header-left {
+        gap: 0.75rem;
+    }
+
+    .fed-guide-title {
+        font-size: 0.9rem;
+    }
 }

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap');
+/* Fonts loaded globally via next/font in layout.js */
 
 /* Using global variables from globals.css */
 
@@ -618,6 +618,19 @@
         /* Space for mobile header */
         padding-left: 1.5rem;
         padding-right: 1.5rem;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-page-title {
+        font-size: 2rem;
+    }
+
+    .dashboard-card {
+        padding: 1.5rem;
+        min-height: auto;
     }
 }
 

@@ -155,6 +155,16 @@ option {
     box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
 }
 
+@media (max-width: 900px) {
+    .search-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .col-span-4 {
+        grid-column: span 2;
+    }
+}
+
 @media (max-width: 768px) {
     .search-grid {
         grid-template-columns: 1fr;

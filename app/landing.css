@@ -379,7 +379,7 @@ body::before {
 
 .hero-title {
     font-family: var(--font-playfair), serif;
-    font-size: clamp(48px, 6.5vw, 82px);
+    font-size: clamp(36px, 6.5vw, 82px);
     font-weight: 950;
     line-height: 1.05;
     margin-bottom: 2.5rem;
@@ -1486,8 +1486,16 @@ body::before {
         display: block;
     }
 
+    .hero-section {
+        padding: 120px 1.5rem 30px;
+    }
+
     .section-title {
-        font-size: 2.5rem;
+        font-size: 2.2rem;
+    }
+
+    .section-container {
+        padding: 60px 1.5rem;
     }
 
     .grid4,
@@ -1496,7 +1504,19 @@ body::before {
     }
 
     .price-card-v3 {
-        padding: 3rem 1.5rem;
+        padding: 2.5rem 1.25rem;
+    }
+
+    .cta-v3 {
+        padding: 4rem 1.5rem;
+        margin: 60px 1rem;
+        border-radius: 32px;
+    }
+
+    .footer-nav-groups {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        text-align: center;
     }
 
     .footer-nav-container {
@@ -1511,35 +1531,70 @@ body::before {
 
     .hero-actions {
         justify-content: center;
+        flex-direction: column;
+        align-items: center;
         gap: 1rem;
-    }
-
-    .btn-primary-v3,
-    .btn-secondary-v3 {
-        flex: 1;
-        min-width: 250px;
-        /* Slimmer min-width for mobile */
-        max-width: 320px;
-        height: 54px;
-        /* Slightly shorter for mobile */
-        padding: 0.75rem 1.5rem;
-        font-size: 0.95rem;
-        justify-content: center;
-    }
-}
-
-@media (max-width: 480px) {
-    .hero-title {
-        font-size: 3.2rem;
     }
 
     .btn-primary-v3,
     .btn-secondary-v3 {
         width: 100%;
         max-width: 320px;
+        min-width: 0;
+        height: 54px;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        justify-content: center;
+    }
+
+    .stat-item {
+        min-height: 120px;
+        padding: 1.25rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section {
+        padding: 100px 1rem 20px;
+    }
+
+    .hero-title {
+        font-size: 2.4rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+    }
+
+    .section-container {
+        padding: 40px 1rem;
+    }
+
+    .cta-v3 {
+        padding: 3rem 1.25rem;
+        margin: 40px 0.75rem;
+        border-radius: 24px;
+    }
+
+    .btn-primary-v3,
+    .btn-secondary-v3 {
+        width: 100%;
+        max-width: 100%;
         height: 52px;
         padding: 0.7rem 1.2rem;
         font-size: 0.9rem;
+    }
+
+    .price-card-v3 {
+        padding: 2rem 1rem;
+    }
+
+    .footer-premium-v3 {
+        padding: 3rem 1rem 2rem;
     }
 }
 

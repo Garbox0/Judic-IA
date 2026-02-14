@@ -32,6 +32,9 @@ import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
 import './research.css';
 
+// Module-level cache for logo base64 (persists across re-mounts)
+let _logoCache = null;
+
 export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const router = useRouter();
     const [query, setQuery] = useState('');
@@ -107,21 +110,22 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         };
         fetchUserAndHistory();
 
-        // Convert logo to base64 for PDF
-        const convertLogo = async () => {
-            try {
-                const response = await fetch('/judic-ia-mark.png');
-                const blob = await response.blob();
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    setLogoBase64(reader.result);
-                };
-                reader.readAsDataURL(blob);
-            } catch (err) {
-                console.error("Error loading logo:", err);
-            }
-        };
-        convertLogo();
+        // Convert logo to base64 for PDF (cached at module level)
+        if (_logoCache) {
+            setLogoBase64(_logoCache);
+        } else {
+            fetch('/judic-ia-mark.png')
+                .then(res => res.blob())
+                .then(blob => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        _logoCache = reader.result;
+                        setLogoBase64(reader.result);
+                    };
+                    reader.readAsDataURL(blob);
+                })
+                .catch(err => console.error("Error loading logo:", err));
+        }
     }, []);
 
     const handleDownloadPDF = () => {

@@ -22,7 +22,10 @@
       "Bash(git -C \"d:/Antigravity/Judic-IA\" diff --cached --name-only)",
       "Bash(git -C \"d:/Antigravity/Judic-IA\" diff HEAD -- \"app/dashboard/settings/SettingsContent.js\")",
       "Bash(node scripts/create_mp_plans.js:*)",
-      "Bash(scp:*)"
+      "Bash(scp:*)",
+      "Bash(du:*)",
+      "Read(//d/Antigravity/Judic-IA/**)",
+      "Bash(npm run build:*)"
     ]
   }
 }

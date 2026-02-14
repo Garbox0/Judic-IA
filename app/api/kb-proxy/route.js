@@ -39,6 +39,10 @@ const ALLOWED_DOMAINS = [
     'justierradelfuego.gov.ar',
     // Interno
     'archivos.judic-ia.com',
+    // Colegios de Abogados / Asociaciones profesionales
+    'cpacf.org.ar', 'colabogados.org.ar', 'colegiodeabogados.org.ar',
+    'faca.org.ar', 'derecho.uba.ar', 'eldial.com', 'erreius.com',
+    'thomsonreuters.com', 'laleyonline.com.ar',
 ];
 
 export async function GET(request) {
@@ -65,41 +69,44 @@ export async function GET(request) {
         return NextResponse.redirect(targetUrl, 302);
     }
 
-    // If the URL is already a direct PDF, proxy it through instead of capturing
+    // If the URL is already a direct PDF, try direct proxy first (fast path)
+    // If it fails (403/502 from origin), fall through to capture service (headless browser)
     if (targetUrl.toLowerCase().endsWith('.pdf')) {
         try {
-            console.log(`📎 Direct PDF proxy: ${targetUrl}`);
+            console.log(`📎 Direct PDF proxy attempt: ${targetUrl}`);
             const pdfRes = await fetch(targetUrl, {
                 headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
                     'Accept': 'application/pdf,*/*',
+                    'Accept-Language': 'es-AR,es;q=0.9',
+                    'Referer': new URL(targetUrl).origin + '/',
                 },
-                signal: AbortSignal.timeout(30000),
+                signal: AbortSignal.timeout(15000),
             });
 
-            if (!pdfRes.ok) {
-                return NextResponse.json(
-                    { error: `PDF source returned ${pdfRes.status}` },
-                    { status: pdfRes.status === 404 ? 404 : 502 }
-                );
+            if (pdfRes.ok) {
+                const pdfBuffer = await pdfRes.arrayBuffer();
+                // Verify it's actually a PDF (check magic bytes)
+                const header = new Uint8Array(pdfBuffer.slice(0, 4));
+                if (header[0] === 0x25 && header[1] === 0x50 && header[2] === 0x44 && header[3] === 0x46) {
+                    console.log(`✅ Direct PDF proxy success: ${targetUrl}`);
+                    return new NextResponse(pdfBuffer, {
+                        status: 200,
+                        headers: {
+                            'Content-Type': 'application/pdf',
+                            'Content-Disposition': `inline; filename="${title || 'document'}.pdf"`,
+                            'Cache-Control': 'public, max-age=86400',
+                        },
+                    });
+                }
+                console.warn(`⚠️ Direct fetch returned non-PDF content, falling back to capture service`);
+            } else {
+                console.warn(`⚠️ Direct PDF proxy got ${pdfRes.status}, falling back to capture service`);
             }
-
-            const pdfBuffer = await pdfRes.arrayBuffer();
-            return new NextResponse(pdfBuffer, {
-                status: 200,
-                headers: {
-                    'Content-Type': 'application/pdf',
-                    'Content-Disposition': `inline; filename="${title || 'document'}.pdf"`,
-                    'Cache-Control': 'public, max-age=86400',
-                },
-            });
         } catch (err) {
-            console.error('❌ Direct PDF proxy failed:', err.message);
-            return NextResponse.json(
-                { error: 'Could not fetch PDF', details: err.message },
-                { status: 502 }
-            );
+            console.warn(`⚠️ Direct PDF proxy failed (${err.message}), falling back to capture service`);
         }
+        // ↓ Fall through to CDN cache check + capture service below
     }
 
     // Generate the expected object name (same logic as capture service)

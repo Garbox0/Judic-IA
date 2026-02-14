@@ -50,7 +50,7 @@
 
 @media (max-width: 768px) {
     .agenda-container {
-        padding: 0 1.5rem 2rem;
+        padding: 0 1rem 2rem;
     }
 
     .calendar-day {
@@ -59,6 +59,14 @@
 
     .calendar-grid .day-number {
         font-size: 1.2rem !important;
+    }
+
+    .day-tooltip {
+        width: min(340px, calc(100vw - 2rem));
+    }
+
+    .calendar-panel {
+        padding: 1rem;
     }
 }
 

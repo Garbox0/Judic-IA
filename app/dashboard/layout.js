@@ -22,9 +22,11 @@ import {
   Sun,
   Moon
 } from 'lucide-react';
-import SafeChatWidget from '../components/SafeChatWidget';
-import CommunityChatWidget from '../components/CommunityChatWidget'; // [NEW] Community Chat
-import SessionGuard from '../components/SessionGuard';
+import dynamic from 'next/dynamic';
+
+const SafeChatWidget = dynamic(() => import('../components/SafeChatWidget'), { ssr: false });
+const CommunityChatWidget = dynamic(() => import('../components/CommunityChatWidget'), { ssr: false });
+const SessionGuard = dynamic(() => import('../components/SessionGuard'), { ssr: false });
 
 import './dashboard.css';
 
@@ -39,8 +41,10 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
 
   // Load theme from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('app-theme') || 'light';
-    setTheme(savedTheme);
+    try {
+      const savedTheme = localStorage.getItem('app-theme') || 'light';
+      setTheme(savedTheme);
+    } catch { /* SSR or incognito fallback */ }
   }, []);
 
   const toggleTheme = () => {

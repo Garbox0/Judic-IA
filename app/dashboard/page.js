@@ -31,42 +31,23 @@ export default function DashboardHome({ isDemo = false, basePath = '/dashboard' 
       setUser(user);
 
       if (user) {
-        // Fetch user profile with quota data
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (profileData) {
-          setProfile(profileData);
-        }
-
-        // Fetch Real Client Count (Inquiries)
-        const { count: inquiryCount, error: inquiryError } = await supabase
-          .from('inquiries')
-          .select('*', { count: 'exact', head: true })
-          .neq('status', 'link_generated')
-          .neq('source', 'manual')
-          .eq('assigned_lawyer_id', user.id);
-
-        if (!inquiryError) {
-          setStats(prev => ({ ...prev, clients: inquiryCount || 0 }));
-        }
-
-        // Fetch Today's Deadlines Count
         const todayStr = new Date().toISOString().split('T')[0];
-        const { count: deadlineCount, error: deadlineError } = await supabase
-          .from('deadlines')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('status', 'pending')
-          .gte('due_date', `${todayStr}T00:00:00Z`)
-          .lte('due_date', `${todayStr}T23:59:59Z`);
 
-        if (!deadlineError) {
-          setStats(prev => ({ ...prev, deadlines: deadlineCount || 0 }));
-        }
+        // Parallel fetch: profile + inquiries count + deadlines count
+        const [profileRes, inquiryRes, deadlineRes] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', user.id).single(),
+          supabase.from('inquiries').select('*', { count: 'exact', head: true })
+            .neq('status', 'link_generated').neq('source', 'manual').eq('assigned_lawyer_id', user.id),
+          supabase.from('deadlines').select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id).eq('status', 'pending')
+            .gte('due_date', `${todayStr}T00:00:00Z`).lte('due_date', `${todayStr}T23:59:59Z`)
+        ]);
+
+        if (profileRes.data) setProfile(profileRes.data);
+        setStats({
+          clients: !inquiryRes.error ? (inquiryRes.count || 0) : 0,
+          deadlines: !deadlineRes.error ? (deadlineRes.count || 0) : 0
+        });
       }
     };
     getData();

@@ -560,4 +560,43 @@ body.light-theme .table-row:hover {
     .invoice-table-grid .table-header-item:not(:first-child) {
         display: none;
     }
+
+    .user-table-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        padding: 1rem;
+    }
+
+    .user-table-header .user-table-grid > *:not(:first-child) {
+        display: none;
+    }
+
+    .verify-table-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        padding: 1rem;
+    }
+
+    .table-header-row .verify-table-grid > *:not(:first-child) {
+        display: none;
+    }
+
+    .premium-toast {
+        min-width: auto;
+        max-width: calc(100vw - 2rem);
+    }
+
+    .toast-container {
+        right: 1rem;
+        bottom: 1rem;
+    }
+
+    .admin-tabs {
+        width: 100%;
+    }
+
+    .tab-trigger {
+        padding: 0.5rem 1rem;
+        font-size: 9px;
+    }
 }

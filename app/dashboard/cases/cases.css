@@ -503,6 +503,11 @@
     .header-icon-box {
         margin: 0 auto;
     }
+
+    .header-flex {
+        flex-direction: column;
+        text-align: center;
+    }
 }
 
 /* --- CSP COMPLIANCE CLASSES --- */
