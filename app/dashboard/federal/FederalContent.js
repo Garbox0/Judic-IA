@@ -219,12 +219,11 @@ export default function FederalContent() {
 
     return (
         <div className="fed-container">
-            <UsageGuide content={dashboardManuals.federal} mode="inline" />
-
             <header className="fed-header">
                 <div className="fed-badge">Modulo Interjurisdiccional</div>
                 <h1>Hub Federal <Globe size={28} className="text-amber-400" /></h1>
                 <p>Nexo interjurisdiccional para la Red de Colegas y Recursos Nacionales.</p>
+                <UsageGuide content={dashboardManuals.federal} />
 
                 {/* Network stats */}
                 <div className="fed-stats-row">

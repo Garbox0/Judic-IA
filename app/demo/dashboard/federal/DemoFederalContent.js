@@ -2,21 +2,28 @@
 import React, { useState, useEffect } from 'react';
 import {
     Globe,
-    ArrowRight,
     MapPin,
     ShieldCheck,
-    HelpCircle,
     Clock,
     UserPlus,
     BookOpen,
     MessageCircle,
     ChevronDown,
-    AlertCircle
+    ExternalLink,
+    Scale,
+    Building2,
+    GraduationCap,
+    FileText,
+    ChevronRight,
+    Users,
+    Landmark,
+    CheckCircle2
 } from 'lucide-react';
 import '@/app/dashboard/federal/federal.css';
 import UsageGuideDemo from '@/app/components/UsageGuideDemo';
 import { demoManuals } from '@/app/lib/demoManuals';
 import { demoLawyers } from '@/app/lib/demoData';
+import { survivalGuides } from '@/app/lib/federalDirectory';
 import { createPortal } from 'react-dom';
 
 /* ── DEMO TOAST ── */
@@ -44,19 +51,86 @@ const DemoToast = ({ message, type = 'info', onClose }) => {
             <span className="toast-icon">{theme.icon}</span>
             <div className="toast-body">
                 <p>{message}</p>
-                <p className="opacity-70 fs-0-75rem">Simulación de Demo</p>
+                <p className="opacity-70 fs-0-75rem">Simulacion de Demo</p>
             </div>
-            <button onClick={onClose} className="toast-btn-close" aria-label="Cerrar notificación">×</button>
+            <button onClick={onClose} className="toast-btn-close" aria-label="Cerrar notificacion">×</button>
         </div>,
         document.body
     );
 };
 
+/* ── DEMO DIRECTORY DATA (placeholder links) ── */
+const demoDirectory = [
+    {
+        province: 'CABA',
+        fullName: 'Ciudad Autonoma de Buenos Aires',
+        poderJudicial: { name: 'Poder Judicial CABA', url: '#' },
+        expedientes: { name: 'Consulta de Expedientes (EJE)', url: '#' },
+        colegio: { name: 'Colegio Publico de Abogados CABA', url: '#' },
+        mev: { name: 'Mesa de Entradas Virtual (MEV)', url: '#' },
+        extras: [{ name: 'Centro de Mediacion', url: '#' }],
+    },
+    {
+        province: 'Buenos Aires',
+        fullName: 'Provincia de Buenos Aires',
+        poderJudicial: { name: 'SCBA - Suprema Corte', url: '#' },
+        expedientes: { name: 'MEV (Augusta)', url: '#' },
+        colegio: { name: 'Colegio de Abogados (COLPROBA)', url: '#' },
+        mev: { name: 'Notificaciones Electronicas', url: '#' },
+        extras: [],
+    },
+    {
+        province: 'Córdoba',
+        fullName: 'Provincia de Cordoba',
+        poderJudicial: { name: 'Poder Judicial de Cordoba', url: '#' },
+        expedientes: { name: 'SAC (Sistema de Administracion de Causas)', url: '#' },
+        colegio: { name: 'Colegio de Abogados de Cordoba', url: '#' },
+        mev: { name: 'Actuaciones Electronicas', url: '#' },
+        extras: [],
+    },
+    {
+        province: 'Mendoza',
+        fullName: 'Provincia de Mendoza',
+        poderJudicial: { name: 'Poder Judicial de Mendoza', url: '#' },
+        expedientes: { name: 'GDE - Gestion Digital de Expedientes', url: '#' },
+        colegio: { name: 'Colegio de Abogados de Mendoza', url: '#' },
+        mev: null,
+        extras: [],
+    },
+    {
+        province: 'Santa Fe',
+        fullName: 'Provincia de Santa Fe',
+        poderJudicial: { name: 'Poder Judicial de Santa Fe', url: '#' },
+        expedientes: { name: 'MOE - Modulo de Operaciones Electronicas', url: '#' },
+        colegio: { name: 'Colegio de Abogados de Santa Fe', url: '#' },
+        mev: { name: 'Notificaciones Electronicas', url: '#' },
+        extras: [],
+    },
+    {
+        province: 'Federal',
+        fullName: 'Justicia Nacional y Federal',
+        poderJudicial: { name: 'Poder Judicial de la Nacion', url: '#' },
+        expedientes: { name: 'Consulta de Expedientes (CIJ)', url: '#' },
+        colegio: { name: 'FACA - Federacion Argentina de Colegios de Abogados', url: '#' },
+        mev: { name: 'EJE - Expediente Judicial Electronico', url: '#' },
+        extras: [
+            { name: 'SAIJ - Sistema Argentino de Informacion Juridica', url: '#' },
+            { name: 'InfoLEG - Informacion Legislativa', url: '#' },
+        ],
+    },
+];
+
 export default function DemoFederalContent() {
     const [searchResults, setSearchResults] = useState([]);
     const [selectedProv, setSelectedProv] = useState("");
     const [toast, setToast] = useState(null);
-    const [directoryFeedback, setDirectoryFeedback] = useState(null);
+
+    // Directory state
+    const [dirProv, setDirProv] = useState("");
+    const [dirData, setDirData] = useState(null);
+
+    // Guides state
+    const [expandedGuide, setExpandedGuide] = useState(null);
 
     const handleSearch = (prov) => {
         setSelectedProv(prov);
@@ -70,21 +144,48 @@ export default function DemoFederalContent() {
 
     const showToast = (message, type) => setToast({ message, type });
 
-    const showDirectoryMsg = (msg) => {
-        setDirectoryFeedback(msg);
-        setTimeout(() => setDirectoryFeedback(null), 4000);
+    const handleDirSearch = (prov) => {
+        setDirProv(prov);
+        if (!prov) {
+            setDirData(null);
+            return;
+        }
+        const found = demoDirectory.find(d => d.province === prov);
+        setDirData(found || null);
+    };
+
+    const guideIcons = {
+        FileText: <FileText size={18} />,
+        Globe: <Globe size={18} />,
+        Users: <Users size={18} />,
+        Shield: <ShieldCheck size={18} />,
     };
 
     return (
         <div className="fed-container">
             {toast && <DemoToast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-            <UsageGuideDemo content={demoManuals.federal} mode="inline" />
-
             <header className="fed-header">
-                <div className="fed-badge">Entorno Sandbox • Hub Federal</div>
+                <div className="fed-badge">Entorno Sandbox - Hub Federal</div>
                 <h1>Hub Federal <Globe size={28} className="text-amber-400" /></h1>
                 <p>Nexo interjurisdiccional para la Red de Colegas y Recursos Nacionales.</p>
+                <UsageGuideDemo content={demoManuals.federal} />
+
+                {/* Network stats (demo values) */}
+                <div className="fed-stats-row">
+                    <div className="fed-stat">
+                        <Users size={16} />
+                        <span><strong>12</strong> corresponsales activos</span>
+                    </div>
+                    <div className="fed-stat">
+                        <MapPin size={16} />
+                        <span><strong>5</strong> provincias cubiertas</span>
+                    </div>
+                    <div className="fed-stat">
+                        <Landmark size={16} />
+                        <span><strong>6</strong> jurisdicciones en directorio</span>
+                    </div>
+                </div>
             </header>
 
             <div className="fed-grid">
@@ -94,13 +195,14 @@ export default function DemoFederalContent() {
                         <UserPlus size={24} />
                     </div>
                     <h3>Red de Corresponsales</h3>
-                    <p>Colaborá con colegas verificados de todo el país para delegar tareas judiciales locales en un entorno seguro.</p>
+                    <p>Colabora con colegas verificados de todo el pais para delegar tareas judiciales locales en un entorno seguro.</p>
 
                     <div className="fed-select-group">
-                        <label htmlFor="jurisdiccion-select">Jurisdicción de Búsqueda</label>
+                        <label htmlFor="jurisdiccion-select">Jurisdiccion de Busqueda</label>
                         <div className="fed-select-wrapper">
                             <select
                                 id="jurisdiccion-select"
+                                className="fed-select"
                                 value={selectedProv}
                                 onChange={(e) => handleSearch(e.target.value)}
                             >
@@ -121,7 +223,7 @@ export default function DemoFederalContent() {
                         {!selectedProv && (
                             <div className="fed-lawyer-placeholder">
                                 <MapPin size={24} className="opacity-50" />
-                                <span>Seleccioná una provincia para ver colegas de prueba.</span>
+                                <span>Selecciona una provincia para ver colegas de prueba.</span>
                             </div>
                         )}
                         {selectedProv && searchResults.length === 0 && (
@@ -140,7 +242,7 @@ export default function DemoFederalContent() {
                                         <h4>{lawyer.full_name}</h4>
                                         <span className="fed-lawyer-specialty">
                                             {lawyer.especialidades && lawyer.especialidades.length > 0
-                                                ? lawyer.especialidades.slice(0, 2).join(' • ')
+                                                ? lawyer.especialidades.slice(0, 2).join(' - ')
                                                 : 'Generalista'}
                                         </span>
                                         {lawyer.coverage_areas && (
@@ -164,61 +266,184 @@ export default function DemoFederalContent() {
                 {/* 2. DIRECTORIO NACIONAL */}
                 <div className="fed-card">
                     <div className="fed-icon-box" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-                        <Clock size={24} />
+                        <Building2 size={24} />
                     </div>
-                    <h3>Directorio Nacional</h3>
-                    <p>Buscador de organismos judiciales, padrones y contactos oficiales de todo el territorio nacional.</p>
+                    <h3>Directorio Judicial Nacional</h3>
+                    <p>Acceso directo a portales judiciales, consulta de expedientes, colegios de abogados y MEV de cada jurisdiccion.</p>
 
-                    {directoryFeedback && (
-                        <div className="fed-feedback-bar">
-                            <AlertCircle size={16} className="text-blue-400 shrink-0" />
-                            <span>{directoryFeedback}</span>
+                    <div className="fed-select-group">
+                        <label htmlFor="dir-prov-select">Seleccionar Jurisdiccion</label>
+                        <div className="fed-select-wrapper">
+                            <select
+                                id="dir-prov-select"
+                                className="fed-select"
+                                value={dirProv}
+                                onChange={(e) => handleDirSearch(e.target.value)}
+                            >
+                                <option value="">Elegir jurisdiccion...</option>
+                                <option value="Federal">Justicia Nacional y Federal</option>
+                                <option value="CABA">CABA</option>
+                                <option value="Buenos Aires">Buenos Aires</option>
+                                <option value="Córdoba">Córdoba</option>
+                                <option value="Mendoza">Mendoza</option>
+                                <option value="Santa Fe">Santa Fe</option>
+                            </select>
+                            <div className="fed-chevron">
+                                <ChevronDown size={20} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {!dirData && (
+                        <div className="fed-lawyer-placeholder" style={{ marginTop: '1.5rem' }}>
+                            <Landmark size={24} className="opacity-50" />
+                            <span>Selecciona una jurisdiccion para ver portales y recursos.</span>
                         </div>
                     )}
 
-                    <div className="fed-btn-list">
-                        <button className="fed-full-btn" onClick={() => showDirectoryMsg("Simulación: Acceso al Buscador de Padrones Nacionales.")}>
-                            <div className="flex items-center gap-3">
-                                <div className="fed-btn-icon-box text-blue-400">
-                                    <Globe size={18} />
+                    {dirData && (
+                        <div className="fed-dir-results">
+                            <div className="fed-dir-title">{dirData.fullName}</div>
+
+                            <a href={dirData.poderJudicial.url} onClick={(e) => { e.preventDefault(); showToast('Demo: enlace de ejemplo — no redirige.', 'info'); }} className="fed-dir-link">
+                                <div className="fed-dir-link-left">
+                                    <div className="fed-dir-link-icon" style={{ color: '#10b981' }}>
+                                        <Scale size={16} />
+                                    </div>
+                                    <div>
+                                        <div className="fed-dir-link-name">{dirData.poderJudicial.name}</div>
+                                        <div className="fed-dir-link-label">Poder Judicial</div>
+                                    </div>
                                 </div>
-                                <span>Padrones Federales</span>
-                            </div>
-                            <ArrowRight size={18} className="fed-btn-arrow" />
-                        </button>
-                        <button className="fed-full-btn" onClick={() => showDirectoryMsg("Simulación: Base de datos de oficinas judiciales.")}>
-                            <div className="flex items-center gap-3">
-                                <div className="fed-btn-icon-box text-emerald-400">
-                                    <HelpCircle size={18} />
+                                <ExternalLink size={14} className="fed-dir-link-arrow" />
+                            </a>
+
+                            <a href={dirData.expedientes.url} onClick={(e) => { e.preventDefault(); showToast('Demo: enlace de ejemplo — no redirige.', 'info'); }} className="fed-dir-link">
+                                <div className="fed-dir-link-left">
+                                    <div className="fed-dir-link-icon" style={{ color: '#3b82f6' }}>
+                                        <FileText size={16} />
+                                    </div>
+                                    <div>
+                                        <div className="fed-dir-link-name">{dirData.expedientes.name}</div>
+                                        <div className="fed-dir-link-label">Consulta de Expedientes</div>
+                                    </div>
                                 </div>
-                                <span>Oficinas Judiciales</span>
-                            </div>
-                            <ArrowRight size={18} className="fed-btn-arrow" />
-                        </button>
-                    </div>
+                                <ExternalLink size={14} className="fed-dir-link-arrow" />
+                            </a>
+
+                            <a href={dirData.colegio.url} onClick={(e) => { e.preventDefault(); showToast('Demo: enlace de ejemplo — no redirige.', 'info'); }} className="fed-dir-link">
+                                <div className="fed-dir-link-left">
+                                    <div className="fed-dir-link-icon" style={{ color: '#a855f7' }}>
+                                        <GraduationCap size={16} />
+                                    </div>
+                                    <div>
+                                        <div className="fed-dir-link-name">{dirData.colegio.name}</div>
+                                        <div className="fed-dir-link-label">Colegio de Abogados</div>
+                                    </div>
+                                </div>
+                                <ExternalLink size={14} className="fed-dir-link-arrow" />
+                            </a>
+
+                            {dirData.mev && (
+                                <a href={dirData.mev.url} onClick={(e) => { e.preventDefault(); showToast('Demo: enlace de ejemplo — no redirige.', 'info'); }} className="fed-dir-link fed-dir-link-highlight">
+                                    <div className="fed-dir-link-left">
+                                        <div className="fed-dir-link-icon" style={{ color: '#fbbf24' }}>
+                                            <Building2 size={16} />
+                                        </div>
+                                        <div>
+                                            <div className="fed-dir-link-name">{dirData.mev.name}</div>
+                                            <div className="fed-dir-link-label">Mesa de Entradas Virtual</div>
+                                        </div>
+                                    </div>
+                                    <ExternalLink size={14} className="fed-dir-link-arrow" />
+                                </a>
+                            )}
+
+                            {dirData.extras.length > 0 && dirData.extras.map((extra, i) => (
+                                <a key={i} href={extra.url} onClick={(e) => { e.preventDefault(); showToast('Demo: enlace de ejemplo — no redirige.', 'info'); }} className="fed-dir-link">
+                                    <div className="fed-dir-link-left">
+                                        <div className="fed-dir-link-icon" style={{ color: '#64748b' }}>
+                                            <Globe size={16} />
+                                        </div>
+                                        <div>
+                                            <div className="fed-dir-link-name">{extra.name}</div>
+                                            <div className="fed-dir-link-label">Recurso Adicional</div>
+                                        </div>
+                                    </div>
+                                    <ExternalLink size={14} className="fed-dir-link-arrow" />
+                                </a>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                {/* 3. GUÍAS PRO */}
-                <div className="fed-card">
+                {/* 3. GUÍAS DE SUPERVIVENCIA */}
+                <div className="fed-card fed-card-full">
                     <div className="fed-icon-box" style={{ background: 'rgba(168, 85, 247, 0.1)', color: '#a855f7' }}>
                         <BookOpen size={24} />
                     </div>
-                    <h3>Guías de Supervivencia</h3>
-                    <p>Protocolos paso a paso para trámites ante organismos específicos y tribunales de distintas provincias.</p>
-                    <div className="mt-4">
-                        <button
-                            className="fed-full-btn"
-                            style={{ justifyContent: 'center', borderColor: 'rgba(251, 191, 36, 0.3)', color: '#fbbf24' }}
-                            onClick={() => showToast("Disponible solo para planes Profesionales.", "warning")}
-                        >
-                            <ShieldCheck size={18} className="mr-2" /> Explorar Protocolos PRO
-                        </button>
+                    <h3>Guias de Supervivencia Juridica</h3>
+                    <p>Protocolos paso a paso para tramites frecuentes ante organismos y tribunales.</p>
+
+                    <div className="fed-guides-list">
+                        {survivalGuides.map(guide => (
+                            <div key={guide.id} className="fed-guide-item">
+                                <button
+                                    className="fed-guide-header"
+                                    onClick={() => setExpandedGuide(expandedGuide === guide.id ? null : guide.id)}
+                                >
+                                    <div className="fed-guide-header-left">
+                                        <div className="fed-guide-icon">
+                                            {guideIcons[guide.icon] || <FileText size={18} />}
+                                        </div>
+                                        <div>
+                                            <div className="fed-guide-title">{guide.title}</div>
+                                            <div className="fed-guide-meta">
+                                                <span className="fed-guide-category">{guide.category}</span>
+                                                <span className="fed-guide-difficulty">{guide.difficulty}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <ChevronRight
+                                        size={18}
+                                        className={`fed-guide-chevron ${expandedGuide === guide.id ? 'fed-guide-chevron-open' : ''}`}
+                                    />
+                                </button>
+
+                                {expandedGuide === guide.id && (
+                                    <div className="fed-guide-body">
+                                        <div className="fed-guide-section">
+                                            <h4>Pasos</h4>
+                                            <ol className="fed-guide-steps">
+                                                {guide.steps.map((step, i) => (
+                                                    <li key={i}>
+                                                        <span className="fed-step-number">{i + 1}</span>
+                                                        <span>{step}</span>
+                                                    </li>
+                                                ))}
+                                            </ol>
+                                        </div>
+                                        <div className="fed-guide-section">
+                                            <h4>Tips</h4>
+                                            <ul className="fed-guide-tips">
+                                                {guide.tips.map((tip, i) => (
+                                                    <li key={i}>
+                                                        <CheckCircle2 size={14} className="fed-tip-icon" />
+                                                        <span>{tip}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
 
             <div className="fed-footer">
-                <p>© 2026 Judic-IA • Centro de Recursos Interjurisdiccionales • Modo Sandbox</p>
+                <p>&copy; 2026 Judic-IA - Centro de Recursos Interjurisdiccionales - Modo Sandbox</p>
             </div>
         </div>
     );
