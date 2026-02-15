@@ -6,8 +6,10 @@ export async function sendEmail({ resendClient, to, subject, html, from = 'no-re
     }
 
     try {
+        // If `from` already has "Name <email>" format, use as-is; otherwise wrap it
+        const fromField = from.includes('<') ? from : `Judic-IA <${from}>`;
         const data = await resendClient.emails.send({
-            from: `Judic-IA <${from}>`,
+            from: fromField,
             to,
             subject,
             html,
