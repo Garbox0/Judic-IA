@@ -62,7 +62,13 @@ export async function POST(request) {
             return NextResponse.json({ success: true });
         }
 
-        const { action_link } = data.properties;
+        // Build our own reset URL using the hashed_token directly
+        // This bypasses Supabase's redirect (which requires dashboard whitelist config)
+        const { hashed_token } = data.properties;
+        const appUrl = redirectTo
+            ? new URL(redirectTo).origin
+            : (process.env.NEXT_PUBLIC_APP_URL || 'https://judic-ia.com');
+        const resetUrl = `${appUrl}/update-password?token_hash=${hashed_token}&type=recovery`;
 
         // 2. Send Email via Resend
         await sendEmail({
@@ -78,7 +84,7 @@ export async function POST(request) {
                     <p>Para crear una nueva clave y recuperar el acceso a tu estudio jurídico, haz clic en el siguiente botón:</p>
                 `,
                 buttonText: 'Restablecer Contraseña',
-                buttonUrl: action_link,
+                buttonUrl: resetUrl,
                 previewText: 'Enlace de recuperación de cuenta Judic-IA'
             })
         });

@@ -22,34 +22,55 @@ export default function UpdatePasswordPage() {
 
     // Verify Session on Load (Recovery Flow)
     useEffect(() => {
-        const checkSession = async () => {
-            const { data: { session }, error } = await supabase.auth.getSession();
-            if (error || !session) {
-                // Try listening for the recovery event specifically
-                const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-                    if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
-                        setVerifyingSession(false);
-                    }
+        const establishSession = async () => {
+            // 1. Check URL params for token_hash (our custom reset link)
+            const params = new URLSearchParams(window.location.search);
+            const tokenHash = params.get('token_hash');
+            const type = params.get('type');
+
+            if (tokenHash && type === 'recovery') {
+                // Verify the token directly — no Supabase redirect needed
+                const { error } = await supabase.auth.verifyOtp({
+                    token_hash: tokenHash,
+                    type: 'recovery',
                 });
-
-                // If after a short delay we still have no session, show error
-                setTimeout(async () => {
-                    const { data: { session: currentSession } } = await supabase.auth.getSession();
-                    if (!currentSession) {
-                        setSessionError("Enlace inválido o expirado. Por favor solicita uno nuevo.");
-                        setVerifyingSession(false);
-                    } else {
-                        setVerifyingSession(false);
-                    }
-                }, 2000);
-
-                return () => subscription.unsubscribe();
-            } else {
+                if (error) {
+                    console.error('OTP verification failed:', error.message);
+                    setSessionError("Enlace inválido o expirado. Por favor solicita uno nuevo.");
+                } else {
+                    // Clean the URL to remove token params
+                    window.history.replaceState({}, '', '/update-password');
+                }
                 setVerifyingSession(false);
+                return;
             }
+
+            // 2. Fallback: check for existing session (legacy links / hash-based tokens)
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                setVerifyingSession(false);
+                return;
+            }
+
+            // 3. Listen for PASSWORD_RECOVERY event (implicit flow hash fragments)
+            const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+                    setVerifyingSession(false);
+                }
+            });
+
+            setTimeout(async () => {
+                const { data: { session: currentSession } } = await supabase.auth.getSession();
+                if (!currentSession) {
+                    setSessionError("Enlace inválido o expirado. Por favor solicita uno nuevo.");
+                }
+                setVerifyingSession(false);
+            }, 3000);
+
+            return () => subscription.unsubscribe();
         };
 
-        checkSession();
+        establishSession();
     }, []);
 
     // Password Validations (Same as Register)
@@ -62,6 +83,42 @@ export default function UpdatePasswordPage() {
 
     const isPasswordStrong = Object.values(passwordValidations).every(v => v);
     const passwordsMatch = password === confirmPassword && confirmPassword !== '';
+
+    // Passphrase Generator (Cryptographically Secure)
+    const generateSecurePass = () => {
+        const caps = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+        const lows = "abcdefghijkmnopqrstuvwxyz";
+        const nums = "23456789";
+        const syms = "!@#$%&*+?=";
+        const all = caps + lows + nums + syms;
+
+        const secureRandom = (max) => {
+            const array = new Uint32Array(1);
+            crypto.getRandomValues(array);
+            return array[0] % max;
+        };
+
+        let pass = "";
+        pass += caps[secureRandom(caps.length)];
+        pass += lows[secureRandom(lows.length)];
+        pass += nums[secureRandom(nums.length)];
+        pass += syms[secureRandom(syms.length)];
+
+        for (let i = 0; i < 12; i++) {
+            pass += all[secureRandom(all.length)];
+        }
+
+        const arr = pass.split('');
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = secureRandom(i + 1);
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        const final = arr.join('');
+        setPassword(final);
+        setConfirmPassword(final);
+        setShowPassword(true);
+        setError(null);
+    };
 
     // Countdown Effect
     useEffect(() => {
@@ -174,7 +231,17 @@ export default function UpdatePasswordPage() {
                             ) : (
                                 <form onSubmit={handleUpdatePassword}>
                                     <div className="input-field">
-                                        <label>Nueva Contraseña</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <label>Nueva Contraseña</label>
+                                            <button
+                                                type="button"
+                                                onClick={generateSecurePass}
+                                                className="suggest-pass-link"
+                                                title="Generar clave segura"
+                                            >
+                                                Sugerir
+                                            </button>
+                                        </div>
                                         <div className="pass-input-wrapper">
                                             <input
                                                 type={showPassword ? "text" : "password"}
