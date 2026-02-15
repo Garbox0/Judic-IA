@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Clock, Shield, Zap, Scale, BookOpen, Users, FolderOpen, Calculator, Calendar, FileText, BarChart2, PlayCircle, Lock, Sun, Moon, CheckCircle, ShieldCheck } from 'lucide-react';
 import SecurityBadges from './components/SecurityBadges';
 import "./landing.css"; // Version 3.0 Styles
+import VideoGuides from './components/VideoGuides';
 
 export default function Home() {
   const router = useRouter();
@@ -99,6 +100,7 @@ export default function Home() {
               <Link href="/demo" className="link-item">Demo</Link>
               <Link href="#features" className="link-item">Servicios</Link>
               <Link href="#pricing" className="link-item">Precios</Link>
+              <Link href="#guias" className="link-item">Guías</Link>
               <Link href="https://consultas.judic-ia.com" className="btn-login-premium">Acceso Clientes</Link>
               <Link href="/login" className="btn-login-premium">Acceso Abogados</Link>
             </div>
@@ -129,6 +131,7 @@ export default function Home() {
           <Link href="/demo" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Demo Interactiva</Link>
           <Link href="#features" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Servicios</Link>
           <Link href="#pricing" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Precios</Link>
+          <Link href="#guias" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Guías</Link>
 
           <div className="mobile-access-row">
             <Link href="/login" className="btn-login-mobile primary" onClick={() => setMobileMenuOpen(false)}>
@@ -300,6 +303,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <VideoGuides />
+      <div className="section-spacer"></div>
 
       {/* 📞 CTA SECTION 3.0 */}
       <section className="reveal">
