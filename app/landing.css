@@ -2479,3 +2479,155 @@ body::before {
     background: #fbbf24;
     color: #020617;
 }
+
+/* -------------------------------------
+   FOOTER PREMIUM v3 FIXES 
+   (Adding missing definitions + mobile alignment)
+   ------------------------------------- */
+
+.footer-premium-v3 {
+    padding: 6rem 2rem 3rem;
+    background: #0f172a;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+    position: relative;
+    overflow: hidden;
+}
+
+.light-theme .footer-premium-v3 {
+    background: #f8fafc;
+    border-top: 1px solid rgba(15, 23, 42, 0.05);
+    color: #64748b;
+}
+
+.footer-main-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr 300px;
+    gap: 4rem;
+    max-width: 1200px;
+    margin: 0 auto 4rem;
+}
+
+.footer-brand-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+}
+
+.footer-brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: white;
+}
+
+.light-theme .footer-brand-logo {
+    color: #0f172a;
+}
+
+.footer-brand-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: var(--font-playfair), serif;
+}
+
+.footer-brand-tagline {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #94a3b8;
+}
+
+.footer-nav-groups {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.nav-group h4 {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1.2rem;
+}
+
+.light-theme .nav-group h4 {
+    color: #0f172a;
+}
+
+.nav-group a {
+    display: block;
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 0.95rem;
+    margin-bottom: 0.8rem;
+    transition: color 0.2s;
+}
+
+.nav-group a:hover {
+    color: #fbbf24;
+}
+
+.light-theme .nav-group a:hover {
+    color: #d97706;
+}
+
+.footer-security-zone {
+    display: flex;
+    justify-content: flex-end;
+    /* right by default on desktop */
+}
+
+.footer-fiscal-row {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 2rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #64748b;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* RESPONSIVE FOOTER */
+@media (max-width: 1024px) {
+    .footer-main-grid {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        text-align: center;
+    }
+
+    .footer-brand-zone {
+        align-items: center;
+    }
+
+    .footer-nav-groups {
+        grid-template-columns: 1fr;
+        /* Stack navs on mobile */
+        gap: 2rem;
+    }
+
+    .footer-security-zone {
+        justify-content: center;
+        /* Center badges on mobile */
+        margin-left: 0;
+        margin-right: 0;
+        padding: 0;
+        width: 100%;
+    }
+
+    /* Override Security Badges CSS */
+    .footer-badges-override .badges-grid-layout {
+        justify-content: center !important;
+        grid-template-columns: repeat(2, minmax(130px, 1fr)) !important;
+        margin: 0 auto !important;
+    }
+
+    .footer-premium-v3 {
+        padding: 4rem 1.5rem 2rem;
+    }
+}
