@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-// import SafeChatWidget from '../components/SafeChatWidget';
+import { Sun, Moon, Lock, Eye, EyeOff, Sparkles, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw } from 'lucide-react';
 import './update-password.css';
 
 export default function UpdatePasswordPage() {
@@ -19,6 +19,35 @@ export default function UpdatePasswordPage() {
     const [redirectCountdown, setRedirectCountdown] = useState(null);
     const [verifyingSession, setVerifyingSession] = useState(true);
     const [sessionError, setSessionError] = useState(null);
+    const [theme, setTheme] = useState('light');
+
+    // Security States (HIBP)
+    const [pwnedStatus, setPwnedStatus] = useState(null); // 'safe' | 'breached' | 'checking'
+    const [isCheckingPwned, setIsCheckingPwned] = useState(false);
+    const [lastCheckedPassword, setLastCheckedPassword] = useState('');
+
+    // Load theme from cookies
+    useEffect(() => {
+        const themeCookie = document.cookie.split('; ').find(row => row.startsWith('app-theme='));
+        const savedTheme = themeCookie ? themeCookie.split('=')[1] : 'light';
+        setTheme(savedTheme);
+    }, []);
+
+    // Update body class and cookie when theme changes
+    useEffect(() => {
+        if (theme === 'light') {
+            document.body.classList.add('light-theme');
+        } else {
+            document.body.classList.remove('light-theme');
+        }
+        const expiry = new Date();
+        expiry.setFullYear(expiry.getFullYear() + 1);
+        document.cookie = `app-theme=${theme}; path=/; domain=.judic-ia.com; expires=${expiry.toUTCString()}; SameSite=Lax`;
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+    };
 
     // Verify Session on Load (Recovery Flow)
     useEffect(() => {
@@ -29,7 +58,6 @@ export default function UpdatePasswordPage() {
             const type = params.get('type');
 
             if (tokenHash && type === 'recovery') {
-                // Verify the token directly — no Supabase redirect needed
                 const { error } = await supabase.auth.verifyOtp({
                     token_hash: tokenHash,
                     type: 'recovery',
@@ -38,7 +66,6 @@ export default function UpdatePasswordPage() {
                     console.error('OTP verification failed:', error.message);
                     setSessionError("Enlace inválido o expirado. Por favor solicita uno nuevo.");
                 } else {
-                    // Clean the URL to remove token params
                     window.history.replaceState({}, '', '/update-password');
                 }
                 setVerifyingSession(false);
@@ -84,6 +111,62 @@ export default function UpdatePasswordPage() {
     const isPasswordStrong = Object.values(passwordValidations).every(v => v);
     const passwordsMatch = password === confirmPassword && confirmPassword !== '';
 
+    // Pwned Check Logic (k-Anonymity) — same as register
+    const checkPwned = async (pwd) => {
+        if (pwd.length < 6) {
+            setPwnedStatus(null);
+            return;
+        }
+
+        setIsCheckingPwned(true);
+        setPwnedStatus('checking');
+
+        try {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(pwd);
+            const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+
+            const prefix = hashHex.slice(0, 5);
+            const suffix = hashHex.slice(5);
+
+            const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+            const text = await response.text();
+
+            const lines = text.split('\n');
+            const found = lines.some(line => line.split(':')[0] === suffix);
+
+            setPwnedStatus(found ? 'breached' : 'safe');
+            setLastCheckedPassword(pwd);
+        } catch (err) {
+            console.error("HIBP Check failed:", err);
+            setPwnedStatus(null);
+        } finally {
+            setIsCheckingPwned(false);
+        }
+    };
+
+    // Auto-check on password change (debounced)
+    useEffect(() => {
+        if (!password || password.length < 6) {
+            setPwnedStatus(null);
+            return;
+        }
+
+        if (password !== lastCheckedPassword) {
+            setPwnedStatus(null);
+        }
+
+        const timer = setTimeout(() => {
+            if (password !== lastCheckedPassword) {
+                checkPwned(password);
+            }
+        }, 600);
+
+        return () => clearTimeout(timer);
+    }, [password]);
+
     // Passphrase Generator (Cryptographically Secure)
     const generateSecurePass = () => {
         const caps = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -124,7 +207,6 @@ export default function UpdatePasswordPage() {
     useEffect(() => {
         if (redirectCountdown === null) return;
         if (redirectCountdown === 0) {
-            // Force sign out so they have to login with new password
             supabase.auth.signOut().then(() => {
                 router.push('/login');
             });
@@ -146,6 +228,10 @@ export default function UpdatePasswordPage() {
             setError("Las contraseñas no coinciden.");
             return;
         }
+        if (pwnedStatus === 'breached') {
+            setError("Esta contraseña fue filtrada en internet. Por favor elige otra.");
+            return;
+        }
 
         setLoading(true);
         setError(null);
@@ -158,8 +244,6 @@ export default function UpdatePasswordPage() {
 
             if (rpcError) {
                 console.error("Error checking password history:", rpcError);
-                // We don't block on RPC error to avoid locking user out if DB logic fails, 
-                // but strictly speaking we should. For now, we log it.
             }
 
             if (isReused) {
@@ -181,7 +265,7 @@ export default function UpdatePasswordPage() {
             }
 
             setSuccess(true);
-            setRedirectCountdown(5); // 5 Seconds Countdown
+            setRedirectCountdown(5);
         } catch (err) {
             let msg = err.message;
             if (msg.includes("New password should be different from the old password")) {
@@ -195,9 +279,13 @@ export default function UpdatePasswordPage() {
 
     return (
         <main className="auth-main">
-
-
-
+            <button
+                onClick={toggleTheme}
+                className="theme-toggle-auth-fixed"
+                aria-label="Alternar tema"
+            >
+                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
 
             <div className="auth-container">
                 <div className="glass-premium fade-in">
@@ -230,69 +318,95 @@ export default function UpdatePasswordPage() {
                                 </div>
                             ) : (
                                 <form onSubmit={handleUpdatePassword}>
-                                    <div className="input-field">
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <label>Nueva Contraseña</label>
-                                            <button
-                                                type="button"
-                                                onClick={generateSecurePass}
-                                                className="suggest-pass-link"
-                                                title="Generar clave segura"
-                                            >
-                                                Sugerir
-                                            </button>
+                                    <div className="pass-grid">
+                                        <div className="input-field">
+                                            <div className="label-row">
+                                                <label>Contraseña</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={generateSecurePass}
+                                                    className="suggest-pass-link"
+                                                    title="Generar clave segura"
+                                                >
+                                                    <Sparkles size={12} /> Sugerir
+                                                </button>
+                                            </div>
+                                            <div className="pass-input-wrapper">
+                                                <div className="pass-icon-left">
+                                                    <Lock size={16} className="opacity-40" />
+                                                </div>
+                                                <input
+                                                    type={showPassword ? "text" : "password"}
+                                                    value={password}
+                                                    onChange={(e) => setPassword(e.target.value)}
+                                                    placeholder="••••••••"
+                                                    autoComplete="new-password"
+                                                    required
+                                                    className="pl-10"
+                                                />
+                                                <button type="button" className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
+                                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="pass-input-wrapper">
-                                            <input
-                                                type={showPassword ? "text" : "password"}
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                placeholder="••••••••"
-                                                required
-                                            />
-                                            <button type="button" className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
-                                                {showPassword ? (
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                                ) : (
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                                )}
-                                            </button>
-                                        </div>
-                                    </div>
 
-                                    <div className="input-field">
-                                        <label>Confirmar Contraseña</label>
-                                        <div className="pass-input-wrapper">
-                                            <input
-                                                type={showConfirmPassword ? "text" : "password"}
-                                                value={confirmPassword}
-                                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                                placeholder="••••••••"
-                                                required
-                                            />
-                                            <button type="button" className="toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                                                {showConfirmPassword ? (
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                                ) : (
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                                )}
-                                            </button>
+                                        <div className="input-field">
+                                            <label>Confirmar Contraseña</label>
+                                            <div className="pass-input-wrapper">
+                                                <input
+                                                    type={showConfirmPassword ? "text" : "password"}
+                                                    value={confirmPassword}
+                                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                                    placeholder="••••••••"
+                                                    autoComplete="new-password"
+                                                    required
+                                                />
+                                                <button type="button" className="toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div className="password-checklist-premium">
-                                        <p className={passwordValidations.length ? 'valid' : ''}>{passwordValidations.length ? '✅' : '❌'} Mínimo 8 caracteres</p>
-                                        <p className={passwordValidations.uppercase ? 'valid' : ''}>{passwordValidations.uppercase ? '✅' : '❌'} Al menos 1 Mayúscula</p>
-                                        <p className={passwordValidations.number ? 'valid' : ''}>{passwordValidations.number ? '✅' : '❌'} Al menos 1 Número</p>
-                                        <p className={passwordValidations.symbol ? 'valid' : ''}>{passwordValidations.symbol ? '✅' : '❌'} Al menos 1 Símbolo</p>
+                                        <p className={passwordValidations.length ? 'valid' : ''}>
+                                            {passwordValidations.length ? <ShieldCheck size={14} className="text-emerald" /> : <ShieldEllipsis size={14} className="opacity-30" />}
+                                            Mínimo 8 caracteres
+                                        </p>
+                                        <p className={passwordValidations.uppercase ? 'valid' : ''}>
+                                            {passwordValidations.uppercase ? <ShieldCheck size={14} className="text-emerald" /> : <ShieldEllipsis size={14} className="opacity-30" />}
+                                            Al menos 1 Mayúscula
+                                        </p>
+                                        <p className={passwordValidations.number ? 'valid' : ''}>
+                                            {passwordValidations.number ? <ShieldCheck size={14} className="text-emerald" /> : <ShieldEllipsis size={14} className="opacity-30" />}
+                                            Al menos 1 Número
+                                        </p>
+                                        <p className={passwordValidations.symbol ? 'valid' : ''}>
+                                            {passwordValidations.symbol ? <ShieldCheck size={14} className="text-emerald" /> : <ShieldEllipsis size={14} className="opacity-30" />}
+                                            Al menos 1 Símbolo (!@#$...)
+                                        </p>
+
+                                        {password.length >= 6 && (
+                                            <p className={pwnedStatus === 'safe' ? 'valid' : pwnedStatus === 'breached' ? 'invalid-crit' : ''}>
+                                                {isCheckingPwned ? <RefreshCw size={14} className="animate-spin text-gold" /> :
+                                                    pwnedStatus === 'safe' ? <ShieldCheck size={14} className="text-emerald" /> :
+                                                        pwnedStatus === 'breached' ? <ShieldAlert size={14} className="text-red-500" /> :
+                                                            <ShieldEllipsis size={14} className="opacity-30" />}
+                                                {pwnedStatus === 'breached' ? 'Clave comprometida en internet' : 'Protección contra filtraciones'}
+                                            </p>
+                                        )}
+
                                         {confirmPassword && (
-                                            <p className={passwordsMatch ? 'valid' : 'invalid'}>{passwordsMatch ? '✅' : '❌'} Las contraseñas coinciden</p>
+                                            <p className={passwordsMatch ? 'valid' : 'invalid'}>
+                                                {passwordsMatch ? <ShieldCheck size={14} className="text-emerald" /> : <ShieldAlert size={14} className="text-red-500" />}
+                                                Las contraseñas coinciden
+                                            </p>
                                         )}
                                     </div>
 
                                     {error && <div className="error-premium">⚠️ {error}</div>}
 
-                                    <button type="submit" disabled={loading || !isPasswordStrong || !passwordsMatch} className="btn-gold-action">
+                                    <button type="submit" disabled={loading || !isPasswordStrong || !passwordsMatch || pwnedStatus === 'breached'} className="btn-gold-action">
                                         {loading ? 'Actualizando...' : 'Confirmar Nueva Contraseña'}
                                     </button>
                                 </form>
@@ -314,8 +428,6 @@ export default function UpdatePasswordPage() {
                     )}
                 </div>
             </div>
-
-
-        </main >
+        </main>
     );
 }
