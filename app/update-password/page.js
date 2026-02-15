@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sun, Moon, Lock, Eye, EyeOff, Sparkles, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw } from 'lucide-react';
+import { Sun, Moon, Lock, Eye, EyeOff, Sparkles, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw, ArrowLeft } from 'lucide-react';
 import './update-password.css';
 
 export default function UpdatePasswordPage() {
@@ -279,6 +279,12 @@ export default function UpdatePasswordPage() {
 
     return (
         <main className="auth-main">
+            <div className="back-wrapper">
+                <Link href="/login" className="back-link">
+                    <ArrowLeft size={16} /> Volver al login
+                </Link>
+            </div>
+
             <button
                 onClick={toggleTheme}
                 className="theme-toggle-auth-fixed"
@@ -321,7 +327,7 @@ export default function UpdatePasswordPage() {
                                     <div className="pass-grid">
                                         <div className="input-field">
                                             <div className="label-row">
-                                                <label>Contraseña</label>
+                                                <label htmlFor="new-password">Contraseña</label>
                                                 <button
                                                     type="button"
                                                     onClick={generateSecurePass}
@@ -336,6 +342,8 @@ export default function UpdatePasswordPage() {
                                                     <Lock size={16} className="opacity-40" />
                                                 </div>
                                                 <input
+                                                    id="new-password"
+                                                    name="new-password"
                                                     type={showPassword ? "text" : "password"}
                                                     value={password}
                                                     onChange={(e) => setPassword(e.target.value)}
@@ -351,15 +359,21 @@ export default function UpdatePasswordPage() {
                                         </div>
 
                                         <div className="input-field">
-                                            <label>Confirmar Contraseña</label>
+                                            <label htmlFor="confirm-password">Confirmar Contraseña</label>
                                             <div className="pass-input-wrapper">
+                                                <div className="pass-icon-left">
+                                                    <Lock size={16} className="opacity-40" />
+                                                </div>
                                                 <input
+                                                    id="confirm-password"
+                                                    name="confirm-password"
                                                     type={showConfirmPassword ? "text" : "password"}
                                                     value={confirmPassword}
                                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                                     placeholder="••••••••"
                                                     autoComplete="new-password"
                                                     required
+                                                    className="pl-10"
                                                 />
                                                 <button type="button" className="toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                                                     {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
