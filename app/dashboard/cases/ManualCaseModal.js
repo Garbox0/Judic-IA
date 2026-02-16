@@ -4,7 +4,6 @@ import { supabase } from '../../lib/supabase';
 import {
     X,
     Upload,
-    User,
     Mail,
     Phone,
     Briefcase,
@@ -12,11 +11,9 @@ import {
     CheckCircle2,
     Loader2,
     Plus,
-    File,
-    Trash2,
     Users,
     UserMinus,
-    CreditCard
+    AlertCircle
 } from 'lucide-react';
 import './manual-case-modal.css';
 
@@ -36,17 +33,40 @@ export default function ManualCaseModal({ isOpen, onClose, onRefresh }) {
 
     // --- Helpers ---
     const formatIdent = (value, type) => {
-        // Remove all non-digits
         const digits = value.replace(/\D/g, '');
 
         if (type === 'DNI') {
-            return digits.slice(0, 9); // Max 9 digits for DNI
+            return digits.slice(0, 9);
         }
 
         // CUIT/CUIL: ##-########-#
         if (digits.length <= 2) return digits;
         if (digits.length <= 10) return `${digits.slice(0, 2)}-${digits.slice(2)}`;
         return `${digits.slice(0, 2)}-${digits.slice(2, 10)}-${digits.slice(10, 11)}`;
+    };
+
+    // Validación CUIT/CUIL - Módulo 11
+    const validateCuit = (value) => {
+        const digits = value.replace(/\D/g, '');
+        if (digits.length !== 11) return null; // Incomplete
+        const weights = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+        let sum = 0;
+        for (let i = 0; i < 10; i++) {
+            sum += parseInt(digits[i]) * weights[i];
+        }
+        const remainder = 11 - (sum % 11);
+        const checkDigit = remainder === 11 ? 0 : remainder === 10 ? 9 : remainder;
+        return parseInt(digits[10]) === checkDigit;
+    };
+
+    const getCuitError = (value, type) => {
+        if (type === 'DNI') return null;
+        const digits = value.replace(/\D/g, '');
+        if (digits.length === 0) return null;
+        if (digits.length < 11) return 'Incompleto';
+        const valid = validateCuit(value);
+        if (valid === false) return `${type} inválido`;
+        return null;
     };
 
     // --- Dynamic Row Handlers ---
@@ -261,7 +281,7 @@ ${formattedRespondents || 'Sin datos de denunciados.'}
                                                         required
                                                     />
                                                 </div>
-                                                <div className="input-group">
+                                                <div className="input-group id-field-group">
                                                     <div className="id-type-selector">
                                                         {['DNI', 'CUIT', 'CUIL'].map(type => (
                                                             <button
@@ -276,12 +296,17 @@ ${formattedRespondents || 'Sin datos de denunciados.'}
                                                     </div>
                                                     <input
                                                         type="text"
-                                                        placeholder={c.idType}
-                                                        className="with-icon"
+                                                        placeholder={c.idType === 'DNI' ? 'Nro. de DNI' : `Nro. de ${c.idType} (XX-XXXXXXXX-X)`}
                                                         value={c.dni}
                                                         onChange={e => updateClaimant(i, 'dni', e.target.value)}
                                                         required={i === 0}
+                                                        className={getCuitError(c.dni, c.idType) ? 'input-error' : ''}
                                                     />
+                                                    {getCuitError(c.dni, c.idType) && (
+                                                        <span className="id-validation-error">
+                                                            <AlertCircle size={12} /> {getCuitError(c.dni, c.idType)}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="input-row">
@@ -333,7 +358,7 @@ ${formattedRespondents || 'Sin datos de denunciados.'}
                                                         onChange={e => updateRespondent(i, 'name', e.target.value)}
                                                     />
                                                 </div>
-                                                <div className="input-group">
+                                                <div className="input-group id-field-group">
                                                     <div className="id-type-selector">
                                                         {['DNI', 'CUIT', 'CUIL'].map(type => (
                                                             <button
@@ -348,11 +373,16 @@ ${formattedRespondents || 'Sin datos de denunciados.'}
                                                     </div>
                                                     <input
                                                         type="text"
-                                                        placeholder={r.idType}
-                                                        className="with-icon"
+                                                        placeholder={r.idType === 'DNI' ? 'Nro. de DNI' : `Nro. de ${r.idType} (XX-XXXXXXXX-X)`}
                                                         value={r.dni}
                                                         onChange={e => updateRespondent(i, 'dni', e.target.value)}
+                                                        className={getCuitError(r.dni, r.idType) ? 'input-error' : ''}
                                                     />
+                                                    {getCuitError(r.dni, r.idType) && (
+                                                        <span className="id-validation-error">
+                                                            <AlertCircle size={12} /> {getCuitError(r.dni, r.idType)}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

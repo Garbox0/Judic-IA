@@ -12,7 +12,6 @@ import {
     Loader,
     Folder,
     PartyPopper,
-    Link2,
     Check,
     Send,
     MoreVertical,
@@ -300,16 +299,6 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                         </div>
                     </div>
 
-                    <div className="smart-link-mini">
-                        <button onClick={() => {
-                            navigator.clipboard.writeText(`https://consultas.judic-ia.com/${lawyerId}`);
-                            setCopied(true);
-                            setTimeout(() => setCopied(false), 2000);
-                        }} className={`btn-mini-copy ${copied ? 'copied' : ''}`}>
-                            {copied ? <Check size={14} /> : <Link2 size={14} />}
-                            {copied ? 'Copiado' : 'Link de Consulta'}
-                        </button>
-                    </div>
 
                     <div className="inbox-list">
                         {loading ? (
@@ -380,17 +369,19 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                     >
                                         {selectedClient.is_case ? <Folder className="text-blue" size={20} /> : <Folder size={20} />}
                                     </button>
-                                    <button
-                                        className="btn-action-icon"
-                                        title="Mi Perfil Público"
-                                        onClick={() => {
-                                            navigator.clipboard.writeText("https://judic-ia.com/abogados/" + lawyerId);
-                                            setCopied(true);
-                                            setTimeout(() => setCopied(false), 2000);
-                                        }}
-                                    >
-                                        {copied ? <Check size={20} /> : <Globe size={20} />}
-                                    </button>
+                                    {verificationStatus === 'verified' && (
+                                        <button
+                                            className="btn-action-icon"
+                                            title="Mi Perfil Público"
+                                            onClick={() => {
+                                                navigator.clipboard.writeText("https://judic-ia.com/abogados/" + lawyerId);
+                                                setCopied(true);
+                                                setTimeout(() => setCopied(false), 2000);
+                                            }}
+                                        >
+                                            {copied ? <Check size={20} /> : <Globe size={20} />}
+                                        </button>
+                                    )}
                                     <button
                                         className="btn-action-icon"
                                         title="Ver Detalles"

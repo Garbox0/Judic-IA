@@ -256,26 +256,29 @@ select option {
     /* Adjust based on selector width */
 }
 
+/* ID field: selector above input */
+.id-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
 .id-type-selector {
-    position: absolute;
-    left: 0.4rem;
-    top: 50%;
-    transform: translateY(-50%);
     display: flex;
     gap: 2px;
     background: rgba(15, 23, 42, 0.6);
-    padding: 2px;
-    border-radius: 9px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    z-index: 6;
+    padding: 3px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    width: fit-content;
 }
 
 .id-type-selector button {
     background: none;
     border: none;
-    padding: 3px 5px;
-    color: #475569;
-    font-size: 0.6rem;
+    padding: 4px 10px;
+    color: #64748b;
+    font-size: 0.7rem;
     font-weight: 700;
     border-radius: 6px;
     cursor: pointer;
@@ -285,14 +288,27 @@ select option {
     line-height: 1;
 }
 
+.id-type-selector button:hover {
+    color: #94a3b8;
+}
+
 .id-type-selector button.active {
     background: #fbbf24;
     color: #020617;
-    box-shadow: 0 4px 10px rgba(251, 191, 36, 0.2);
+    box-shadow: 0 2px 6px rgba(251, 191, 36, 0.25);
 }
 
-.input-group:has(.id-type-selector) input {
-    padding-left: 110px !important;
+.id-validation-error {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: #f87171;
+    font-weight: 500;
+}
+
+.input-error {
+    border-color: rgba(248, 113, 113, 0.4) !important;
 }
 
 .drop-zone {
@@ -532,4 +548,152 @@ select option {
 
 .mt-4 {
     margin-top: 1rem;
+}
+
+/* =========================================
+   LIGHT THEME
+   ========================================= */
+body.light-theme .manual-case-modal {
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+body.light-theme .modal-overlay {
+    background: rgba(100, 116, 139, 0.4);
+}
+
+body.light-theme .header-text h2 {
+    color: #0f172a;
+}
+
+body.light-theme .header-text p {
+    color: #64748b;
+}
+
+body.light-theme .form-section h3 {
+    color: #64748b;
+}
+
+body.light-theme .dynamic-row-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+body.light-theme .dynamic-row-box.secondary {
+    border-left: 3px solid #94a3b8;
+}
+
+body.light-theme input,
+body.light-theme select,
+body.light-theme .select-premium {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+}
+
+body.light-theme input:focus,
+body.light-theme select:focus {
+    border-color: #fbbf24;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
+}
+
+body.light-theme input::placeholder {
+    color: #94a3b8;
+}
+
+body.light-theme .id-type-selector {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+
+body.light-theme .id-type-selector button {
+    color: #94a3b8;
+}
+
+body.light-theme .id-type-selector button:hover {
+    color: #64748b;
+}
+
+body.light-theme .id-type-selector button.active {
+    background: #fbbf24;
+    color: #020617;
+}
+
+body.light-theme .icon-inner {
+    color: #94a3b8;
+}
+
+body.light-theme .btn-close-modal {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+}
+
+body.light-theme .btn-close-modal:hover {
+    color: #ef4444;
+    background: #fef2f2;
+}
+
+body.light-theme .btn-add-mini {
+    background: rgba(251, 191, 36, 0.06);
+    border-color: rgba(251, 191, 36, 0.2);
+}
+
+body.light-theme .btn-remove-row {
+    background: #ffffff;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+body.light-theme .modal-footer-lux {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+}
+
+body.light-theme .btn-cancel-lux {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+}
+
+body.light-theme .btn-cancel-lux:hover {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+body.light-theme .drop-zone {
+    border-color: rgba(251, 191, 36, 0.2);
+    background: rgba(251, 191, 36, 0.02);
+}
+
+body.light-theme .drop-zone:hover {
+    border-color: #fbbf24;
+    background: rgba(251, 191, 36, 0.05);
+}
+
+body.light-theme .drop-zone span {
+    color: #94a3b8;
+}
+
+body.light-theme .file-chip-premium {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+body.light-theme .f-name {
+    color: #334155;
+}
+
+body.light-theme .success-state h2 {
+    color: #0f172a;
+}
+
+body.light-theme .success-state p {
+    color: #64748b;
+}
+
+body.light-theme select option {
+    background-color: #ffffff;
+    color: #0f172a;
 }

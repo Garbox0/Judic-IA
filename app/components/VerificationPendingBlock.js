@@ -8,37 +8,40 @@ const VerificationPendingBlock = ({ status = 'pending' }) => {
         switch (status) {
             case 'rejected':
                 return {
-                    icon: <AlertCircle size={48} className="v-text-red" />,
+                    icon: <AlertCircle size={18} className="v-text-red" />,
                     title: "Matrícula No Verificada",
-                    message: "No pudimos validar tu matrícula profesional con los datos proporcionados. Esto puede deberse a un error en el Tomo, Folio o Colegio seleccionado.",
+                    message: "No pudimos validar tu matrícula. Revisá tus datos en Ajustes.",
+                    variant: 'red',
                     action: (
-                        <Link href="/dashboard/settings" className="v-block-btn btn-red">
-                            <Settings size={18} /> Corregir Datos en Ajustes
+                        <Link href="/dashboard/settings" className="v-banner-link v-link-red">
+                            <Settings size={14} /> Corregir
                         </Link>
                     )
                 };
             case 'none':
             case null:
                 return {
-                    icon: <ShieldAlert size={48} className="v-text-amber" />,
-                    title: "Acceso Restringido",
-                    message: "Para activar la gestión de clientes y el enlace de consulta inteligente, primero debés completar tu información profesional.",
+                    icon: <ShieldAlert size={18} className="v-text-amber" />,
+                    title: "Perfil Incompleto",
+                    message: "Completá tu información profesional para activar clientes.",
+                    variant: 'amber',
                     action: (
-                        <Link href="/dashboard/settings" className="v-block-btn btn-amber">
-                            <Settings size={18} /> Completar Perfil Profesional
+                        <Link href="/dashboard/settings" className="v-banner-link v-link-amber">
+                            <Settings size={14} /> Completar
                         </Link>
                     )
                 };
             case 'pending':
             default:
                 return {
-                    icon: <Clock size={48} className="v-text-blue" />,
+                    icon: <Clock size={18} className="v-text-blue" />,
                     title: "Verificación en Proceso",
-                    message: "Tu matrícula profesional está siendo revisada por nuestro equipo técnico. Te notificaremos por email una vez que el acceso sea habilitado.",
+                    message: "Tu matrícula está siendo revisada. Te notificaremos por email.",
+                    variant: 'blue',
                     action: (
-                        <div className="v-block-status">
-                            <Mail size={18} /> Recibirás una notificación en tu email
-                        </div>
+                        <span className="v-banner-badge">
+                            <Mail size={14} /> Te avisamos por email
+                        </span>
                     )
                 };
         }
@@ -47,17 +50,13 @@ const VerificationPendingBlock = ({ status = 'pending' }) => {
     const content = getContent();
 
     return (
-        <div className="v-block-overlay">
-            <div className="v-block-card glass-panel">
-                <div className="v-block-icon-wrapper">
-                    {content.icon}
-                </div>
-                <h2 className="v-block-title">{content.title}</h2>
-                <p className="v-block-message">{content.message}</p>
-                <div className="v-block-action">
-                    {content.action}
-                </div>
+        <div className={`v-banner v-banner-${content.variant}`}>
+            <div className="v-banner-icon">{content.icon}</div>
+            <div className="v-banner-text">
+                <strong>{content.title}</strong>
+                <span className="v-banner-msg">{content.message}</span>
             </div>
+            <div className="v-banner-action">{content.action}</div>
         </div>
     );
 };
