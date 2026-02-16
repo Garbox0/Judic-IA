@@ -275,8 +275,24 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
         return date.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
     };
 
+    // ⏳ Wait for verification status before rendering anything
+    if (!isDemo && !verificationStatus) {
+        return (
+            <div className="clients-page-wrapper">
+                <div className="breadcrumb clients-breadcrumb">
+                    <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
+                    <span className="breadcrumb-separator">/</span>
+                    <span className="breadcrumb-current">Clientes</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
+                    <Loader className="animate-spin" size={24} style={{ opacity: 0.4 }} />
+                </div>
+            </div>
+        );
+    }
+
     // 🔒 FULL BLOCK for unverified lawyers
-    if (!isDemo && verificationStatus && verificationStatus !== 'verified') {
+    if (!isDemo && verificationStatus !== 'verified') {
         const isRejected = verificationStatus === 'rejected';
         const isPending = verificationStatus === 'pending';
         return (
