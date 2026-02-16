@@ -40,6 +40,14 @@ import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
 import '../../globals.css';
 
+const PROVINCES = [
+    'CABA', 'Buenos Aires', 'Catamarca', 'Chaco', 'Chubut',
+    'Córdoba', 'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy',
+    'La Pampa', 'La Rioja', 'Mendoza', 'Misiones', 'Neuquén',
+    'Río Negro', 'Salta', 'San Juan', 'San Luis', 'Santa Cruz',
+    'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego', 'Tucumán'
+];
+
 const SPECIALTIES_OPTIONS = [
     'Derecho Administrativo', 'Derecho Ambiental', 'Derecho Bancario',
     'Derecho Civil', 'Derecho Comercial', 'Daños y Perjuicios',
@@ -103,7 +111,7 @@ export default function SettingsPage({ isDemo = false }) {
         subscription_status: 'inactive',
         subscription_expiry: null,
         is_correspondent: false,
-        coverage_areas: '',
+        coverage_zones: [],
         is_public: false
     });
 
@@ -125,7 +133,7 @@ export default function SettingsPage({ isDemo = false }) {
                     subscription_status: 'inactive',
                     subscription_expiry: null,
                     is_correspondent: false,
-                    coverage_areas: 'Buenos Aires, AMBA',
+                    coverage_zones: ['Buenos Aires', 'CABA'],
                     is_public: false
                 });
                 setLoading(false);
@@ -157,7 +165,7 @@ export default function SettingsPage({ isDemo = false }) {
                         subscription_status: data.subscription_status || 'inactive',
                         subscription_expiry: data.subscription_expiry || null,
                         is_correspondent: data.is_correspondent || false,
-                        coverage_areas: data.coverage_areas || '',
+                        coverage_zones: Array.isArray(data.coverage_zones) ? data.coverage_zones : [],
                         is_public: data.is_public || false
                     });
                 }
@@ -213,6 +221,14 @@ export default function SettingsPage({ isDemo = false }) {
             const current = prev.especialidades;
             const newSpecs = current.includes(spec) ? current.filter(s => s !== spec) : [...current, spec];
             return { ...prev, especialidades: newSpecs };
+        });
+    };
+
+    const toggleZone = (zone) => {
+        setFormData(prev => {
+            const current = prev.coverage_zones;
+            const newZones = current.includes(zone) ? current.filter(z => z !== zone) : [...current, zone];
+            return { ...prev, coverage_zones: newZones };
         });
     };
 
@@ -351,7 +367,7 @@ export default function SettingsPage({ isDemo = false }) {
                 jurisdiccion: formData.jurisdiccion,
                 especialidades: formData.especialidades,
                 is_correspondent: formData.is_correspondent,
-                coverage_areas: formData.coverage_areas,
+                coverage_zones: formData.coverage_zones,
                 is_public: formData.is_public,
                 matricula: (formData.tomo || formData.folio)
                     ? `T° ${formData.tomo || ''} F° ${formData.folio || ''}`.trim()
@@ -705,18 +721,22 @@ export default function SettingsPage({ isDemo = false }) {
 
                                                 {formData.is_correspondent && (
                                                     <div className="stg-coverage-section">
-                                                        <div className="stg-f-group">
-                                                            <label htmlFor="coverage_areas" className="stg-label">Zonas de Cobertura</label>
-                                                            <input
-                                                                id="coverage_areas"
-                                                                name="coverage_areas"
-                                                                className="stg-dark-input"
-                                                                placeholder="Ej: Neuquén Capital, Plottier, Centenario..."
-                                                                value={formData.coverage_areas}
-                                                                onChange={handleChange}
-                                                            />
-                                                            <p className="stg-hint">Mencioná las localidades o departamentos donde podés diligenciar trámites.</p>
-                                                        </div>
+                                                        <fieldset className="stg-f-group fieldset-reset-v2">
+                                                            <legend className="stg-label legend-full-width">Zonas de Cobertura</legend>
+                                                            <div className="stg-chips-grid">
+                                                                {PROVINCES.map(zone => (
+                                                                    <button
+                                                                        key={zone}
+                                                                        type="button"
+                                                                        className={`stg-chip ${formData.coverage_zones.includes(zone) ? 'selected' : ''}`}
+                                                                        onClick={() => toggleZone(zone)}
+                                                                    >
+                                                                        {zone}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                            <p className="stg-hint">Seleccioná las jurisdicciones donde podés diligenciar trámites.</p>
+                                                        </fieldset>
                                                     </div>
                                                 )}
                                             </div>

@@ -98,11 +98,11 @@ export default function FederalContent() {
             const { data: { user } } = await supabase.auth.getUser();
             const { data, error } = await supabase
                 .from('profiles')
-                .select('id, full_name, especialidades, jurisdiccion, coverage_areas, avatar_url, biography')
+                .select('id, full_name, especialidades, jurisdiccion, coverage_zones, avatar_url, biography')
                 .eq('is_correspondent', true)
                 .eq('verification_status', 'verified')
                 .eq('role', 'lawyer')
-                .ilike('jurisdiccion', `%${prov}%`)
+                .contains('coverage_zones', [prov])
                 .neq('id', user?.id)
                 .limit(20);
 
@@ -273,17 +273,17 @@ export default function FederalContent() {
                                 <option value="Catamarca">Catamarca</option>
                                 <option value="Chaco">Chaco</option>
                                 <option value="Chubut">Chubut</option>
-                                <option value="Cordoba">Cordoba</option>
+                                <option value="Córdoba">Córdoba</option>
                                 <option value="Corrientes">Corrientes</option>
-                                <option value="Entre Rios">Entre Rios</option>
+                                <option value="Entre Ríos">Entre Ríos</option>
                                 <option value="Formosa">Formosa</option>
                                 <option value="Jujuy">Jujuy</option>
                                 <option value="La Pampa">La Pampa</option>
                                 <option value="La Rioja">La Rioja</option>
                                 <option value="Mendoza">Mendoza</option>
                                 <option value="Misiones">Misiones</option>
-                                <option value="Neuquen">Neuquen</option>
-                                <option value="Rio Negro">Rio Negro</option>
+                                <option value="Neuquén">Neuquén</option>
+                                <option value="Río Negro">Río Negro</option>
                                 <option value="Salta">Salta</option>
                                 <option value="San Juan">San Juan</option>
                                 <option value="San Luis">San Luis</option>
@@ -291,7 +291,7 @@ export default function FederalContent() {
                                 <option value="Santa Fe">Santa Fe</option>
                                 <option value="Santiago del Estero">Santiago del Estero</option>
                                 <option value="Tierra del Fuego">Tierra del Fuego</option>
-                                <option value="Tucuman">Tucuman</option>
+                                <option value="Tucumán">Tucumán</option>
                             </select>
                             <div className="fed-chevron">
                                 <ChevronDown size={20} />
@@ -332,8 +332,8 @@ export default function FederalContent() {
                                                 ? lawyer.especialidades.slice(0, 2).join(' - ')
                                                 : 'Generalista'}
                                         </span>
-                                        {lawyer.coverage_areas && (
-                                            <span className="fed-lawyer-zone">Zona: {lawyer.coverage_areas}</span>
+                                        {lawyer.coverage_zones?.length > 0 && (
+                                            <span className="fed-lawyer-zone">Zona: {lawyer.coverage_zones.join(', ')}</span>
                                         )}
                                     </div>
                                 </div>

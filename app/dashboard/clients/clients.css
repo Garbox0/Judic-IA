@@ -965,3 +965,133 @@ body.light-theme .smart-link-mini {
         height: 44px;
     }
 }
+
+/* =========================================
+   MARKETPLACE BADGES & MODERATION
+   ========================================= */
+
+.badge-pending-review {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    background: rgba(251, 191, 36, 0.15);
+    color: #d97706;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.badge-marketplace {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    background: rgba(99, 102, 241, 0.12);
+    color: #818cf8;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* MODERATION BAR (replaces chat input for pending_review) */
+.moderation-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1rem 1.2rem;
+    border-top: 1px solid var(--border);
+    background: var(--glass);
+}
+
+.moderation-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.moderation-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.mod-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.mod-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.mod-accept {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.3);
+    color: #22c55e;
+}
+
+.mod-accept:hover:not(:disabled) {
+    background: rgba(34, 197, 94, 0.2);
+}
+
+.mod-reject {
+    background: rgba(148, 163, 184, 0.1);
+    border-color: rgba(148, 163, 184, 0.2);
+    color: #94a3b8;
+}
+
+.mod-reject:hover:not(:disabled) {
+    background: rgba(148, 163, 184, 0.2);
+}
+
+.mod-block {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.mod-block:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* Light theme overrides */
+.light-theme .badge-pending-review {
+    background: rgba(217, 119, 6, 0.1);
+    color: #b45309;
+}
+
+.light-theme .badge-marketplace {
+    background: rgba(99, 102, 241, 0.08);
+    color: #6366f1;
+}
+
+.light-theme .moderation-bar {
+    background: rgba(255, 255, 255, 0.8);
+    border-top-color: rgba(0, 0, 0, 0.08);
+}
+
+.light-theme .mod-accept {
+    background: rgba(34, 197, 94, 0.08);
+    color: #16a34a;
+}
+
+.light-theme .mod-reject {
+    background: rgba(100, 116, 139, 0.08);
+    color: #64748b;
+}
+
+.light-theme .mod-block {
+    background: rgba(239, 68, 68, 0.08);
+    color: #dc2626;
+}

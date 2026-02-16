@@ -1,20 +1,26 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Star, MapPin, Award, MessageCircle, ArrowLeft, Loader, Moon, Sun } from 'lucide-react';
+import { Star, MapPin, Award, MessageCircle, ArrowLeft, Loader, Moon, Sun, Send, CheckCircle, X, AlertCircle } from 'lucide-react';
 import '../abogados.css';
 import './profile.css';
 
 export default function LawyerProfilePage() {
     const params = useParams();
-    const router = useRouter();
     const { id } = params;
 
     const [lawyer, setLawyer] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [darkMode, setDarkMode] = useState(false);
+
+    // Contact form state
+    const [showContactForm, setShowContactForm] = useState(false);
+    const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
+    const [sending, setSending] = useState(false);
+    const [sent, setSent] = useState(false);
+    const [contactError, setContactError] = useState('');
 
     useEffect(() => {
         const saved = localStorage.getItem('judicia-marketplace-theme');
@@ -53,7 +59,41 @@ export default function LawyerProfilePage() {
     }, [id]);
 
     const handleContact = () => {
-        router.push(`/consultas/auth?lawyerId=${id}&source=marketplace`);
+        setShowContactForm(true);
+        setContactError('');
+    };
+
+    const handleSendContact = async (e) => {
+        e.preventDefault();
+        setContactError('');
+        setSending(true);
+
+        try {
+            const res = await fetch('/api/abogados/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    lawyerId: id,
+                    name: contactForm.name,
+                    email: contactForm.email,
+                    message: contactForm.message
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setContactError(data.error || 'Error al enviar');
+                setSending(false);
+                return;
+            }
+
+            setSent(true);
+        } catch (err) {
+            setContactError('Error de conexión. Intentá de nuevo.');
+        } finally {
+            setSending(false);
+        }
     };
 
     const themeClass = darkMode ? 'abogados-dark' : 'abogados-light';
@@ -164,11 +204,81 @@ export default function LawyerProfilePage() {
                         </div>
                     )}
 
-                    {/* CTA */}
+                    {/* CTA / Contact Form */}
                     <div className="profile-cta">
-                        <button onClick={handleContact} className="btn-contact-lawyer">
-                            <MessageCircle size={18} /> Contactar
-                        </button>
+                        {sent ? (
+                            <div className="contact-success">
+                                <CheckCircle size={32} />
+                                <h3>Mensaje enviado</h3>
+                                <p>Tu consulta fue enviada a {lawyer.full_name}. Recibirás la respuesta en tu email.</p>
+                            </div>
+                        ) : showContactForm ? (
+                            <form onSubmit={handleSendContact} className="contact-form">
+                                <div className="contact-form-header">
+                                    <h3>Contactar a {lawyer.full_name}</h3>
+                                    <button type="button" className="contact-form-close" onClick={() => setShowContactForm(false)} aria-label="Cerrar formulario">
+                                        <X size={18} />
+                                    </button>
+                                </div>
+
+                                <div className="contact-field">
+                                    <label htmlFor="contact-name">Nombre completo</label>
+                                    <input
+                                        id="contact-name"
+                                        type="text"
+                                        required
+                                        maxLength={100}
+                                        value={contactForm.name}
+                                        onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
+                                        placeholder="Tu nombre y apellido"
+                                    />
+                                </div>
+
+                                <div className="contact-field">
+                                    <label htmlFor="contact-email">Email</label>
+                                    <input
+                                        id="contact-email"
+                                        type="email"
+                                        required
+                                        maxLength={200}
+                                        value={contactForm.email}
+                                        onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
+                                        placeholder="tu@email.com"
+                                    />
+                                </div>
+
+                                <div className="contact-field">
+                                    <label htmlFor="contact-message">Mensaje</label>
+                                    <textarea
+                                        id="contact-message"
+                                        required
+                                        maxLength={2000}
+                                        rows={4}
+                                        value={contactForm.message}
+                                        onChange={(e) => setContactForm(prev => ({ ...prev, message: e.target.value }))}
+                                        placeholder="Describí brevemente tu consulta..."
+                                    />
+                                </div>
+
+                                {contactError && (
+                                    <div className="contact-error">
+                                        <AlertCircle size={14} /> {contactError}
+                                    </div>
+                                )}
+
+                                <button type="submit" className="btn-contact-lawyer" disabled={sending}>
+                                    {sending ? (
+                                        <><Loader size={16} className="animate-spin" /> Enviando...</>
+                                    ) : (
+                                        <><Send size={16} /> Enviar consulta</>
+                                    )}
+                                </button>
+                            </form>
+                        ) : (
+                            <button onClick={handleContact} className="btn-contact-lawyer">
+                                <MessageCircle size={18} /> Contactar
+                            </button>
+                        )}
                     </div>
 
                     {/* Reviews */}

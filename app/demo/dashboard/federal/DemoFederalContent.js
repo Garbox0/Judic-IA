@@ -245,8 +245,8 @@ export default function DemoFederalContent() {
                                                 ? lawyer.especialidades.slice(0, 2).join(' - ')
                                                 : 'Generalista'}
                                         </span>
-                                        {lawyer.coverage_areas && (
-                                            <span className="fed-lawyer-zone">Zona: {lawyer.coverage_areas}</span>
+                                        {lawyer.coverage_zones?.length > 0 && (
+                                            <span className="fed-lawyer-zone">Zona: {lawyer.coverage_zones.join(', ')}</span>
                                         )}
                                     </div>
                                 </div>

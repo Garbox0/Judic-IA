@@ -198,7 +198,7 @@ export const demoLawyers = [
         full_name: "Dra. Elena Soria",
         especialidades: ["Derecho Laboral", "Sucesiones"],
         jurisdiccion: "CABA",
-        coverage_areas: "Zona Tribunales",
+        coverage_zones: ["CABA"],
         avatar_url: null
     },
     {
@@ -206,7 +206,7 @@ export const demoLawyers = [
         full_name: "Dr. Carlos Méndez",
         especialidades: ["Daños y Perjuicios", "Seguros"],
         jurisdiccion: "Córdoba",
-        coverage_areas: "Ciudad de Córdoba",
+        coverage_zones: ["Córdoba"],
         avatar_url: null
     },
     {
@@ -214,7 +214,7 @@ export const demoLawyers = [
         full_name: "Dra. Julia Rivas",
         especialidades: ["Derecho de Familia", "Civil"],
         jurisdiccion: "Santa Fe",
-        coverage_areas: "Rosario y alrededores",
+        coverage_zones: ["Santa Fe"],
         avatar_url: null
     },
     {
@@ -222,7 +222,7 @@ export const demoLawyers = [
         full_name: "Dr. Ricardo Luque",
         especialidades: ["Derecho Penal", "Amparos"],
         jurisdiccion: "Mendoza",
-        coverage_areas: "Mendoza Capital",
+        coverage_zones: ["Mendoza"],
         avatar_url: null
     }
 ];

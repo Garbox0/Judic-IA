@@ -263,6 +263,41 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
         }
     };
 
+    // --- MARKETPLACE MODERATION ---
+    const [moderating, setModerating] = useState(false);
+
+    const handleModeration = async (action) => {
+        if (!selectedClient || moderating) return;
+        setModerating(true);
+        try {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            const res = await fetch('/api/abogados/contact', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ inquiryId: selectedClient.id, action })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                // Update local state
+                const newStatus = data.status;
+                setSelectedClient(prev => ({ ...prev, status: newStatus }));
+                setClients(prev => prev.map(c =>
+                    c.id === selectedClient.id ? { ...c, status: newStatus } : c
+                ).filter(c => c.status !== 'rejected' && c.status !== 'blocked'));
+                if (newStatus === 'rejected' || newStatus === 'blocked') {
+                    setSelectedClient(null);
+                }
+            }
+        } catch (err) {
+            console.error('Moderation error:', err);
+        } finally {
+            setModerating(false);
+        }
+    };
+
     // --- RENDER HELPERS ---
 
     // Format relative time (e.g. "14:30", "Ayer", "12/05")
@@ -401,7 +436,12 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                             <span className="msg-preview">
                                                 {client.last_message_preview || 'Nueva consulta iniciada.'}
                                             </span>
-                                            {/* Optional: Unread indicator if we had that field */}
+                                            {client.status === 'pending_review' && (
+                                                <span className="badge-pending-review">Pendiente</span>
+                                            )}
+                                            {client.source === 'marketplace' && client.status !== 'pending_review' && (
+                                                <span className="badge-marketplace">Marketplace</span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -482,21 +522,50 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            {/* INPUT AREA */}
-                            <div className="chat-input-area">
-                                <form onSubmit={sendLawyerReply} className="input-row">
-                                    <input
-                                        type="text"
-                                        placeholder="Escribe un mensaje..."
-                                        value={replyInput}
-                                        onChange={e => setReplyInput(e.target.value)}
-                                        disabled={sendingReply}
-                                    />
-                                    <button type="submit" disabled={!replyInput.trim() || sendingReply} className="btn-send">
-                                        {sendingReply ? <Loader className="animate-spin" size={18} /> : <Send size={18} />}
-                                    </button>
-                                </form>
-                            </div>
+                            {/* INPUT AREA / MODERATION BAR */}
+                            {selectedClient.status === 'pending_review' ? (
+                                <div className="moderation-bar">
+                                    <span className="moderation-label">Solicitud desde el marketplace</span>
+                                    <div className="moderation-actions">
+                                        <button
+                                            className="mod-btn mod-accept"
+                                            onClick={() => handleModeration('accept')}
+                                            disabled={moderating}
+                                        >
+                                            <Check size={16} /> Aceptar
+                                        </button>
+                                        <button
+                                            className="mod-btn mod-reject"
+                                            onClick={() => handleModeration('reject')}
+                                            disabled={moderating}
+                                        >
+                                            <X size={16} /> Rechazar
+                                        </button>
+                                        <button
+                                            className="mod-btn mod-block"
+                                            onClick={() => handleModeration('block')}
+                                            disabled={moderating}
+                                        >
+                                            <ShieldAlert size={16} /> Bloquear
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="chat-input-area">
+                                    <form onSubmit={sendLawyerReply} className="input-row">
+                                        <input
+                                            type="text"
+                                            placeholder="Escribe un mensaje..."
+                                            value={replyInput}
+                                            onChange={e => setReplyInput(e.target.value)}
+                                            disabled={sendingReply}
+                                        />
+                                        <button type="submit" disabled={!replyInput.trim() || sendingReply} className="btn-send">
+                                            {sendingReply ? <Loader className="animate-spin" size={18} /> : <Send size={18} />}
+                                        </button>
+                                    </form>
+                                </div>
+                            )}
 
                             {/* DETAILS SIDEBAR (OVERLAY) */}
                             {showDetails && (
