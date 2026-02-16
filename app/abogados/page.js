@@ -1,8 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { Search, MapPin, Star, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Star, Filter, ChevronLeft, ChevronRight, Moon, Sun } from 'lucide-react';
 import './abogados.css';
 
 const SPECIALTIES = [
@@ -21,6 +20,20 @@ export default function AbogadosPage() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [total, setTotal] = useState(0);
+    const [darkMode, setDarkMode] = useState(false);
+
+    useEffect(() => {
+        const saved = localStorage.getItem('judicia-marketplace-theme');
+        if (saved === 'dark') setDarkMode(true);
+    }, []);
+
+    const toggleTheme = () => {
+        setDarkMode(prev => {
+            const next = !prev;
+            localStorage.setItem('judicia-marketplace-theme', next ? 'dark' : 'light');
+            return next;
+        });
+    };
 
     const fetchLawyers = useCallback(async () => {
         setLoading(true);
@@ -56,7 +69,7 @@ export default function AbogadosPage() {
     };
 
     return (
-        <main className="abogados-main">
+        <main className={`abogados-main ${darkMode ? 'abogados-dark' : 'abogados-light'}`}>
             {/* HEADER */}
             <nav className="abogados-nav">
                 <Link href="/" className="nav-brand-link">
@@ -64,21 +77,31 @@ export default function AbogadosPage() {
                     <span className="nav-brand-text">Judic-IA</span>
                 </Link>
                 <div className="nav-actions">
-                    <Link href="/auth/login" className="nav-link-subtle">Soy Abogado</Link>
+                    <button
+                        type="button"
+                        className="theme-toggle-btn"
+                        onClick={toggleTheme}
+                        aria-label={darkMode ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
+                    >
+                        {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                    </button>
+                    <Link href="/login" className="nav-link-subtle">Soy Abogado</Link>
                 </div>
             </nav>
 
             <header className="abogados-hero">
-                <h1>Encuentra tu abogado</h1>
-                <p>Busca profesionales verificados por especialidad y zona</p>
+                <h1>Encontrá tu abogado</h1>
+                <p>Buscá profesionales verificados por especialidad y zona</p>
             </header>
 
             {/* FILTERS */}
             <section className="abogados-filters">
-                <form onSubmit={handleSearch} className="filters-form">
+                <form onSubmit={handleSearch} className="filters-form" role="search">
                     <div className="filter-group">
-                        <Filter size={16} />
+                        <label htmlFor="filter-especialidad" className="sr-only">Especialidad</label>
+                        <Filter size={16} aria-hidden="true" />
                         <select
+                            id="filter-especialidad"
                             value={especialidad}
                             onChange={(e) => { setEspecialidad(e.target.value); setPage(1); }}
                             className="filter-select"
@@ -91,8 +114,10 @@ export default function AbogadosPage() {
                     </div>
 
                     <div className="filter-group">
-                        <MapPin size={16} />
+                        <label htmlFor="filter-zona" className="sr-only">Zona o jurisdicción</label>
+                        <MapPin size={16} aria-hidden="true" />
                         <input
+                            id="filter-zona"
                             type="text"
                             placeholder="Zona o jurisdicción..."
                             value={zona}

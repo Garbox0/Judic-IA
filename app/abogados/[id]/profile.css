@@ -1,5 +1,155 @@
 /* =========================================
    LAWYER PUBLIC PROFILE
+   Light theme default, dark mode via .abogados-dark
+   ========================================= */
+
+/* =========================================
+   LIGHT THEME (DEFAULT)
+   ========================================= */
+.abogados-light .profile-loading,
+.abogados-light .profile-error {
+    color: #64748b;
+}
+
+.abogados-light .profile-error h2 {
+    color: #0f172a;
+}
+
+.abogados-light .back-link {
+    color: #b45309;
+}
+
+.abogados-light .profile-card {
+    background: white;
+    border-color: rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.abogados-light .profile-header {
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+.abogados-light .profile-name {
+    color: #0f172a;
+}
+
+.abogados-light .profile-matricula {
+    color: #64748b;
+}
+
+.abogados-light .profile-zona {
+    color: #475569;
+}
+
+.abogados-light .rating-value {
+    color: #b45309;
+}
+
+.abogados-light .profile-section h3 {
+    color: #475569;
+}
+
+.abogados-light .spec-badge-lg {
+    background: rgba(180, 83, 9, 0.08);
+    color: #92400e;
+}
+
+.abogados-light .profile-bio {
+    color: #334155;
+}
+
+.abogados-light .profile-cta {
+    border-top-color: rgba(0, 0, 0, 0.06);
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+.abogados-light .review-card {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+.abogados-light .review-comment {
+    color: #334155;
+}
+
+.abogados-light .review-date {
+    color: #94a3b8;
+}
+
+/* =========================================
+   DARK THEME
+   ========================================= */
+.abogados-dark .profile-loading,
+.abogados-dark .profile-error {
+    color: #94a3b8;
+}
+
+.abogados-dark .profile-error h2 {
+    color: white;
+}
+
+.abogados-dark .back-link {
+    color: #fbbf24;
+}
+
+.abogados-dark .profile-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.abogados-dark .profile-header {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.abogados-dark .profile-name {
+    color: white;
+}
+
+.abogados-dark .profile-matricula {
+    color: #64748b;
+}
+
+.abogados-dark .profile-zona {
+    color: #94a3b8;
+}
+
+.abogados-dark .rating-value {
+    color: #fbbf24;
+}
+
+.abogados-dark .profile-section h3 {
+    color: #64748b;
+}
+
+.abogados-dark .spec-badge-lg {
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+}
+
+.abogados-dark .profile-bio {
+    color: #cbd5e1;
+}
+
+.abogados-dark .profile-cta {
+    border-top-color: rgba(255, 255, 255, 0.06);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.abogados-dark .review-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.abogados-dark .review-comment {
+    color: #cbd5e1;
+}
+
+.abogados-dark .review-date {
+    color: #475569;
+}
+
+/* =========================================
+   STRUCTURAL (shared)
    ========================================= */
 
 .profile-loading,
@@ -10,18 +160,12 @@
     justify-content: center;
     min-height: 60vh;
     gap: 1rem;
-    color: #94a3b8;
-}
-
-.profile-error h2 {
-    color: white;
 }
 
 .back-link {
     display: flex;
     align-items: center;
     gap: 0.3rem;
-    color: #fbbf24;
     text-decoration: none;
     margin-top: 1rem;
     font-size: 0.9rem;
@@ -39,8 +183,7 @@
 }
 
 .profile-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid;
     border-radius: 20px;
     padding: 2rem;
 }
@@ -52,7 +195,7 @@
     align-items: flex-start;
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid;
 }
 
 .profile-avatar-lg {
@@ -76,7 +219,7 @@
 .avatar-initial-lg {
     font-size: 2.2rem;
     font-weight: 700;
-    color: #fbbf24;
+    color: #d97706;
 }
 
 .profile-info {
@@ -94,7 +237,6 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    color: #64748b;
     font-size: 0.85rem;
     margin-bottom: 0.3rem;
 }
@@ -103,7 +245,6 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    color: #94a3b8;
     font-size: 0.85rem;
     margin-bottom: 0.5rem;
 }
@@ -117,7 +258,6 @@
 
 .rating-value {
     font-weight: 700;
-    color: #fbbf24;
     font-size: 1rem;
 }
 
@@ -131,7 +271,6 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #64748b;
     margin-bottom: 0.8rem;
 }
 
@@ -144,14 +283,11 @@
 .spec-badge-lg {
     font-size: 0.8rem;
     padding: 0.35rem 0.8rem;
-    background: rgba(251, 191, 36, 0.1);
-    color: #fbbf24;
     border-radius: 8px;
     font-weight: 500;
 }
 
 .profile-bio {
-    color: #cbd5e1;
     line-height: 1.6;
     font-size: 0.95rem;
 }
@@ -159,8 +295,8 @@
 /* CTA */
 .profile-cta {
     padding: 1.5rem 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid;
+    border-bottom: 1px solid;
     margin-bottom: 1.5rem;
     text-align: center;
 }
@@ -193,8 +329,7 @@
 }
 
 .review-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid;
     border-radius: 12px;
     padding: 1rem;
 }
@@ -206,14 +341,12 @@
 }
 
 .review-comment {
-    color: #cbd5e1;
     font-size: 0.9rem;
     line-height: 1.5;
     margin-bottom: 0.5rem;
 }
 
 .review-date {
-    color: #475569;
     font-size: 0.75rem;
 }
 

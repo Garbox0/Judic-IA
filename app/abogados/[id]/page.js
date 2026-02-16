@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Star, MapPin, Award, MessageCircle, ArrowLeft, Loader } from 'lucide-react';
+import { Star, MapPin, Award, MessageCircle, ArrowLeft, Loader, Moon, Sun } from 'lucide-react';
 import '../abogados.css';
 import './profile.css';
 
@@ -14,6 +14,20 @@ export default function LawyerProfilePage() {
     const [lawyer, setLawyer] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [darkMode, setDarkMode] = useState(false);
+
+    useEffect(() => {
+        const saved = localStorage.getItem('judicia-marketplace-theme');
+        if (saved === 'dark') setDarkMode(true);
+    }, []);
+
+    const toggleTheme = () => {
+        setDarkMode(prev => {
+            const next = !prev;
+            localStorage.setItem('judicia-marketplace-theme', next ? 'dark' : 'light');
+            return next;
+        });
+    };
 
     useEffect(() => {
         if (!id) return;
@@ -39,14 +53,14 @@ export default function LawyerProfilePage() {
     }, [id]);
 
     const handleContact = () => {
-        // Navigate to client auth flow with this lawyer's ID
-        // No CID needed — client is choosing from marketplace, not from a link
         router.push(`/consultas/auth?lawyerId=${id}&source=marketplace`);
     };
 
+    const themeClass = darkMode ? 'abogados-dark' : 'abogados-light';
+
     if (loading) {
         return (
-            <main className="abogados-main">
+            <main className={`abogados-main ${themeClass}`}>
                 <div className="profile-loading">
                     <Loader size={32} className="animate-spin" />
                     <p>Cargando perfil...</p>
@@ -57,7 +71,7 @@ export default function LawyerProfilePage() {
 
     if (error || !lawyer) {
         return (
-            <main className="abogados-main">
+            <main className={`abogados-main ${themeClass}`}>
                 <div className="profile-error">
                     <h2>Perfil no disponible</h2>
                     <p>{error || "Este abogado no tiene un perfil público activo."}</p>
@@ -70,16 +84,26 @@ export default function LawyerProfilePage() {
     }
 
     return (
-        <main className="abogados-main">
+        <main className={`abogados-main ${themeClass}`}>
             {/* NAV */}
             <nav className="abogados-nav">
                 <Link href="/" className="nav-brand-link">
                     <img src="/judic-ia-mark.png" alt="Judic-IA" className="nav-logo-sm" />
                     <span className="nav-brand-text">Judic-IA</span>
                 </Link>
-                <Link href="/abogados" className="nav-link-subtle">
-                    <ArrowLeft size={14} /> Volver
-                </Link>
+                <div className="nav-actions">
+                    <button
+                        type="button"
+                        className="theme-toggle-btn"
+                        onClick={toggleTheme}
+                        aria-label={darkMode ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
+                    >
+                        {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                    </button>
+                    <Link href="/abogados" className="nav-link-subtle">
+                        <ArrowLeft size={14} /> Volver
+                    </Link>
+                </div>
             </nav>
 
             {/* PROFILE */}
@@ -100,19 +124,19 @@ export default function LawyerProfilePage() {
 
                             {lawyer.matricula && (
                                 <p className="profile-matricula">
-                                    <Award size={14} /> {lawyer.matricula}
+                                    <Award size={14} aria-hidden="true" /> {lawyer.matricula}
                                 </p>
                             )}
 
                             {lawyer.jurisdiccion && (
                                 <p className="profile-zona">
-                                    <MapPin size={14} /> {lawyer.jurisdiccion}
+                                    <MapPin size={14} aria-hidden="true" /> {lawyer.jurisdiccion}
                                 </p>
                             )}
 
                             {lawyer.avg_rating > 0 && (
                                 <div className="profile-rating">
-                                    <Star size={16} fill="#fbbf24" stroke="#fbbf24" />
+                                    <Star size={16} fill="#fbbf24" stroke="#fbbf24" aria-hidden="true" />
                                     <span className="rating-value">{lawyer.avg_rating}</span>
                                     <span className="rating-count">({lawyer.review_count} {lawyer.review_count === 1 ? 'reseña' : 'reseñas'})</span>
                                 </div>
@@ -161,6 +185,7 @@ export default function LawyerProfilePage() {
                                                     size={14}
                                                     fill={i <= review.rating ? '#fbbf24' : 'transparent'}
                                                     stroke={i <= review.rating ? '#fbbf24' : '#475569'}
+                                                    aria-hidden="true"
                                                 />
                                             ))}
                                         </div>
