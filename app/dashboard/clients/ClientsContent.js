@@ -16,9 +16,13 @@ import {
     Send,
     MoreVertical,
     Search,
-    Globe
+    Globe,
+    ShieldCheck,
+    Clock,
+    ShieldAlert,
+    AlertCircle,
+    Settings
 } from 'lucide-react';
-import VerificationPendingBlock from '../../components/VerificationPendingBlock';
 import './clients.css';
 
 export default function ClientsPage({ isDemo = false, basePath = '/dashboard' }) {
@@ -271,15 +275,57 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
         return date.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
     };
 
+    // 🔒 FULL BLOCK for unverified lawyers
+    if (!isDemo && verificationStatus && verificationStatus !== 'verified') {
+        const isRejected = verificationStatus === 'rejected';
+        const isPending = verificationStatus === 'pending';
+        return (
+            <div className="clients-page-wrapper">
+                <div className="breadcrumb clients-breadcrumb">
+                    <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
+                    <span className="breadcrumb-separator">/</span>
+                    <span className="breadcrumb-current">Clientes</span>
+                </div>
+                <div className="clients-restricted-container">
+                    <div className="clients-restricted-icon-box">
+                        {isRejected ? <AlertCircle size={40} /> : isPending ? <ShieldCheck size={40} /> : <ShieldAlert size={40} />}
+                    </div>
+                    <h1 className="dashboard-page-title">
+                        {isRejected ? 'Matrícula No Verificada' : isPending ? 'Verificación Necesaria' : 'Perfil Incompleto'}
+                    </h1>
+                    <p className="clients-restricted-desc">
+                        {isRejected
+                            ? 'No pudimos validar tu matrícula profesional. Revisá tus datos en Ajustes para corregir la información.'
+                            : isPending
+                            ? 'Para acceder a la Bandeja de Clientes, tu matrícula profesional debe ser verificada por nuestro equipo técnico.'
+                            : 'Completá tu información profesional en Ajustes para poder recibir y gestionar consultas de clientes.'}
+                    </p>
+                    <div className="clients-restricted-status-box">
+                        <h4 className="clients-restricted-status-title">
+                            <Clock size={16} className="text-amber-400" />
+                            Estado actual: {isRejected ? 'Rechazada' : isPending ? 'Pendiente de Revisión' : 'Acción Requerida'}
+                        </h4>
+                        <p className="clients-restricted-status-msg">
+                            {isRejected
+                                ? 'Verificá que tu número de matrícula y jurisdicción sean correctos.'
+                                : isPending
+                                ? 'Estamos validando tus credenciales con los colegios públicos correspondientes. Te notificaremos vía email cuando tu acceso sea habilitado.'
+                                : 'Necesitás completar tu matrícula y jurisdicción para iniciar el proceso de verificación.'}
+                        </p>
+                    </div>
+                    <div className="clients-restricted-btn-wrapper">
+                        <a href="/dashboard/settings?tab=profile" className="clients-action-btn-gold">
+                            <Settings size={16} />
+                            {isRejected ? 'Corregir Datos' : isPending ? 'Ver Estado de Mi Perfil' : 'Completar Perfil'}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="clients-page-wrapper">
-            {/* 🔒 VERIFICATION BLOCK (Only visible if issues) */}
-            {!isDemo && verificationStatus && verificationStatus !== 'verified' && (
-                <div className="verification-wrapper">
-                    <VerificationPendingBlock status={verificationStatus} />
-                </div>
-            )}
-
             {/* BREADCRUMB */}
             <div className="breadcrumb clients-breadcrumb">
                 <Link href={isDemo ? basePath : "/dashboard"} className="breadcrumb-item">Gabinete</Link>
