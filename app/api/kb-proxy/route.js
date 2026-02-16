@@ -20,6 +20,7 @@ const ALLOWED_DOMAINS = [
     'mpf.gob.ar', 'mpd.gov.ar',
     'boletinoficial.gob.ar',
     'servicios.infoleg.gob.ar', 'infoleg.gob.ar',
+    'consejomagistratura.gov.ar',
     // Provinciales
     'scba.gov.ar', 'juba.scba.gov.ar', 'mpba.gov.ar',
     'jusbaires.gob.ar', 'tsjbaires.gov.ar', 'mptutelar.gob.ar',
@@ -179,10 +180,9 @@ export async function GET(request) {
         if (!captureRes.ok) {
             const err = await captureRes.json().catch(() => ({}));
             console.error('❌ VPS capture failed:', err);
-            return NextResponse.json(
-                { error: 'PDF capture failed', details: err.error || 'Unknown error' },
-                { status: 502 }
-            );
+            // Fallback: redirect to original URL so browser can try directly
+            console.log(`↩️ Falling back to original URL: ${targetUrl}`);
+            return NextResponse.redirect(targetUrl, 302);
         }
 
         const result = await captureRes.json();
@@ -192,16 +192,13 @@ export async function GET(request) {
             return NextResponse.redirect(result.url, 302);
         }
 
-        return NextResponse.json(
-            { error: 'Capture returned unexpected response' },
-            { status: 500 }
-        );
+        // Fallback: redirect to original URL
+        console.warn(`⚠️ Capture returned unexpected response, falling back to original URL`);
+        return NextResponse.redirect(targetUrl, 302);
 
     } catch (error) {
         console.error('❌ Capture service error:', error.message);
-        return NextResponse.json(
-            { error: 'Capture service unavailable', details: error.message },
-            { status: 503 }
-        );
+        // Fallback: redirect to original URL so browser can try directly
+        return NextResponse.redirect(targetUrl, 302);
     }
 }

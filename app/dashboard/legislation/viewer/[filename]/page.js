@@ -77,7 +77,7 @@ export default function LegislationViewerPage() {
 
             <main className="viewer-content">
                 <div className="pdf-wrapper glass-panel">
-                    <PdfReader url={contentUrl} />
+                    <PdfReader url={contentUrl} originalUrl={isExternal ? decodedExternalUrl : null} />
                 </div>
             </main>
 

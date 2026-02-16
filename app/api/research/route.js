@@ -33,6 +33,7 @@ const JUDICIAL_DOMAINS = {
         'mpf.gob.ar',            // Ministerio Público Fiscal
         'mpd.gov.ar',            // Ministerio Público de la Defensa
         'boletinoficial.gob.ar', // Boletín Oficial
+        'consejomagistratura.gov.ar', // Consejo de la Magistratura
     ],
     // PROVINCIALES - Poderes Judiciales y Portales de Jurisprudencia
     provincial: [

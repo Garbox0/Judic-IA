@@ -6,7 +6,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 // Configuración del worker (Hosted locally to avoid unpkg issues)
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
-export default function PdfReader({ url }) {
+export default function PdfReader({ url, originalUrl }) {
     const [numPages, setNumPages] = useState(null);
     const [pageNumber, setPageNumber] = useState(1);
     const [scale, setScale] = useState(1.2);
@@ -80,7 +80,21 @@ export default function PdfReader({ url }) {
                     file={url}
                     onLoadSuccess={onDocumentLoadSuccess}
                     loading={<div className="loading">Cargando documento...</div>}
-                    error={<div className="error">No se pudo cargar el PDF. <a href={url} target="_blank">Abrir link directo</a></div>}
+                    error={
+                        <div className="error">
+                            <p>No se pudo cargar el PDF.</p>
+                            {originalUrl && (
+                                <a href={originalUrl} target="_blank" rel="noopener noreferrer">
+                                    Abrir en sitio oficial →
+                                </a>
+                            )}
+                            {!originalUrl && (
+                                <a href={url} target="_blank" rel="noopener noreferrer">
+                                    Abrir link directo
+                                </a>
+                            )}
+                        </div>
+                    }
                     className="pdf-document"
                 >
                     <Page
