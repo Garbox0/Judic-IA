@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
     Globe,
     ArrowRight,
@@ -219,6 +220,12 @@ export default function FederalContent() {
 
     return (
         <div className="fed-container">
+            <div className="breadcrumb">
+                <Link href="/dashboard" className="breadcrumb-item">Gabinete</Link>
+                <span className="breadcrumb-separator">/</span>
+                <span className="breadcrumb-current">Hub Federal</span>
+            </div>
+
             <header className="fed-header">
                 <div className="fed-badge">Modulo Interjurisdiccional</div>
                 <h1>Hub Federal <Globe size={28} className="text-amber-400" /></h1>

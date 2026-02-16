@@ -315,3 +315,183 @@
     border: 1px solid #cbd5e1;
     color: #0f172a;
 }
+
+/* =========================================
+   INLINE CHAT WIDGET (Embedded in Intake)
+   ========================================= */
+.chat-widget-inline {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 400px;
+    background: transparent;
+}
+
+.chat-widget-inline.embedded {
+    border-radius: 0;
+}
+
+.chat-widget-inline .chat-messages-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 12px 12px 0 0;
+}
+
+.chat-widget-inline .chat-input-area {
+    padding: 0.8rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    gap: 0.8rem;
+    border-radius: 0 0 12px 12px;
+}
+
+/* Role Tags */
+.msg-role-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.3rem;
+}
+
+.lawyer-tag {
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+}
+
+.assistant-tag {
+    background: rgba(168, 85, 247, 0.15);
+    color: #c4b5fd;
+}
+
+.welcome-msg {
+    background: rgba(251, 191, 36, 0.08) !important;
+    border: 1px solid rgba(251, 191, 36, 0.15);
+}
+
+.welcome-msg p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Light Theme */
+.light-theme .lawyer-tag {
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+}
+
+.light-theme .assistant-tag {
+    background: rgba(168, 85, 247, 0.1);
+    color: #7c3aed;
+}
+
+.light-theme .welcome-msg {
+    background: rgba(251, 191, 36, 0.06) !important;
+    border: 1px solid rgba(251, 191, 36, 0.15);
+}
+
+.light-theme .chat-widget-inline .chat-messages-area {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.light-theme .chat-widget-inline .chat-input-area {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* =========================================
+   LAWYER REPLY INPUT (ClientsContent modal)
+   ========================================= */
+.lawyer-reply-area {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.8rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0 0 12px 12px;
+}
+
+.lawyer-reply-input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 0.6rem 1rem;
+    color: white;
+    outline: none;
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+.lawyer-reply-input:focus {
+    border-color: #3b82f6;
+}
+
+.lawyer-reply-btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+    flex-shrink: 0;
+}
+
+.lawyer-reply-btn:hover:not(:disabled) {
+    background: #2563eb;
+    transform: scale(1.05);
+}
+
+.lawyer-reply-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.light-theme .lawyer-reply-area {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+}
+
+.light-theme .lawyer-reply-input {
+    background: white;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+}
+
+.light-theme .lawyer-reply-input:focus {
+    border-color: #3b82f6;
+}
+
+/* Chat message role labels in ClientsContent */
+.chat-msg .msg-label {
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.chat-msg.lawyer .msg-label {
+    color: #3b82f6;
+}
+
+.chat-msg.user .msg-label {
+    color: #fbbf24;
+}
+
+.chat-msg.assistant .msg-label {
+    color: #a78bfa;
+}

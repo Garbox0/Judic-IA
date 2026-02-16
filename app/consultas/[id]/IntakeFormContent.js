@@ -226,7 +226,7 @@ export default function IntakeFormContent({ id }) {
             <nav className="glass-navbar" style={{ justifyContent: 'space-between' }}>
                 <div className="nav-brand">
                     <img src="/judic-ia-mark.png" alt="Logo" className="nav-logo" style={{ height: '32px', width: 'auto' }} />
-                    <span className="nav-title">Judic-IA Intake</span>
+                    <span className="nav-title">Judic-IA Consultas</span>
                 </div>
 
                 <button
@@ -274,7 +274,7 @@ export default function IntakeFormContent({ id }) {
 
                         <div className="welcome-text">
                             <p>👋 <strong>Hola.</strong></p>
-                            <p>Soy el asistente virtual del estudio. Estoy aquí para tomar los datos de tu caso de forma segura y confidencial.</p>
+                            <p>Escribí tu consulta y {lawyer.full_name || 'el profesional'} te responderá personalmente a la brevedad.</p>
                             <p style={{ marginTop: '1rem', fontSize: '0.85rem', opacity: 0.7 }}>
                                 Tus datos están protegidos
                             </p>
@@ -302,7 +302,7 @@ export default function IntakeFormContent({ id }) {
                             mode="intake"
                             lawyerId={id}
                             embedded={true}
-                            initialMessage={`Bienvenido. Cuénteme brevemente su situación legal para poder ayudarle.`}
+                            initialMessage={`Bienvenido. Escriba su consulta y ${lawyer.full_name || 'el profesional'} le responderá a la brevedad.`}
                             clientEmail={clientEmail}
                             clientUserId={clientUserId}
                             clientName={clientName}

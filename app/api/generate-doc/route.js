@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { verifyAuth } from '@/lib/api-auth';
+import { verifyAccess, incrementUsage } from '@/lib/tierMiddleware';
 
 // SYSTEM PROMPT FOR GENERATION
 const DOC_GEN_SYSTEM_PROMPT = `
@@ -25,6 +26,12 @@ export async function POST(request) {
     // 🛡️ Auth required (consumes OpenRouter API credits)
     const auth = await verifyAuth(request);
     if (auth.error) return auth.response;
+
+    // 🛡️ Plan & Quota verification
+    const accessCheck = await verifyAccess(auth.user.id, null, 'ai_messages');
+    if (!accessCheck.allowed) {
+        return NextResponse.json({ error: accessCheck.message, reason: accessCheck.reason }, { status: 403 });
+    }
 
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) return NextResponse.json({ error: "Falta API Key" }, { status: 500 });
@@ -61,6 +68,8 @@ export async function POST(request) {
         });
 
         const content = completion.choices[0].message.content;
+
+        await incrementUsage(auth.user.id, 'ai_messages', 1);
 
         return NextResponse.json({ content });
 

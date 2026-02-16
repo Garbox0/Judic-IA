@@ -352,8 +352,8 @@ DEVOLVÉ SOLO EL JSON válido.`
             ...officialSourceQueries                        // NEW: Targeted official source queries
         ];
 
-        // Dedupe and limit (increased to 20 to accommodate official sources)
-        const queries = [...new Set(allQueries)].filter(q => q && q.length > 2).slice(0, 20);
+        // Dedupe and limit (optimized: 10 max to control Brave API costs ~$0.05/search)
+        const queries = [...new Set(allQueries)].filter(q => q && q.length > 2).slice(0, 10);
         // console.log(`🔍 Final query pool (${queries.length}):`, queries.slice(0, 5), '...');
 
         const searchResults = [];
@@ -378,9 +378,14 @@ DEVOLVÉ SOLO EL JSON válido.`
         }
 
         // --- STAGE 2: BRAVE SEARCH (with Enhanced Scoring) ---
-        const canSearch = (mode !== 'demo' && searchResults.length < 15) || queries.length > 0;
+        // If cache already provided good results, reduce Brave queries to save costs
+        const cachedGoldCount = searchResults.filter(r => r.fromCache && r.score >= 80).length;
+        const braveQueries = cachedGoldCount >= 5
+            ? queries.slice(0, 3)   // Cache hit: minimal Brave (~3 requests)
+            : queries;               // Cache miss: full search (~10 requests)
+        const canSearch = mode !== 'demo' && braveQueries.length > 0;
 
-        if (braveApiKey && queries?.length > 0 && canSearch) {
+        if (braveApiKey && braveQueries.length > 0 && canSearch) {
 
             // 🧠 ENHANCED SCORING ALGORITHM
             const calculateLegalScore = (r) => {
@@ -563,7 +568,7 @@ DEVOLVÉ SOLO EL JSON válido.`
             };
 
             // Parallel search execution
-            const braveResults = await Promise.all(queries.map(async (q) => {
+            const braveResults = await Promise.all(braveQueries.map(async (q) => {
                 try {
                     // Sanitize the query before sending
                     const sanitizedQuery = sanitizeQueryForBrave(q);
@@ -654,7 +659,7 @@ DEVOLVÉ SOLO EL JSON válido.`
             // 🔁 DEEP DIVE MODE: Second round if few gold results
             // ══════════════════════════════════════════════════
             const goldResults = searchResults.filter(r => r.score >= 80);
-            if (goldResults.length < 5 && searchResults.length > 0) {
+            if (goldResults.length === 0 && searchResults.length > 0) {
                 // console.log(`🔁 Deep Dive Mode: Only ${goldResults.length} gold results, starting round 2...`);
 
                 // Extract patterns from best results to generate more specific queries
@@ -676,10 +681,8 @@ DEVOLVÉ SOLO EL JSON válido.`
                     // Generate refined queries
                     const refineQueries = [
                         ...extractedTerms.map(t => `${t} site:pjn.gov.ar`),
-                        ...extractedTerms.map(t => `${t} fallo cámara`),
-                        `${analysis.cleanQuery} "visto y considerando"`,
-                        `${analysis.cleanQuery} "se resuelve"`
-                    ].slice(0, 6);
+                        `${analysis.cleanQuery} "visto y considerando"`
+                    ].slice(0, 3);
 
                     // console.log(`🔍 Deep Dive queries:`, refineQueries);
 
@@ -936,7 +939,7 @@ ANÁLISIS DE LA CONSULTA:
             }
         }
 
-        result.brave_used = !!braveApiKey && queries.length > 0 && canSearch;
+        result.brave_used = !!braveApiKey && braveQueries.length > 0 && canSearch;
         result._debug = {
             total_results: searchResults.length,
             from_cache: searchResults.filter(r => r.fromCache).length,

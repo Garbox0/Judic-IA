@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { verifyAuth } from '@/lib/api-auth';
+import { verifyAccess, incrementUsage } from '@/lib/tierMiddleware';
 
 export async function POST(request) {
     const { query, excludeUrls, mode, userId } = await request.json();
@@ -13,6 +14,12 @@ export async function POST(request) {
     // 🛡️ Auth required for non-demo mode
     const auth = await verifyAuth(request);
     if (auth.error) return auth.response;
+
+    // 🛡️ Plan & Quota verification (consumes Brave + OpenRouter credits)
+    const accessCheck = await verifyAccess(auth.user.id, 'advanced_research', 'ai_messages');
+    if (!accessCheck.allowed) {
+        return NextResponse.json({ error: accessCheck.message, reason: accessCheck.reason }, { status: 403 });
+    }
 
     const braveApiKey = process.env.BRAVE_SEARCH_API_KEY;
 
@@ -95,6 +102,8 @@ export async function POST(request) {
         const newCase = JSON.parse(completion.choices[0].message.content);
         // Ensure URL is preserved if model hallucinates
         newCase.url = bestMatch.url;
+
+        await incrementUsage(auth.user.id, 'ai_messages', 1);
 
         return NextResponse.json(newCase);
 

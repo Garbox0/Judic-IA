@@ -111,12 +111,13 @@ function LoginContent() {
     // ... (existing code) ...
 
     const enterIntake = async () => {
-        // Check for missing lawyerId explicitly
+        if (!confirmedSession) return;
+
+        // If no lawyerId, redirect to marketplace to choose one
         if (!lawyerId) {
-            setError("Error: No se identifica al abogado. Intenta escanear el QR nuevamentte o usar el link original.");
+            router.push('/abogados');
             return;
         }
-        if (!confirmedSession) return;
 
         setLoading(true);
         setError(null); // Clear previous errors
@@ -222,6 +223,12 @@ function LoginContent() {
                 throw new Error("Email not confirmed");
             }
 
+            // If no lawyerId, redirect to marketplace after login
+            if (!lawyerId) {
+                router.push('/abogados');
+                return;
+            }
+
             const currentCid = cid || crypto.randomUUID();
             console.log("🚀 Syncing login with database...", { cid: currentCid, lawyer: lawyerId });
 
@@ -313,25 +320,7 @@ function LoginContent() {
             </button>
 
             <div className="auth-card glass-premium fade-in">
-                {!lawyerId ? (
-                    <div className="confirmed-ui slide-up">
-                        <div className="success-icon-premium error" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5', borderColor: 'rgba(239, 68, 68, 0.2)', boxShadow: 'none' }}>
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                        </div>
-                        <h1 className="brand-name-premium" style={{ color: '#fca5a5' }}>Acceso Invalido</h1>
-                        <p className="confirmed-text" style={{ color: '#94a3b8' }}>
-                            No hemos podido identificar al profesional asociado a este enlace.
-                        </p>
-                        <div className="password-checklist-premium" style={{ marginBottom: '2rem', textAlign: 'left' }}>
-                            <p>• El enlace puede estar incompleto.</p>
-                            <p>• Intenta escanear el código QR nuevamente.</p>
-                            <p>• O solicita un nuevo link a tu abogado.</p>
-                        </div>
-                        <button onClick={() => window.location.reload()} className="btn-gold-action">
-                            Reintentar Carga
-                        </button>
-                    </div>
-                ) : isConfirmed ? (
+                {isConfirmed ? (
                     <div className="confirmed-ui slide-up">
                         <div className="success-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
                         <h1 className="brand-name-premium">¡Bienvenido!</h1>
@@ -357,7 +346,7 @@ function LoginContent() {
                             />
                             <h1 className="brand-name-premium">Judic-IA</h1>
                             <div className="brand-status">Acceso Seguro • Clientes</div>
-                            <p className="brand-desc">Ingresa para continuar con tu asesoría legal automatizada.</p>
+                            <p className="brand-desc">Ingresa para continuar con tu consulta legal.</p>
                         </header>
 
                         <form onSubmit={handleLogin} className="premium-form">
@@ -412,7 +401,10 @@ function LoginContent() {
                                 </Link>
                             </p>
                             <p className="footer-note-wrapper">
-                                ¿Aún no tienes una clave? <span className="highlight-gold">Solicita el enlace de acceso a tu abogado profesional.</span>
+                                ¿Aún no tienes cuenta?{' '}
+                                <Link href={`/consultas/auth/register${lawyerId ? `?lawyerId=${lawyerId}${cid ? `&cid=${cid}` : ''}` : ''}`} className="link-gold">
+                                    Registrate aquí
+                                </Link>
                             </p>
                         </footer>
                     </>

@@ -246,7 +246,14 @@ function RegisterContent() {
     }, [redirectCountdown, router, searchParams]);
 
     const enterIntake = async () => {
-        if (!confirmedSession || !lawyerId) return;
+        if (!confirmedSession) return;
+
+        // If no lawyerId (autonomous registration), redirect to marketplace
+        if (!lawyerId) {
+            router.push('/abogados');
+            return;
+        }
+
         setLoading(true);
         try {
             const currentCid = cid || crypto.randomUUID();
@@ -380,6 +387,12 @@ function RegisterContent() {
 
             // SUCCESS FLOW
             if (data.session) {
+                // If no lawyerId (autonomous registration from marketplace), go to browse
+                if (!lawyerId) {
+                    router.push('/abogados');
+                    return;
+                }
+
                 // If we got a session immediately (Email Confirm Disabled), go straight to chat
                 const finalCid = cid || crypto.randomUUID();
                 const syncRes = await fetch("/api/chat", {
@@ -428,31 +441,13 @@ function RegisterContent() {
             </button>
 
             <div className="auth-card glass-premium fade-in">
-                {!lawyerId ? (
-                    <div className="confirmed-ui slide-up">
-                        <div className="success-icon-premium error" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5', borderColor: 'rgba(239, 68, 68, 0.2)', boxShadow: 'none' }}>
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                        </div>
-                        <h1 className="brand-name-premium" style={{ color: '#fca5a5' }}>Acceso Invalido</h1>
-                        <p className="confirmed-text" style={{ color: '#94a3b8' }}>
-                            No hemos podido identificar al profesional asociado a este enlace.
-                        </p>
-                        <div className="password-checklist-premium" style={{ marginBottom: '2rem', textAlign: 'left' }}>
-                            <p>• El enlace puede estar incompleto.</p>
-                            <p>• Intenta escanear el código QR nuevamente.</p>
-                            <p>• O solicita un nuevo link a tu abogado.</p>
-                        </div>
-                        <button onClick={() => window.location.reload()} className="btn-gold-action">
-                            Reintentar Carga
-                        </button>
-                    </div>
-                ) : isConfirmed ? (
+                {isConfirmed ? (
                     <div className="confirmed-ui fade-in">
                         <div className="success-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
                         <h1 className="brand-name-premium">¡Email Confirmado!</h1>
-                        <p className="confirmed-text">Tu privacidad ha sido asegurada. Ya puedes ingresar a la consulta.</p>
+                        <p className="confirmed-text">Tu cuenta ha sido verificada. Ya puedes continuar.</p>
                         <button onClick={enterIntake} className="btn-gold-action" disabled={loading}>
-                            {loading ? 'Preparando Chat...' : 'Ingresar al Chat Ahora'}
+                            {loading ? 'Preparando...' : (lawyerId ? 'Ir al Chat' : 'Buscar Abogados')}
                         </button>
                     </div>
                 ) : (
@@ -469,7 +464,7 @@ function RegisterContent() {
                             />
                             <h1 className="brand-name-premium">Judic-IA</h1>
                             <div className="brand-status">Acceso Seguro • Clientes</div>
-                            <p className="brand-desc">Crea una clave de acceso temporal para proteger tu privacidad y documentos durante esta sesión.</p>
+                            <p className="brand-desc">Crea tu cuenta para conectar con abogados verificados de forma segura.</p>
                         </header>
 
                         <form onSubmit={handleRegister} className="premium-form">
@@ -704,7 +699,7 @@ function RegisterContent() {
                             )}
 
                             <button type="submit" className="btn-gold-action" disabled={loading || !isPasswordStrong || !passwordsMatch || !emailsMatch || !isEmailDomainTrusted || pwnedStatus === 'breached' || message}>
-                                {loading ? 'Creando Acceso...' : 'Comenzar Consulta Segura'}
+                                {loading ? 'Creando Cuenta...' : 'Crear Cuenta'}
                             </button>
                         </form>
 

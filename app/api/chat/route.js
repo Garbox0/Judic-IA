@@ -430,7 +430,25 @@ export async function POST(request) {
             });
         }
 
-        // 4. CHECK QUOTA & CONSUME USAGE (Atomic RPC)
+        // ============================================
+        // INTAKE MODE: DIRECT CHAT (No AI)
+        // Client messages are saved and lawyer responds manually.
+        // No OpenRouter calls, no quota consumption.
+        // ============================================
+        if (mode === 'intake') {
+            // Update last_message fields for inbox sorting
+            await db
+                .from('inquiries')
+                .update({
+                    last_message_at: new Date().toISOString(),
+                    last_message_preview: message.slice(0, 120)
+                })
+                .eq('id', effectiveSessionId);
+
+            return NextResponse.json({ saved: true, sessionId: effectiveSessionId });
+        }
+
+        // 4. CHECK QUOTA & CONSUME USAGE (Atomic RPC) — Only for AI-powered modes
         // We need to identify the lawyer to charge.
         const { data: inquiryData } = await db
             .from('inquiries')
@@ -455,7 +473,7 @@ export async function POST(request) {
             await incrementUsage(inquiryData.assigned_lawyer_id, 'ai_messages', 1);
         }
 
-        // 5. GENERATE AI RESPONSE
+        // 5. GENERATE AI RESPONSE (non-intake modes only)
         let replyContent = "";
         if (openai) {
             try {
@@ -466,11 +484,11 @@ export async function POST(request) {
                 if (contactChannel) {
                     console.log("🔀 Contact Intent Detected:", contactChannel.key);
                     contactInstruction = `\n\n✋ [SYSTEM OVERRIDE]: EL USUARIO ESTÁ PREGUNTANDO SOBRE: ${contactChannel.label.toUpperCase()}.
-                    
+
                     TU RESPUESTA DEBE INCLUIR OBLIGATORIAMENTE ESTA INFORMACIÓN DE CONTACTO AL FINAL:
                     "Para resolver esto rápidamente, te recomendamos escribir a: **${contactChannel.email}**"
                     (Asunto sugerido: "${contactChannel.defaultSubject}")
-                    
+
                     Si es un problema técnico o de facturación, NO intentes debuggearlo tú. Derívalo al mail.`;
                 }
 
@@ -489,8 +507,6 @@ export async function POST(request) {
                 replyContent = rawContent;
 
                 // Match XML <extraction> OR Markdown **[EXTRACCIÓN]**
-                // Group 1: XML Content
-                // Group 2: Markdown Content
                 const extractionRegex = /(?:<extraction>([\s\S]*?)<\/extraction>)|(?:\*\*\[EXTRACCIÓN\]\*\*\s*({[\s\S]*?}))/i;
                 const match = rawContent.match(extractionRegex);
 
@@ -499,9 +515,6 @@ export async function POST(request) {
                         const jsonStr = (match[1] || match[2] || "").trim().replace(/```json/g, '').replace(/```/g, '');
                         console.log("🕵️ Raw Extraction Found:", jsonStr);
                         extractedData = JSON.parse(jsonStr);
-
-                        // Remove metadata from response shown to user
-                        // We replace the WHOLE match with empty string
                         replyContent = rawContent.replace(match[0], "").trim();
                     } catch (e) {
                         console.error("❌ JSON Parse Error in Extraction:", e);
@@ -532,7 +545,6 @@ export async function POST(request) {
                         }
                     }
                 }
-                // -----------------------------
 
             } catch (err) {
                 console.error("❌ OpenRouter Error:", err);
@@ -549,10 +561,6 @@ export async function POST(request) {
             role: 'assistant',
             content: replyContent
         });
-
-
-        // 6. USAGE ALREADY CONSUMED BY RPC ABOVE
-        // No further action needed.
 
         return NextResponse.json({ reply: replyContent });
 

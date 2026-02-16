@@ -102,7 +102,8 @@ export default function SettingsPage({ isDemo = false }) {
         subscription_status: 'inactive',
         subscription_expiry: null,
         is_correspondent: false,
-        coverage_areas: ''
+        coverage_areas: '',
+        is_public: false
     });
 
     useEffect(() => {
@@ -123,7 +124,8 @@ export default function SettingsPage({ isDemo = false }) {
                     subscription_status: 'inactive',
                     subscription_expiry: null,
                     is_correspondent: false,
-                    coverage_areas: 'Buenos Aires, AMBA'
+                    coverage_areas: 'Buenos Aires, AMBA',
+                    is_public: false
                 });
                 setLoading(false);
                 return;
@@ -153,7 +155,8 @@ export default function SettingsPage({ isDemo = false }) {
                         subscription_status: data.subscription_status || 'inactive',
                         subscription_expiry: data.subscription_expiry || null,
                         is_correspondent: data.is_correspondent || false,
-                        coverage_areas: data.coverage_areas || ''
+                        coverage_areas: data.coverage_areas || '',
+                        is_public: data.is_public || false
                     });
                 }
             }
@@ -347,6 +350,7 @@ export default function SettingsPage({ isDemo = false }) {
                 especialidades: formData.especialidades,
                 is_correspondent: formData.is_correspondent,
                 coverage_areas: formData.coverage_areas,
+                is_public: formData.is_public,
                 matricula: (formData.tomo || formData.folio)
                     ? `T° ${formData.tomo || ''} F° ${formData.folio || ''}`.trim()
                     : formData.matricula,
@@ -721,6 +725,34 @@ export default function SettingsPage({ isDemo = false }) {
                                 <div className="stg-f-group mt-1-5rem">
                                     <label htmlFor="biography" className="stg-label">Biografía / Extracto</label>
                                     <textarea id="biography" name="biography" autoComplete="off" className="stg-dark-input underline" rows="3" value={formData.biography} onChange={handleChange} />
+                                </div>
+
+                                {/* MARKETPLACE VISIBILITY TOGGLE */}
+                                <div className="stg-f-group mt-1-5rem">
+                                    <div className="stg-toggle-row">
+                                        <div className="stg-toggle-info">
+                                            <label className="stg-label" style={{ marginBottom: 0 }}>Perfil Público en Marketplace</label>
+                                            <p className="stg-hint">
+                                                {formData.verification_status === 'verified'
+                                                    ? 'Activar para que clientes puedan encontrarte en el buscador de abogados.'
+                                                    : 'Tu perfil debe estar verificado para aparecer en el marketplace.'}
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className={`stg-toggle-switch ${formData.is_public ? 'active' : ''}`}
+                                            onClick={() => {
+                                                if (formData.verification_status !== 'verified') {
+                                                    toast.error("Tu perfil debe estar verificado para activar esta opción.");
+                                                    return;
+                                                }
+                                                setFormData(prev => ({ ...prev, is_public: !prev.is_public }));
+                                            }}
+                                            disabled={formData.verification_status !== 'verified'}
+                                        >
+                                            <span className="stg-toggle-knob" />
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="stg-actions-footer">

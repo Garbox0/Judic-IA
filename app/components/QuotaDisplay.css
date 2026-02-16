@@ -173,6 +173,29 @@
   gap: 1rem;
 }
 
+/* Skeleton Loading */
+.skeleton-text {
+  background: linear-gradient(90deg, var(--glass) 25%, var(--glass-soft) 50%, var(--glass) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  height: 1rem;
+}
+
+.skeleton-fill {
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--glass) 25%, var(--glass-soft) 50%, var(--glass) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .quota-grid {

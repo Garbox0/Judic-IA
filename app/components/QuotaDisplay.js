@@ -118,3 +118,30 @@ export function QuotaSummary({ profile }) {
     </div>
   );
 }
+
+/**
+ * Skeleton loader para QuotaSummary (evita layout shift mientras carga el profile)
+ */
+export function QuotaSummarySkeleton() {
+  return (
+    <div className="quota-summary">
+      <div className="quota-summary-header">
+        <div className="skeleton-text" style={{ width: '180px', height: '1.125rem' }} />
+        <div className="skeleton-text" style={{ width: '100px', height: '2rem', borderRadius: '8px' }} />
+      </div>
+      <div className="quota-grid">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="quota-display">
+            <div className="quota-header">
+              <div className="skeleton-text" style={{ width: '100px', height: '0.875rem' }} />
+              <div className="skeleton-text" style={{ width: '50px', height: '0.875rem' }} />
+            </div>
+            <div className="quota-bar">
+              <div className="skeleton-fill" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

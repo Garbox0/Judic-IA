@@ -1815,3 +1815,82 @@ body.light-theme .stg-correspondence-guide-outside {
 body.light-theme .stg-correspondence-guide-outside .usage-guide-inline-trigger {
     color: #b45309 !important;
 }
+
+/* =========================================
+   TOGGLE SWITCH (Marketplace visibility)
+   ========================================= */
+.stg-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.stg-toggle-info {
+    flex: 1;
+}
+
+.stg-hint {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 0.3rem;
+    line-height: 1.4;
+}
+
+.stg-toggle-switch {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.stg-toggle-switch:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.stg-toggle-switch.active {
+    background: rgba(251, 191, 36, 0.3);
+    border-color: rgba(251, 191, 36, 0.5);
+}
+
+.stg-toggle-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: #94a3b8;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.stg-toggle-switch.active .stg-toggle-knob {
+    left: 24px;
+    background: #fbbf24;
+}
+
+/* Light Theme */
+body.light-theme .stg-toggle-switch {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+}
+
+body.light-theme .stg-toggle-switch.active {
+    background: rgba(251, 191, 36, 0.2);
+    border-color: rgba(251, 191, 36, 0.4);
+}
+
+body.light-theme .stg-toggle-knob {
+    background: #94a3b8;
+}
+
+body.light-theme .stg-toggle-switch.active .stg-toggle-knob {
+    background: #d97706;
+}

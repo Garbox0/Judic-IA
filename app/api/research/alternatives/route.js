@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { generateAlternatives } from '@/lib/queryEnhancer';
 import { verifyAuth } from '@/lib/api-auth';
+import { verifyAccess } from '@/lib/tierMiddleware';
 
 /**
  * API Endpoint: Alternative Queries Generator
@@ -10,6 +11,12 @@ export async function POST(request) {
     // 🛡️ Auth required (consumes API credits)
     const auth = await verifyAuth(request);
     if (auth.error) return auth.response;
+
+    // 🛡️ Plan verification (consumes OpenRouter credits)
+    const accessCheck = await verifyAccess(auth.user.id, 'advanced_research');
+    if (!accessCheck.allowed) {
+        return NextResponse.json({ error: accessCheck.message, reason: accessCheck.reason }, { status: 403 });
+    }
 
     try {
         const { query, jurisdiction = 'Nacional' } = await request.json();

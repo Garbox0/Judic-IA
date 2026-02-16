@@ -101,7 +101,7 @@ export default function Home() {
               <Link href="#features" className="link-item">Servicios</Link>
               <Link href="#pricing" className="link-item">Precios</Link>
               <Link href="#guias" className="link-item">Guías</Link>
-              <Link href="https://consultas.judic-ia.com" className="btn-login-premium">Acceso Clientes</Link>
+              <Link href="/abogados" className="btn-login-premium">Acceso Clientes</Link>
               <Link href="/login" className="btn-login-premium">Acceso Abogados</Link>
             </div>
 
@@ -137,7 +137,7 @@ export default function Home() {
             <Link href="/login" className="btn-login-mobile primary" onClick={() => setMobileMenuOpen(false)}>
               Acceso Abogados
             </Link>
-            <Link href="https://consultas.judic-ia.com" className="btn-login-mobile" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/abogados" className="btn-login-mobile" onClick={() => setMobileMenuOpen(false)}>
               Acceso Clientes
             </Link>
           </div>
@@ -424,10 +424,10 @@ export default function Home() {
             <span className="banner-icon">🔐</span>
             <div className="banner-text">
               <strong>El enlace de invitación ha expirado.</strong>
-              <p>Si ya creaste tu clave, puedes ingresar directamente a continuación.</p>
+              <p>Puedes buscar un abogado en nuestro directorio o ingresar con tu clave.</p>
             </div>
-            <Link href="https://consultas.judic-ia.com/auth/login" className="btn-banner-action">
-              Ir al Acceso Clientes
+            <Link href="/abogados" className="btn-banner-action">
+              Buscar Abogados
             </Link>
           </div>
         </div>

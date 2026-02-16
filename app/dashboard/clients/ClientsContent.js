@@ -1,33 +1,24 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
-import EventModal from '../../components/dashboard/EventModal';
-import { demoClients } from '../../lib/demoData'; // [NEW] Mock Data
+import { demoClients } from '../../lib/demoData';
 import {
-    Users,
     Inbox,
-    Phone,
     Trash2,
-    ArrowRight,
+    ArrowLeft,
     AlertTriangle,
-    CheckCircle,
     X,
-    MessageSquare,
-    FileText,
-    Zap,
     Loader,
     Folder,
-    Calendar,
     PartyPopper,
     Link2,
-    Copy,
     Check,
-    Mail,
-    Scale
+    Send,
+    MoreVertical,
+    Search,
+    Globe
 } from 'lucide-react';
-import UsageGuide from '@/app/components/UsageGuide';
-import { dashboardManuals } from '@/app/lib/dashboardManuals';
 import VerificationPendingBlock from '../../components/VerificationPendingBlock';
 import './clients.css';
 
@@ -35,28 +26,30 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     const [clients, setClients] = useState([]);
     const [loading, setLoading] = useState(true);
     const [lawyerId, setLawyerId] = useState(null);
-    const [selectedClient, setSelectedClient] = useState(null); // For modal
+    const [selectedClient, setSelectedClient] = useState(null);
     const [chatHistory, setChatHistory] = useState([]);
     const [loadingChat, setLoadingChat] = useState(false);
     const [copied, setCopied] = useState(false);
     const [clientToDelete, setClientToDelete] = useState(null);
-    const [conversionSuccess, setConversionSuccess] = useState(false); // New success state
-    const [showDetails, setShowDetails] = useState(true); // Toggle sidebar
+    const [conversionSuccess, setConversionSuccess] = useState(false);
+    const [showDetails, setShowDetails] = useState(false); // Sidebar closed by default on desktop
     const [attachments, setAttachments] = useState([]);
 
-    // Agenda Modal State
-    const [eventModalOpen, setEventModalOpen] = useState(false);
-    const [eventInitialData, setEventInitialData] = useState(null);
+    // Lawyer Reply State
+    const [replyInput, setReplyInput] = useState('');
+    const [sendingReply, setSendingReply] = useState(false);
 
     // Case Conversion State
     const [converting, setConverting] = useState(false);
-    const [verificationStatus, setVerificationStatus] = useState(null); // null = loading, avoids flash
+    const [verificationStatus, setVerificationStatus] = useState(null);
+
+    // Refs for scrolling
+    const messagesEndRef = useRef(null);
 
     // 1. INITIAL FETCH & AUTH
     useEffect(() => {
         const init = async () => {
             if (isDemo) {
-                // DEMO MODE INITIALIZATION
                 setLawyerId('demo-lawyer-id');
                 setClients(demoClients);
                 setLoading(false);
@@ -67,28 +60,25 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
             if (user) {
                 setLawyerId(user.id);
 
-                // 🛡️ EXCLUDE ADMIN (Gabriel) from verification block
+                // 🛡️ Admin Verification Bypass
                 const isAdmin = user.id === '365cd259-4f1e-4004-a677-1eda06a5147e' || user.email === 'gbrlescalada@gmail.com';
 
                 if (isAdmin) {
                     setVerificationStatus('verified');
                 } else {
-                    // Fetch Verification Status
-                    const { data: profile } = await supabase
-                        .from('profiles')
-                        .select('verification_status')
-                        .eq('id', user.id)
-                        .single();
-
+                    const { data: profile } = await supabase.from('profiles').select('verification_status').eq('id', user.id).single();
                     setVerificationStatus(profile?.verification_status || 'none');
                 }
 
+                // FETCH CLIENTS ORDERED BY ACTIVITY
                 const { data, error } = await supabase
                     .from('inquiries')
                     .select('*')
                     .eq('assigned_lawyer_id', user.id)
                     .neq('status', 'link_generated')
                     .neq('source', 'manual')
+                    // NEW: Order by last_message_at (most recent first), fall back to created_at
+                    .order('last_message_at', { ascending: false, nullsFirst: false })
                     .order('created_at', { ascending: false });
 
                 if (error) console.error("❌ Error fetching inquiries:", error);
@@ -99,12 +89,11 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
         init();
     }, [isDemo]);
 
-    // 2. REALTIME SUBSCRIPTION: CLIENTS LIST (Global)
+    // 2. REALTIME SUBSCRIPTION
     useEffect(() => {
-        if (!lawyerId || isDemo) return; // Disable Realtime in Demo
+        if (!lawyerId || isDemo) return;
 
-        // console.log("🟢 Subscribing to Inquiries for Lawyer:", lawyerId);
-        const channel = supabase.channel('realtime-clients')
+        const channel = supabase.channel('realtime-clients-inbox')
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'inquiries', filter: `assigned_lawyer_id=eq.${lawyerId}` },
@@ -114,15 +103,13 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                             setClients(prev => [payload.new, ...prev]);
                         }
                     } else if (payload.eventType === 'UPDATE') {
-                        if (payload.new.status === 'link_generated') {
-                            setClients(prev => prev.filter(c => c.id !== payload.new.id));
-                        } else {
-                            setClients(prev => {
-                                const exists = prev.find(c => c.id === payload.new.id);
-                                if (exists) return prev.map(c => c.id === payload.new.id ? payload.new : c);
-                                return [payload.new, ...prev];
-                            });
-                        }
+                        // If updated (e.g. new message timestamp), move to top
+                        setClients(prev => {
+                            const filtered = prev.filter(c => c.id !== payload.new.id);
+                            return [payload.new, ...filtered];
+                        });
+
+                        // Update selected client if active
                         setSelectedClient(prev => (prev && prev.id === payload.new.id) ? payload.new : prev);
                     } else if (payload.eventType === 'DELETE') {
                         setClients(prev => prev.filter(c => c.id !== payload.old.id));
@@ -137,11 +124,10 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
         };
     }, [lawyerId, isDemo]);
 
-    // 3. REALTIME SUBSCRIPTION: CHAT & ATTACHMENTS (Active Modal)
+    // 3. CHAT SUBSCRIPTION
     useEffect(() => {
-        if (!selectedClient || isDemo) return; // Disable Realtime in Demo
+        if (!selectedClient || isDemo) return;
 
-        // console.log("🔵 Subscribing to Chat/Attachments for Client:", selectedClient.id);
         const channel = supabase.channel(`realtime-chat-${selectedClient.id}`)
             .on(
                 'postgres_changes',
@@ -151,16 +137,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                         if (prev.find(m => m.id === payload.new.id)) return prev;
                         return [...prev, payload.new];
                     });
-                }
-            )
-            .on(
-                'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'attachments', filter: `inquiry_id=eq.${selectedClient.id}` },
-                (payload) => {
-                    setAttachments(prev => {
-                        if (prev.find(a => a.id === payload.new.id)) return prev;
-                        return [payload.new, ...prev];
-                    });
+                    scrollToBottom();
                 }
             )
             .subscribe();
@@ -170,473 +147,378 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
         };
     }, [selectedClient?.id, isDemo]);
 
-    const fetchChatHistory = async (inquiryId) => {
-        setLoadingChat(true);
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [chatHistory]);
+
+    const selectClient = async (client) => {
+        if (selectedClient?.id === client.id) return;
+        setSelectedClient(client);
+        setLoadingChat(true); // Show loader immediately
+
+        // Mobile: Scroll to top of page to show full chat
+        if (window.innerWidth < 768) {
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        }
 
         if (isDemo) {
-            // MOCK CHAT HISTORY
             setTimeout(() => {
                 setChatHistory([
-                    { id: 1, role: 'assistant', content: 'Hola, soy el asistente virtual del Dr. Martínez. ¿En qué puedo ayudarte hoy?', created_at: new Date(Date.now() - 1000000).toISOString() },
-                    { id: 2, role: 'user', content: 'Hola, necesito consultar por un despido.', created_at: new Date(Date.now() - 900000).toISOString() },
-                    { id: 3, role: 'assistant', content: 'Entiendo. ¿Podrías decirme hace cuánto ocurrió y si trabajabas registrado?', created_at: new Date(Date.now() - 800000).toISOString() },
-                    { id: 4, role: 'user', content: 'Fue hace dos semanas. Sí, estaba en blanco desde 2018.', created_at: new Date(Date.now() - 700000).toISOString() },
-                    { id: 5, role: 'assistant', content: 'Gracias por la información. Esto es muy útil para análisis preliminar. ¿Tenés la carta documento?', created_at: new Date(Date.now() - 600000).toISOString() }
+                    { id: 1, role: 'assistant', content: 'Resumen del caso: Cliente consulta por accidente laboral.', created_at: new Date().toISOString() },
+                    { id: 2, role: 'user', content: 'Hola, quería consultar sobre mi caso.', created_at: new Date().toISOString() }
                 ]);
-                setAttachments([]); // No attachments in demo for now
                 setLoadingChat(false);
-            }, 600);
+            }, 500);
             return;
         }
 
         // Fetch Messages
-        const { data: msgs, error: msgError } = await supabase
+        const { data: msgs, error } = await supabase
             .from('messages')
             .select('*')
-            .eq('inquiry_id', inquiryId)
+            .eq('inquiry_id', client.id)
             .order('created_at', { ascending: true });
 
-        if (!msgError) setChatHistory(msgs);
+        if (!error) {
+            setChatHistory(msgs);
+            setLoadingChat(false);
+            scrollToBottom();
+        }
 
         // Fetch Attachments
-        const { data: files, error: fileError } = await supabase
+        const { data: files } = await supabase
             .from('attachments')
             .select('*')
-            .eq('inquiry_id', inquiryId)
+            .eq('inquiry_id', client.id)
             .order('created_at', { ascending: false });
 
-        if (!fileError) setAttachments(files);
-
-        setLoadingChat(false);
+        setAttachments(files || []);
     };
 
-    const openClientModal = (client) => {
-        setSelectedClient(client);
-        fetchChatHistory(client.id);
-        setShowDetails(true);
-    };
+    const sendLawyerReply = async (e) => {
+        e.preventDefault();
+        if (!replyInput.trim() || sendingReply || !selectedClient) return;
 
-    const closeModal = () => {
-        setSelectedClient(null);
-        setChatHistory([]);
-        setAttachments([]);
-    };
-
-    const openEventModalForClient = () => {
-        if (!selectedClient) return;
         if (isDemo) {
-            alert("🔒 Funcionalidad restringida en DEMO.\n\nAquí podrías agendar audiencias o vencimientos vinculados a este cliente.");
+            const mockMsg = {
+                id: Date.now(),
+                inquiry_id: selectedClient.id,
+                role: 'lawyer',
+                content: replyInput.trim(),
+                created_at: new Date().toISOString()
+            };
+            setChatHistory(prev => [...prev, mockMsg]);
+            setReplyInput('');
+            scrollToBottom();
             return;
         }
 
-        // Smart Parsing: Try to find dates in AI summary
-        const summary = selectedClient.ai_summary || '';
-        const title = `Vencimiento: ${selectedClient.contact_name || 'Nuevo Cliente'}`;
-        let date = new Date().toISOString().split('T')[0];
-
-        const dateMatch = summary.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-        if (dateMatch) {
-            date = `${dateMatch[3]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}`;
-        }
-
-        setEventInitialData({
-            title: title,
-            description: `Relacionado al caso de ${selectedClient.contact_name}.\n\nContexto IA: ${summary}`,
-            date: date,
-            time: '09:00',
-            type: 'hearing'
-        });
-        setEventModalOpen(true);
-    };
-
-    const copySmartLink = async () => {
-        let currentLawyerId = lawyerId;
-
-        if (!currentLawyerId && !isDemo) {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                setLawyerId(user.id);
-                currentLawyerId = user.id;
-            } else {
-                alert("Error de sesión: No se pudo identificar al abogado. Por favor, recarga la página.");
-                return;
-            }
-        }
-
-        if (isDemo) {
-            navigator.clipboard.writeText("https://judic-ia.com/consultas/dr-martinez/link-demo");
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-            return;
-        }
-
+        setSendingReply(true);
         try {
-            const res = await fetch("/api/intake/create-link", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ lawyerId: currentLawyerId })
-            });
-
-            const data = await res.json();
-            if (data.link) {
-                navigator.clipboard.writeText(data.link);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-            } else {
-                console.error("Error generating link:", data.error);
-                alert("Error al generar el enlace. Intenta de nuevo.");
-            }
-        } catch (err) {
-            console.error("Link copy failed:", err);
-            alert("Error de conexión al generar el enlace.");
-        }
-    };
-
-    const deleteClient = (inquiryId, event) => {
-        if (event) event.stopPropagation();
-        if (isDemo) {
-            alert("🔒 Funcionalidad restringida en DEMO.\n\nEsta acción eliminaría permanentemente el expediente y bloquearía el acceso al cliente.");
-            return;
-        }
-        setClientToDelete(inquiryId);
-    };
-
-    const confirmDelete = async () => {
-        if (!clientToDelete) return;
-
-        // Safety check again just in case
-        if (isDemo) {
-            setClientToDelete(null);
-            return;
-        }
-
-        const inquiryId = clientToDelete;
-        const clientObj = clients.find(c => c.id === inquiryId);
-        const authId = clientObj?.client_auth_id;
-
-        // Optimistic UI update
-        if (selectedClient?.id === inquiryId) setSelectedClient(null);
-        setClients(prev => prev.filter(c => c.id !== inquiryId));
-        setClientToDelete(null);
-
-        try {
-            const apiRes = await fetch("/api/clients/delete", {
+            const res = await fetch("/api/chat/reply", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    clientAuthId: authId || null,
-                    inquiryId: inquiryId
+                    inquiryId: selectedClient.id,
+                    message: replyInput.trim()
                 })
             });
 
-            if (!apiRes.ok) {
-                throw new Error("Error en el servidor de borrado.");
-            }
-
-        } catch (error) {
-            console.error("❌ Error during full client deletion:", error);
+            if (!res.ok) throw new Error("Error mensaje");
+            setReplyInput('');
+            // Realtime adds the message
+        } catch (err) {
+            console.error(err);
         } finally {
-            setClientToDelete(null);
+            setSendingReply(false);
         }
     };
 
     const convertToCase = async () => {
-        if (!selectedClient || !lawyerId) return;
-
-        if (isDemo) {
-            alert("🔒 Funcionalidad restringida en DEMO.\n\nEsto convertiría la consulta en una 'Causa Oficial' (Expediente) con seguimiento judicial.");
-            return;
-        }
-
+        if (!selectedClient || isDemo) return;
         setConverting(true);
         try {
             const res = await fetch("/api/cases/convert", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    inquiryId: selectedClient.id,
-                    lawyerId: lawyerId
-                })
+                body: JSON.stringify({ inquiryId: selectedClient.id, lawyerId })
             });
-
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Error al convertir en expediente.");
-
-            setConversionSuccess(true);
-            setSelectedClient(prev => ({ ...prev, is_case: true }));
-
-        } catch (error) {
-            console.error("❌ Conversion error:", error);
-            alert(`Error: ${error.message}`);
+            if (res.ok) {
+                setConversionSuccess(true);
+                setSelectedClient(prev => ({ ...prev, is_case: true }));
+            }
+        } catch (err) {
+            console.error(err);
         } finally {
             setConverting(false);
         }
     };
 
-    const getLink = (path) => {
-        return isDemo ? path.replace('/dashboard', basePath) : path;
+    // --- RENDER HELPERS ---
+
+    // Format relative time (e.g. "14:30", "Ayer", "12/05")
+    const formatTime = (isoString) => {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        const now = new Date();
+        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (diffDays === 1) return 'Ayer';
+        return date.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
     };
 
     return (
-        <div className="clients-container">
-            {/* 🔒 VERIFICATION BLOCK */}
+        <div className="clients-page-wrapper">
+            {/* 🔒 VERIFICATION BLOCK (Only visible if issues) */}
             {!isDemo && verificationStatus && verificationStatus !== 'verified' && (
-                <VerificationPendingBlock status={verificationStatus} />
+                <div className="verification-wrapper">
+                    <VerificationPendingBlock status={verificationStatus} />
+                </div>
             )}
 
-            <nav className="clients-nav">
-                <div className="breadcrumb">
-                    <Link href={isDemo ? basePath : "/dashboard"} className="breadcrumb-item">Gabinete</Link>
-                    <span className="breadcrumb-separator">/</span>
-                    <span className="breadcrumb-current">Gestión de Clientes</span>
-                </div>
-            </nav>
-
-            <header className="clients-header">
-                <div className="header-flex">
-                    <div className="header-icon-box"><Users size={48} /></div>
-                    <div className="header-text">
-                        <h1 className="dashboard-page-title">Mis Clientes</h1>
-                        <p>Gestiona tus expedientes y consultas entrantes.</p>
-                    </div>
-                    <UsageGuide content={dashboardManuals.clients} />
-                </div>
-            </header>
-
-            <div className="smart-link-card glass-panel">
-                <div className="link-info">
-                    <h3><Link2 size={24} className="inline-icon-middle" /> Tu Enlace de Consulta Inteligente</h3>
-                    <p>Comparte este link con tus clientes para que la IA tome sus datos automáticamente.</p>
-                </div>
-                <button onClick={copySmartLink} className={`btn-copy ${copied ? 'copied' : ''}`} disabled={copied}>
-                    {copied ? <><Check size={16} /> Enlace Copiado</> : <><Copy size={16} /> Copiar Enlace</>}
-                </button>
+            {/* BREADCRUMB */}
+            <div className="breadcrumb clients-breadcrumb">
+                <Link href={isDemo ? basePath : "/dashboard"} className="breadcrumb-item">Gabinete</Link>
+                <span className="breadcrumb-separator">/</span>
+                <span className="breadcrumb-current">Clientes</span>
             </div>
 
-            {/* CLIENTS LIST */}
-            <div className="clients-grid">
-                {loading ? (
-                    <p>Cargando clientes...</p>
-                ) : clients.length === 0 ? (
-                    <div className="empty-state glass-panel">
-                        <div className="empty-icon"><Inbox size={64} className="opacity-low" /></div>
-                        <h3>Aún no tienes consultas</h3>
-                        <p>Comparte tu enlace inteligente para empezar a recibir casos.</p>
-                    </div>
-                ) : (
-                    clients.map(client => (
-                        <div key={client.id} className="client-card glass-panel" onClick={() => openClientModal(client)}>
-                            <button className="btn-delete btn-delete-absolute" onClick={(e) => deleteClient(client.id, e)} title="Eliminar Expediente">
-                                <Trash2 size={14} />
-                            </button>
+            {/* SPLIT LAYOUT CONTAINER */}
+            <div className={`clients-split-container ${selectedClient ? 'chat-active' : 'list-active'}`}>
 
-                            <h3 className="client-id header-id-margin">
-                                {client.contact_name || `Consulta #${client.id.slice(0, 8)}`}
-                            </h3>
-
-                            {client.contact_name && (
-                                <p className="client-id-text">ID: {client.id.slice(0, 8)}...</p>
-                            )}
-
-                            {client.contact_phone && (
-                                <p className="client-phone-row"><Phone size={14} /> {client.contact_phone}</p>
-                            )}
-
-                            <p className="client-date">{new Date(client.created_at).toLocaleDateString()}</p>
-                            <div className="client-footer">Ver Conversación <ArrowRight size={14} className="inline-icon-footer" /></div>
+                {/* 1. LEFT PANEL: INBOX LIST */}
+                <aside className="inbox-list-panel">
+                    <div className="inbox-header">
+                        <h1 className="inbox-title">Mensajes</h1>
+                        <div className="inbox-actions">
+                            <button className="btn-icon-ghost" title="Buscar"><Search size={18} /></button>
                         </div>
-                    ))
-                )}
+                    </div>
+
+                    <div className="smart-link-mini">
+                        <button onClick={() => {
+                            navigator.clipboard.writeText(`https://consultas.judic-ia.com/${lawyerId}`);
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 2000);
+                        }} className={`btn-mini-copy ${copied ? 'copied' : ''}`}>
+                            {copied ? <Check size={14} /> : <Link2 size={14} />}
+                            {copied ? 'Copiado' : 'Link de Consulta'}
+                        </button>
+                    </div>
+
+                    <div className="inbox-list">
+                        {loading ? (
+                            <div className="inbox-loader"><Loader className="animate-spin" /></div>
+                        ) : clients.length === 0 ? (
+                            <div className="inbox-empty">
+                                <Inbox size={32} />
+                                <p>No hay consultas aún.</p>
+                            </div>
+                        ) : (
+                            clients.map(client => (
+                                <div
+                                    key={client.id}
+                                    className={`inbox-item ${selectedClient?.id === client.id ? 'active' : ''}`}
+                                    onClick={() => selectClient(client)}
+                                >
+                                    <div className="avatar-circle">
+                                        {client.contact_name ? client.contact_name[0].toUpperCase() : '?'}
+                                    </div>
+                                    <div className="inbox-item-content">
+                                        <div className="inbox-item-row-top">
+                                            <span className="client-name-list">
+                                                {client.contact_name || `Consulta #${client.id.slice(0, 4)}`}
+                                            </span>
+                                            <span className="msg-time">
+                                                {formatTime(client.last_message_at || client.created_at)}
+                                            </span>
+                                        </div>
+                                        <div className="inbox-item-row-bottom">
+                                            <span className="msg-preview">
+                                                {client.last_message_preview || 'Nueva consulta iniciada.'}
+                                            </span>
+                                            {/* Optional: Unread indicator if we had that field */}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </aside>
+
+                {/* 2. RIGHT PANEL: CHAT VIEW */}
+                <main className="inbox-chat-panel">
+                    {selectedClient ? (
+                        <>
+                            {/* CHAT HEADER */}
+                            <header className="chat-header-inline">
+                                <button className="btn-back-mobile" onClick={() => setSelectedClient(null)}>
+                                    <ArrowLeft size={20} />
+                                </button>
+
+                                <div className="chat-client-info" onClick={() => setShowDetails(!showDetails)}>
+                                    <div className="avatar-circle small">
+                                        {selectedClient.contact_name?.[0] || '?'}
+                                    </div>
+                                    <div className="info-text">
+                                        <h2>{selectedClient.contact_name || 'Nuevo Cliente'}</h2>
+                                        <p>{selectedClient.case_type || 'Consulta General'}</p>
+                                    </div>
+                                </div>
+
+                                <div className="chat-actions">
+                                    <button
+                                        className="btn-action-icon"
+                                        title="Convertir a Expediente"
+                                        onClick={convertToCase}
+                                        disabled={selectedClient.is_case || converting}
+                                    >
+                                        {selectedClient.is_case ? <Folder className="text-blue" size={20} /> : <Folder size={20} />}
+                                    </button>
+                                    <button
+                                        className="btn-action-icon"
+                                        title="Mi Perfil Público"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText("https://judic-ia.com/abogados/" + lawyerId);
+                                            setCopied(true);
+                                            setTimeout(() => setCopied(false), 2000);
+                                        }}
+                                    >
+                                        {copied ? <Check size={20} /> : <Globe size={20} />}
+                                    </button>
+                                    <button
+                                        className="btn-action-icon"
+                                        title="Ver Detalles"
+                                        onClick={() => setShowDetails(!showDetails)}
+                                    >
+                                        <MoreVertical size={20} />
+                                    </button>
+                                </div>
+                            </header>
+
+                            {/* CHAT MESSAGES */}
+                            <div className="chat-viewport">
+                                {loadingChat ? (
+                                    <div className="loader-center"><Loader className="animate-spin" /></div>
+                                ) : (
+                                    chatHistory.map(msg => {
+                                        const isSystem = msg.content.startsWith('[SISTEMA:') || msg.content.startsWith('[SYSTEM:');
+                                        if (isSystem) return null;
+
+                                        return (
+                                            <div key={msg.id} className={`chat-bubble ${msg.role}`}>
+                                                <div className="bubble-content">{msg.content}</div>
+                                                <div className="bubble-time">{formatTime(msg.created_at)}</div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                                <div ref={messagesEndRef} />
+                            </div>
+
+                            {/* INPUT AREA */}
+                            <div className="chat-input-area">
+                                <form onSubmit={sendLawyerReply} className="input-row">
+                                    <input
+                                        type="text"
+                                        placeholder="Escribe un mensaje..."
+                                        value={replyInput}
+                                        onChange={e => setReplyInput(e.target.value)}
+                                        disabled={sendingReply}
+                                    />
+                                    <button type="submit" disabled={!replyInput.trim() || sendingReply} className="btn-send">
+                                        {sendingReply ? <Loader className="animate-spin" size={18} /> : <Send size={18} />}
+                                    </button>
+                                </form>
+                            </div>
+
+                            {/* DETAILS SIDEBAR (OVERLAY) */}
+                            {showDetails && (
+                                <div className="details-sidebar-inline">
+                                    <div className="sidebar-header">
+                                        <h3>Detalles</h3>
+                                        <button onClick={() => setShowDetails(false)}><X size={18} /></button>
+                                    </div>
+                                    <div className="sidebar-content">
+                                        <div className="info-group">
+                                            <label>Teléfono</label>
+                                            <p>{selectedClient.contact_phone || '-'}</p>
+                                        </div>
+                                        <div className="info-group">
+                                            <label>Email</label>
+                                            <p>{selectedClient.contact_email || '-'}</p>
+                                        </div>
+                                        <div className="info-group">
+                                            <label>Resumen IA</label>
+                                            <p className="summary-text">{selectedClient.ai_summary || 'Sin resumen disponible.'}</p>
+                                        </div>
+
+                                        <div className="info-group">
+                                            <label>Acciones</label>
+                                            <button className="btn-sidebar-danger" onClick={() => setClientToDelete(selectedClient.id)}>
+                                                <Trash2 size={16} /> Eliminar Consulta
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        /* EMPTY STATE RIGHT PANEL */
+                        <div className="chat-placeholder">
+                            <div className="illustration-wrapper">
+                                <Inbox size={64} className="placeholder-icon" />
+                            </div>
+                            <h3>Tus Conversaciones</h3>
+                            <p>Selecciona un cliente de la lista para ver el chat y responder.</p>
+                        </div>
+                    )}
+                </main>
             </div>
 
-            {/* DELETE CONFIRMATION MODAL */}
+            {/* --- MODALS (Delete/Success) --- */}
             {clientToDelete && (
-                <div className="modal-overlay" onClick={() => setClientToDelete(null)}>
-                    <div className="modal-content glass-panel modal-delete-confirm" onClick={e => e.stopPropagation()}>
-                        <div className="modal-icon-center"><AlertTriangle size={48} className="v-text-amber" /></div>
-                        <h2 className="modal-m-bottom">¿Eliminar Expediente?</h2>
-                        <p className="modal-muted-m-bottom">
-                            Esta acción borrará el chat, los archivos adjuntos y <strong>la cuenta de acceso del cliente</strong> de forma permanente.
-                        </p>
-                        <div className="flex-center-gap">
-                            <button onClick={() => setClientToDelete(null)} className="btn-cancel">
-                                Cancelar
-                            </button>
-                            <button onClick={confirmDelete} className="btn-confirm-delete">
-                                Sí, Eliminar
-                            </button>
+                <div className="modal-overlay-inline">
+                    <div className="modal-box">
+                        <AlertTriangle size={40} className="text-amber" />
+                        <h3>¿Eliminar Consulta?</h3>
+                        <p>Esta acción es irreversible.</p>
+                        <div className="modal-btns">
+                            <button onClick={() => setClientToDelete(null)}>Cancelar</button>
+                            <button className="btn-danger" onClick={async () => {
+                                // Reusing delete logic inline for brevity
+                                try {
+                                    await fetch("/api/clients/delete", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ inquiryId: clientToDelete })
+                                    });
+                                    setClients(prev => prev.filter(c => c.id !== clientToDelete));
+                                    if (selectedClient?.id === clientToDelete) setSelectedClient(null);
+                                } catch (e) { console.error(e); }
+                                setClientToDelete(null);
+                            }}>Eliminar</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* SUCCESS CONVERSION MODAL */}
             {conversionSuccess && (
-                <div className="modal-overlay" onClick={() => setConversionSuccess(false)}>
-                    <div className="modal-content glass-panel modal-conversion-success" onClick={e => e.stopPropagation()}>
-                        <div className="modal-icon-center"><PartyPopper size={64} className="v-text-emerald" /></div>
-                        <h2 className="modal-header-conversion">¡Expediente Creado!</h2>
-                        <p className="modal-p-conversion">
-                            La consulta se ha convertido exitosamente en un <strong>Caso Oficial</strong> del estudio.
-                        </p>
-                        <div className="modal-box-info">
-                            📁 Podrás gestionarlo, ver sus documentos y seguir su estado desde la nueva sección <strong>Expedientes</strong>.
-                        </div>
-                        <div className="flex-center-gap">
-                            <button onClick={() => setConversionSuccess(false)} className="btn-cancel">
-                                Cerrar
-                            </button>
-                            <Link href="/dashboard/cases" className="btn-confirm-delete btn-emerald-bg">
-                                Ir a Expedientes →
-                            </Link>
+                <div className="modal-overlay-inline">
+                    <div className="modal-box">
+                        <PartyPopper size={40} className="text-green" />
+                        <h3>¡Caso Creado!</h3>
+                        <div className="modal-btns">
+                            <button onClick={() => setConversionSuccess(false)}>Cerrar</button>
                         </div>
                     </div>
                 </div>
             )}
-
-            {/* MODAL */}
-            {selectedClient && (
-                <div className="modal-overlay" onClick={closeModal}>
-                    <div className="modal-content glass-panel" onClick={e => e.stopPropagation()}>
-
-                        {/* HEADER */}
-                        <div className="modal-header">
-                            <h2 className="modal-title-flex">
-                                {selectedClient.contact_name ? selectedClient.contact_name : `Consulta #${selectedClient.id.slice(0, 6)}`}
-                            </h2>
-                            <div className="modal-actions-bar">
-                                <button
-                                    className={`btn-toggle-details ${showDetails ? 'active' : ''}`}
-                                    onClick={() => setShowDetails(!showDetails)}
-                                    title={showDetails ? "Ocultar Detalles" : "Ver Datos del Cliente"}
-                                >
-                                    {showDetails ? '▶ Cerrar Datos' : '◀ Ver Datos'}
-                                </button>
-
-                                <div className="divider-vertical"></div>
-
-                                <button className="btn-delete" onClick={(e) => deleteClient(selectedClient.id, e)} title="Eliminar Expediente">
-                                    <Trash2 size={16} />
-                                </button>
-                                {/* Generate Document: Disabled in Demo? Or mocked? Let's leave it, but handled by the target page. 
-                                    Ideally we pass isDemo in query param or route. 
-                                    For now the link goes to /dashboard/clients/... which is PROD. 
-                                    We should fix this link to respect basePath.
-                                */}
-                                <Link
-                                    href={isDemo ? "#" : `/dashboard/clients/${selectedClient.id}/generate`}
-                                    className="btn-generate-action"
-                                    onClick={(e) => {
-                                        if (isDemo) {
-                                            e.preventDefault();
-                                            alert("🔒 Generación de escritos deshabilitada en DEMO.");
-                                        }
-                                    }}
-                                >
-                                    <Zap size={16} className="v-text-amber-dark" /> Generar Escrito
-                                </Link>
-                                <button
-                                    className="btn-convert-action"
-                                    onClick={convertToCase}
-                                    disabled={converting || selectedClient.is_case}
-                                    title="Convertir esta consulta en un expediente formal del estudio"
-                                >
-                                    {converting ? <><Loader size={16} className="animate-spin" /> Convirtiendo...</> : selectedClient.is_case ? <><Folder size={16} /> Ya es Expediente</> : <><Folder size={16} /> Convertir en Expediente</>}
-                                </button>
-                                <button className="btn-agenda-action" onClick={openEventModalForClient} title="Agendar Plazo">
-                                    <Calendar size={16} /> Crear Plazo
-                                </button>
-                                <button onClick={closeModal} className="close-btn"><X size={24} /></button>
-                            </div>
-                        </div>
-
-                        {/* BODY ROW: CHAT (LEFT) | SIDEBAR (RIGHT) */}
-                        <div className="modal-body">
-
-                            {/* CHAT SECTION (CENTRAL) */}
-                            <div className="chat-section">
-                                <h3 className="chat-header-title"><MessageSquare size={18} /> Historial de Conversación</h3>
-                                <div className="chat-viewer">
-                                    {loadingChat ? <p>Cargando chat...</p> : (
-                                        chatHistory.length === 0 ? <p className="no-msgs">No hay mensajes aún.</p> :
-                                            chatHistory
-                                                .filter(msg => !msg.content.startsWith('[SISTEMA:') && !msg.content.startsWith('[SYSTEM:'))
-                                                .map(msg => (
-                                                    <div key={msg.id} className={`chat-msg ${msg.role}`}>
-                                                        <strong>{msg.role === 'user' ? 'Cliente' : 'Asistente'}:</strong> {msg.content}
-                                                    </div>
-                                                ))
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* DETAILS SIDEBAR (RIGHT) */}
-                            <div className={`details-sidebar ${showDetails ? 'open' : 'closed'}`}>
-                                <div className="details-inner-wrapper">
-                                    <h4 className="sidebar-subtitle">Expediente</h4>
-
-                                    <div className="details-card">
-                                        <div className="details-content">
-                                            <div className="detail-row">
-                                                <span className="label">ID</span>
-                                                <span className="value" title={selectedClient.id}>{selectedClient.id.slice(0, 8)}...</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <span className="label"><Phone size={14} className="icon-mr-5" /> Teléfono</span>
-                                                <span className="value highlight">{selectedClient.contact_phone || '-'}</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <span className="label"><Mail size={14} className="icon-mr-5" /> Email</span>
-                                                <span className="value">{selectedClient.contact_email || '-'}</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <span className="label"><Scale size={14} className="icon-mr-5" /> Caso</span>
-                                                <span className="value badge-text">{selectedClient.case_type || 'General'}</span>
-                                            </div>
-                                            <div className="detail-row flex-column-dashed">
-                                                <span className="label"><FileText size={14} className="icon-mr-5" /> Resumen IA</span>
-                                                <p className="summary-text-truncated">
-                                                    {selectedClient.ai_summary || 'Sin resumen disponible.'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <h4 className="sidebar-subtitle-mt">Adjuntos ({attachments.length})</h4>
-
-                                    <div className="details-card">
-                                        <div className="details-content">
-                                            {attachments.length === 0 ? (
-                                                <p className="muted-small-text">Sin archivos.</p>
-                                            ) : (
-                                                <div className="attachments-list">
-                                                    {attachments.map(file => (
-                                                        <a key={file.id} href={file.file_url} target="_blank" rel="noopener noreferrer" className="attachment-row-link">
-                                                            <FileText size={16} />
-                                                            <span className="file-name">{file.file_name}</span>
-                                                        </a>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* AGENDA MODAL */}
-            <EventModal
-                isOpen={eventModalOpen}
-                onClose={() => setEventModalOpen(false)}
-                onEventCreated={() => { }} // No refresh needed for clients list
-                initialData={eventInitialData}
-            />
-
-
-        </div >
+        </div>
     );
 }

@@ -1,0 +1,361 @@
+/* =========================================
+   PUBLIC LAWYER MARKETPLACE
+   ========================================= */
+
+.abogados-main {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    color: white;
+    font-family: 'Inter', sans-serif;
+}
+
+/* NAV */
+.abogados-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-brand-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: white;
+}
+
+.nav-logo-sm {
+    height: 28px;
+    width: auto;
+}
+
+.nav-brand-text {
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: -0.02em;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.nav-link-subtle {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 0.4rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    transition: 0.2s;
+}
+
+.nav-link-subtle:hover {
+    color: white;
+    border-color: rgba(251, 191, 36, 0.3);
+}
+
+/* HERO */
+.abogados-hero {
+    text-align: center;
+    padding: 3rem 2rem 1.5rem;
+}
+
+.abogados-hero h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.abogados-hero p {
+    color: #94a3b8;
+    font-size: 1rem;
+}
+
+/* FILTERS */
+.abogados-filters {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 2rem 1rem;
+}
+
+.filters-form {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+    flex: 1;
+    min-width: 200px;
+    color: #94a3b8;
+}
+
+.filter-select,
+.filter-input {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 0.9rem;
+    outline: none;
+    flex: 1;
+    font-family: inherit;
+}
+
+.filter-select option {
+    background: #1e293b;
+    color: white;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: linear-gradient(135deg, #fbbf24, #d97706);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.filter-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.results-count {
+    color: #64748b;
+    font-size: 0.8rem;
+    margin-top: 0.8rem;
+    text-align: center;
+}
+
+/* GRID */
+.abogados-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 2rem 3rem;
+}
+
+.lawyers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.2rem;
+}
+
+.loading-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.2rem;
+}
+
+.lawyer-card-skeleton {
+    height: 260px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* LAWYER CARD */
+.lawyer-card {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: white;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+.lawyer-card:hover {
+    border-color: rgba(251, 191, 36, 0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.lawyer-card-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(251, 191, 36, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.lawyer-card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-initial {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fbbf24;
+}
+
+.lawyer-card-body {
+    flex: 1;
+}
+
+.lawyer-card-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    letter-spacing: -0.01em;
+}
+
+.lawyer-card-matricula {
+    color: #64748b;
+    font-size: 0.8rem;
+    margin-bottom: 0.3rem;
+}
+
+.lawyer-card-zona {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #94a3b8;
+    font-size: 0.82rem;
+    margin-bottom: 0.8rem;
+}
+
+.lawyer-card-specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.8rem;
+}
+
+.spec-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.lawyer-card-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+    color: #fbbf24;
+    font-weight: 600;
+}
+
+.rating-count {
+    color: #64748b;
+    font-weight: 400;
+    font-size: 0.8rem;
+}
+
+/* EMPTY STATE */
+.empty-state-public {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #64748b;
+}
+
+.empty-state-public h3 {
+    margin-top: 1rem;
+    color: #94a3b8;
+}
+
+/* PAGINATION */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 1rem 2rem 3rem;
+}
+
+.page-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+    border-color: rgba(251, 191, 36, 0.3);
+}
+
+.page-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.page-info {
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .abogados-hero h1 {
+        font-size: 1.6rem;
+    }
+
+    .filters-form {
+        flex-direction: column;
+    }
+
+    .filter-group {
+        min-width: 100%;
+    }
+
+    .lawyers-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .abogados-nav {
+        padding: 0.8rem 1rem;
+    }
+
+    .abogados-filters,
+    .abogados-grid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
