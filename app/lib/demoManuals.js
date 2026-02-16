@@ -31,15 +31,16 @@ Organiza tus casos activos, monitorea estados procesales y mantén el control de
     clients: `
 ## CRM y Gestión de Clientes
 
-Centraliza la comunicación con tus clientes y automatiza la toma de datos iniciales.
+Centraliza la comunicación con tus clientes en una bandeja de entrada moderna y organizada.
 
 ### ¿Cómo usar esta demo?
-1.  **Enlace Inteligente:** Prueba el botón de copiar para ver el flujo de captación.
-2.  **Ficha del Cliente:** Haz clic en una tarjeta para ver el resumen generado por IA tras la entrevista inicial.
+1.  **Explora el Inbox:** Selecciona un cliente de la lista para ver su chat en tiempo real.
+2.  **Mi Perfil Público:** Haz clic en el botón de globo terráqueo para copiar tu enlace de perfil en el Marketplace.
+3.  **Ficha del Cliente:** Abre la barra lateral para ver el resumen generado por IA y los datos de contacto.
 
 ### ⚖️ Demo vs. Versión Full
-*   **En esta Demo:** Interactúas con "clientes de prueba" para entender cómo la IA resume los conflictos legales.
-*   **En el Gabinete Real:** El enlace es único para tu estudio. Los clientes conversan con un asistente legal IA por WhatsApp o Web, y tú recibes la carpeta completa armada, con la liquidación preliminar y documentos adjuntos sin haber movido un dedo.
+*   **En esta Demo:** Interactúas con "clientes de prueba" en un entorno simulado. Las respuestas de IA son pre-generadas.
+*   **En el Gabinete Real:** El inbox se conecta a WhatsApp/Web. La IA responde en tiempo real a tus clientes, califica prospectos y te notifica solo cuando hay una oportunidad real.
 `,
 
     calculators: `
