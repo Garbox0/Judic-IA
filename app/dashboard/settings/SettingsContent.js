@@ -98,6 +98,7 @@ export default function SettingsPage({ isDemo = false }) {
         phone: '',
         avatar_url: '',
         verification_status: 'pending', // Added to track lock state
+        rejection_reason: '',
         plan_tier: 'starter',
         subscription_status: 'inactive',
         subscription_expiry: null,
@@ -151,6 +152,7 @@ export default function SettingsPage({ isDemo = false }) {
                         phone: data.phone || '',
                         avatar_url: data.avatar_url || '',
                         verification_status: data.verification_status || 'pending',
+                        rejection_reason: data.rejection_reason || '',
                         plan_tier: data.plan_tier || 'starter',
                         subscription_status: data.subscription_status || 'inactive',
                         subscription_expiry: data.subscription_expiry || null,
@@ -354,7 +356,8 @@ export default function SettingsPage({ isDemo = false }) {
                 matricula: (formData.tomo || formData.folio)
                     ? `T° ${formData.tomo || ''} F° ${formData.folio || ''}`.trim()
                     : formData.matricula,
-                verification_status: formData.verification_status === 'rejected' ? 'pending' : formData.verification_status
+                verification_status: formData.verification_status === 'rejected' ? 'pending' : formData.verification_status,
+                ...(formData.verification_status === 'rejected' ? { rejection_reason: null } : {})
             };
 
             const { data: updateData, error: updateError } = await supabase
@@ -621,6 +624,15 @@ export default function SettingsPage({ isDemo = false }) {
                                                 )}
                                             </div>
                                         </div>
+                                        {formData.verification_status === 'rejected' && formData.rejection_reason && (
+                                            <div className="stg-rejection-reason-box">
+                                                <AlertTriangle size={14} />
+                                                <div>
+                                                    <strong>Motivo del rechazo:</strong>
+                                                    <p>{formData.rejection_reason}</p>
+                                                </div>
+                                            </div>
+                                        )}
                                         <div className="stg-field-row multi">
                                             <div className="stg-f-group flex-2">
                                                 <label htmlFor="jurisdiccion" className="stg-label">Colegio / Jurisdicción</label>
@@ -669,14 +681,23 @@ export default function SettingsPage({ isDemo = false }) {
                                                 <div className="stg-toggle-row">
                                                     <div className="stg-toggle-info">
                                                         <h4 className="m-0 mb-1">Disponibilidad para Corresponsalía</h4>
-                                                        <p>Habilitá tu perfil para que otros colegas te encuentren en el Hub Federal.</p>
+                                                        <p>{formData.verification_status === 'verified'
+                                                            ? 'Habilitá tu perfil para que otros colegas te encuentren en el Hub Federal.'
+                                                            : 'Tu perfil debe estar verificado para activar corresponsalía.'}</p>
                                                     </div>
-                                                    <label className="stg-toggle">
+                                                    <label className={`stg-toggle ${formData.verification_status !== 'verified' ? 'stg-toggle-disabled' : ''}`}>
                                                         <input
                                                             type="checkbox"
                                                             name="is_correspondent"
                                                             checked={formData.is_correspondent}
-                                                            onChange={handleChange}
+                                                            onChange={(e) => {
+                                                                if (formData.verification_status !== 'verified') {
+                                                                    toast.error("Tu perfil debe estar verificado para activar esta opción.");
+                                                                    return;
+                                                                }
+                                                                handleChange(e);
+                                                            }}
+                                                            disabled={formData.verification_status !== 'verified'}
                                                         />
                                                         <span className="stg-toggle-slider"></span>
                                                     </label>

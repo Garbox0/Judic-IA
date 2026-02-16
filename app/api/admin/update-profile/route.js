@@ -61,6 +61,7 @@ export async function POST(request) {
                         `
                     });
                 } else if (updates.verification_status === 'rejected') {
+                    const reason = updates.rejection_reason || data.rejection_reason || '';
                     await sendEmail({
                         resendClient: resend,
                         to: userEmail,
@@ -70,8 +71,11 @@ export async function POST(request) {
                                 <h2 style="color: #f43f5e;">Aviso de Verificación</h2>
                                 <p>Hola <strong>${data.full_name || ''}</strong>,</p>
                                 <p>Te informamos que no hemos podido validar tu matrícula profesional con los datos proporcionados.</p>
-                                <p style="background: #fff1f2; padding: 15px; border-left: 4px solid #f43f5e;">
-                                    <strong>Recomendación:</strong> Por favor, ingresa a tus ajustes y revisa que el colegio, tomo y folio estén escritos correctamente según tu credencial oficial.
+                                ${reason ? `<p style="background: #fff1f2; padding: 15px; border-left: 4px solid #f43f5e;">
+                                    <strong>Motivo:</strong> ${reason}
+                                </p>` : ''}
+                                <p style="background: #fffbeb; padding: 15px; border-left: 4px solid #fbbf24;">
+                                    <strong>Recomendación:</strong> Por favor, ingresá a tus ajustes y revisá que el colegio, tomo y folio estén escritos correctamente según tu credencial oficial.
                                 </p>
                                 <p>Una vez corregidos, nuestro equipo volverá a revisar tu perfil automáticamente.</p>
                                 <br/>

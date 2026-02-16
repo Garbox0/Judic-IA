@@ -87,10 +87,41 @@
     transform: scale(1.02);
 }
 
+.clients-rejection-reason {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(244, 63, 94, 0.06);
+    border: 1px solid rgba(244, 63, 94, 0.15);
+    border-radius: 8px;
+    color: #f43f5e;
+    font-size: 0.85rem;
+    text-align: left;
+}
+
+.clients-rejection-reason span {
+    color: var(--foreground, #e2e8f0);
+}
+
+.clients-rejection-reason strong {
+    color: #f43f5e;
+}
+
 /* Light theme */
 body.light-theme .clients-restricted-status-box {
     background: rgba(0, 0, 0, 0.03);
     border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .clients-rejection-reason {
+    background: rgba(244, 63, 94, 0.04);
+    border-color: rgba(244, 63, 94, 0.12);
+}
+
+body.light-theme .clients-rejection-reason span {
+    color: #334155;
 }
 
 .clients-breadcrumb {

@@ -70,6 +70,7 @@ export default function AdminPage() {
     const [uploadingInvoice, setUploadingInvoice] = useState(null);
     const [auditReport, setAuditReport] = useState(null);
     const [auditLoading, setAuditLoading] = useState(false);
+    const [rejectModal, setRejectModal] = useState({ open: false, userId: null, reason: '' });
     const router = useRouter();
 
     useEffect(() => {
@@ -250,21 +251,14 @@ export default function AdminPage() {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${session.access_token}`
                     },
-                    body: JSON.stringify({ userId, updates: { verification_status: 'verified' } })
+                    body: JSON.stringify({ userId, updates: { verification_status: 'verified', rejection_reason: null } })
                 });
                 if (!res.ok) throw new Error('Fallo al verificar');
                 showNotification('success', 'Abogado verificado.');
             } else if (action === 'reject-lawyer') {
-                const res = await fetch('/api/admin/update-profile', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}`
-                    },
-                    body: JSON.stringify({ userId, updates: { verification_status: 'rejected' } })
-                });
-                if (!res.ok) throw new Error('Fallo al rechazar');
-                showNotification('success', 'Verificación rechazada.');
+                // Open modal to get rejection reason
+                setRejectModal({ open: true, userId, reason: '' });
+                return; // Don't proceed, modal will handle the actual rejection
             } else if (action === 'reset-verification') {
                 const res = await fetch('/api/admin/update-profile', {
                     method: 'POST',
@@ -272,7 +266,7 @@ export default function AdminPage() {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${session.access_token}`
                     },
-                    body: JSON.stringify({ userId, updates: { verification_status: 'pending' } })
+                    body: JSON.stringify({ userId, updates: { verification_status: 'pending', rejection_reason: null } })
                 });
                 if (!res.ok) throw new Error('Fallo al resetear');
                 showNotification('success', 'Verificación pendiente.');
@@ -282,6 +276,38 @@ export default function AdminPage() {
         } catch (err) {
             console.error(err);
             showNotification('error', err.message || 'Error en la operación');
+        }
+    };
+
+    const handleRejectConfirm = async () => {
+        if (!rejectModal.userId || !rejectModal.reason.trim()) {
+            showNotification('error', 'Debés indicar un motivo de rechazo.');
+            return;
+        }
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error('Sesión expirada');
+            const res = await fetch('/api/admin/update-profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({
+                    userId: rejectModal.userId,
+                    updates: {
+                        verification_status: 'rejected',
+                        rejection_reason: rejectModal.reason.trim()
+                    }
+                })
+            });
+            if (!res.ok) throw new Error('Fallo al rechazar');
+            showNotification('success', 'Verificación rechazada con motivo.');
+            setRejectModal({ open: false, userId: null, reason: '' });
+            initialFetch(session.user.id);
+        } catch (err) {
+            console.error(err);
+            showNotification('error', err.message || 'Error al rechazar');
         }
     };
 
@@ -1252,6 +1278,55 @@ export default function AdminPage() {
                     ))}
                 </div>
             </div>
+            {/* REJECT REASON MODAL */}
+            {rejectModal.open && (
+                <div className="admin-modal-overlay" onClick={() => setRejectModal({ open: false, userId: null, reason: '' })}>
+                    <div className="admin-modal-content" onClick={e => e.stopPropagation()}>
+                        <h3 className="text-lg font-black text-admin-primary mb-4">Motivo de Rechazo</h3>
+                        <p className="text-admin-muted text-sm mb-4">Indicá por qué se rechaza la verificación. El abogado verá este motivo en su perfil.</p>
+                        <div className="admin-reject-reasons">
+                            {[
+                                'Matrícula incorrecta o no encontrada en el colegio indicado.',
+                                'Jurisdicción no coincide con la matrícula proporcionada.',
+                                'Datos del Tomo y/o Folio no coinciden con los registros oficiales.',
+                                'Matrícula vencida o suspendida.',
+                                'Nombre no coincide con el titular de la matrícula.'
+                            ].map(preset => (
+                                <button
+                                    key={preset}
+                                    type="button"
+                                    className={`admin-reject-preset ${rejectModal.reason === preset ? 'active' : ''}`}
+                                    onClick={() => setRejectModal(prev => ({ ...prev, reason: preset }))}
+                                >
+                                    {preset}
+                                </button>
+                            ))}
+                        </div>
+                        <textarea
+                            className="admin-reject-textarea"
+                            placeholder="O escribí un motivo personalizado..."
+                            value={rejectModal.reason}
+                            onChange={e => setRejectModal(prev => ({ ...prev, reason: e.target.value }))}
+                            rows={3}
+                        />
+                        <div className="admin-modal-actions">
+                            <button
+                                className="admin-modal-btn-cancel"
+                                onClick={() => setRejectModal({ open: false, userId: null, reason: '' })}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                className="admin-modal-btn-reject"
+                                onClick={handleRejectConfirm}
+                                disabled={!rejectModal.reason.trim()}
+                            >
+                                <ShieldAlert size={16} /> Confirmar Rechazo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AdminGuard >
     );
 }

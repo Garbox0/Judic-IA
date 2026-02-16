@@ -45,6 +45,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     // Case Conversion State
     const [converting, setConverting] = useState(false);
     const [verificationStatus, setVerificationStatus] = useState(null);
+    const [rejectionReason, setRejectionReason] = useState('');
 
     // Refs for scrolling
     const messagesEndRef = useRef(null);
@@ -69,8 +70,9 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                 if (isAdmin) {
                     setVerificationStatus('verified');
                 } else {
-                    const { data: profile } = await supabase.from('profiles').select('verification_status').eq('id', user.id).single();
+                    const { data: profile } = await supabase.from('profiles').select('verification_status, rejection_reason').eq('id', user.id).single();
                     setVerificationStatus(profile?.verification_status || 'none');
+                    setRejectionReason(profile?.rejection_reason || '');
                 }
 
                 // FETCH CLIENTS ORDERED BY ACTIVITY
@@ -328,6 +330,12 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                 ? 'Estamos validando tus credenciales con los colegios públicos correspondientes. Te notificaremos vía email cuando tu acceso sea habilitado.'
                                 : 'Necesitás completar tu matrícula y jurisdicción para iniciar el proceso de verificación.'}
                         </p>
+                        {isRejected && rejectionReason && (
+                            <div className="clients-rejection-reason">
+                                <AlertCircle size={14} />
+                                <span><strong>Motivo:</strong> {rejectionReason}</span>
+                            </div>
+                        )}
                     </div>
                     <div className="clients-restricted-btn-wrapper">
                         <a href="/dashboard/settings?tab=profile" className="clients-action-btn-gold">
