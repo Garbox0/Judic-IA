@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, MapPin, Star, Filter, ChevronLeft, ChevronRight, Moon, Sun } from 'lucide-react';
+import { Search, MapPin, Star, Filter, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeft } from 'lucide-react';
 import './abogados.css';
 
 const SPECIALTIES = [
@@ -85,6 +85,7 @@ export default function AbogadosPage() {
                     >
                         {darkMode ? <Sun size={18} /> : <Moon size={18} />}
                     </button>
+                    <Link href="/" className="nav-link-subtle"><ArrowLeft size={14} /> Inicio</Link>
                     <Link href="/login" className="nav-link-subtle">Soy Abogado</Link>
                 </div>
             </nav>
