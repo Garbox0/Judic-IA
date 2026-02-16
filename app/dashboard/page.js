@@ -12,7 +12,9 @@ import {
   BookOpen,
   Settings,
   Calculator,
-  Book
+  Book,
+  Globe,
+  X
 } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
@@ -22,6 +24,14 @@ export default function DashboardHome({ isDemo = false, basePath = '/dashboard' 
   const [user, setUser] = useState(isDemo ? { user_metadata: { first_name: 'Dr. Martínez' } } : null);
   const [profile, setProfile] = useState(isDemo ? demoProfile : null);
   const [stats, setStats] = useState(isDemo ? demoStats : { clients: 0, deadlines: 0 });
+  const [showPublicBanner, setShowPublicBanner] = useState(false);
+
+  useEffect(() => {
+    if (profile && profile.verification_status === 'verified' && !profile.is_public) {
+      const dismissed = sessionStorage.getItem('judicia-public-banner-dismissed');
+      if (!dismissed) setShowPublicBanner(true);
+    }
+  }, [profile]);
 
   useEffect(() => {
     if (isDemo) return;
@@ -143,6 +153,29 @@ export default function DashboardHome({ isDemo = false, basePath = '/dashboard' 
 
       {!isDemo && (
         profile ? <QuotaSummary profile={profile} /> : <QuotaSummarySkeleton />
+      )}
+
+      {showPublicBanner && (
+        <div className="dash-public-banner">
+          <Globe size={20} className="dash-public-banner-icon" />
+          <div className="dash-public-banner-text">
+            <strong>¡Tu perfil está verificado!</strong> Activá tu perfil público para que clientes te encuentren en el marketplace.
+          </div>
+          <Link href="/dashboard/settings" className="dash-public-banner-btn">
+            Activar
+          </Link>
+          <button
+            type="button"
+            className="dash-public-banner-close"
+            onClick={() => {
+              setShowPublicBanner(false);
+              sessionStorage.setItem('judicia-public-banner-dismissed', '1');
+            }}
+            aria-label="Cerrar"
+          >
+            <X size={16} />
+          </button>
+        </div>
       )}
 
       <section className="dashboard-grid">
