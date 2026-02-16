@@ -598,13 +598,30 @@ DEVOLVÉ SOLO EL JSON válido.`
                     const results = data.web?.results || [];
                     // console.log(`✅ Brave 200 | Query: ${sanitizedQuery} | Results: ${results.length}`);
 
-                    return results.map(r => ({
-                        title: r.title,
-                        link: r.url,
-                        snippet: r.description || r.extra_snippets?.join(' ') || '',
-                        source: new URL(r.url).hostname.replace(/^www\./, ""),
-                        score: 0
-                    }));
+                    return results.map(r => {
+                        // Sanitize concatenated URLs (e.g. "page.htmlhttp://...")
+                        let cleanUrl = r.url;
+                        const secondProto = cleanUrl.indexOf('http', 8);
+                        if (secondProto > 0) {
+                            try {
+                                const secondUrl = cleanUrl.substring(secondProto);
+                                const parsed = new URL(secondUrl);
+                                if (parsed.hostname.length > 3) cleanUrl = secondUrl;
+                                else {
+                                    const firstUrl = new URL(cleanUrl.substring(0, secondProto));
+                                    const pathMatch = secondUrl.match(/https?:\/\/[^/]*(\/.*)/);
+                                    if (pathMatch) cleanUrl = firstUrl.origin + pathMatch[1];
+                                }
+                            } catch { /* keep original */ }
+                        }
+                        return {
+                            title: r.title,
+                            link: cleanUrl,
+                            snippet: r.description || r.extra_snippets?.join(' ') || '',
+                            source: new URL(cleanUrl).hostname.replace(/^www\./, ""),
+                            score: 0
+                        };
+                    });
                 } catch (e) {
                     console.error("Brave fetch error:", e);
                     return [];
@@ -706,13 +723,29 @@ DEVOLVÉ SOLO EL JSON válido.`
                             });
                             if (!res.ok) return [];
                             const data = await res.json();
-                            return (data.web?.results || []).map(r => ({
-                                title: r.title,
-                                link: r.url,
-                                snippet: r.description || r.extra_snippets?.join(' ') || '',
-                                source: new URL(r.url).hostname.replace(/^www\./, ""),
-                                score: 0
-                            }));
+                            return (data.web?.results || []).map(r => {
+                                let cleanUrl = r.url;
+                                const sp = cleanUrl.indexOf('http', 8);
+                                if (sp > 0) {
+                                    try {
+                                        const su = cleanUrl.substring(sp);
+                                        const p = new URL(su);
+                                        if (p.hostname.length > 3) cleanUrl = su;
+                                        else {
+                                            const fu = new URL(cleanUrl.substring(0, sp));
+                                            const pm = su.match(/https?:\/\/[^/]*(\/.*)/);
+                                            if (pm) cleanUrl = fu.origin + pm[1];
+                                        }
+                                    } catch { /* keep original */ }
+                                }
+                                return {
+                                    title: r.title,
+                                    link: cleanUrl,
+                                    snippet: r.description || r.extra_snippets?.join(' ') || '',
+                                    source: new URL(cleanUrl).hostname.replace(/^www\./, ""),
+                                    score: 0
+                                };
+                            });
                         } catch (e) {
                             return [];
                         }

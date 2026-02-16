@@ -45,9 +45,41 @@ const ALLOWED_DOMAINS = [
     'thomsonreuters.com', 'laleyonline.com.ar',
 ];
 
+// Fix concatenated URLs like "https://a.com/page.htmlhttp://b.com/file.pdf"
+function sanitizeUrl(url) {
+    if (!url) return url;
+    // Detect a second http(s):// after the initial protocol
+    const secondProto = url.indexOf('http', 8);
+    if (secondProto > 0) {
+        const secondUrl = url.substring(secondProto);
+        // If the second part has a valid-looking host, use it
+        try {
+            const parsed = new URL(secondUrl);
+            if (parsed.hostname.length > 3) {
+                console.warn(`⚠️ Fixed concatenated URL: "${url}" → "${secondUrl}"`);
+                return secondUrl;
+            }
+        } catch {
+            // Second part isn't a valid URL — try reconstructing from the first URL's origin
+        }
+        // If second part is like "http://d/sentencia-..." (relative path misinterpreted),
+        // try to build a proper URL from the first URL's origin + the path
+        try {
+            const firstUrl = new URL(url.substring(0, secondProto));
+            const pathMatch = url.substring(secondProto).match(/https?:\/\/[^/]*(\/.*)/);
+            if (pathMatch) {
+                const reconstructed = firstUrl.origin + pathMatch[1];
+                console.warn(`⚠️ Reconstructed URL: "${url}" → "${reconstructed}"`);
+                return reconstructed;
+            }
+        } catch { /* fall through */ }
+    }
+    return url;
+}
+
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
-    const targetUrl = searchParams.get('url');
+    let targetUrl = sanitizeUrl(searchParams.get('url'));
     const title = searchParams.get('title') || '';
 
     if (!targetUrl) {
