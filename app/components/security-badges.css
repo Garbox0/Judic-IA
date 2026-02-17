@@ -115,11 +115,17 @@ body:not(.light-theme) .trust-badge-pill:hover {
 .footer-badges-override {
     margin-top: 0 !important;
     padding: 0 !important;
+    width: 100%;
+}
+
+.footer-badges-override .security-badges-card-premium {
+    max-width: 100%;
+    padding: 1.25rem 0;
     background: transparent !important;
     backdrop-filter: none !important;
     border: none !important;
     box-shadow: none !important;
-    max-width: 100% !important;
+    border-radius: 0 !important;
 }
 
 .footer-badges-override .security-badges-header-minimal {
@@ -127,8 +133,13 @@ body:not(.light-theme) .trust-badge-pill:hover {
 }
 
 .footer-badges-override .badges-grid-layout {
-    grid-template-columns: repeat(2, minmax(140px, 1fr));
-    justify-content: flex-start;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.footer-badges-override .trust-badge-pill {
+    padding: 0.45rem 0.7rem;
+    height: 42px;
 }
 
 @media (max-width: 640px) {

@@ -6,7 +6,6 @@ import { demoClients } from '../../lib/demoData';
 import {
     Inbox,
     Trash2,
-    ArrowLeft,
     AlertTriangle,
     X,
     Loader,
@@ -14,14 +13,17 @@ import {
     PartyPopper,
     Check,
     Send,
-    MoreVertical,
     Search,
     Globe,
     ShieldCheck,
     Clock,
     ShieldAlert,
     AlertCircle,
-    Settings
+    Settings,
+    ChevronLeft,
+    PanelRightOpen,
+    PanelRightClose,
+    MessageSquare
 } from 'lucide-react';
 import './clients.css';
 
@@ -35,8 +37,9 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     const [copied, setCopied] = useState(false);
     const [clientToDelete, setClientToDelete] = useState(null);
     const [conversionSuccess, setConversionSuccess] = useState(false);
-    const [showDetails, setShowDetails] = useState(false); // Sidebar closed by default on desktop
+    const [showSidebar, setShowSidebar] = useState(false);
     const [attachments, setAttachments] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Lawyer Reply State
     const [replyInput, setReplyInput] = useState('');
@@ -350,8 +353,8 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                         {isRejected
                             ? 'No pudimos validar tu matrícula profesional. Revisá tus datos en Ajustes para corregir la información.'
                             : isPending
-                            ? 'Para acceder a la Bandeja de Clientes, tu matrícula profesional debe ser verificada por nuestro equipo técnico.'
-                            : 'Completá tu información profesional en Ajustes para poder recibir y gestionar consultas de clientes.'}
+                                ? 'Para acceder a la Bandeja de Clientes, tu matrícula profesional debe ser verificada por nuestro equipo técnico.'
+                                : 'Completá tu información profesional en Ajustes para poder recibir y gestionar consultas de clientes.'}
                     </p>
                     <div className="clients-restricted-status-box">
                         <h4 className="clients-restricted-status-title">
@@ -362,8 +365,8 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                             {isRejected
                                 ? 'Verificá que tu número de matrícula y jurisdicción sean correctos.'
                                 : isPending
-                                ? 'Estamos validando tus credenciales con los colegios públicos correspondientes. Te notificaremos vía email cuando tu acceso sea habilitado.'
-                                : 'Necesitás completar tu matrícula y jurisdicción para iniciar el proceso de verificación.'}
+                                    ? 'Estamos validando tus credenciales con los colegios públicos correspondientes. Te notificaremos vía email cuando tu acceso sea habilitado.'
+                                    : 'Necesitás completar tu matrícula y jurisdicción para iniciar el proceso de verificación.'}
                         </p>
                         {isRejected && rejectionReason && (
                             <div className="clients-rejection-reason">
@@ -397,30 +400,70 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
                 {/* 1. LEFT PANEL: INBOX LIST */}
                 <aside className="inbox-list-panel">
-                    <div className="inbox-header">
-                        <h1 className="inbox-title">Mensajes</h1>
-                        <div className="inbox-actions">
-                            <button className="btn-icon-ghost" title="Buscar"><Search size={18} /></button>
+                    <div className="inbox-header flex justify-between items-center px-6 h-[70px]">
+                        <h1 className="inbox-title">Inbox</h1>
+                        <div className="flex gap-2 items-center">
+                            <Link href={isDemo ? basePath : "/dashboard"} className="btn-icon-ghost" title="Volver">
+                                <ChevronLeft size={20} />
+                            </Link>
                         </div>
                     </div>
 
+                    {verificationStatus === 'verified' && (
+                        <div className="smart-link-mini">
+                            <button className="btn-mini-copy" onClick={() => {
+                                navigator.clipboard.writeText("https://judic-ia.com/abogados/" + lawyerId);
+                                setCopied(true);
+                                setTimeout(() => setCopied(false), 2000);
+                            }}>
+                                {copied ? <><Check size={14} /> Link Copiado</> : <><Globe size={14} /> Mi Perfil Público</>}
+                            </button>
+                        </div>
+                    )}
 
-                    <div className="inbox-list">
+                    <div className="search-inbox-container">
+                        <div className="premium-search-box">
+                            <Search className="search-icon-inside" size={14} />
+                            <input
+                                type="text"
+                                placeholder="Buscar en clientes..."
+                                className="premium-search-input"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="inbox-list custom-scrollbar">
                         {loading ? (
                             <div className="inbox-loader"><Loader className="animate-spin" /></div>
-                        ) : clients.length === 0 ? (
+                        ) : clients.filter(c => {
+                            if (!searchTerm.trim()) return true;
+                            const q = searchTerm.toLowerCase();
+                            return (c.contact_name || '').toLowerCase().includes(q)
+                                || (c.contact_phone || '').toLowerCase().includes(q)
+                                || (c.contact_email || '').toLowerCase().includes(q)
+                                || (c.case_type || '').toLowerCase().includes(q);
+                        }).length === 0 ? (
                             <div className="inbox-empty">
-                                <Inbox size={32} />
-                                <p>No hay consultas aún.</p>
+                                <Inbox size={48} strokeWidth={1} />
+                                <p>{searchTerm ? 'Sin resultados.' : 'No hay consultas aún.'}</p>
                             </div>
                         ) : (
-                            clients.map(client => (
+                            clients.filter(c => {
+                                if (!searchTerm.trim()) return true;
+                                const q = searchTerm.toLowerCase();
+                                return (c.contact_name || '').toLowerCase().includes(q)
+                                    || (c.contact_phone || '').toLowerCase().includes(q)
+                                    || (c.contact_email || '').toLowerCase().includes(q)
+                                    || (c.case_type || '').toLowerCase().includes(q);
+                            }).map(client => (
                                 <div
                                     key={client.id}
                                     className={`inbox-item ${selectedClient?.id === client.id ? 'active' : ''}`}
                                     onClick={() => selectClient(client)}
                                 >
-                                    <div className="avatar-circle">
+                                    <div className="avatar-circle small">
                                         {client.contact_name ? client.contact_name[0].toUpperCase() : '?'}
                                     </div>
                                     <div className="inbox-item-content">
@@ -456,70 +499,97 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                         <>
                             {/* CHAT HEADER */}
                             <header className="chat-header-inline">
-                                <button className="btn-back-mobile" onClick={() => setSelectedClient(null)}>
-                                    <ArrowLeft size={20} />
-                                </button>
-
-                                <div className="chat-client-info" onClick={() => setShowDetails(!showDetails)}>
-                                    <div className="avatar-circle small">
-                                        {selectedClient.contact_name?.[0] || '?'}
-                                    </div>
-                                    <div className="info-text">
-                                        <h2>{selectedClient.contact_name || 'Nuevo Cliente'}</h2>
-                                        <p>{selectedClient.case_type || 'Consulta General'}</p>
+                                <div className="flex items-center gap-2">
+                                    <button className="btn-back-mobile" onClick={() => setSelectedClient(null)}>
+                                        <ChevronLeft size={20} />
+                                    </button>
+                                    <div className="chat-client-info" onClick={() => setShowSidebar(!showSidebar)}>
+                                        <div className="avatar-circle">
+                                            {selectedClient.contact_name?.[0] || '?'}
+                                        </div>
+                                        <div className="info-text">
+                                            <h2>{selectedClient.contact_name || 'Nuevo Cliente'}</h2>
+                                            <p>{selectedClient.case_type || 'Consulta General'}</p>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="chat-actions">
+                                <div className="chat-actions flex items-center gap-3 mr-16 md:mr-12">
                                     <button
                                         className="btn-action-icon"
                                         title="Convertir a Expediente"
                                         onClick={convertToCase}
                                         disabled={selectedClient.is_case || converting}
                                     >
-                                        {selectedClient.is_case ? <Folder className="text-blue" size={20} /> : <Folder size={20} />}
+                                        {selectedClient.is_case ? <Folder className="text-blue" size={18} /> : <Folder size={18} />}
                                     </button>
-                                    {verificationStatus === 'verified' && (
-                                        <button
-                                            className="btn-action-icon"
-                                            title="Mi Perfil Público"
-                                            onClick={() => {
-                                                navigator.clipboard.writeText("https://judic-ia.com/abogados/" + lawyerId);
-                                                setCopied(true);
-                                                setTimeout(() => setCopied(false), 2000);
-                                            }}
-                                        >
-                                            {copied ? <Check size={20} /> : <Globe size={20} />}
-                                        </button>
-                                    )}
+                                    <span className="discovery-hint hidden md:block">
+                                        {showSidebar ? "Ocultar Detalles" : "Ver Detalles"}
+                                    </span>
                                     <button
-                                        className="btn-action-icon"
-                                        title="Ver Detalles"
-                                        onClick={() => setShowDetails(!showDetails)}
+                                        className={`btn-action-icon ${showSidebar ? 'text-amber-400 bg-amber-400/10' : 'btn-toggle-discovery'}`}
+                                        onClick={() => setShowSidebar(!showSidebar)}
+                                        title={showSidebar ? "Ocultar Detalles" : "Ver Detalles"}
                                     >
-                                        <MoreVertical size={20} />
+                                        {showSidebar ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
                                     </button>
                                 </div>
                             </header>
 
-                            {/* CHAT MESSAGES */}
-                            <div className="chat-viewport">
-                                {loadingChat ? (
-                                    <div className="loader-center"><Loader className="animate-spin" /></div>
-                                ) : (
-                                    chatHistory.map(msg => {
-                                        const isSystem = msg.content.startsWith('[SISTEMA:') || msg.content.startsWith('[SYSTEM:');
-                                        if (isSystem) return null;
+                            {/* FLEX CONTAINER FOR CHAT + SIDEBAR */}
+                            <div className="chat-main-split">
 
-                                        return (
-                                            <div key={msg.id} className={`chat-bubble ${msg.role}`}>
-                                                <div className="bubble-content">{msg.content}</div>
-                                                <div className="bubble-time">{formatTime(msg.created_at)}</div>
-                                            </div>
-                                        );
-                                    })
+                                {/* CHAT MESSAGES */}
+                                <div className="chat-viewport custom-scrollbar">
+                                    {loadingChat ? (
+                                        <div className="loader-center"><Loader className="animate-spin" /></div>
+                                    ) : (
+                                        chatHistory.map(msg => {
+                                            const isSystem = msg.content.startsWith('[SISTEMA:') || msg.content.startsWith('[SYSTEM:');
+                                            if (isSystem) return null;
+
+                                            return (
+                                                <div key={msg.id} className={`chat-bubble ${msg.role}`}>
+                                                    <div className="bubble-content">{msg.content}</div>
+                                                    <div className="bubble-time">{formatTime(msg.created_at)}</div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                    <div ref={messagesEndRef} />
+                                </div>
+
+                                {/* DETAILS SIDEBAR (FLEX INLINE) */}
+                                {showSidebar && (
+                                    <div className="details-sidebar-flex custom-scrollbar">
+                                        <div className="sidebar-header flex justify-between items-center pt-4 mb-4">
+                                            <h3 className="font-semibold text-lg">Detalles</h3>
+                                        </div>
+
+                                        <div className="info-group">
+                                            <label>Email</label>
+                                            <p>{selectedClient.contact_email || '-'}</p>
+                                        </div>
+                                        <div className="info-group">
+                                            <label>Teléfono</label>
+                                            <p>{selectedClient.contact_phone || '-'}</p>
+                                        </div>
+                                        <div className="info-group">
+                                            <label>Caso</label>
+                                            <p>{selectedClient.case_type || 'General'}</p>
+                                        </div>
+                                        <div className="info-group">
+                                            <label>Resumen IA</label>
+                                            <p className="summary-text">{selectedClient.ai_summary || 'Sin resumen disponible.'}</p>
+                                        </div>
+
+                                        <div className="mt-8 border-t border-slate-700/50 pt-4">
+                                            <button className="btn-sidebar-danger" onClick={() => setClientToDelete(selectedClient.id)}>
+                                                <Trash2 size={16} /> Eliminar Consulta
+                                            </button>
+                                        </div>
+                                    </div>
                                 )}
-                                <div ref={messagesEndRef} />
                             </div>
 
                             {/* INPUT AREA / MODERATION BAR */}
@@ -551,8 +621,8 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                     </div>
                                 </div>
                             ) : (
-                                <div className="chat-input-area">
-                                    <form onSubmit={sendLawyerReply} className="input-row">
+                                <form className="chat-input-area" onSubmit={sendLawyerReply}>
+                                    <div className="input-row">
                                         <input
                                             type="text"
                                             placeholder="Escribe un mensaje..."
@@ -560,52 +630,21 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                             onChange={e => setReplyInput(e.target.value)}
                                             disabled={sendingReply}
                                         />
-                                        <button type="submit" disabled={!replyInput.trim() || sendingReply} className="btn-send">
+                                        <button type="submit" disabled={!replyInput.trim() || sendingReply} className="btn-send" aria-label="Enviar mensaje">
                                             {sendingReply ? <Loader className="animate-spin" size={18} /> : <Send size={18} />}
                                         </button>
-                                    </form>
-                                </div>
-                            )}
-
-                            {/* DETAILS SIDEBAR (OVERLAY) */}
-                            {showDetails && (
-                                <div className="details-sidebar-inline">
-                                    <div className="sidebar-header">
-                                        <h3>Detalles</h3>
-                                        <button onClick={() => setShowDetails(false)}><X size={18} /></button>
                                     </div>
-                                    <div className="sidebar-content">
-                                        <div className="info-group">
-                                            <label>Teléfono</label>
-                                            <p>{selectedClient.contact_phone || '-'}</p>
-                                        </div>
-                                        <div className="info-group">
-                                            <label>Email</label>
-                                            <p>{selectedClient.contact_email || '-'}</p>
-                                        </div>
-                                        <div className="info-group">
-                                            <label>Resumen IA</label>
-                                            <p className="summary-text">{selectedClient.ai_summary || 'Sin resumen disponible.'}</p>
-                                        </div>
-
-                                        <div className="info-group">
-                                            <label>Acciones</label>
-                                            <button className="btn-sidebar-danger" onClick={() => setClientToDelete(selectedClient.id)}>
-                                                <Trash2 size={16} /> Eliminar Consulta
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                                </form>
                             )}
                         </>
                     ) : (
                         /* EMPTY STATE RIGHT PANEL */
                         <div className="chat-placeholder">
                             <div className="illustration-wrapper">
-                                <Inbox size={64} className="placeholder-icon" />
+                                <MessageSquare size={48} className="placeholder-icon" />
                             </div>
-                            <h3>Tus Conversaciones</h3>
-                            <p>Selecciona un cliente de la lista para ver el chat y responder.</p>
+                            <h3>Bandeja de Entrada</h3>
+                            <p>Selecciona un cliente para ver el historial y los detalles del caso.</p>
                         </div>
                     )}
                 </main>

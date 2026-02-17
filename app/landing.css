@@ -2621,10 +2621,14 @@ body::before {
     }
 
     /* Override Security Badges CSS */
+    .footer-badges-override .security-badges-header-minimal {
+        justify-content: center;
+    }
+
     .footer-badges-override .badges-grid-layout {
-        justify-content: center !important;
-        grid-template-columns: repeat(2, minmax(130px, 1fr)) !important;
-        margin: 0 auto !important;
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 400px;
+        margin: 0 auto;
     }
 
     .footer-premium-v3 {
