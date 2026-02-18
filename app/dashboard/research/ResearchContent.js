@@ -648,27 +648,33 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         </header>
 
                         <div className="search-box-container glass-panel">
-                            {/* MODE TOGGLE - Contextual placement */}
-                            <div className="mode-toggle-container">
-                                <button
-                                    onClick={() => setAssistedMode(!assistedMode)}
-                                    className={`mode-toggle ${assistedMode ? 'assisted' : 'expert'}`}
-                                    title={assistedMode ? 'Modo Asistido: Sugerencias y mejoras automáticas' : 'Modo Experto: Búsqueda directa sin asistencia'}
-                                >
-                                    {assistedMode ? (
-                                        <>
-                                            <Sparkles size={18} />
-                                            <span className="mode-label">Modo Asistido</span>
-                                            <span className="mode-hint">IA te ayuda a mejorar tu búsqueda</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Zap size={18} />
-                                            <span className="mode-label">Modo Experto</span>
-                                            <span className="mode-hint">Búsqueda directa sin asistencia</span>
-                                        </>
-                                    )}
-                                </button>
+                            {/* MODE SELECTOR - Two clear cards */}
+                            <div className="mode-selector">
+                                <span className="mode-selector-label">¿Cómo querés buscar?</span>
+                                <div className="mode-cards">
+                                    <button
+                                        onClick={() => setAssistedMode(true)}
+                                        className={`mode-card ${assistedMode ? 'selected' : ''}`}
+                                    >
+                                        <div className="mode-card-icon assisted-icon">
+                                            <Sparkles size={22} />
+                                        </div>
+                                        <span className="mode-card-title">Asistido por IA</span>
+                                        <span className="mode-card-desc">La IA analiza y mejora tu búsqueda antes de ejecutarla para obtener mejores resultados.</span>
+                                        {assistedMode && <span className="mode-card-badge">✓ Activo</span>}
+                                    </button>
+                                    <button
+                                        onClick={() => setAssistedMode(false)}
+                                        className={`mode-card ${!assistedMode ? 'selected' : ''}`}
+                                    >
+                                        <div className="mode-card-icon expert-icon">
+                                            <Zap size={22} />
+                                        </div>
+                                        <span className="mode-card-title">Búsqueda Directa</span>
+                                        <span className="mode-card-desc">Tu consulta se ejecuta tal cual la escribís, sin modificaciones. Ideal para búsquedas precisas.</span>
+                                        {!assistedMode && <span className="mode-card-badge">✓ Activo</span>}
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="jurisdiction-selector">
