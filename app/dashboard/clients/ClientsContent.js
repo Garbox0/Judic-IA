@@ -26,6 +26,8 @@ import {
     MessageSquare
 } from 'lucide-react';
 import './clients.css';
+import { dashboardManuals } from '../../lib/dashboardManuals';
+import UsageGuide from '../../components/UsageGuide';
 
 export default function ClientsPage({ isDemo = false, basePath = '/dashboard' }) {
     const [clients, setClients] = useState([]);
@@ -388,6 +390,9 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
     return (
         <div className="clients-page-wrapper">
+            {/* GLOBAL HELP GUIDE */}
+            <UsageGuide content={dashboardManuals.clients} />
+
             {/* BREADCRUMB */}
             <div className="breadcrumb clients-breadcrumb">
                 <Link href={isDemo ? basePath : "/dashboard"} className="breadcrumb-item">Gabinete</Link>
