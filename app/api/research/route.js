@@ -9,6 +9,7 @@ import {
 } from '@/lib/directSources';
 import { isTrialExpired } from '@/app/lib/subscription';
 import { verifyAccess, incrementUsage } from '@/lib/tierMiddleware';
+import { semanticRerank } from '@/lib/embeddings';
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -771,6 +772,55 @@ DEVOLVÉ SOLO EL JSON válido.`
             }
         }
 
+        // ══════════════════════════════════════════════════
+        // 🎯 STAGE 2.5: CLICK POPULARITY BONUS
+        // ══════════════════════════════════════════════════
+        if (searchResults.length > 0) {
+            try {
+                const resultUrls = searchResults.map(r => r.link);
+                const { data: clickData } = await supabase
+                    .from('research_clicks')
+                    .select('case_url')
+                    .in('case_url', resultUrls);
+
+                if (clickData && clickData.length > 0) {
+                    // Count clicks per URL
+                    const clickCounts = {};
+                    clickData.forEach(c => {
+                        clickCounts[c.case_url] = (clickCounts[c.case_url] || 0) + 1;
+                    });
+
+                    searchResults.forEach(r => {
+                        const clicks = clickCounts[r.link] || 0;
+                        if (clicks > 0) {
+                            // +15 per past click, capped at +45
+                            const clickBonus = Math.min(clicks * 15, 45);
+                            r.score += clickBonus;
+                            r._clickBonus = clickBonus;
+                        }
+                    });
+
+                    // Re-sort after click bonus
+                    searchResults.sort((a, b) => b.score - a.score);
+                }
+            } catch (clickErr) {
+                // Non-critical: click tracking table might not exist yet
+                console.warn('⚠️ Click bonus skipped:', clickErr.message);
+            }
+        }
+
+        // ══════════════════════════════════════════════════
+        // 🧠 STAGE 2.7: SEMANTIC RE-RANKING (Embeddings)
+        // ══════════════════════════════════════════════════
+        if (searchResults.length > 0 && apiKey) {
+            try {
+                await semanticRerank(query, searchResults, apiKey);
+            } catch (embedErr) {
+                // Non-critical: falls back to keyword-only scoring
+                console.warn('⚠️ Semantic re-ranking skipped:', embedErr.message);
+            }
+        }
+
         // --- STAGE 3: STRATEGIC SYNTHESIS (Enhanced Prompt) ---
         const isDemo = mode === 'demo';
         const hasRealResults = searchResults.length > 0;
@@ -886,6 +936,31 @@ ANÁLISIS DE LA CONSULTA:
 
         const result = JSON.parse(finalCompletion.choices[0].message.content);
 
+        // --- INJECT BRAVE SCORES INTO SYNTHESIZED CASES ---
+        if (Array.isArray(result.cases)) {
+            result.cases = result.cases.map(c => {
+                if (c.url) {
+                    // Try exact match first, then fuzzy match (safe URL parsing)
+                    const match = searchResults.find(r => {
+                        if (r.link === c.url) return true;
+                        try {
+                            return c.url.includes(new URL(r.link).pathname) ||
+                                r.link.includes(new URL(c.url).pathname);
+                        } catch {
+                            // Fallback: simple string includes for malformed URLs
+                            return c.url.includes(r.link) || r.link.includes(c.url);
+                        }
+                    });
+                    if (match) {
+                        c.score = match.score;
+                    }
+                }
+                // No match = AI-generated reference without Brave backing
+                if (c.score === undefined) c.score = 0;
+                return c;
+            });
+        }
+
         // --- ENRICH LINKS (Only from high-score results) ---
         const finalLinks = result.links || [];
         if (searchResults.length > 0) {
@@ -933,7 +1008,8 @@ ANÁLISIS DE LA CONSULTA:
                             url: r.link,
                             autos: r.title,
                             summary: r.snippet,
-                            jurisdiction: jurisdiction || 'Nacional'
+                            jurisdiction: jurisdiction || 'Nacional',
+                            last_score: r.score || null
                         }, { onConflict: 'url' });
 
                         persistedResults.push(r);
@@ -977,7 +1053,10 @@ ANÁLISIS DE LA CONSULTA:
         result._debug = {
             total_results: searchResults.length,
             from_cache: searchResults.filter(r => r.fromCache).length,
-            high_score: searchResults.filter(r => r.score >= 60).length
+            high_score: searchResults.filter(r => r.score >= 60).length,
+            avg_score: searchResults.length > 0
+                ? Math.round(searchResults.reduce((s, r) => s + r.score, 0) / searchResults.length)
+                : 0
         };
 
         return NextResponse.json(result);

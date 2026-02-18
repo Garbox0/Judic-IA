@@ -17,12 +17,13 @@ export default function LegislationViewerPage() {
     const filename = params.filename;
     // Default to 'entre-rios' for backward compatibility, but allow override
     const province = searchParams.get('province') || 'entre-rios';
-    // Support external URLs (e.g. from Knowledge Base)
+    // Support external URLs (e.g. from Knowledge Base or Research)
     const externalUrl = searchParams.get('url');
     const externalTitle = searchParams.get('title');
+    // Support 'from' query param for correct back navigation
+    const fromPage = searchParams.get('from');
 
-    // We can infer the title from the filename or pass it via query, 
-    // but for now let's make it look clean.
+    // We can infer the title from the filename or pass it via query
     const displayTitle = externalTitle || filename
         ?.replace(/-/g, ' ')
         .replace(/\.pdf$/i, '')
@@ -31,7 +32,6 @@ export default function LegislationViewerPage() {
         .join(' ');
 
     // 🔒 VPS MIGRATION: Serve files from MinIO (Legislation Bucket)
-    // Using Env Var to avoid exposing hardcoded IP, preparing for future HTTPS domain.
     const VPS_BASE_URL = process.env.NEXT_PUBLIC_LEGISLATION_URL || 'https://judic-ia.com/legislation';
 
     // Build content URL
@@ -45,11 +45,19 @@ export default function LegislationViewerPage() {
             : `/api/kb-proxy?url=${encodeURIComponent(decodedExternalUrl)}&title=${encodeURIComponent(displayTitle || '')}`)
         : `${VPS_BASE_URL}/${province}/${filename}`;
 
+    // Determine back URL based on where user came from
+    const getBackUrl = () => {
+        if (fromPage === 'research') return '/dashboard/research';
+        if (fromPage === 'library') return '/dashboard/library';
+        if (isExternal) return '/dashboard/library';
+        return '/dashboard/legislation';
+    };
+
     return (
         <div className="viewer-container">
             <header className="viewer-header glass-panel">
                 <div className="header-left">
-                    <Link href={isExternal ? "/dashboard/library" : "/dashboard/legislation"} className="back-btn">
+                    <Link href={getBackUrl()} className="back-btn">
                         <ChevronLeft size={20} />
                     </Link>
                     <div className="title-wrapper">
@@ -240,8 +248,6 @@ export default function LegislationViewerPage() {
                     position: relative;
                 }
 
-
-
                 .glass-panel {
                     background: rgba(30, 41, 59, 0.4);
                     backdrop-filter: blur(12px);
@@ -311,6 +317,6 @@ export default function LegislationViewerPage() {
                     border-color: rgba(15, 23, 42, 0.1);
                 }
             `}</style>
-        </div >
+        </div>
     );
 }

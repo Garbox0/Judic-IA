@@ -20,62 +20,94 @@ export async function POST(request) {
 
         console.log(`📸 Capturing: ${url}`);
 
-        // 1. Launch Puppeteer
-        const browser = await puppeteer.launch({
-            headless: "new",
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-        });
+        let pdfBuffer;
 
-        const page = await browser.newPage();
-        await page.setViewport({ width: 1200, height: 1600 });
+        // --- DETECT IF URL IS ALREADY A PDF ---
+        // If the URL points to a PDF file, download it directly instead of
+        // rendering through Puppeteer (which would capture the browser's PDF
+        // viewer UI, creating a nested "PDF of a PDF viewer").
+        const isPdfUrl = url.toLowerCase().endsWith('.pdf');
+        let isDirectPdf = isPdfUrl;
 
-        // 2. Navigate
-        await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
+        if (!isPdfUrl) {
+            // Check content-type via HEAD request for URLs that don't have .pdf extension
+            try {
+                const headRes = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: AbortSignal.timeout(10000) });
+                const ct = headRes.headers.get('content-type') || '';
+                isDirectPdf = ct.includes('application/pdf');
+            } catch {
+                // If HEAD fails, assume it's HTML and proceed with Puppeteer
+                isDirectPdf = false;
+            }
+        }
 
-        // 3. Cleanup logic (from test script)
-        await page.evaluate(() => {
-            const elementsToRemove = [
-                'table[background="im/fondo.jpg"]',
-                'img',
-                '.noprint',
-                '#encabezado',
-                '#pie',
-                'header',
-                'footer',
-                'nav',
-                '.ads',
-                '.cookie-banner'
-            ];
-            elementsToRemove.forEach(selector => {
-                document.querySelectorAll(selector).forEach(e => e.remove());
+        if (isDirectPdf) {
+            // 📥 Direct PDF download — bypass Puppeteer entirely
+            console.log(`📥 Direct PDF detected, downloading: ${url}`);
+            const pdfRes = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(60000) });
+            if (!pdfRes.ok) {
+                throw new Error(`Failed to download PDF: ${pdfRes.status} ${pdfRes.statusText}`);
+            }
+            const arrayBuf = await pdfRes.arrayBuffer();
+            pdfBuffer = Buffer.from(arrayBuf);
+        } else {
+            // 🖥️ HTML page — use Puppeteer to render + capture as clean PDF
+            const browser = await puppeteer.launch({
+                headless: "new",
+                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
             });
 
-            // Standardization
-            document.body.style.fontFamily = "'Roboto', 'Helvetica', 'Arial', sans-serif";
-            document.body.style.fontSize = "12pt";
-            document.body.style.lineHeight = "1.5";
-            document.body.style.color = "#000";
-            document.body.style.background = "#fff";
-            document.body.style.margin = "0";
-            document.body.style.padding = "20px";
+            const page = await browser.newPage();
+            await page.setViewport({ width: 1200, height: 1600 });
 
-            // Width fix
-            document.querySelectorAll('table').forEach(t => {
-                t.style.width = "100%";
-                t.style.maxWidth = "none";
+            // Navigate
+            await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
+
+            // Cleanup logic (remove noise from judicial sites)
+            await page.evaluate(() => {
+                const elementsToRemove = [
+                    'table[background="im/fondo.jpg"]',
+                    'img',
+                    '.noprint',
+                    '#encabezado',
+                    '#pie',
+                    'header',
+                    'footer',
+                    'nav',
+                    '.ads',
+                    '.cookie-banner'
+                ];
+                elementsToRemove.forEach(selector => {
+                    document.querySelectorAll(selector).forEach(e => e.remove());
+                });
+
+                // Standardization
+                document.body.style.fontFamily = "'Roboto', 'Helvetica', 'Arial', sans-serif";
+                document.body.style.fontSize = "12pt";
+                document.body.style.lineHeight = "1.5";
+                document.body.style.color = "#000";
+                document.body.style.background = "#fff";
+                document.body.style.margin = "0";
+                document.body.style.padding = "20px";
+
+                // Width fix
+                document.querySelectorAll('table').forEach(t => {
+                    t.style.width = "100%";
+                    t.style.maxWidth = "none";
+                });
             });
-        });
 
-        // 4. Generate PDF Buffer
-        const pdfBuffer = await page.pdf({
-            format: 'A4',
-            printBackground: true,
-            margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' }
-        });
+            // Generate PDF Buffer
+            pdfBuffer = await page.pdf({
+                format: 'A4',
+                printBackground: true,
+                margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' }
+            });
 
-        await browser.close();
+            await browser.close();
+        }
 
-        // 5. Upload to MinIO
+        // Upload to MinIO
         await ensureBucket();
 
         // Generate a unique filename based on URL hash or title
@@ -90,8 +122,7 @@ export async function POST(request) {
             'x-amz-meta-original-url': url
         });
 
-        // 6. Return Public URL
-        // Using the proxy domain structure we established: https://archivos.judic-ia.com/knowledge-base/...
+        // Return Public URL
         const publicUrl = `https://archivos.judic-ia.com/${BUCKET_NAME}/${objectName}`;
 
         return NextResponse.json({

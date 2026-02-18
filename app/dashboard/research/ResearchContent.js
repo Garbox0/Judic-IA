@@ -65,6 +65,20 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const [reformulationModal, setReformulationModal] = useState(null); // { alternatives }
     const [queryQuality, setQueryQuality] = useState(null); // Current query quality analysis
 
+    // 📊 CLICK TRACKING: Fire-and-forget feedback for re-ranking
+    const trackClick = (caseUrl, action) => {
+        if (!caseUrl || isDemoProp) return;
+        fetch('/api/research/track-click', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                case_url: caseUrl,
+                action,
+                query_context: query?.substring(0, 500)
+            })
+        }).catch(() => { }); // Fire-and-forget
+    };
+
 
     useEffect(() => {
         let timer;
@@ -153,6 +167,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         }
 
         setRefreshingCases(prev => ({ ...prev, [index]: true }));
+        trackClick(results.cases[index]?.url, 'refresh');
 
         try {
             // Collect all current URLs to exclude
@@ -198,6 +213,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         if (capturingCases[index]) return;
 
         setCapturingCases(prev => ({ ...prev, [index]: true }));
+        trackClick(url, 'view_pdf');
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const accessToken = session?.access_token;
@@ -218,8 +234,8 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
             const data = await res.json();
             // Open in internal PDF viewer
-            const viewerUrl = `/dashboard/legislation/viewer/case?url=${encodeURIComponent(data.url)}&title=${encodeURIComponent(title)}`;
-            router.push(viewerUrl);
+            const viewerUrl = `/dashboard/legislation/viewer/case?url=${encodeURIComponent(data.url)}&title=${encodeURIComponent(title)}&from=research`;
+            window.open(viewerUrl, '_blank');
 
         } catch (error) {
             console.error("Capture failed:", error);
@@ -471,8 +487,10 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
             // 🔍 POST-SEARCH: Check results quality and offer reformulation if needed
             if (assistedMode && data.cases && data.cases.length > 0) {
-                const avgScore = data.cases.reduce((sum, c) => sum + (c.score || 0), 0) / data.cases.length;
-                const highQualityCases = data.cases.filter(c => (c.score || 0) >= 60).length;
+                const avgScore = data._debug?.avg_score
+                    ?? Math.round(data.cases.reduce((sum, c) => sum + (c.score || 0), 0) / data.cases.length);
+                const highQualityCases = data._debug?.high_score
+                    ?? data.cases.filter(c => (c.score || 0) >= 60).length;
 
                 // If results are poor, offer alternatives
                 if (avgScore < 50 || highQualityCases < 2) {
@@ -868,6 +886,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                                             rel="noopener noreferrer"
                                                                             className="btn-link-icon"
                                                                             title="Abrir Fuente"
+                                                                            onClick={() => trackClick(safeUrl, 'open_link')}
                                                                         >
                                                                             <ExternalLink size={16} />
                                                                         </a>
