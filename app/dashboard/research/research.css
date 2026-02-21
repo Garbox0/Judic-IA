@@ -2324,8 +2324,13 @@ body.light-theme .research-quota-label.low {
 }
 
 .empresa-row-bottom {
-    grid-template-columns: 1fr auto;
-    align-items: flex-end;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+}
+
+.empresa-btn {
+    width: 100% !important;
+    justify-content: center;
 }
 
 .empresa-field {
@@ -2372,11 +2377,6 @@ body.light-theme .research-quota-label.low {
     background: rgba(255, 255, 255, 0.06);
 }
 
-.empresa-btn {
-    white-space: nowrap;
-    height: fit-content;
-    align-self: flex-end;
-}
 
 .empresa-disclaimer {
     font-size: 0.73rem;

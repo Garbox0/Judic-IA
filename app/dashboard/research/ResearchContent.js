@@ -1227,7 +1227,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
 
 
-                        {!results && !loading && (
+                        {activeTab === 'jurisprudencia' && !results && !loading && (
                             <div className="empty-state">
                                 <p>✨ Escribí tu consulta legal y el sistema te ayudará a optimizarla automáticamente.</p>
                             </div>
