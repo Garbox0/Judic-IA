@@ -98,11 +98,12 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content glass-panel">
-                <h3>{initialData?.title ? 'Nuevo Plazo (Derivado)' : 'Nuevo Evento'}</h3>
+            <div className="modal-content glass-panel" role="dialog" aria-modal="true" aria-labelledby="event-modal-title">
+                <h3 id="event-modal-title">{initialData?.title ? 'Nuevo Plazo (Derivado)' : 'Nuevo Evento'}</h3>
                 <form onSubmit={handleSubmit}>
-                    <label>Título</label>
+                    <label htmlFor="event_title">Título</label>
                     <input
+                        id="event_title"
                         type="text"
                         value={eventData.title}
                         onChange={e => setEventData({ ...eventData, title: e.target.value })}
@@ -111,38 +112,47 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
                     />
 
                     {/* Client Selector */}
-                    <label>Asociar a Cliente (Opcional)</label>
+                    <label htmlFor="event_client">Asociar a Cliente (Opcional)</label>
                     <select
+                        id="event_client"
                         value={eventData.inquiry_id || ''}
                         onChange={e => setEventData({ ...eventData, inquiry_id: e.target.value || null })}
                     >
                         <option value="">-- Sin asignar --</option>
                         {clients.map(c => (
                             <option key={c.id} value={c.id}>
-                                👤 {c.contact_name || 'Sin Nombre'}
+                                {c.contact_name || 'Sin Nombre'}
                             </option>
                         ))}
                     </select>
 
                     {/* Deadline Calculator */}
-                    <div className="calc-toggle" onClick={() => setShowCalculator(!showCalculator)}>
-                        <span>{showCalculator ? '▼' : '▶'}</span> 🧮 Calculadora de Plazos (Días Hábiles)
-                    </div>
+                    <button
+                        type="button"
+                        className="calc-toggle"
+                        aria-expanded={showCalculator}
+                        aria-controls="calc-box"
+                        onClick={() => setShowCalculator(!showCalculator)}
+                    >
+                        <span aria-hidden="true">{showCalculator ? '▼' : '▶'}</span> Calculadora de Plazos (Días Hábiles)
+                    </button>
 
                     {showCalculator && (
-                        <div className="calculator-box">
+                        <div id="calc-box" className="calculator-box">
                             <div className="row">
                                 <div>
-                                    <label style={{ color: '#fbbf24' }}>Fecha Notificación</label>
+                                    <label htmlFor="calc_start" style={{ color: '#fbbf24' }}>Fecha Notificación</label>
                                     <input
+                                        id="calc_start"
                                         type="date"
                                         value={calcStart}
                                         onChange={e => setCalcStart(e.target.value)}
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ color: '#fbbf24' }}>Plazo (Días)</label>
+                                    <label htmlFor="calc_days" style={{ color: '#fbbf24' }}>Plazo (Días)</label>
                                     <input
+                                        id="calc_days"
                                         type="number"
                                         min="1"
                                         value={calcDays}
@@ -158,8 +168,9 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
 
                     <div className="row">
                         <div>
-                            <label>Fecha</label>
+                            <label htmlFor="event_date">Fecha</label>
                             <input
+                                id="event_date"
                                 type="date"
                                 value={eventData.date}
                                 onChange={e => setEventData({ ...eventData, date: e.target.value })}
@@ -167,8 +178,9 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
                             />
                         </div>
                         <div>
-                            <label>Hora</label>
+                            <label htmlFor="event_time">Hora</label>
                             <input
+                                id="event_time"
                                 type="time"
                                 value={eventData.time}
                                 onChange={e => setEventData({ ...eventData, time: e.target.value })}
@@ -177,16 +189,17 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
                         </div>
                     </div>
 
-                    <label>Tipo</label>
-                    <select value={eventData.type} onChange={e => setEventData({ ...eventData, type: e.target.value })}>
-                        <option value="hearing">🏛️ Audiencia</option>
-                        <option value="filing">📝 Vencimiento Escrito</option>
-                        <option value="meeting">🤝 Reunión Cliente</option>
-                        <option value="other">📌 Otro</option>
+                    <label htmlFor="event_type">Tipo</label>
+                    <select id="event_type" value={eventData.type} onChange={e => setEventData({ ...eventData, type: e.target.value })}>
+                        <option value="hearing">Audiencia</option>
+                        <option value="filing">Vencimiento Escrito</option>
+                        <option value="meeting">Reunión Cliente</option>
+                        <option value="other">Otro</option>
                     </select>
 
-                    <label>Descripción (Opcional)</label>
+                    <label htmlFor="event_desc">Descripción (Opcional)</label>
                     <textarea
+                        id="event_desc"
                         value={eventData.description}
                         onChange={e => setEventData({ ...eventData, description: e.target.value })}
                         rows={3}
@@ -263,6 +276,11 @@ export default function EventModal({ isOpen, onClose, onEventCreated, initialDat
                     color: #fbbf24;
                     font-weight: 600;
                     font-size: 0.9rem;
+                    background: none;
+                    border: none;
+                    padding: 0;
+                    text-align: left;
+                    width: 100%;
                 }
             `}</style>
         </div>

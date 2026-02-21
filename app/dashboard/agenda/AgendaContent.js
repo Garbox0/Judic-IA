@@ -269,9 +269,9 @@ export default function AgendaPage() {
                 {/* CALENDAR VIEW */}
                 <div className="calendar-panel glass-panel">
                     <div className="calendar-controls">
-                        <button onClick={() => handleMonthChange(-1)}>◀</button>
+                        <button onClick={() => handleMonthChange(-1)} aria-label="Mes anterior">◀</button>
                         <h2>{monthName.charAt(0).toUpperCase() + monthName.slice(1)}</h2>
-                        <button onClick={() => handleMonthChange(1)}>▶</button>
+                        <button onClick={() => handleMonthChange(1)} aria-label="Mes siguiente">▶</button>
                     </div>
 
                     <div className="calendar-weekdays">
@@ -296,10 +296,10 @@ export default function AgendaPage() {
                         </div>
 
                         <div className="upcoming-filters">
-                            <div className="segmented">
-                                <button className={range === "48h" ? "active" : ""} onClick={() => setRange("48h")}>48h</button>
-                                <button className={range === "7d" ? "active" : ""} onClick={() => setRange("7d")}>7d</button>
-                                <button className={range === "30d" ? "active" : ""} onClick={() => setRange("30d")}>30d</button>
+                            <div className="segmented" role="group" aria-label="Rango de tiempo">
+                                <button className={range === "48h" ? "active" : ""} aria-pressed={range === "48h"} onClick={() => setRange("48h")}>48h</button>
+                                <button className={range === "7d" ? "active" : ""} aria-pressed={range === "7d"} onClick={() => setRange("7d")}>7d</button>
+                                <button className={range === "30d" ? "active" : ""} aria-pressed={range === "30d"} onClick={() => setRange("30d")}>30d</button>
                             </div>
 
                             <label htmlFor="agenda_sort_by" className="sr-only">Ordenar por</label>
@@ -353,8 +353,8 @@ export default function AgendaPage() {
                                         </div>
 
                                         <div className="event-actions">
-                                            <button onClick={() => markAsDone(ev.id)} title="Marcar completado"><Check size={14} /></button>
-                                            <button onClick={() => deleteEvent(ev.id)} title="Eliminar"><Trash2 size={14} /></button>
+                                            <button onClick={() => markAsDone(ev.id)} title="Marcar completado" aria-label="Marcar completado"><Check size={14} aria-hidden="true" /></button>
+                                            <button onClick={() => deleteEvent(ev.id)} title="Eliminar" aria-label="Eliminar evento"><Trash2 size={14} aria-hidden="true" /></button>
                                         </div>
                                     </div>
                                 ))}
@@ -384,8 +384,8 @@ export default function AgendaPage() {
                                         </div>
 
                                         <div className="event-actions">
-                                            <button onClick={() => markAsDone(ev.id)} title="Marcar completado"><Check size={14} /></button>
-                                            <button onClick={() => deleteEvent(ev.id)} title="Eliminar"><Trash2 size={14} /></button>
+                                            <button onClick={() => markAsDone(ev.id)} title="Marcar completado" aria-label="Marcar completado"><Check size={14} aria-hidden="true" /></button>
+                                            <button onClick={() => deleteEvent(ev.id)} title="Eliminar" aria-label="Eliminar evento"><Trash2 size={14} aria-hidden="true" /></button>
                                         </div>
                                     </div>
                                 ))}
@@ -415,8 +415,8 @@ export default function AgendaPage() {
                                         </div>
 
                                         <div className="event-actions">
-                                            <button onClick={() => markAsDone(ev.id)} title="Marcar completado">✅</button>
-                                            <button onClick={() => deleteEvent(ev.id)} title="Eliminar">🗑️</button>
+                                            <button onClick={() => markAsDone(ev.id)} title="Marcar completado" aria-label="Marcar completado"><Check size={14} aria-hidden="true" /></button>
+                                            <button onClick={() => deleteEvent(ev.id)} title="Eliminar" aria-label="Eliminar evento"><Trash2 size={14} aria-hidden="true" /></button>
                                         </div>
                                     </div>
                                 ))}
@@ -484,16 +484,23 @@ export default function AgendaPage() {
             <div className={`history-panel ${showHistory ? 'expanded' : ''}`}>
                 <div className="history-head" onClick={() => setShowHistory(!showHistory)}>
                     <div className="history-title">
-                        <span className="icon"><FileClock size={20} /></span>
+                        <span className="icon"><FileClock size={20} aria-hidden="true" /></span>
                         <h3>Historial de Plazos</h3>
                         <span className="count">
                             {deadlines.filter(ev => ev.status !== 'pending').length} archivados
                         </span>
                     </div>
-                    <button className="btn-toggle">{showHistory ? <><ChevronDown size={14} /> Ocultar</> : <><ChevronUp size={14} /> Ver Historial</>}</button>
+                    <button
+                        className="btn-toggle"
+                        aria-expanded={showHistory}
+                        aria-controls="history-body"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {showHistory ? <><ChevronDown size={14} aria-hidden="true" /> Ocultar</> : <><ChevronUp size={14} aria-hidden="true" /> Ver Historial</>}
+                    </button>
                 </div>
                 {showHistory && (
-                    <div className="history-body">
+                    <div id="history-body" className="history-body">
                         <div className="history-list">
                             {deadlines.filter(ev => ev.status !== 'pending').length === 0 ? (
                                 <p className="empty-msg">No hay plazos en el historial.</p>

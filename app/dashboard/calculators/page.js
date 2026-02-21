@@ -243,13 +243,13 @@ export default function CalculatorsPage() {
 
                         <div className="form-actions">
                             <button type="button" onClick={resetPlazo} className="btn-reset">
-                                <RefreshCw size={16} /> Limpiar
+                                <RefreshCw size={16} aria-hidden="true" /> Limpiar
                             </button>
                         </div>
                     </form>
 
                     {resultadoPlazo && (
-                        <div className="result-panel fade-in violet-theme">
+                        <div className="result-panel fade-in violet-theme" aria-live="polite" aria-atomic="true">
                             <div className="result-label">VENCIMIENTO PROCESAL</div>
                             <div className="result-main-date">
                                 {resultadoPlazo.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
@@ -351,13 +351,13 @@ export default function CalculatorsPage() {
 
                         <div className="form-actions">
                             <button type="button" onClick={resetIndem} className="btn-reset">
-                                <RefreshCw size={16} /> Limpiar
+                                <RefreshCw size={16} aria-hidden="true" /> Limpiar
                             </button>
                         </div>
                     </form>
 
                     {resultadoIndem && (
-                        <div className="result-panel breakdown fade-in amber-theme">
+                        <div className="result-panel breakdown fade-in amber-theme" aria-live="polite" aria-atomic="true">
                             <div className="result-header">Desglose de la Liquidación</div>
                             <div className="result-breakdown">
                                 <div className="result-row">
