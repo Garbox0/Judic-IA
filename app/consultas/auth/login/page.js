@@ -326,7 +326,7 @@ function LoginContent() {
                         <h1 className="brand-name-premium">¡Bienvenido!</h1>
                         <p className="confirmed-text">Tu sesión jurídica está activa y verificada.</p>
 
-                        {error && <div className="error-premium" style={{ marginBottom: '1rem', padding: '0.8rem' }}>{error}</div>}
+                        {error && <div className="error-premium" role="alert" style={{ marginBottom: '1rem', padding: '0.8rem' }}>{error}</div>}
 
                         <button onClick={enterIntake} className="btn-gold-action" disabled={loading}>
                             {loading ? 'Preparando Sala...' : 'Continuar a Consulta'}
@@ -376,18 +376,18 @@ function LoginContent() {
                                         placeholder="••••••••"
                                         required
                                     />
-                                    <button type="button" className="eye-toggle-premium" onClick={() => setShowPassword(!showPassword)}>
+                                    <button type="button" className="eye-toggle-premium" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}>
                                         {showPassword ? (
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
                                         ) : (
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                                         )}
                                     </button>
                                 </div>
                             </div>
 
-                            {confirmationMessage && <div className="success-premium">{confirmationMessage}</div>}
-                            {error && <div className="error-premium">{error}</div>}
+                            {confirmationMessage && <div className="success-premium" role="status" aria-live="polite">{confirmationMessage}</div>}
+                            {error && <div className="error-premium" role="alert">{error}</div>}
 
                             <button type="submit" className="btn-gold-action" disabled={loading}>
                                 {loading ? 'Validando Acceso...' : 'Ingresar al Chat Seguro'}

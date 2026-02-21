@@ -131,8 +131,8 @@ export default function ForgotPasswordPage() {
                         </div>
 
                         {error && (
-                            <div className="error-premium" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <AlertCircle size={18} />
+                            <div className="error-premium" role="alert" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <AlertCircle size={18} aria-hidden="true" />
                                 {error}
                             </div>
                         )}
@@ -142,7 +142,7 @@ export default function ForgotPasswordPage() {
                         </button>
                     </form>
                 ) : (
-                    <div className="success-msg fade-in confirmed-ui">
+                    <div className="success-msg fade-in confirmed-ui" role="status" aria-live="polite">
                         <div className="success-icon" style={{ color: '#fbbf24', marginBottom: '1.5rem' }}>
                             <Mail size={48} />
                         </div>

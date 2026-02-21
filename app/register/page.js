@@ -600,9 +600,9 @@ export default function RegisterPage() {
                                         type="button"
                                         onClick={generateSecurePass}
                                         className="suggest-pass-link"
-                                        title="Generar clave segura"
+                                        aria-label="Generar contraseña segura"
                                     >
-                                        <Sparkles size={12} /> Sugerir
+                                        <Sparkles size={12} aria-hidden="true" /> Sugerir
                                     </button>
                                 </div>
                                 <div className="pass-input-wrapper">
@@ -620,8 +620,8 @@ export default function RegisterPage() {
                                         required
                                         className="pl-10"
                                     />
-                                    <button type="button" className="eye-toggle-register eye-absolute" onClick={() => setShowPassword(!showPassword)}>
-                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    <button type="button" className="eye-toggle-register eye-absolute" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}>
+                                        {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                                     </button>
                                 </div>
                             </div>
@@ -639,14 +639,14 @@ export default function RegisterPage() {
                                         placeholder="••••••••"
                                         required
                                     />
-                                    <button type="button" className="eye-toggle-register eye-absolute" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    <button type="button" className="eye-toggle-register eye-absolute" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={showConfirmPassword ? "Ocultar confirmación de contraseña" : "Mostrar confirmación de contraseña"}>
+                                        {showConfirmPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="password-checklist">
+                        <div className="password-checklist" aria-live="polite" aria-atomic="false">
                             <p className={passwordValidations.length ? 'valid' : ''}>
                                 {passwordValidations.length ? <ShieldCheck size={14} className="text-emerald" /> : <ShieldEllipsis size={14} className="opacity-30" />}
                                 Mínimo 8 caracteres
@@ -690,7 +690,7 @@ export default function RegisterPage() {
                             </label>
                         </div>
 
-                        {error && <div className="error-msg">⚠️ {error}</div>}
+                        {error && <div className="error-msg" role="alert">⚠️ {error}</div>}
 
                         {!message && (
                             <button
@@ -711,7 +711,7 @@ export default function RegisterPage() {
 
             {/* FULL SCREEN SUCCESS MODAL - Moved outside to escape backdrop-filter context */}
             {message && (
-                <div className="register-success-modal">
+                <div className="register-success-modal" role="status" aria-live="polite">
                     <div className="success-modal-content">
                         <div className="success-icon-large">
                             <ShieldCheck size={80} />

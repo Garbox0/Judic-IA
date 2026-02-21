@@ -333,8 +333,9 @@ export default function UpdatePasswordPage() {
                                                     onClick={generateSecurePass}
                                                     className="suggest-pass-link"
                                                     title="Generar clave segura"
+                                                    aria-label="Generar contraseña segura"
                                                 >
-                                                    <Sparkles size={12} /> Sugerir
+                                                    <Sparkles size={12} aria-hidden="true" /> Sugerir
                                                 </button>
                                             </div>
                                             <div className="pass-input-wrapper">
@@ -352,8 +353,8 @@ export default function UpdatePasswordPage() {
                                                     required
                                                     className="pl-10"
                                                 />
-                                                <button type="button" className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
-                                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                <button type="button" className="toggle-password" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}>
+                                                    {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                                                 </button>
                                             </div>
                                         </div>
@@ -362,7 +363,7 @@ export default function UpdatePasswordPage() {
                                             <label htmlFor="confirm-password">Confirmar Contraseña</label>
                                             <div className="pass-input-wrapper">
                                                 <div className="pass-icon-left">
-                                                    <Lock size={16} className="opacity-40" />
+                                                    <Lock size={16} className="opacity-40" aria-hidden="true" />
                                                 </div>
                                                 <input
                                                     id="confirm-password"
@@ -375,14 +376,14 @@ export default function UpdatePasswordPage() {
                                                     required
                                                     className="pl-10"
                                                 />
-                                                <button type="button" className="toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                                                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                <button type="button" className="toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={showConfirmPassword ? "Ocultar confirmación" : "Mostrar confirmación"}>
+                                                    {showConfirmPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="password-checklist-premium">
+                                    <div className="password-checklist-premium" aria-live="polite" aria-atomic="false">
                                         <p className={passwordValidations.length ? 'valid' : ''}>
                                             {passwordValidations.length ? <ShieldCheck size={14} className="text-emerald" /> : <ShieldEllipsis size={14} className="opacity-30" />}
                                             Mínimo 8 caracteres
@@ -418,7 +419,7 @@ export default function UpdatePasswordPage() {
                                         )}
                                     </div>
 
-                                    {error && <div className="error-premium">⚠️ {error}</div>}
+                                    {error && <div className="error-premium" role="alert">⚠️ {error}</div>}
 
                                     <button type="submit" disabled={loading || !isPasswordStrong || !passwordsMatch || pwnedStatus === 'breached'} className="btn-gold-action">
                                         {loading ? 'Actualizando...' : 'Confirmar Nueva Contraseña'}
@@ -427,7 +428,7 @@ export default function UpdatePasswordPage() {
                             )}
                         </>
                     ) : (
-                        <div className="success-ui">
+                        <div className="success-ui" role="status" aria-live="polite">
                             <div className="success-ui-icon">🎉</div>
                             <h2 className="success-ui-title">¡Contraseña Actualizada!</h2>
                             <p className="success-ui-description">

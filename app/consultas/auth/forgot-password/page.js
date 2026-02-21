@@ -138,8 +138,8 @@ export default function ClientForgotPasswordPage() {
                         </div>
 
                         {error && (
-                            <div className="error-premium">
-                                <AlertCircle size={18} />
+                            <div className="error-premium" role="alert">
+                                <AlertCircle size={18} aria-hidden="true" />
                                 <span>{error}</span>
                             </div>
                         )}
@@ -155,7 +155,7 @@ export default function ClientForgotPasswordPage() {
                         </footer>
                     </form>
                 ) : (
-                    <div className="confirmed-ui slide-up">
+                    <div className="confirmed-ui slide-up" role="status" aria-live="polite">
                         <div className="success-icon" style={{ fontSize: '3rem', marginBottom: '1.5rem' }}>
                             <Mail size={48} className="text-gold" style={{ color: '#fbbf24' }} />
                         </div>
