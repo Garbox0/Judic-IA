@@ -2,7 +2,7 @@
 //
 // Para agregar una novedad:
 // 1. Agregá un objeto nuevo al PRINCIPIO de este array
-// 2. id: usar fecha ISO del día (YYYY-MM-DD) — NO cambiar una vez publicado
+// 2. id: incrementar el número de la entrada anterior (1, 2, 3...)
 // 3. date: texto libre para mostrar al usuario ("21 Feb 2026", "Mar 2026", etc.)
 // 4. Hacé commit y deploy
 // 5. Ir a Configuración → Soporte → click "Enviar novedades por email"
@@ -11,8 +11,8 @@
 
 export const CHANGELOG = [
     {
-        id: "2026-02-21",       // identificador único de esta release
-        date: "21 Feb 2026",    // texto que ve el usuario
+        id: 1,
+        date: "21 Feb 2026",
         badge: "Nuevo",
         items: [
             "Canal de soporte directo por WhatsApp integrado en Configuración → Soporte",
