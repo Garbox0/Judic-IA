@@ -14,6 +14,7 @@ export default function LawyerProfilePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [darkMode, setDarkMode] = useState(false);
+    const [hasExistingSession, setHasExistingSession] = useState(false);
 
     // Contact form state
     const [showContactForm, setShowContactForm] = useState(false);
@@ -26,6 +27,12 @@ export default function LawyerProfilePage() {
         const saved = localStorage.getItem('judicia-marketplace-theme');
         if (saved === 'dark') setDarkMode(true);
     }, []);
+
+    useEffect(() => {
+        if (!id) return;
+        const existingCid = localStorage.getItem(`judic_ia_cid_${id}`);
+        setHasExistingSession(!!existingCid);
+    }, [id]);
 
     const toggleTheme = () => {
         setDarkMode(prev => {
@@ -206,7 +213,24 @@ export default function LawyerProfilePage() {
 
                     {/* CTA / Contact Form */}
                     <div className="profile-cta">
-                        {sent ? (
+                        {hasExistingSession ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
+                                <a href={`/consultas/${id}`} className="btn-contact-lawyer" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                                    <MessageCircle size={18} aria-hidden="true" /> Continuar consulta
+                                </a>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        localStorage.removeItem(`judic_ia_cid_${id}`);
+                                        setHasExistingSession(false);
+                                        setShowContactForm(false);
+                                    }}
+                                    style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline' }}
+                                >
+                                    Iniciar nueva consulta
+                                </button>
+                            </div>
+                        ) : sent ? (
                             <div className="contact-success">
                                 <CheckCircle size={32} />
                                 <h3>Mensaje enviado</h3>
@@ -262,22 +286,22 @@ export default function LawyerProfilePage() {
 
                                 {contactError && (
                                     <div className="contact-error">
-                                        <AlertCircle size={14} /> {contactError}
+                                        <AlertCircle size={14} aria-hidden="true" /> {contactError}
                                     </div>
                                 )}
 
                                 <button type="submit" className="btn-contact-lawyer" disabled={sending}>
                                     {sending ? (
-                                        <><Loader size={16} className="animate-spin" /> Enviando...</>
+                                        <><Loader size={16} className="animate-spin" aria-hidden="true" /> Enviando...</>
                                     ) : (
-                                        <><Send size={16} /> Enviar consulta</>
+                                        <><Send size={16} aria-hidden="true" /> Enviar consulta</>
                                     )}
                                 </button>
                             </form>
                         ) : (
-                            <button onClick={handleContact} className="btn-contact-lawyer">
-                                <MessageCircle size={18} /> Contactar
-                            </button>
+                            <a href={`/consultas/${id}`} className="btn-contact-lawyer" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                                <MessageCircle size={18} aria-hidden="true" /> Consultar ahora
+                            </a>
                         )}
                     </div>
 

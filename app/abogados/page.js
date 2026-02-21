@@ -179,11 +179,12 @@ export default function AbogadosPage() {
                                     </div>
                                     {lawyer.avg_rating > 0 && (
                                         <div className="lawyer-card-rating">
-                                            <Star size={14} fill="#fbbf24" stroke="#fbbf24" />
+                                            <Star size={14} fill="#fbbf24" stroke="#fbbf24" aria-hidden="true" />
                                             <span>{lawyer.avg_rating}</span>
                                             <span className="rating-count">({lawyer.review_count})</span>
                                         </div>
                                     )}
+                                    <ContinuarBadge lawyerId={lawyer.id} />
                                 </div>
                             </Link>
                         ))}
@@ -212,5 +213,34 @@ export default function AbogadosPage() {
                 </div>
             )}
         </main>
+    );
+}
+
+function ContinuarBadge({ lawyerId }) {
+    const [has, setHas] = useState(false);
+
+    useEffect(() => {
+        setHas(!!localStorage.getItem(`judic_ia_cid_${lawyerId}`));
+    }, [lawyerId]);
+
+    if (!has) return null;
+
+    return (
+        <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+            marginTop: '8px',
+            padding: '3px 10px',
+            borderRadius: '99px',
+            background: 'rgba(251,191,36,0.15)',
+            border: '1px solid rgba(251,191,36,0.3)',
+            color: '#fbbf24',
+            fontSize: '0.72rem',
+            fontWeight: 600
+        }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 6px #4ade80', display: 'inline-block' }} aria-hidden="true"></span>
+            Consulta activa
+        </span>
     );
 }

@@ -1,320 +1,582 @@
 "use client";
-import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import SafeChatWidget from '../../components/SafeChatWidget';
-import SessionGuard from '../../components/SessionGuard';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import styles from '../../page.module.css';
-import { useSearchParams, useRouter } from 'next/navigation';
 import './IntakeFormContent.css';
+import '../../components/chat.css';
+
+// Estado de la UI: 'loading' | 'show-form' | 'pending' | 'chat' | 'rejected' | 'restricted'
 
 export default function IntakeFormContent({ id }) {
     const searchParams = useSearchParams();
-    const router = useRouter();
 
+    const [uiState, setUiState] = useState('loading');
     const [lawyer, setLawyer] = useState(null);
+    const [cid, setCid] = useState(null);
     const [clientEmail, setClientEmail] = useState('');
     const [clientName, setClientName] = useState('');
     const [clientPhone, setClientPhone] = useState('');
-    const [clientUserId, setClientUserId] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [restricted, setRestricted] = useState(false);
-    const [activeInquiryId, setActiveInquiryId] = useState(null); // For SessionGuard
-    const [isDeleted, setIsDeleted] = useState(false); // New state for Zombie UI
-    const [isLightMode, setIsLightMode] = useState(false); // [FIX] Moved to top to satisfy Rules of Hooks
 
+    // Chat
+    const [messages, setMessages] = useState([]);
+    const [messageInput, setMessageInput] = useState('');
+    const [sending, setSending] = useState(false);
+    const messagesEndRef = useRef(null);
+
+    // UI
+    const [isLightMode, setIsLightMode] = useState(false);
+    const pollingRef = useRef(null);
+    const uiStateRef = useRef('loading');
+    const cidRef = useRef(null);
+
+    // Mantener refs sincronizados con el estado
+    useEffect(() => { uiStateRef.current = uiState; }, [uiState]);
+    useEffect(() => { cidRef.current = cid; }, [cid]);
+
+    // Scroll al último mensaje
     useEffect(() => {
-        async function checkAuthAndFetchLawyer() {
-            if (!id) return;
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
 
-            const cid = searchParams.get('cid');
+    // Inicialización: leer CID desde URL o localStorage
+    useEffect(() => {
+        if (!id) return;
 
-            // 1. CID REVOCATION CHECK (The Kill Switch)
-            if (cid) {
-                const { data: isRevoked } = await supabase
-                    .from('revoked_access')
-                    .select('id')
-                    .eq('id', cid)
-                    .maybeSingle();
+        async function init() {
+            const urlCid = searchParams.get('cid');
+            const storedCid = typeof window !== 'undefined'
+                ? localStorage.getItem(`judic_ia_cid_${id}`)
+                : null;
+            const activeCid = urlCid || storedCid;
 
-                if (isRevoked) {
-                    console.warn("🚫 BLOCKED: This CID is in the blacklist.");
-                    setRestricted(true);
-                    setLoading(false);
-                    return;
-                }
-            }
+            // Cargar perfil del abogado siempre
+            const lawyerPromise = fetch(`/api/intake/lawyer-profile?id=${id}`)
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null);
 
-            // 2. AUTH PROTECTION
-            const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-            if (authError || !user) {
-                const redirectUrl = `/consultas/auth?lawyerId=${id}${cid ? `&cid=${cid}` : ''}`;
-                router.push(redirectUrl);
+            if (!activeCid) {
+                const lawyerData = await lawyerPromise;
+                setLawyer(lawyerData);
+                setUiState('show-form');
                 return;
             }
 
-            setClientEmail(user.email);
-            setClientUserId(user.id);
-            setClientName(user.user_metadata?.full_name || '');
-            setClientPhone(user.user_metadata?.phone || '');
-
-            const { data: inquiryRows, error: inquiryError } = await supabase.from('inquiries')
-                .select('id, status')
-                .eq('assigned_lawyer_id', id)
-                .or(`client_auth_id.eq.${user.id},contact_email.eq.${user.email}`)
-                .order('created_at', { ascending: false })
-                .limit(1);
-
-            const inquiryData = inquiryRows?.[0];
-
-            if (inquiryError) {
-                console.error("❌ Inquiry fetch error (Detailed):", {
-                    message: inquiryError.message,
-                    code: inquiryError.code,
-                    details: inquiryError.details,
-                    hint: inquiryError.hint,
-                    raw: inquiryError
-                });
-                setError(`Error al verificar acceso: ${inquiryError.message || 'Error desconocido de base de datos'}`);
-                setLoading(false);
-                return;
-            }
-
-            if (!inquiryData) {
-                console.log("⚠️ No inquiry found yet...");
-                const isNewUser = (new Date() - new Date(user.created_at)) < 30000;
-
-                if (!isNewUser) {
-                    console.warn("💀 ZOMBIE DETECTED: Inquiry missing for old user.");
-                    setLawyer({ full_name: 'el estudio' });
-                    setIsDeleted(true);
-                    setTimeout(async () => {
-                        await supabase.auth.signOut();
-                        window.location.href = "https://judic-ia.com/?public=true";
-                    }, 5000);
-                    return;
-                } else {
-                    // RETRY LOGIC (Max 5 times)
-                    const retries = parseInt(sessionStorage.getItem('intake_retries') || '0');
-                    if (retries < 5) {
-                        setTimeout(checkAuthAndFetchLawyer, 3000);
-                        return;
-                    } else {
-                        console.error("❌ TIMEOUT: Inquiry sync failed after 5 retries.");
-                        setError("No pudimos sincronizar tu sesión de consulta. Por favor, intenta entrar de nuevo desde el link enviado.");
-                        setLoading(false);
-                        sessionStorage.removeItem('intake_retries');
-                        return;
-                    }
-                }
-            }
-            sessionStorage.removeItem('intake_retries');
-            setActiveInquiryId(inquiryData.id);
-
-            // 4. REALTIME KILL SWITCH
-            // Listen for deletion of MY inquiry
-            const channel = supabase.channel(`access-guard-${user.id}`)
-                .on(
-                    'postgres_changes',
-                    {
-                        event: 'DELETE',
-                        schema: 'public',
-                        table: 'inquiries',
-                        filter: `id=eq.${inquiryData.id}`  // Listen specifically for THIS case
-                    },
-                    (payload) => {
-                        console.warn("🚫 REALTIME ACCESS REVOKED: Inquiry deleted by lawyer.");
-                        setIsDeleted(true);
-                    }
-                )
-                .subscribe();
-
-
-            // 5. FETCH LAWYER PROFILE (via Proxy to bypass RLS for Admin roles)
-            if (!id) return;
             try {
-                const res = await fetch(`/api/intake/lawyer-profile?id=${id}`);
-                const lawyerData = await res.json();
+                const [messagesRes, lawyerData] = await Promise.all([
+                    fetch(`/api/intake/messages?cid=${activeCid}`),
+                    lawyerPromise
+                ]);
 
-                if (!res.ok) {
-                    console.warn("⚠️ Lawyer profile fetch error:", lawyerData.error);
-                    setError(lawyerData.error || "Perfil no disponible");
-                } else {
-                    setLawyer(lawyerData);
+                setLawyer(lawyerData);
+
+                if (!messagesRes.ok) {
+                    // CID inválido o expirado
+                    localStorage.removeItem(`judic_ia_cid_${id}`);
+                    setUiState('show-form');
+                    return;
+                }
+
+                const data = await messagesRes.json();
+
+                // Guardar CID y actualizar URL si no estaba
+                setCid(activeCid);
+                localStorage.setItem(`judic_ia_cid_${id}`, activeCid);
+                if (!urlCid) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('cid', activeCid);
+                    window.history.replaceState({}, '', url.toString());
+                }
+
+                // Restaurar datos del cliente desde la inquiry
+                if (data.contact_name) setClientName(data.contact_name);
+                if (data.contact_email) setClientEmail(data.contact_email);
+                if (data.contact_phone) setClientPhone(data.contact_phone);
+
+                applyStatus(data.status, data.messages || [], activeCid);
+            } catch (err) {
+                console.error('Error en init:', err);
+                setUiState('show-form');
+            }
+        }
+
+        init();
+
+        return () => {
+            if (pollingRef.current) clearInterval(pollingRef.current);
+        };
+    }, [id, searchParams]);
+
+    function applyStatus(status, msgs, activeCid) {
+        setMessages(msgs);
+        if (status === 'rejected') {
+            setUiState('rejected');
+        } else if (status === 'pending_review') {
+            setUiState('pending');
+            startPolling(activeCid);
+        } else {
+            setUiState('chat');
+            startPolling(activeCid);
+        }
+    }
+
+    function startPolling(activeCid) {
+        if (pollingRef.current) clearInterval(pollingRef.current);
+
+        pollingRef.current = setInterval(async () => {
+            try {
+                const res = await fetch(`/api/intake/messages?cid=${activeCid}`);
+                if (!res.ok) return;
+
+                const data = await res.json();
+                setMessages(data.messages || []);
+
+                if (data.status === 'rejected') {
+                    clearInterval(pollingRef.current);
+                    setUiState('rejected');
+                } else if (uiStateRef.current === 'pending' && data.status !== 'pending_review') {
+                    setUiState('chat');
                 }
             } catch (err) {
-                console.error("❌ Network error fetching lawyer profile:", err);
-                setError("No se pudo conectar con el servidor para cargar el perfil.");
+                console.error('Error en polling:', err);
             }
-            setLoading(false);
+        }, 5000);
+    }
 
-            return () => {
-                supabase.removeChannel(channel);
-            };
+    // Envío del formulario de intake anónimo
+    const handleFormSubmit = async (formData) => {
+        const { firstName, lastName, email, phone, dni, idType } = formData;
+
+        const res = await fetch('/api/intake/anonymous', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lawyerId: id, firstName, lastName, email, phone, dni, idType })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Error al enviar');
+
+        const newCid = data.cid;
+
+        localStorage.setItem(`judic_ia_cid_${id}`, newCid);
+        setCid(newCid);
+        setClientEmail(email.toLowerCase().trim());
+        setClientName(`${firstName.trim()} ${lastName.trim()}`);
+        setClientPhone(phone.trim());
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('cid', newCid);
+        window.history.replaceState({}, '', url.toString());
+
+        setUiState('pending');
+        startPolling(newCid);
+    };
+
+    // Envío de mensajes en el chat
+    const handleSendMessage = useCallback(async (e) => {
+        e.preventDefault();
+        const activeCid = cidRef.current;
+        if (!messageInput.trim() || sending || !activeCid) return;
+
+        const content = messageInput.trim();
+        setMessageInput('');
+        setSending(true);
+
+        try {
+            await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: content,
+                    history: [],
+                    mode: 'intake',
+                    sessionId: activeCid,
+                    lawyerId: id,
+                    clientUserId: null,
+                    clientEmail,
+                    clientName,
+                    clientPhone
+                })
+            });
+
+            // Actualizar mensajes inmediatamente después de enviar
+            const res = await fetch(`/api/intake/messages?cid=${activeCid}`);
+            if (res.ok) {
+                const data = await res.json();
+                setMessages(data.messages || []);
+            }
+        } catch (err) {
+            console.error('Error al enviar mensaje:', err);
+        } finally {
+            setSending(false);
         }
-        checkAuthAndFetchLawyer();
-    }, [id, searchParams, router]);
-
-    // Redirect out if restricted
-    useEffect(() => {
-        if (restricted) {
-            const timer = setTimeout(() => {
-                router.push('/');
-            }, 5000);
-            return () => clearTimeout(timer);
-        }
-    }, [restricted, router]);
-
-    if (loading) return <div className="loading-screen">Cargando asistente...</div>;
-
-    if (restricted) {
-        return (
-            <div className="error-screen">
-                <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', maxWidth: '400px', borderRadius: '20px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                    <div style={{ width: '70px', height: '70px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', border: '1px solid rgba(239, 68, 68, 0.3)' }}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
-                    <h2 style={{ color: '#fca5a5', marginBottom: '1rem' }}>Acceso Restringido</h2>
-                    <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                        Este acceso ha expirado o el abogado ha revocado el permiso para este caso específico.
-                    </p>
-                    <p style={{ marginTop: '2rem', fontSize: '0.75rem', opacity: 0.5 }}>Redirigiendo fuera...</p>
-                </div>
-            </div>
-        )
-    }
-
-    // New ZOMBIE UI
-    if (isDeleted) {
-        return (
-            <div className="error-screen">
-                <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', maxWidth: '450px', borderRadius: '20px', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(15,23,42,0.9)' }}>
-                    <div style={{ width: '70px', height: '70px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', border: '1px solid rgba(239, 68, 68, 0.3)' }}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg></div>
-                    <h2 style={{ color: '#fbbf24', marginBottom: '1.5rem', fontFamily: 'Playfair Display, serif' }}>Acceso Revocado</h2>
-                    <p style={{ color: '#cbd5e1', fontSize: '1rem', lineHeight: '1.6' }}>
-                        Usted ya no forma parte de la cartera de clientes de <strong style={{ color: 'white' }}>{lawyer?.full_name || 'este abogado'}</strong>.
-                    </p>
-                    <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '1rem' }}>
-                        Su expediente ha sido cerrado.
-                    </p>
-                    <div style={{ marginTop: '2.5rem', fontSize: '0.85rem', color: '#64748b' }}>
-                        Será redirigido al inicio en 5 segundos...
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-    if (error) return <div className="error-screen">{error}</div>;
-
-    async function handleLogout() {
-        await supabase.auth.signOut();
-        // Redirect explicitly to login to avoid potential loops or wrong redirects
-        window.location.href = '/auth/login';
-    }
+    }, [messageInput, sending, id, clientEmail, clientName, clientPhone]);
 
     const toggleTheme = () => {
         setIsLightMode(prev => !prev);
         document.body.classList.toggle('light-theme');
     };
 
+    // ─── Pantallas de estado ───────────────────────────────────────────────────
+
+    if (uiState === 'loading') {
+        return <div className="loading-screen">Cargando...</div>;
+    }
+
+    if (uiState === 'rejected') {
+        return (
+            <div className="error-screen">
+                <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', maxWidth: '440px', borderRadius: '20px', border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(15,23,42,0.9)' }}>
+                    <div style={{ width: '70px', height: '70px', background: 'rgba(239,68,68,0.1)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(239,68,68,0.3)' }}>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    </div>
+                    <h2 style={{ color: '#fbbf24', marginBottom: '1rem', fontFamily: 'Playfair Display, serif' }}>Consulta no disponible</h2>
+                    <p style={{ color: '#cbd5e1', lineHeight: '1.6' }}>
+                        El profesional no puede atender tu consulta en este momento.
+                    </p>
+                    <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '0.75rem' }}>
+                        Podés buscar otro profesional en el marketplace.
+                    </p>
+                    <a href="/abogados" style={{ display: 'inline-block', marginTop: '2rem', padding: '0.75rem 2rem', background: 'rgba(251,191,36,0.15)', color: '#fbbf24', borderRadius: '99px', border: '1px solid rgba(251,191,36,0.3)', textDecoration: 'none', fontSize: '0.9rem' }}>
+                        Ver otros abogados
+                    </a>
+                </div>
+            </div>
+        );
+    }
+
+    // ─── Layout principal ──────────────────────────────────────────────────────
+
+    const lawyerInitial = lawyer?.full_name?.charAt(0) || '?';
+
     return (
         <main className={`${styles.main} intake-main`}>
-            {/* SESSION HEARTBEAT (Kills session if profile is deleted) */}
-            <SessionGuard targetId={activeInquiryId} tableName="inquiries" />
-
-            {/* Navbar Minimal */}
+            {/* Navbar */}
             <nav className="glass-navbar" style={{ justifyContent: 'space-between' }}>
                 <div className="nav-brand">
                     <img src="/judic-ia-mark.png" alt="Logo" className="nav-logo" style={{ height: '32px', width: 'auto' }} />
                     <span className="nav-title">Judic-IA Consultas</span>
                 </div>
-
                 <button
                     onClick={toggleTheme}
-                    style={{
-                        background: 'rgba(255,255,255,0.1)',
-                        border: 'none',
-                        borderRadius: '50%',
-                        width: '36px',
-                        height: '36px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: isLightMode ? '#fbbf24' : '#94a3b8',
-                        transition: '0.3s'
-                    }}
-                    title={isLightMode ? "Modo Oscuro" : "Modo Claro"}
+                    aria-label={isLightMode ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'}
+                    style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isLightMode ? '#fbbf24' : '#94a3b8', transition: '0.3s' }}
                 >
                     {isLightMode ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                     ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                     )}
                 </button>
             </nav>
 
             <section className="intake-container">
                 <div className="unified-card">
-                    {/* Left: Lawyer Identity */}
+                    {/* Panel izquierdo: info del abogado */}
                     <div className="lawyer-side">
-                        <div className={`avatar-lg ${lawyer.avatar_url ? 'has-image' : ''}`}>
-                            {lawyer.avatar_url ? (
+                        <div className={`avatar-lg ${lawyer?.avatar_url ? 'has-image' : ''}`}>
+                            {lawyer?.avatar_url ? (
                                 <img src={lawyer.avatar_url} alt={lawyer.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                                lawyer.full_name?.charAt(0) || 'D'
-                            )}
+                            ) : lawyerInitial}
                         </div>
-                        <h1 className="lawyer-name">{lawyer.full_name || 'Tu Abogado'}</h1>
-                        {lawyer.matricula && (
-                            <span className="lawyer-matricula" style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '1.5rem', display: 'block' }}>
+
+                        <h1 className="lawyer-name">{lawyer?.full_name || 'Profesional'}</h1>
+
+                        {lawyer?.matricula && (
+                            <span style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '1.5rem', display: 'block' }}>
                                 Matrícula: {lawyer.matricula}
                             </span>
                         )}
 
                         <div className="welcome-text">
-                            <p>👋 <strong>Hola.</strong></p>
-                            <p>Escribí tu consulta y {lawyer.full_name || 'el profesional'} te responderá personalmente a la brevedad.</p>
-                            <p style={{ marginTop: '1rem', fontSize: '0.85rem', opacity: 0.7 }}>
-                                Tus datos están protegidos
-                            </p>
+                            {uiState === 'show-form' && (
+                                <>
+                                    <p>👋 <strong>Hola.</strong></p>
+                                    <p>Completá tus datos para iniciar una consulta con {lawyer?.full_name || 'el profesional'}.</p>
+                                </>
+                            )}
+                            {uiState === 'pending' && (
+                                <>
+                                    <p>⏳ <strong>Consulta enviada.</strong></p>
+                                    <p>{lawyer?.full_name || 'El profesional'} revisará tu caso y habilitará el chat a la brevedad.</p>
+                                    <p style={{ marginTop: '0.75rem', fontSize: '0.85rem', opacity: 0.7 }}>Te enviamos un email con el link de acceso.</p>
+                                </>
+                            )}
+                            {uiState === 'chat' && (
+                                <>
+                                    <p>💬 <strong>Consulta activa.</strong></p>
+                                    <p>Escribí tu consulta y {lawyer?.full_name || 'el profesional'} te responderá personalmente.</p>
+                                </>
+                            )}
                         </div>
 
-                        {/* NEW: USER SESSION FOOTER */}
-                        {clientEmail && (
+                        {/* Identidad del cliente (cuando tiene sesión) */}
+                        {clientEmail && uiState !== 'show-form' && (
                             <div className="user-session">
                                 <div className="session-info">
-                                    <div className="status-dot"></div>
+                                    <div className={`status-dot ${uiState === 'pending' ? 'pending-dot' : ''}`} aria-hidden="true"></div>
                                     <span>{clientEmail}</span>
                                 </div>
-                                <button onClick={handleLogout} className="logout-btn-mini">
-                                    Cerrar Sesión
-                                </button>
+                                {uiState === 'pending' && (
+                                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                                        Esperando aprobación...
+                                    </span>
+                                )}
                             </div>
                         )}
-
-
                     </div>
 
-                    {/* Right: The Chat */}
+                    {/* Panel derecho: formulario / espera / chat */}
                     <div className="chat-side">
-                        <SafeChatWidget
-                            mode="intake"
-                            lawyerId={id}
-                            embedded={true}
-                            initialMessage={`Bienvenido. Escriba su consulta y ${lawyer.full_name || 'el profesional'} le responderá a la brevedad.`}
-                            clientEmail={clientEmail}
-                            clientUserId={clientUserId}
-                            clientName={clientName}
-                            clientPhone={clientPhone}
-                            lawyerSpecialties={lawyer?.especialidades || []}
-                            lawyerAvatar={lawyer.avatar_url}
-                        />
+                        {uiState === 'show-form' && (
+                            <AnonymousIntakeForm
+                                lawyerName={lawyer?.full_name}
+                                onSubmit={handleFormSubmit}
+                            />
+                        )}
+
+                        {uiState === 'pending' && (
+                            <PendingScreen />
+                        )}
+
+                        {uiState === 'chat' && (
+                            <AnonymousChat
+                                messages={messages}
+                                messageInput={messageInput}
+                                setMessageInput={setMessageInput}
+                                onSend={handleSendMessage}
+                                sending={sending}
+                                messagesEndRef={messagesEndRef}
+                                lawyerName={lawyer?.full_name}
+                            />
+                        )}
                     </div>
                 </div>
             </section>
-
-
         </main>
+    );
+}
+
+// ─── Formulario de intake anónimo ─────────────────────────────────────────────
+
+function AnonymousIntakeForm({ lawyerName, onSubmit }) {
+    const [form, setForm] = useState({
+        firstName: '', lastName: '', email: '', phone: '', dni: '', idType: 'DNI'
+    });
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setSubmitting(true);
+        try {
+            await onSubmit(form);
+        } catch (err) {
+            setError(err.message || 'Ocurrió un error. Intentá de nuevo.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="intake-form-wrapper">
+            <div className="intake-form-header">
+                <h2>Iniciá tu consulta</h2>
+                <p>Completá tus datos para contactar a {lawyerName || 'el profesional'}.</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="intake-form" noValidate>
+                <div className="intake-row">
+                    <div className="intake-field">
+                        <label htmlFor="firstName">Nombre <span aria-hidden="true">*</span></label>
+                        <input
+                            id="firstName"
+                            name="firstName"
+                            type="text"
+                            autoComplete="given-name"
+                            required
+                            maxLength={80}
+                            value={form.firstName}
+                            onChange={handleChange}
+                            placeholder="Tu nombre"
+                        />
+                    </div>
+                    <div className="intake-field">
+                        <label htmlFor="lastName">Apellido <span aria-hidden="true">*</span></label>
+                        <input
+                            id="lastName"
+                            name="lastName"
+                            type="text"
+                            autoComplete="family-name"
+                            required
+                            maxLength={80}
+                            value={form.lastName}
+                            onChange={handleChange}
+                            placeholder="Tu apellido"
+                        />
+                    </div>
+                </div>
+
+                <div className="intake-field">
+                    <label htmlFor="email">Email <span aria-hidden="true">*</span></label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autoComplete="email"
+                        required
+                        maxLength={200}
+                        value={form.email}
+                        onChange={handleChange}
+                        placeholder="tu@email.com"
+                    />
+                </div>
+
+                <div className="intake-field">
+                    <label htmlFor="phone">Teléfono <span aria-hidden="true">*</span></label>
+                    <input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        autoComplete="tel"
+                        required
+                        maxLength={30}
+                        value={form.phone}
+                        onChange={handleChange}
+                        placeholder="+54 11 1234-5678"
+                    />
+                </div>
+
+                <div className="intake-row">
+                    <div className="intake-field intake-field-sm">
+                        <label htmlFor="idType">Documento</label>
+                        <select id="idType" name="idType" value={form.idType} onChange={handleChange}>
+                            <option value="DNI">DNI</option>
+                            <option value="CUIL">CUIL</option>
+                            <option value="CUIT">CUIT</option>
+                        </select>
+                    </div>
+                    <div className="intake-field" style={{ flex: 2 }}>
+                        <label htmlFor="dni">Número (opcional)</label>
+                        <input
+                            id="dni"
+                            name="dni"
+                            type="text"
+                            maxLength={20}
+                            value={form.dni}
+                            onChange={handleChange}
+                            placeholder="20123456"
+                        />
+                    </div>
+                </div>
+
+                {error && (
+                    <div className="intake-error" role="alert">
+                        {error}
+                    </div>
+                )}
+
+                <button type="submit" className="btn-intake-submit" disabled={submitting}>
+                    {submitting ? 'Enviando...' : 'Iniciar consulta'}
+                </button>
+
+                <p className="intake-privacy">
+                    Tus datos son confidenciales y solo serán compartidos con el profesional seleccionado.
+                </p>
+            </form>
+        </div>
+    );
+}
+
+// ─── Pantalla de espera ────────────────────────────────────────────────────────
+
+function PendingScreen() {
+    return (
+        <div className="pending-screen" role="status" aria-live="polite">
+            <div className="pending-icon" aria-hidden="true">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+            </div>
+            <h3>Consulta recibida</h3>
+            <p>El profesional revisará tu caso y habilitará el chat a la brevedad.</p>
+            <p className="pending-hint">Esta pantalla se actualizará automáticamente.</p>
+            <div className="pending-dots" aria-hidden="true">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    );
+}
+
+// ─── Chat anónimo ──────────────────────────────────────────────────────────────
+
+function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sending, messagesEndRef, lawyerName }) {
+    const getRoleBubbleClass = (role) => role === 'user' ? 'sent' : 'received';
+
+    const getRoleLabel = (role) => {
+        if (role === 'lawyer') return lawyerName || 'Abogado';
+        if (role === 'assistant') return 'Asistente IA';
+        return null;
+    };
+
+    return (
+        <div className="chat-widget-inline embedded">
+            <div className="chat-messages-area">
+                {messages.length === 0 && (
+                    <div className="message-bubble received welcome-msg">
+                        <p>Bienvenido. Escribí tu consulta y {lawyerName || 'el profesional'} te responderá a la brevedad.</p>
+                        <span className="message-time">
+                            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                    </div>
+                )}
+
+                {messages.map(msg => (
+                    <div key={msg.id} className={`message-bubble ${getRoleBubbleClass(msg.role)}`}>
+                        {getRoleLabel(msg.role) && (
+                            <span className={`msg-role-tag ${msg.role === 'lawyer' ? 'lawyer-tag' : 'assistant-tag'}`}>
+                                {getRoleLabel(msg.role)}
+                            </span>
+                        )}
+                        <p>{msg.content}</p>
+                        <span className="message-time">
+                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                    </div>
+                ))}
+                <div ref={messagesEndRef} />
+            </div>
+
+            <form className="chat-input-area" onSubmit={onSend}>
+                <input
+                    type="text"
+                    className="chat-input"
+                    placeholder="Escribí tu mensaje..."
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
+                    disabled={sending}
+                    maxLength={5000}
+                    aria-label="Escribí tu mensaje"
+                />
+                <button
+                    type="submit"
+                    className="chat-send-btn"
+                    disabled={sending || !messageInput.trim()}
+                    aria-label="Enviar mensaje"
+                >
+                    {sending ? (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    )}
+                </button>
+            </form>
+        </div>
     );
 }
