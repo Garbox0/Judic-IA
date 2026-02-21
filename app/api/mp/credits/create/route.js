@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { verifyAuth } from "@/lib/api-auth";
 
 const CREDIT_PACKS = {
-  pack_10: { credits: 10, amount: 7250,  label: "Pack 10 búsquedas" },
+  pack_10: { credits: 10, amount: 7500,  label: "Pack 10 búsquedas" },
   pack_25: { credits: 25, amount: 15000, label: "Pack 25 búsquedas" },
   pack_50: { credits: 50, amount: 25000, label: "Pack 50 búsquedas" },
 };

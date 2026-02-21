@@ -1311,7 +1311,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         {(userProfile?.subscription_status === 'active' || userProfile?.plan_tier === 'enterprise') && (
                         <div className="credit-packs-grid">
                             {[
-                                { id: 'pack_10', credits: 10, price: '7.250', badge: null },
+                                { id: 'pack_10', credits: 10, price: '7.500', badge: null },
                                 { id: 'pack_25', credits: 25, price: '15.000', badge: 'Popular' },
                                 { id: 'pack_50', credits: 50, price: '25.000', badge: 'Mejor valor' },
                             ].map(pack => (
