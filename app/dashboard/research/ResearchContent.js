@@ -63,6 +63,15 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const [quotaExhausted, setQuotaExhausted] = useState(false); // true = llegó a 0, false = compra proactiva
     const [trialExpired, setTrialExpired] = useState(false); // [NEW] Trial Expiration Check
 
+    // 🏢 EMPRESA TAB
+    const [activeTab, setActiveTab] = useState('jurisprudencia');
+    const [empresaName, setEmpresaName] = useState('');
+    const [empresaCuit, setEmpresaCuit] = useState('');
+    const [empresaJurisdiction, setEmpresaJurisdiction] = useState('federal');
+    const [empresaLoading, setEmpresaLoading] = useState(false);
+    const [empresaResults, setEmpresaResults] = useState(null); // { cases: [], message? }
+    const [empresaError, setEmpresaError] = useState(null);
+
     // 🎯 QUERY ENHANCEMENT STATES
     const [assistedMode, setAssistedMode] = useState(true); // Default to assisted for better UX
     const [enhancementModal, setEnhancementModal] = useState(null); // { original, enhanced, quality }
@@ -341,6 +350,58 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                 </p>
             );
         });
+    };
+
+    // 🏢 EMPRESA SEARCH HANDLER
+    const handleEmpresaSearch = async (e) => {
+        e.preventDefault();
+        if (!empresaName && !empresaCuit) return;
+        setEmpresaLoading(true);
+        setEmpresaResults(null);
+        setEmpresaError(null);
+
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+
+            const res = await fetch('/api/research/company', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token && { 'Authorization': `Bearer ${token}` })
+                },
+                body: JSON.stringify({
+                    name: empresaName || undefined,
+                    cuit: empresaCuit || undefined,
+                    jurisdiction: empresaJurisdiction
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                if (data.error === 'QUOTA_EXCEEDED') {
+                    setQuotaExhausted(true);
+                    setQuotaModalOpen(true);
+                    return;
+                }
+                setEmpresaError(data.error || 'Error al buscar. Intentá de nuevo.');
+                return;
+            }
+
+            setEmpresaResults(data);
+
+            // Reload profile to update quota display
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+                if (profile) setUserProfile(profile);
+            }
+        } catch (err) {
+            setEmpresaError('Error de conexión. Verificá tu internet.');
+        } finally {
+            setEmpresaLoading(false);
+        }
     };
 
     // 🎯 PRE-FLIGHT CHECK: Analyze query quality before searching
@@ -689,6 +750,113 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                             </div>
                         </header>
 
+                        {/* TAB SWITCHER */}
+                        <div className="research-tabs">
+                            <button
+                                className={`research-tab ${activeTab === 'jurisprudencia' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('jurisprudencia')}
+                            >
+                                <Search size={15} /> Jurisprudencia
+                            </button>
+                            <button
+                                className={`research-tab ${activeTab === 'empresa' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('empresa')}
+                            >
+                                <Building2 size={15} /> Juicios por Empresa
+                            </button>
+                        </div>
+
+                        {/* ── EMPRESA TAB ── */}
+                        {activeTab === 'empresa' && (
+                            <div className="search-box-container glass-panel">
+                                <p className="empresa-desc">
+                                    Buscá expedientes judiciales públicos asociados a una empresa. Ingresá su CUIT o razón social.
+                                </p>
+                                <form onSubmit={handleEmpresaSearch} className="empresa-form">
+                                    <div className="empresa-inputs">
+                                        <div className="empresa-field">
+                                            <label htmlFor="empresa_name">Razón social</label>
+                                            <input
+                                                id="empresa_name"
+                                                type="text"
+                                                placeholder="Ej: YPF SA"
+                                                value={empresaName}
+                                                onChange={e => setEmpresaName(e.target.value)}
+                                            />
+                                        </div>
+                                        <span className="empresa-or">o</span>
+                                        <div className="empresa-field">
+                                            <label htmlFor="empresa_cuit">CUIT</label>
+                                            <input
+                                                id="empresa_cuit"
+                                                type="text"
+                                                placeholder="Ej: 30-54668997-9"
+                                                value={empresaCuit}
+                                                onChange={e => setEmpresaCuit(e.target.value)}
+                                                maxLength={13}
+                                            />
+                                        </div>
+                                        <div className="empresa-field">
+                                            <label htmlFor="empresa_jur">Jurisdicción</label>
+                                            <select
+                                                id="empresa_jur"
+                                                value={empresaJurisdiction}
+                                                onChange={e => setEmpresaJurisdiction(e.target.value)}
+                                            >
+                                                <option value="federal">Federal / Nacional</option>
+                                                <option value="buenosaires">Buenos Aires</option>
+                                                <option value="caba">CABA</option>
+                                                <option value="todas">Todas</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button type="submit" disabled={empresaLoading || (!empresaName && !empresaCuit)} className="btn-search-submit">
+                                        {empresaLoading ? <Loader2 size={18} className="spin-animation" /> : <Search size={18} />}
+                                        {empresaLoading ? 'Buscando expedientes...' : 'Buscar juicios'}
+                                    </button>
+                                </form>
+
+                                {empresaError && (
+                                    <div className="empresa-error">
+                                        <AlertCircle size={16} /> {empresaError}
+                                    </div>
+                                )}
+
+                                {empresaResults && (
+                                    <div className="empresa-results">
+                                        {empresaResults.message && empresaResults.cases?.length === 0 && (
+                                            <p className="empresa-empty">{empresaResults.message}</p>
+                                        )}
+                                        {empresaResults.cases?.length > 0 && (
+                                            <>
+                                                <p className="empresa-count">{empresaResults.cases.length} causa{empresaResults.cases.length !== 1 ? 's' : ''} encontrada{empresaResults.cases.length !== 1 ? 's' : ''}</p>
+                                                <div className="empresa-cases">
+                                                    {empresaResults.cases.map((c, i) => (
+                                                        <div key={i} className="empresa-case-card">
+                                                            <div className="empresa-case-header">
+                                                                <span className={`empresa-tipo tipo-${c.tipo?.toLowerCase().replace(/\s/g, '-')}`}>{c.tipo || 'Otro'}</span>
+                                                                {c.estado && <span className={`empresa-estado ${c.estado === 'Activo' ? 'activo' : 'archivado'}`}>{c.estado}</span>}
+                                                            </div>
+                                                            <p className="empresa-caratula">{c.caratula}</p>
+                                                            {c.expediente && <p className="empresa-meta">Expte: {c.expediente}</p>}
+                                                            {c.tribunal && <p className="empresa-meta">{c.tribunal}</p>}
+                                                            {c.url && (
+                                                                <a href={c.url} target="_blank" rel="noopener noreferrer" className="empresa-link">
+                                                                    <ExternalLink size={13} /> Ver fuente
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* ── JURISPRUDENCIA TAB ── */}
+                        {activeTab === 'jurisprudencia' && (
                         <div className="search-box-container glass-panel">
                             {/* MODE SELECTOR - Two clear cards */}
                             <div className="mode-selector">
@@ -890,8 +1058,9 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                 </div>
                             )}
                         </div>
+                        )} {/* end activeTab === 'jurisprudencia' */}
 
-                        {results && (
+                        {activeTab === 'jurisprudencia' && results && (
                             <div className="results-area">
                                 {results.brave_used && (
                                     <div className="badge-brave">

@@ -2238,3 +2238,230 @@ body.light-theme .research-quota-label {
 body.light-theme .research-quota-label.low {
     color: #ef4444;
 }
+/* ─── RESEARCH TABS ─────────────────────────────────────────────────── */
+.research-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.research-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: transparent;
+    color: rgba(248, 250, 252, 0.5);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.research-tab:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(248, 250, 252, 0.85);
+}
+
+.research-tab.active {
+    background: rgba(251, 191, 36, 0.12);
+    border-color: rgba(251, 191, 36, 0.35);
+    color: #fbbf24;
+}
+
+/* ─── EMPRESA SEARCH ────────────────────────────────────────────────── */
+.empresa-desc {
+    font-size: 0.875rem;
+    color: rgba(248, 250, 252, 0.55);
+    margin-bottom: 1.25rem;
+}
+
+.empresa-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.empresa-inputs {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.empresa-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex: 1;
+    min-width: 160px;
+}
+
+.empresa-field label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: rgba(248, 250, 252, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.empresa-field input,
+.empresa-field select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    color: var(--foreground);
+    font-size: 0.9rem;
+    width: 100%;
+    transition: border-color 0.18s;
+}
+
+.empresa-field input:focus,
+.empresa-field select:focus {
+    outline: none;
+    border-color: rgba(251, 191, 36, 0.45);
+}
+
+.empresa-or {
+    font-size: 0.8rem;
+    color: rgba(248, 250, 252, 0.3);
+    padding-bottom: 0.5rem;
+    flex-shrink: 0;
+}
+
+.empresa-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: rgba(248, 113, 113, 0.1);
+    border: 1px solid rgba(248, 113, 113, 0.25);
+    color: #f87171;
+    font-size: 0.875rem;
+}
+
+.empresa-results {
+    margin-top: 1.5rem;
+}
+
+.empresa-count {
+    font-size: 0.8rem;
+    color: rgba(248, 250, 252, 0.45);
+    margin-bottom: 0.75rem;
+}
+
+.empresa-empty {
+    font-size: 0.875rem;
+    color: rgba(248, 250, 252, 0.4);
+    padding: 1rem 0;
+}
+
+.empresa-cases {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.empresa-case-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    transition: border-color 0.18s;
+}
+
+.empresa-case-card:hover {
+    border-color: rgba(251, 191, 36, 0.2);
+}
+
+.empresa-case-header {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.empresa-tipo {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.empresa-tipo.tipo-laboral { background: rgba(16, 185, 129, 0.12); color: #6ee7b7; }
+.empresa-tipo.tipo-civil { background: rgba(59, 130, 246, 0.12); color: #93c5fd; }
+.empresa-tipo.tipo-comercial { background: rgba(245, 158, 11, 0.12); color: #fcd34d; }
+.empresa-tipo.tipo-penal { background: rgba(239, 68, 68, 0.12); color: #fca5a5; }
+.empresa-tipo.tipo-contencioso-administrativo { background: rgba(168, 85, 247, 0.12); color: #d8b4fe; }
+
+.empresa-estado {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.empresa-estado.activo { background: rgba(16, 185, 129, 0.12); color: #6ee7b7; }
+.empresa-estado.archivado { background: rgba(100, 116, 139, 0.15); color: #94a3b8; }
+
+.empresa-caratula {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--foreground);
+    margin-bottom: 0.3rem;
+    line-height: 1.4;
+}
+
+.empresa-meta {
+    font-size: 0.78rem;
+    color: rgba(248, 250, 252, 0.45);
+    margin-bottom: 0.2rem;
+}
+
+.empresa-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.5rem;
+    font-size: 0.78rem;
+    color: rgba(251, 191, 36, 0.7);
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.empresa-link:hover { color: #fbbf24; }
+
+/* Light theme overrides */
+body.light-theme .research-tab {
+    color: rgba(15, 23, 42, 0.5);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+body.light-theme .research-tab:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: rgba(15, 23, 42, 0.8);
+}
+body.light-theme .research-tab.active {
+    background: rgba(251, 191, 36, 0.1);
+    color: #b45309;
+}
+body.light-theme .empresa-desc { color: rgba(15, 23, 42, 0.55); }
+body.light-theme .empresa-field label { color: rgba(15, 23, 42, 0.55); }
+body.light-theme .empresa-field input,
+body.light-theme .empresa-field select {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.12);
+    color: #0f172a;
+}
+body.light-theme .empresa-case-card { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.08); }
+body.light-theme .empresa-caratula { color: #0f172a; }
+body.light-theme .empresa-meta { color: rgba(15, 23, 42, 0.5); }
+body.light-theme .empresa-count { color: rgba(15, 23, 42, 0.45); }
