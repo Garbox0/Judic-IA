@@ -28,7 +28,8 @@
       "Bash(npm run build:*)",
       "Bash(ls:*)",
       "Bash(grep:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(/d/Antigravity/Judic-IA/app/dashboard/research/research.css:*)"
     ]
   }
 }
