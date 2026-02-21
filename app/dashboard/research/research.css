@@ -1318,21 +1318,22 @@ body.light-theme .province-select {
 }
 
 .quota-buy-btn {
-    background: none;
-    border: none;
+    background: rgba(251, 191, 36, 0.15);
+    border: 1px solid rgba(251, 191, 36, 0.4);
+    border-radius: 20px;
     cursor: pointer;
     color: #fbbf24;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 700;
-    padding: 0 0 0 0.6rem;
-    opacity: 0.8;
-    transition: opacity 0.15s;
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    padding: 0.2rem 0.65rem;
+    margin-left: 0.5rem;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
 }
 
 .quota-buy-btn:hover {
-    opacity: 1;
+    background: rgba(251, 191, 36, 0.25);
+    border-color: rgba(251, 191, 36, 0.7);
 }
 
 /* Credits purchase toast */
