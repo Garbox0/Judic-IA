@@ -1,13 +1,36 @@
-// Judic-IA Changelog
+// ============================================================
+// Judic-IA — Changelog
+// ============================================================
 //
-// Para agregar una novedad:
+// CÓMO PUBLICAR UNA NOVEDAD:
+//
 // 1. Agregá un objeto nuevo al PRINCIPIO de este array
-// 2. id: incrementar el número de la entrada anterior (1, 2, 3...)
-// 3. date: texto libre para mostrar al usuario ("21 Feb 2026", "Mar 2026", etc.)
-// 4. Hacé commit y deploy
-// 5. Ir a Configuración → Soporte → click "Enviar novedades por email"
+//    con id = (último id + 1), date = texto libre, y los items.
 //
-// Solo se notifica la primera entrada (la más reciente).
+//    Ejemplo:
+//    {
+//        id: 2,
+//        date: "28 Feb 2026",
+//        badge: "Nuevo",        // opcional
+//        items: [
+//            "Nueva funcionalidad X",
+//            "Se mejoró Y",
+//        ],
+//    },
+//
+// 2. Guardá el archivo → commit → push → esperá el deploy de Vercel (1-2 min)
+//
+// 3. Ir al dashboard → Configuración → tab Soporte
+//    El botón "Enviar novedades por email" aparece activo de nuevo.
+//    Un click → mail automático a todos los suscriptores.
+//
+// NOTAS:
+// - id: número secuencial, nunca repetir ni cambiar una vez publicado
+// - date: texto libre ("28 Feb 2026", "Mar 2026", lo que quieras)
+// - badge: opcional — "Nuevo", "Fix", "Mejora", lo que aplique
+// - Solo se notifica por email la PRIMERA entrada (la más reciente)
+// - El sistema bloquea doble envío de la misma release automáticamente
+// ============================================================
 
 export const CHANGELOG = [
     {
