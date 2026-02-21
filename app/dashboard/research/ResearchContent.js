@@ -768,52 +768,61 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
                         {/* ── EMPRESA TAB ── */}
                         {activeTab === 'empresa' && (
-                            <div className="search-box-container glass-panel">
-                                <p className="empresa-desc">
-                                    Buscá expedientes judiciales públicos asociados a una empresa. Ingresá su CUIT o razón social.
-                                </p>
+                            <div className="search-box-container glass-panel empresa-panel">
+                                <div className="empresa-panel-header">
+                                    <div className="empresa-panel-icon"><Building2 size={20} /></div>
+                                    <div>
+                                        <h3 className="empresa-panel-title">Búsqueda de Expedientes por Empresa</h3>
+                                        <p className="empresa-panel-subtitle">Consultá causas judiciales públicas del PJN, SCBA y otras fuentes.</p>
+                                    </div>
+                                </div>
+
                                 <form onSubmit={handleEmpresaSearch} className="empresa-form">
-                                    <div className="empresa-inputs">
-                                        <div className="empresa-field">
+                                    <div className="empresa-row">
+                                        <div className="empresa-field empresa-field-main">
                                             <label htmlFor="empresa_name">Razón social</label>
                                             <input
                                                 id="empresa_name"
                                                 type="text"
-                                                placeholder="Ej: YPF SA"
+                                                placeholder="Ej: YPF SA, Carrefour, Techint..."
                                                 value={empresaName}
                                                 onChange={e => setEmpresaName(e.target.value)}
                                             />
                                         </div>
-                                        <span className="empresa-or">o</span>
-                                        <div className="empresa-field">
-                                            <label htmlFor="empresa_cuit">CUIT</label>
+                                        <div className="empresa-field empresa-field-cuit">
+                                            <label htmlFor="empresa_cuit">CUIT <span className="empresa-optional">(opcional)</span></label>
                                             <input
                                                 id="empresa_cuit"
                                                 type="text"
-                                                placeholder="Ej: 30-54668997-9"
+                                                placeholder="30-54668997-9"
                                                 value={empresaCuit}
                                                 onChange={e => setEmpresaCuit(e.target.value)}
                                                 maxLength={13}
                                             />
                                         </div>
-                                        <div className="empresa-field">
+                                    </div>
+                                    <div className="empresa-row empresa-row-bottom">
+                                        <div className="empresa-field empresa-field-jur">
                                             <label htmlFor="empresa_jur">Jurisdicción</label>
                                             <select
                                                 id="empresa_jur"
                                                 value={empresaJurisdiction}
                                                 onChange={e => setEmpresaJurisdiction(e.target.value)}
                                             >
-                                                <option value="federal">Federal / Nacional</option>
-                                                <option value="buenosaires">Buenos Aires</option>
-                                                <option value="caba">CABA</option>
-                                                <option value="todas">Todas</option>
+                                                <option value="federal">🇦🇷 Federal / Nacional</option>
+                                                <option value="buenosaires">📍 Buenos Aires (SCBA)</option>
+                                                <option value="caba">🏙️ CABA</option>
+                                                <option value="todas">🔍 Todas las disponibles</option>
                                             </select>
                                         </div>
+                                        <button type="submit" disabled={empresaLoading || (!empresaName && !empresaCuit)} className="btn-search-submit empresa-btn">
+                                            {empresaLoading ? <Loader2 size={18} className="spin-animation" /> : <Search size={18} />}
+                                            {empresaLoading ? 'Buscando...' : 'Buscar expedientes'}
+                                        </button>
                                     </div>
-                                    <button type="submit" disabled={empresaLoading || (!empresaName && !empresaCuit)} className="btn-search-submit">
-                                        {empresaLoading ? <Loader2 size={18} className="spin-animation" /> : <Search size={18} />}
-                                        {empresaLoading ? 'Buscando expedientes...' : 'Buscar juicios'}
-                                    </button>
+                                    <p className="empresa-disclaimer">
+                                        Los resultados provienen de fuentes públicas y pueden ser incompletos. No reemplaza una consulta al sistema oficial.
+                                    </p>
                                 </form>
 
                                 {empresaError && (
