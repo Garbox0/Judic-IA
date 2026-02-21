@@ -41,11 +41,12 @@ export async function POST(request) {
     .eq("id", userId)
     .single();
 
-  const activeTiers = ["professional", "enterprise", "trial"];
-  const activeStatuses = ["active", "trialing"];
+  // active = suscripción paga vigente o trial activo
+  // past_due = pago fallido con 7 días de gracia — aún puede comprar
   const hasActiveSub =
-    activeStatuses.includes(profile?.subscription_status) ||
-    activeTiers.includes(profile?.plan_tier);
+    profile?.subscription_status === "active" ||
+    profile?.subscription_status === "past_due" ||
+    profile?.plan_tier === "enterprise";
 
   if (!hasActiveSub) {
     return NextResponse.json(
