@@ -12,7 +12,7 @@ export async function POST(request) {
   // 1. Autenticar
   const auth = await verifyAuth(request);
   if (auth.error) return auth.response;
-  const userId = auth.userId;
+  const userId = auth.user.id;
 
   const body = await request.json().catch(() => ({}));
   const { pack_id } = body;
