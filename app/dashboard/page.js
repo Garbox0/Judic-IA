@@ -14,7 +14,8 @@ import {
   Calculator,
   Book,
   Globe,
-  X
+  X,
+  AlertTriangle
 } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
@@ -25,11 +26,16 @@ export default function DashboardHome({ isDemo = false, basePath = '/dashboard' 
   const [profile, setProfile] = useState(isDemo ? demoProfile : null);
   const [stats, setStats] = useState(isDemo ? demoStats : { clients: 0, deadlines: 0 });
   const [showPublicBanner, setShowPublicBanner] = useState(false);
+  const [showPaymentBanner, setShowPaymentBanner] = useState(false);
 
   useEffect(() => {
     if (profile && profile.verification_status === 'verified' && !profile.is_public) {
       const dismissed = sessionStorage.getItem('judicia-public-banner-dismissed');
       if (!dismissed) setShowPublicBanner(true);
+    }
+    if (profile && profile.subscription_status === 'past_due') {
+      const dismissed = sessionStorage.getItem('judicia-payment-banner-dismissed');
+      if (!dismissed) setShowPaymentBanner(true);
     }
   }, [profile]);
 
@@ -153,6 +159,29 @@ export default function DashboardHome({ isDemo = false, basePath = '/dashboard' 
 
       {!isDemo && (
         profile ? <QuotaSummary profile={profile} /> : <QuotaSummarySkeleton />
+      )}
+
+      {showPaymentBanner && (
+        <div className="dash-payment-banner">
+          <AlertTriangle size={20} className="dash-payment-banner-icon" />
+          <div className="dash-payment-banner-text">
+            <strong>Problema con tu pago.</strong> Tu último pago no pudo procesarse. Tenés 7 días para regularizarlo antes de que tu cuenta baje al plan gratuito.
+          </div>
+          <Link href="/dashboard/settings?tab=billing" className="dash-payment-banner-btn">
+            Regularizar
+          </Link>
+          <button
+            type="button"
+            className="dash-public-banner-close"
+            onClick={() => {
+              setShowPaymentBanner(false);
+              sessionStorage.setItem('judicia-payment-banner-dismissed', '1');
+            }}
+            aria-label="Cerrar"
+          >
+            <X size={16} />
+          </button>
+        </div>
       )}
 
       {showPublicBanner && (

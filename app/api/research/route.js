@@ -8,7 +8,8 @@ import {
     identifySource
 } from '@/lib/directSources';
 import { isTrialExpired } from '@/app/lib/subscription';
-import { verifyAccess, incrementUsage } from '@/lib/tierMiddleware';
+import { verifyAccess } from '@/lib/tierMiddleware';
+import { getPlanLimit } from '@/lib/planLimits';
 import { semanticRerank } from '@/lib/embeddings';
 
 
@@ -164,9 +165,20 @@ export async function POST(request) {
             // 🔒 TRIAL EXPIRATION CHECK (Backend Security - Cannot be bypassed via console)
             const { data: profileData } = await supabase
                 .from('profiles')
-                .select('plan_tier, subscription_status, trial_ends_at')
+                .select('plan_tier, subscription_status, trial_ends_at, verification_status')
                 .eq('id', user.id)
                 .single();
+
+            if (profileData && profileData.verification_status !== 'verified') {
+                console.warn(`⛔ Unverified lawyer attempted research: ${user.id}`);
+                return NextResponse.json({
+                    error: "VERIFICATION_REQUIRED",
+                    message: "Tu cuenta está pendiente de verificación. Nuestro equipo está revisando tus credenciales.",
+                    laws: "⏳ VERIFICACIÓN PENDIENTE",
+                    cases: [],
+                    links: []
+                }, { status: 403 });
+            }
 
             if (profileData && isTrialExpired(profileData)) {
                 console.warn(`⛔ Trial expired for user ${user.id}`);
@@ -184,15 +196,16 @@ export async function POST(request) {
 
             if (!isSuperUser) {
                 // Verify access and quota using centralized middleware
-                const accessCheck = await verifyAccess(effectiveUserId, 'advanced_research', 'ai_messages');
+                // 🔒 Research reports have their own quota (tied to Brave API cost)
+                const accessCheck = await verifyAccess(effectiveUserId, 'advanced_research', 'research_reports');
 
                 if (!accessCheck.allowed) {
                     console.warn(`⚠️ Access denied for user ${effectiveUserId}:`, accessCheck.reason);
 
                     if (accessCheck.reason === 'QUOTA_EXCEEDED') {
                         return NextResponse.json({
-                            laws: "⚠️ CRÉDITOS AGOTADOS",
-                            cases: "Actualiza tu plan para continuar usando el asistente de investigación.",
+                            laws: "⚠️ BÚSQUEDAS AGOTADAS",
+                            cases: "Alcanzaste el límite de búsquedas del mes. Actualizá tu plan para continuar.",
                             links: []
                         }, { status: 402 });
                     } else if (accessCheck.reason === 'FEATURE_NOT_AVAILABLE') {
@@ -204,8 +217,16 @@ export async function POST(request) {
                     }
                 }
 
-                // Increment usage immediately (will be tracked)
-                await incrementUsage(effectiveUserId, 'ai_messages', 1);
+                // Consumir del pool correcto: mensual primero, extra después (atómico)
+                const supabaseService = createClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL,
+                    process.env.SUPABASE_SERVICE_ROLE_KEY
+                );
+                const planLimit = getPlanLimit(accessCheck.profile?.plan_tier || 'free', 'research_reports');
+                await supabaseService.rpc('consume_research_report', {
+                    p_user_id: effectiveUserId,
+                    p_plan_limit: planLimit
+                });
             }
         }
 

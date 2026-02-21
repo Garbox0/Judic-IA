@@ -61,14 +61,90 @@ export async function POST(req) {
         return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    // console.log("🔔 Webhook received (signature valid):", body);
-
-    const mpId = body?.data?.id || body?.id || body?.data?.id;
+    const mpId = body?.data?.id || body?.id;
+    const topic = body?.type || body?.topic;
 
     if (!mpId) {
         console.log("⚠️ No ID found in webhook body");
         return NextResponse.json({ ok: true });
     }
+
+    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+
+    // ─── CREDIT PACK PAYMENT (pago único) ─────────────────────────────────────
+    if (topic === 'payment') {
+        try {
+            const r = await fetch(`https://api.mercadopago.com/v1/payments/${mpId}`, {
+                headers: { Authorization: `Bearer ${accessToken}` },
+            });
+            const payment = await r.json();
+
+            if (!r.ok) {
+                console.error("Error fetching payment:", payment);
+                return NextResponse.json({ error: payment }, { status: 500 });
+            }
+
+            // external_reference format: "credits:<purchase_id>:<user_id>"
+            const extRef = payment.external_reference || '';
+            if (!extRef.startsWith('credits:')) {
+                // No es un credit pack, ignorar aquí (continuará al flujo de suscripción)
+                console.log('Payment is not a credit pack, skipping.');
+                return NextResponse.json({ ok: true });
+            }
+
+            const [, purchaseId, userId] = extRef.split(':');
+            if (!purchaseId || !userId) {
+                console.warn('❌ Invalid external_reference for credit payment:', extRef);
+                return NextResponse.json({ ok: true });
+            }
+
+            const supabase = createClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL,
+                process.env.SUPABASE_SERVICE_ROLE_KEY
+            );
+
+            if (payment.status === 'approved') {
+                // 1. Obtener el pack para saber cuántos credits
+                const { data: purchase } = await supabase
+                    .from('credit_purchases')
+                    .select('credits, status, pack_id')
+                    .eq('id', purchaseId)
+                    .single();
+
+                if (!purchase || purchase.status === 'approved') {
+                    // Ya procesado (idempotencia)
+                    return NextResponse.json({ ok: true });
+                }
+
+                // 2. Acreditar credits + registrar payment ID
+                await Promise.all([
+                    supabase.rpc('add_research_credits', {
+                        p_user_id: userId,
+                        p_credits: purchase.credits
+                    }),
+                    supabase
+                        .from('credit_purchases')
+                        .update({ status: 'approved', mp_payment_id: String(mpId) })
+                        .eq('id', purchaseId),
+                ]);
+
+                console.log(`✅ Credits acreditados: ${purchase.credits} para user ${userId}`);
+            } else if (payment.status === 'rejected' || payment.status === 'cancelled') {
+                await supabase
+                    .from('credit_purchases')
+                    .update({ status: 'rejected', mp_payment_id: String(mpId) })
+                    .eq('id', purchaseId);
+            }
+
+            return NextResponse.json({ ok: true });
+
+        } catch (err) {
+            console.error("Credit payment webhook error:", err);
+            return NextResponse.json({ error: err.message }, { status: 500 });
+        }
+    }
+
+    // ─── SUBSCRIPTION (preapproval) ────────────────────────────────────────────
 
     // 🧪 GUARD: Skip test/invalid IDs (real preapproval IDs are long strings)
     const mpIdStr = String(mpId);
@@ -78,7 +154,6 @@ export async function POST(req) {
     }
 
     // 2) Consultar a MP el estado REAL de la suscripción
-    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
 
 
     try {

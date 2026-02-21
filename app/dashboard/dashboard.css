@@ -1273,3 +1273,71 @@
 .light-theme .dash-public-banner-close:hover {
     color: #475569;
 }
+
+/* =========================================
+   PAYMENT FAILURE BANNER
+   ========================================= */
+.dash-payment-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(185, 28, 28, 0.08));
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    padding: 0.875rem 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.dash-payment-banner-icon {
+    color: #f87171;
+    flex-shrink: 0;
+}
+
+.dash-payment-banner-text {
+    flex: 1;
+    font-size: 0.88rem;
+    color: #cbd5e1;
+    line-height: 1.4;
+}
+
+.dash-payment-banner-text strong {
+    color: #f87171;
+}
+
+.dash-payment-banner-btn {
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.45rem 1rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.dash-payment-banner-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+/* Light theme */
+.light-theme .dash-payment-banner {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(185, 28, 28, 0.04));
+    border-color: rgba(185, 28, 28, 0.2);
+}
+
+.light-theme .dash-payment-banner-text {
+    color: #475569;
+}
+
+.light-theme .dash-payment-banner-text strong {
+    color: #b91c1c;
+}
+
+.light-theme .dash-payment-banner-icon {
+    color: #ef4444;
+}

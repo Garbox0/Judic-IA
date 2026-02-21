@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
 import { generateResearchPDF } from '../../lib/pdfGenerator';
 import Link from 'next/link';
@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
+import { getPlanLimit } from '@/lib/planLimits';
 import './research.css';
 
 // Module-level cache for logo base64 (persists across re-mounts)
@@ -37,6 +38,7 @@ let _logoCache = null;
 
 export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [query, setQuery] = useState('');
     const [scope, setScope] = useState('nacional'); // 'nacional' or 'provincial'
     const [province, setProvince] = useState('Buenos Aires');
@@ -56,6 +58,9 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const [searchStatus, setSearchStatus] = useState('');
     const [refreshQuota, setRefreshQuota] = useState(5);
     const [quotaModalOpen, setQuotaModalOpen] = useState(false); // [NEW] Quota Modal State
+    const [buyingPack, setBuyingPack] = useState(null); // 'pack_10' | 'pack_25' | 'pack_50'
+    const [creditsToast, setCreditsToast] = useState(null); // 'ok' | 'error' | 'pending'
+    const [quotaExhausted, setQuotaExhausted] = useState(false); // true = llegó a 0, false = compra proactiva
     const [trialExpired, setTrialExpired] = useState(false); // [NEW] Trial Expiration Check
 
     // 🎯 QUERY ENHANCEMENT STATES
@@ -89,6 +94,31 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         }
         return () => clearInterval(timer);
     }, [loading, timeLeft]);
+
+    // Detectar redirect de MercadoPago tras compra de credits
+    useEffect(() => {
+        const creditsParam = searchParams?.get('credits');
+        if (!creditsParam) return;
+
+        setCreditsToast(creditsParam);
+        // Limpiar param de la URL sin recargar
+        router.replace('/dashboard/research', { scroll: false });
+
+        // Si el pago fue aprobado, refrescar perfil para mostrar nuevos credits
+        if (creditsParam === 'ok') {
+            supabase.auth.getUser().then(({ data: { user } }) => {
+                if (!user) return;
+                supabase.from('profiles').select('*').eq('id', user.id).single()
+                    .then(({ data: profile }) => {
+                        if (profile) setUserProfile(profile);
+                    });
+            });
+        }
+
+        // Auto-dismiss toast después de 5s
+        const t = setTimeout(() => setCreditsToast(null), 5000);
+        return () => clearTimeout(t);
+    }, [searchParams]);
 
     useEffect(() => {
         const fetchUserAndHistory = async () => {
@@ -162,6 +192,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         }
 
         if (refreshQuota <= 0) {
+            setQuotaExhausted(true);
             setQuotaModalOpen(true);
             return;
         }
@@ -464,6 +495,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
             });
 
             if (res.status === 402) {
+                setQuotaExhausted(true);
                 setQuotaModalOpen(true);
                 setLoading(false);
                 return;
@@ -548,6 +580,16 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
     return (
         <div className="research-container">
+            {/* CREDITS PURCHASE TOAST */}
+            {creditsToast && (
+                <div className={`credits-toast ${creditsToast === 'ok' ? 'success' : creditsToast === 'pending' ? 'pending' : 'error'}`}>
+                    {creditsToast === 'ok' && '✅ ¡Créditos acreditados! Ya podés seguir buscando.'}
+                    {creditsToast === 'pending' && '⏳ Pago en proceso. Los créditos se acreditarán en breve.'}
+                    {creditsToast === 'error' && '❌ El pago no se completó. Intentá de nuevo.'}
+                    <button className="credits-toast-close" onClick={() => setCreditsToast(null)}>✕</button>
+                </div>
+            )}
+
             {/* 🔒 TRIAL EXPIRED BLOCK - UX only, backend is real security */}
             {trialExpired && !isDemoProp && (
                 <TrialExpiredBlock featureName="Jurisprudencia" />
@@ -756,6 +798,45 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                     {loading ? 'Procesando Inteligencia...' : 'Generar Estrategia IA'}
                                 </button>
                             </form>
+
+                            {!isDemoProp && userProfile && (() => {
+                                const limit = getPlanLimit(userProfile.plan_tier, 'research_reports');
+                                const used = userProfile.research_reports_used || 0;
+                                const extra = userProfile.research_reports_extra || 0;
+                                const monthlyRemaining = limit === -1 ? null : Math.max(0, limit - used);
+                                const usingExtra = limit !== -1 && monthlyRemaining === 0 && extra > 0;
+                                const pct = limit === -1 ? 0 : Math.min(100, Math.round((used / limit) * 100));
+                                const isLow = limit !== -1 && !usingExtra && monthlyRemaining <= Math.ceil(limit * 0.2);
+                                return (
+                                    <div className="research-quota-bar">
+                                        <div className="research-quota-track">
+                                            <div
+                                                className={`research-quota-fill ${isLow || usingExtra ? 'low' : ''}`}
+                                                style={{ width: usingExtra ? '100%' : `${pct}%` }}
+                                            />
+                                        </div>
+                                        <span className={`research-quota-label ${isLow || usingExtra ? 'low' : ''}`}>
+                                            {limit === -1
+                                                ? '∞ búsquedas ilimitadas'
+                                                : usingExtra
+                                                    ? `${extra} créditos extra restantes`
+                                                    : `${monthlyRemaining} de ${limit} búsquedas disponibles este mes`}
+                                            {extra > 0 && !usingExtra && (
+                                                <span className="quota-extra-badge"> +{extra} extra</span>
+                                            )}
+                                            {limit !== -1 && userProfile?.subscription_status === 'active' && (
+                                                <button
+                                                    className="quota-buy-btn"
+                                                    onClick={() => setQuotaModalOpen(true)}
+                                                >
+                                                    + Comprar más
+                                                </button>
+                                            )}
+                                        </span>
+                                    </div>
+                                );
+                            })()}
+
                             {loading && (
                                 <div className="loader-container loader-wrapper">
                                     <div className="loader-text-wrapper">
@@ -978,28 +1059,92 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                 </div>
             )}
 
-            {/* QUOTA LIMIT MODAL */}
+            {/* QUOTA LIMIT MODAL — CREDIT PACKS */}
             {quotaModalOpen && (
-                <div className="quota-modal-overlay" onClick={() => setQuotaModalOpen(false)}>
-                    <div className="quota-modal-card" onClick={e => e.stopPropagation()}>
+                <div className="quota-modal-overlay" onClick={() => { setQuotaModalOpen(false); setQuotaExhausted(false); }}>
+                    <div className="quota-modal-card quota-modal-packs" onClick={e => e.stopPropagation()}>
                         <div className="quota-icon-circle">
-                            <span className="quota-icon-emoji">👑</span>
+                            <span className="quota-icon-emoji">{quotaExhausted ? '⚠️' : '🔍'}</span>
                         </div>
-                        <h3 className="quota-title">Límite Mensual Alcanzado</h3>
+                        <h3 className="quota-title">
+                            {quotaExhausted ? 'Búsquedas Agotadas' : 'Comprar Búsquedas Extra'}
+                        </h3>
                         <p className="quota-desc">
-                            Has utilizado todas tus consultas de alta potencia de este mes. Actualiza tu plan para acceso ilimitado.
+                            {quotaExhausted
+                                ? `Usaste tus ${getPlanLimit(userProfile?.plan_tier, 'research_reports')} búsquedas del mes. Cargá un pack para seguir investigando.`
+                                : 'Los créditos extra no vencen al fin del mes. Se acumulan con tu cuota mensual.'
+                            }
                         </p>
+
+                        {userProfile?.subscription_status !== 'active' && userProfile?.plan_tier !== 'enterprise' ? (
+                            <div className="credits-no-sub">
+                                <p>Los créditos extra son exclusivos para suscriptores del Plan Profesional.</p>
+                                <button
+                                    className="btn-quota-pro"
+                                    onClick={() => window.location.href = '/dashboard/settings?tab=billing'}
+                                >
+                                    Ver Plan Profesional
+                                </button>
+                            </div>
+                        ) : null}
+
+                        {(userProfile?.subscription_status === 'active' || userProfile?.plan_tier === 'enterprise') && (
+                        <div className="credit-packs-grid">
+                            {[
+                                { id: 'pack_10', credits: 10, price: '5.000', badge: null },
+                                { id: 'pack_25', credits: 25, price: '10.000', badge: 'Popular' },
+                                { id: 'pack_50', credits: 50, price: '18.000', badge: 'Mejor valor' },
+                            ].map(pack => (
+                                <button
+                                    key={pack.id}
+                                    className={`credit-pack-card ${buyingPack === pack.id ? 'loading' : ''}`}
+                                    disabled={!!buyingPack}
+                                    onClick={async () => {
+                                        setBuyingPack(pack.id);
+                                        try {
+                                            const res = await fetch('/api/mp/credits/create', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ pack_id: pack.id }),
+                                            });
+                                            const data = await res.json();
+                                            if (data.init_point) {
+                                                window.location.href = data.init_point;
+                                            } else {
+                                                alert('Error al iniciar el pago. Intentá de nuevo.');
+                                            }
+                                        } catch {
+                                            alert('Error de conexión. Intentá de nuevo.');
+                                        } finally {
+                                            setBuyingPack(null);
+                                        }
+                                    }}
+                                >
+                                    {pack.badge && (
+                                        <span className="pack-badge">{pack.badge}</span>
+                                    )}
+                                    <span className="pack-credits">{pack.credits}</span>
+                                    <span className="pack-label">búsquedas</span>
+                                    <span className="pack-price">$ {pack.price} ARS</span>
+                                    {buyingPack === pack.id && (
+                                        <Loader2 size={16} className="spin-animation pack-spinner" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                        )}
+
+                        {(userProfile?.subscription_status === 'active' || userProfile?.plan_tier === 'enterprise') && (
+                        <p className="quota-reset-note">
+                            Los créditos extra no vencen. Se acumulan con tu cuota mensual.
+                        </p>
+                        )}
                         <div className="quota-actions">
-                            <button
-                                className="btn-quota-pro"
-                            >
-                                Ver Planes PRO
-                            </button>
                             <button
                                 onClick={() => setQuotaModalOpen(false)}
                                 className="btn-quota-cancel"
                             >
-                                Cancelar
+                                Ahora no
                             </button>
                         </div>
                     </div>
