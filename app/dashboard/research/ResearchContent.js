@@ -1334,7 +1334,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                             });
                                             const data = await res.json();
                                             if (data.init_point) {
-                                                window.location.href = data.init_point;
+                                                window.open(data.init_point, '_blank', 'noopener,noreferrer');
                                             } else {
                                                 alert('Error al iniciar el pago. Intentá de nuevo.');
                                             }
