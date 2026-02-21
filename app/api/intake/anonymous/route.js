@@ -76,17 +76,18 @@ export async function POST(request) {
             .limit(1)
             .maybeSingle();
 
-        // Obtener nombre del abogado (siempre necesario)
+        // Obtener perfil del abogado (nombre + email para notificación)
         const { data: profile } = await supabaseAdmin
             .from('profiles')
-            .select('full_name')
+            .select('full_name, email')
             .eq('id', lawyerId)
             .single();
 
         const lawyerName = profile?.full_name || 'el profesional';
+        const lawyerEmail = profile?.email;
 
         if (existing) {
-            // Reutilizar CID existente
+            // Reutilizar CID existente (no reenviar notificación)
             return NextResponse.json({ cid: existing.id, lawyerName });
         }
 
@@ -113,28 +114,61 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Error al registrar la consulta.' }, { status: 500 });
         }
 
-        // 4. Enviar email al cliente con link de retorno
+        // 4. Enviar emails en paralelo: cliente + abogado
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://judic-ia.com';
         const returnUrl = `${baseUrl}/consultas/${lawyerId}?cid=${cid}`;
+        const dashboardUrl = `${baseUrl}/dashboard/clients`;
 
-        await sendEmail({
-            resendClient: resend,
-            to: email,
-            from: 'Judic-IA <noreply@judic-ia.com>',
-            subject: `Tu consulta con ${lawyerName} — Link de acceso`,
-            html: getHtmlEmail({
-                heading: 'Tu consulta fue recibida',
-                bodyContent: `
-                    <p>Hola <strong>${firstName.trim()}</strong>,</p>
-                    <p>Tu solicitud de consulta con <strong>${lawyerName}</strong> fue enviada correctamente.</p>
-                    <p>El profesional revisará tu caso y te habilitará el chat a la brevedad. Te notificaremos cuando esté disponible.</p>
-                    <p style="margin-top: 16px;">Guardá este email: si cerrás el navegador podés volver a tu consulta usando el siguiente botón.</p>
-                `,
-                buttonText: 'Retomar Consulta',
-                buttonUrl: returnUrl,
-                previewText: `Tu acceso a la consulta con ${lawyerName}`
-            })
-        });
+        const clientDni = dni?.trim()
+            ? `<tr><td style="padding:4px 0; color:#64748b; width:110px;">${idType || 'DNI'}:</td><td style="padding:4px 0;">${dni.trim()}</td></tr>`
+            : '';
+
+        await Promise.all([
+            // Email al cliente con link de retorno
+            sendEmail({
+                resendClient: resend,
+                to: email,
+                from: 'Judic-IA <noreply@judic-ia.com>',
+                subject: `Tu consulta con ${lawyerName} — Link de acceso`,
+                html: getHtmlEmail({
+                    heading: 'Tu consulta fue recibida',
+                    bodyContent: `
+                        <p>Hola <strong>${firstName.trim()}</strong>,</p>
+                        <p>Tu solicitud de consulta con <strong>${lawyerName}</strong> fue enviada correctamente.</p>
+                        <p>El profesional revisará tu caso y te habilitará el chat a la brevedad.</p>
+                        <p style="margin-top: 16px;">Guardá este email: si cerrás el navegador podés volver a tu consulta usando el siguiente botón.</p>
+                    `,
+                    buttonText: 'Retomar Consulta',
+                    buttonUrl: returnUrl,
+                    previewText: `Tu acceso a la consulta con ${lawyerName}`
+                })
+            }),
+
+            // Email al abogado notificando nueva consulta pendiente
+            lawyerEmail ? sendEmail({
+                resendClient: resend,
+                to: lawyerEmail,
+                from: 'Judic-IA <noreply@judic-ia.com>',
+                subject: `Nueva consulta pendiente — ${firstName.trim()} ${lastName.trim()}`,
+                html: getHtmlEmail({
+                    heading: 'Nueva consulta pendiente de revisión',
+                    bodyContent: `
+                        <p>Hola <strong>${lawyerName}</strong>,</p>
+                        <p>Un cliente solicitó una consulta desde tu perfil en el marketplace y está esperando tu aprobación.</p>
+                        <table style="width:100%; border-collapse:collapse; margin:16px 0; font-size:14px;">
+                            <tr><td style="padding:4px 0; color:#64748b; width:110px;">Nombre:</td><td style="padding:4px 0;"><strong>${firstName.trim()} ${lastName.trim()}</strong></td></tr>
+                            <tr><td style="padding:4px 0; color:#64748b;">Email:</td><td style="padding:4px 0;">${emailLower}</td></tr>
+                            <tr><td style="padding:4px 0; color:#64748b;">Teléfono:</td><td style="padding:4px 0;">${phone.trim()}</td></tr>
+                            ${clientDni}
+                        </table>
+                        <p>Entrá a tu bandeja para aceptar, rechazar o bloquear esta solicitud.</p>
+                    `,
+                    buttonText: 'Ir a mi Bandeja',
+                    buttonUrl: dashboardUrl,
+                    previewText: `Consulta pendiente de ${firstName.trim()} ${lastName.trim()} — Acción requerida`
+                })
+            }) : Promise.resolve()
+        ]);
 
         return NextResponse.json({ cid, lawyerName });
     } catch (error) {

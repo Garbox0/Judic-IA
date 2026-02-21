@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createClient as createAuthClient } from '@/app/lib/supabase-server';
 import { Resend } from 'resend';
 import { sendEmail } from '@/app/lib/resend';
+import { getHtmlEmail } from '@/lib/email-template';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -168,6 +169,44 @@ export async function PATCH(request) {
                 .from('inquiries')
                 .update({ status: 'Nuevo' })
                 .eq('id', inquiryId);
+
+            // Notificar al cliente que el abogado aceptó su consulta
+            const resendApiKey = process.env.RESEND_API_KEY;
+            if (resendApiKey && inquiry.contact_email) {
+                try {
+                    const resend = new Resend(resendApiKey);
+                    const { data: lawyerProfile } = await adminClient
+                        .from('profiles')
+                        .select('full_name')
+                        .eq('id', user.id)
+                        .single();
+
+                    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://judic-ia.com';
+                    const chatUrl = `${baseUrl}/consultas/${user.id}?cid=${inquiryId}`;
+                    const lawyerName = lawyerProfile?.full_name || 'El profesional';
+
+                    await sendEmail({
+                        resendClient: resend,
+                        to: inquiry.contact_email,
+                        from: 'Judic-IA <noreply@judic-ia.com>',
+                        subject: `${lawyerName} aceptó tu consulta — Podés empezar a chatear`,
+                        html: getHtmlEmail({
+                            heading: '¡Tu consulta fue aceptada!',
+                            bodyContent: `
+                                <p>Hola <strong>${inquiry.contact_name || ''}</strong>,</p>
+                                <p><strong>${lawyerName}</strong> aceptó tu solicitud de consulta y está disponible para atenderte.</p>
+                                <p>Hacé clic en el botón para comenzar la conversación:</p>
+                            `,
+                            buttonText: 'Ir al Chat',
+                            buttonUrl: chatUrl,
+                            previewText: `${lawyerName} aceptó tu consulta — Es tu turno`
+                        })
+                    });
+                } catch (emailErr) {
+                    // No fallar si el email falla
+                    console.warn('⚠️ Error enviando email de aceptación:', emailErr);
+                }
+            }
 
             return NextResponse.json({ success: true, status: 'Nuevo' });
         }
