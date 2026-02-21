@@ -2324,13 +2324,17 @@ body.light-theme .research-quota-label.low {
 }
 
 .empresa-row-bottom {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr auto;
     gap: 0.75rem;
+    align-items: flex-end;
 }
 
 .empresa-btn {
-    width: 100% !important;
+    width: auto !important;
+    white-space: nowrap;
     justify-content: center;
+    padding: 0.65rem 1.5rem !important;
+    min-height: 44px;
 }
 
 .empresa-field {
@@ -2474,10 +2478,35 @@ body.light-theme .research-quota-label.low {
     line-height: 1.4;
 }
 
+.empresa-year {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    background: rgba(99, 102, 241, 0.12);
+    color: #a5b4fc;
+}
+
+.empresa-resumen {
+    font-size: 0.8rem;
+    color: rgba(248, 250, 252, 0.55);
+    line-height: 1.45;
+    margin-bottom: 0.35rem;
+    font-style: italic;
+}
+
+.empresa-estado.sentencia { background: rgba(99, 102, 241, 0.12); color: #a5b4fc; }
+
+.empresa-case-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
 .empresa-meta {
     font-size: 0.78rem;
     color: rgba(248, 250, 252, 0.45);
-    margin-bottom: 0.2rem;
 }
 
 .empresa-link {
@@ -2520,5 +2549,6 @@ body.light-theme .empresa-field select {
 }
 body.light-theme .empresa-case-card { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.08); }
 body.light-theme .empresa-caratula { color: #0f172a; }
+body.light-theme .empresa-resumen { color: rgba(15, 23, 42, 0.5); }
 body.light-theme .empresa-meta { color: rgba(15, 23, 42, 0.5); }
 body.light-theme .empresa-count { color: rgba(15, 23, 42, 0.45); }

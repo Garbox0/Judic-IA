@@ -762,7 +762,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                 className={`research-tab ${activeTab === 'empresa' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('empresa')}
                             >
-                                <Building2 size={15} /> Juicios por Empresa
+                                <Building2 size={15} /> Antecedentes Judiciales
                             </button>
                         </div>
 
@@ -772,8 +772,8 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                 <div className="empresa-panel-header">
                                     <div className="empresa-panel-icon"><Building2 size={20} /></div>
                                     <div>
-                                        <h3 className="empresa-panel-title">Búsqueda de Expedientes por Empresa</h3>
-                                        <p className="empresa-panel-subtitle">Consultá causas judiciales públicas del PJN, SCBA y otras fuentes.</p>
+                                        <h3 className="empresa-panel-title">Antecedentes Judiciales de Empresa</h3>
+                                        <p className="empresa-panel-subtitle">Investigá causas, demandas y sentencias públicas antes de aceptar un caso.</p>
                                     </div>
                                 </div>
 
@@ -825,6 +825,44 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                     </p>
                                 </form>
 
+                                {!isDemoProp && userProfile && (() => {
+                                    const limit = getPlanLimit(userProfile.plan_tier, 'research_reports');
+                                    const used = userProfile.research_reports_used || 0;
+                                    const extra = userProfile.research_reports_extra || 0;
+                                    const monthlyRemaining = limit === -1 ? null : Math.max(0, limit - used);
+                                    const usingExtra = limit !== -1 && monthlyRemaining === 0 && extra > 0;
+                                    const pct = limit === -1 ? 0 : Math.min(100, Math.round((used / limit) * 100));
+                                    const isLow = limit !== -1 && !usingExtra && monthlyRemaining <= Math.ceil(limit * 0.2);
+                                    return (
+                                        <div className="research-quota-bar">
+                                            <div className="research-quota-track">
+                                                <div
+                                                    className={`research-quota-fill ${isLow || usingExtra ? 'low' : ''}`}
+                                                    style={{ width: usingExtra ? '100%' : `${pct}%` }}
+                                                />
+                                            </div>
+                                            <span className={`research-quota-label ${isLow || usingExtra ? 'low' : ''}`}>
+                                                {limit === -1
+                                                    ? '∞ búsquedas ilimitadas'
+                                                    : usingExtra
+                                                        ? `${extra} créditos extra restantes`
+                                                        : `${monthlyRemaining} de ${limit} búsquedas disponibles este mes`}
+                                                {extra > 0 && !usingExtra && (
+                                                    <span className="quota-extra-badge"> +{extra} extra</span>
+                                                )}
+                                                {limit !== -1 && userProfile?.subscription_status === 'active' && (
+                                                    <button
+                                                        className="quota-buy-btn"
+                                                        onClick={() => setQuotaModalOpen(true)}
+                                                    >
+                                                        + Comprar más
+                                                    </button>
+                                                )}
+                                            </span>
+                                        </div>
+                                    );
+                                })()}
+
                                 {empresaError && (
                                     <div className="empresa-error">
                                         <AlertCircle size={16} /> {empresaError}
@@ -844,11 +882,15 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                         <div key={i} className="empresa-case-card">
                                                             <div className="empresa-case-header">
                                                                 <span className={`empresa-tipo tipo-${c.tipo?.toLowerCase().replace(/\s/g, '-')}`}>{c.tipo || 'Otro'}</span>
-                                                                {c.estado && <span className={`empresa-estado ${c.estado === 'Activo' ? 'activo' : 'archivado'}`}>{c.estado}</span>}
+                                                                {c.año && <span className="empresa-year">{c.año}</span>}
+                                                                {c.estado && <span className={`empresa-estado ${c.estado === 'Activo' ? 'activo' : c.estado === 'Con sentencia' ? 'sentencia' : 'archivado'}`}>{c.estado}</span>}
                                                             </div>
                                                             <p className="empresa-caratula">{c.caratula}</p>
-                                                            {c.expediente && <p className="empresa-meta">Expte: {c.expediente}</p>}
-                                                            {c.tribunal && <p className="empresa-meta">{c.tribunal}</p>}
+                                                            {c.resumen && <p className="empresa-resumen">{c.resumen}</p>}
+                                                            <div className="empresa-case-meta">
+                                                                {c.expediente && <span className="empresa-meta">Expte: {c.expediente}</span>}
+                                                                {c.tribunal && <span className="empresa-meta">{c.tribunal}</span>}
+                                                            </div>
                                                             {c.url && (
                                                                 <a href={c.url} target="_blank" rel="noopener noreferrer" className="empresa-link">
                                                                     <ExternalLink size={13} /> Ver fuente

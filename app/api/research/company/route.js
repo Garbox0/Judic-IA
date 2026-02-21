@@ -57,27 +57,65 @@ export async function POST(request) {
         });
     }
 
-    // Build targeted search queries
-    const term = cuit
-        ? `"${cuit.replace(/\s/g, '')}"`
-        : `"${name}"`;
+    // ══════════════════════════════════════════════════
+    // 🔍 INTELLIGENT QUERY BUILDER
+    // ══════════════════════════════════════════════════
 
+    // Normalize company name for broader matches
+    const cleanName = name
+        ? name.trim()
+            .replace(/\b(S\.?A\.?|S\.?R\.?L\.?|S\.?A\.?S\.?)\b/gi, '') // Strip legal suffixes
+            .replace(/\s+/g, ' ')
+            .trim()
+        : null;
+
+    const nameTerm = name ? `"${name}"` : null;
+    const cleanNameTerm = cleanName && cleanName !== name?.trim() ? `"${cleanName}"` : null;
+    const cuitTerm = cuit ? `"${cuit.replace(/\s/g, '')}"` : null;
+    const primaryTerm = nameTerm || cuitTerm;
+
+    // Core queries — always use company name (courts index by name, not CUIT)
     const queries = [
-        `${term} expediente judicial`,
-        `${term} demanda causa judicial Argentina`,
-        `${term} site:scw.pjn.gov.ar`,
+        `${primaryTerm} expediente judicial Argentina`,
+        `${primaryTerm} c/ OR s/ causa sentencia`,
+        `${primaryTerm} site:scw.pjn.gov.ar OR site:pjn.gov.ar`,
     ];
 
-    if (jurisdiction === 'buenosaires') {
-        queries.push(`${term} site:scba.gov.ar`);
-        queries.push(`${term} site:juba.scba.gov.ar`);
-    } else if (jurisdiction === 'caba') {
-        queries.push(`${term} site:jusbaires.gob.ar`);
+    // If we stripped "SA"/"SRL", search the clean name too (catches variations)
+    if (cleanNameTerm) {
+        queries.push(`${cleanNameTerm} demanda judicial Argentina`);
     }
 
-    // Brave Search
-    const allResults = [];
-    for (const q of queries.slice(0, 5)) {
+    // CUIT as secondary signal (not primary — courts rarely index by CUIT)
+    if (nameTerm && cuitTerm) {
+        queries.push(`${cuitTerm} expediente OR causa OR sentencia`);
+    }
+
+    // Jurisdiction-specific court databases
+    const jurisdictionSites = {
+        buenosaires: [
+            `${primaryTerm} site:scba.gov.ar OR site:juba.scba.gov.ar`,
+        ],
+        caba: [
+            `${primaryTerm} site:jusbaires.gob.ar OR site:mpd.gov.ar`,
+        ],
+        todas: [
+            `${primaryTerm} site:scba.gov.ar OR site:jusbaires.gob.ar OR site:justiciacordoba.gob.ar`,
+        ]
+    };
+
+    if (jurisdictionSites[jurisdiction]) {
+        queries.push(...jurisdictionSites[jurisdiction]);
+    }
+
+    // Cap at 5 Brave requests max (cost control: max $0.025 per search)
+    const finalQueries = queries.slice(0, 5);
+
+    // ══════════════════════════════════════════════════
+    // ⚡ PARALLEL BRAVE SEARCH (faster than sequential)
+    // ══════════════════════════════════════════════════
+
+    const braveSearch = async (q) => {
         try {
             const params = new URLSearchParams({
                 q,
@@ -92,31 +130,41 @@ export async function POST(request) {
                     'X-Subscription-Token': braveApiKey
                 }
             });
-            if (res.ok) {
-                const data = await res.json();
-                const results = data?.web?.results || [];
-                allResults.push(...results.map(r => ({
-                    title: r.title,
-                    url: r.url,
-                    snippet: r.description || r.extra_snippets?.[0] || ''
-                })));
-            }
-        } catch { /* continue */ }
-    }
+            if (!res.ok) return [];
+            const data = await res.json();
+            return (data?.web?.results || []).map(r => ({
+                title: r.title,
+                url: r.url,
+                snippet: [
+                    r.description,
+                    ...(r.extra_snippets || [])
+                ].filter(Boolean).join(' | ')
+            }));
+        } catch {
+            return [];
+        }
+    };
 
-    // Dedupe by URL
+    const allBatches = await Promise.all(finalQueries.map(braveSearch));
+    const allResults = allBatches.flat();
+
+    // Dedupe by normalized URL
     const seen = new Set();
     const unique = allResults.filter(r => {
-        if (seen.has(r.url)) return false;
-        seen.add(r.url);
+        const normalized = r.url.replace(/\/$/, '').replace(/^https?:\/\/(www\.)?/, '');
+        if (seen.has(normalized)) return false;
+        seen.add(normalized);
         return true;
-    }).slice(0, 25);
+    }).slice(0, 30);
 
     if (unique.length === 0) {
         return NextResponse.json({ cases: [], message: 'No se encontraron resultados públicos para esta búsqueda.' });
     }
 
-    // GPT structures results into case cards
+    // ══════════════════════════════════════════════════
+    // 🧠 GPT EXTRACTION — surgical case identification
+    // ══════════════════════════════════════════════════
+
     const openai = new OpenAI({
         apiKey,
         baseURL: 'https://openrouter.ai/api/v1',
@@ -127,37 +175,55 @@ export async function POST(request) {
         model: 'openai/gpt-4o-mini',
         messages: [{
             role: 'system',
-            content: `Sos un asistente jurídico argentino. Analizás resultados de búsqueda web para identificar expedientes judiciales de una empresa.
+            content: `Sos un analista jurídico argentino especializado en due diligence corporativo. Tu tarea es identificar expedientes judiciales reales a partir de resultados de búsqueda web.
 
-Extraé SOLO resultados que sean claramente expedientes, causas, o sentencias judiciales reales.
-Descartá: noticias, artículos de opinión, páginas genéricas, resultados sin relación legal.
+REGLAS ESTRICTAS:
+1. SOLO incluí resultados que sean claramente expedientes, causas, sentencias o resoluciones judiciales REALES
+2. DESCARTÁ inmediatamente: noticias periodísticas, artículos de opinión, blogs, páginas genéricas, resultados de otras empresas con nombre similar
+3. Si un resultado menciona la empresa pero NO es un expediente judicial concreto, NO lo incluyas
+4. Verificá que el nombre de la empresa coincida (no confundir "Carrefour" con "Carrefour Express" si son entidades distintas)
 
-Devolvé JSON:
+EXTRACCIÓN:
+- caratula: Formato estándar argentino "APELLIDO c/ EMPRESA s/ materia" — si no está completa, reconstruila con la info disponible
+- expediente: Número de expediente exacto (ej: "FA07020156", "CNT 12345/2020") — null si no hay
+- tribunal: Nombre completo del tribunal (ej: "Cámara Nacional de Apelaciones del Trabajo, Sala VII") — null si no hay
+- año: Año del expediente o sentencia si es visible — null si no hay
+- tipo: Categorizar en Laboral/Civil/Comercial/Penal/Contencioso Administrativo/Tributario/Otro
+- estado: Activo/Archivado/Con sentencia — null si no se puede determinar
+- resumen: 1 oración breve con el objeto del litigio si se puede inferir — null si no
+
+JSON de respuesta:
 {
   "cases": [
     {
-      "caratula": "nombre del expediente o causa",
-      "expediente": "número si está disponible, sino null",
-      "tribunal": "juzgado o cámara, sino null",
-      "tipo": "Laboral" | "Civil" | "Comercial" | "Penal" | "Contencioso Administrativo" | "Otro",
-      "estado": "Activo" | "Archivado" | null,
-      "url": "URL del resultado"
+      "caratula": "string",
+      "expediente": "string|null",
+      "tribunal": "string|null",
+      "año": "string|null",
+      "tipo": "string",
+      "estado": "string|null",
+      "resumen": "string|null",
+      "url": "string"
     }
   ]
 }
 
-- caratula: ej "YPF SA c/ Estado Nacional s/ daños y perjuicios"
-- Si la caratula no está clara, usá el título del resultado
-- Máximo 15 resultados
-- Si no hay causas judiciales reales, devolvé { "cases": [] }`
+Máximo 15 resultados, ordenados por relevancia. Si no hay causas reales, devolvé { "cases": [] }.`
         }, {
             role: 'user',
-            content: `Empresa buscada: ${name || cuit}\n\nResultados de búsqueda:\n${unique.map(r => `URL: ${r.url}\nTítulo: ${r.title}\nSnippet: ${r.snippet}`).join('\n---\n')}`
+            content: `Empresa investigada: ${name || ''}${name && cuit ? ' — CUIT: ' : ''}${cuit || ''}\n\nResultados web (${unique.length}):\n${unique.map((r, i) => `[${i + 1}] URL: ${r.url}\nTítulo: ${r.title}\nSnippet: ${r.snippet}`).join('\n---\n')}`
         }],
         response_format: { type: 'json_object' }
     });
 
-    const { cases } = JSON.parse(gptRes.choices[0].message.content);
+    const parsed = JSON.parse(gptRes.choices[0].message.content);
 
-    return NextResponse.json({ cases: cases || [] });
+    return NextResponse.json({
+        cases: parsed.cases || [],
+        meta: {
+            queries_used: finalQueries.length,
+            results_found: unique.length,
+            jurisdiction
+        }
+    });
 }
