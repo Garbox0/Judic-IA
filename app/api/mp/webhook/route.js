@@ -73,6 +73,12 @@ export async function POST(req) {
 
     // ─── CREDIT PACK PAYMENT (pago único) ─────────────────────────────────────
     if (topic === 'payment') {
+        // Skip test/invalid payment IDs
+        if (String(mpId).length < 6 || String(mpId) === '123456') {
+            console.log(`ℹ️ Test payment ID, skipping: ${mpId}`);
+            return NextResponse.json({ ok: true, test: true });
+        }
+
         try {
             const r = await fetch(`https://api.mercadopago.com/v1/payments/${mpId}`, {
                 headers: { Authorization: `Bearer ${accessToken}` },
