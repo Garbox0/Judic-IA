@@ -2145,6 +2145,16 @@ body.light-theme .photo-nudge-body {
     cursor: not-allowed;
 }
 
+.stg-admin-broadcast-sent {
+    font-size: 0.83rem;
+    color: #4ade80;
+    font-weight: 600;
+}
+
+body.light-theme .stg-admin-broadcast-sent {
+    color: #16a34a;
+}
+
 /* Light theme */
 body.light-theme .stg-admin-broadcast-card {
     background: rgba(180, 83, 9, 0.04);

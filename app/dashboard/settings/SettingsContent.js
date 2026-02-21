@@ -102,6 +102,7 @@ export default function SettingsPage({ isDemo = false }) {
 
     // Admin broadcast panel
     const [subscriberCount, setSubscriberCount] = useState(null);
+    const [broadcastAlreadySent, setBroadcastAlreadySent] = useState(false);
     const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
     const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
@@ -229,6 +230,7 @@ export default function SettingsPage({ isDemo = false }) {
             if (res.ok) {
                 const data = await res.json();
                 setSubscriberCount(data.count);
+                setBroadcastAlreadySent(data.already_sent ?? false);
             }
         } catch (e) {
             console.error('Error fetching subscriber count:', e);
@@ -243,6 +245,10 @@ export default function SettingsPage({ isDemo = false }) {
             const data = await res.json();
             if (res.ok) {
                 toast.success(`✓ Enviado a ${data.sent} suscriptores`);
+                setBroadcastAlreadySent(true);
+            } else if (res.status === 409) {
+                toast.error('Esta entrada ya fue enviada anteriormente');
+                setBroadcastAlreadySent(true);
             } else {
                 toast.error(data.error || 'Error al enviar');
             }
@@ -1213,13 +1219,17 @@ export default function SettingsPage({ isDemo = false }) {
                                             <p className="stg-admin-broadcast-entry">
                                                 Última entrada: <strong>{CHANGELOG[0].date}</strong> · {CHANGELOG[0].items.length} cambios
                                             </p>
-                                            <button
-                                                className="stg-admin-broadcast-btn"
-                                                onClick={sendBroadcast}
-                                                disabled={isSendingBroadcast}
-                                            >
-                                                {isSendingBroadcast ? 'Enviando...' : 'Enviar novedades por email'}
-                                            </button>
+                                            {broadcastAlreadySent ? (
+                                                <span className="stg-admin-broadcast-sent">✓ Ya enviado para esta entrada</span>
+                                            ) : (
+                                                <button
+                                                    className="stg-admin-broadcast-btn"
+                                                    onClick={sendBroadcast}
+                                                    disabled={isSendingBroadcast}
+                                                >
+                                                    {isSendingBroadcast ? 'Enviando...' : 'Enviar novedades por email'}
+                                                </button>
+                                            )}
                                         </div>
                                     )}
 

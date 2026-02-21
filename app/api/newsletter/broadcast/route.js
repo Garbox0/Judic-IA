@@ -14,7 +14,15 @@ async function verifyAdmin(supabase) {
     return user;
 }
 
-// GET /api/newsletter/broadcast — returns subscriber count (admin only)
+function getAdminClient() {
+    return createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY,
+        { auth: { persistSession: false } }
+    );
+}
+
+// GET — subscriber count + last broadcast date (admin only)
 export async function GET() {
     const supabase = await createClient();
     const admin = await verifyAdmin(supabase);
@@ -22,23 +30,34 @@ export async function GET() {
         return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const adminClient = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.SUPABASE_SERVICE_ROLE_KEY,
-        { auth: { persistSession: false } }
-    );
+    const adminClient = getAdminClient();
 
-    const { count } = await adminClient
-        .from('leads_newsletter')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
+    const [{ count }, { data: lastBroadcast }] = await Promise.all([
+        adminClient
+            .from('leads_newsletter')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'active'),
+        adminClient
+            .from('newsletter_broadcasts')
+            .select('entry_date, sent_at, sent_count')
+            .order('sent_at', { ascending: false })
+            .limit(1)
+            .single(),
+    ]);
 
-    return NextResponse.json({ count: count ?? 0, latest: CHANGELOG[0] ?? null });
+    const latest = CHANGELOG[0] ?? null;
+    const alreadySent = lastBroadcast?.entry_date === latest?.date;
+
+    return NextResponse.json({
+        count: count ?? 0,
+        latest,
+        last_broadcast: lastBroadcast ?? null,
+        already_sent: alreadySent,
+    });
 }
 
-// POST /api/newsletter/broadcast — send newsletter to all active subscribers (admin only)
+// POST — send newsletter to all active subscribers (admin only)
 export async function POST(request) {
-    // Accept either Supabase session (dashboard) or x-broadcast-secret (CLI/curl)
     const secretHeader = request.headers.get('x-broadcast-secret');
     let isAuthorized = false;
 
@@ -59,11 +78,21 @@ export async function POST(request) {
         return NextResponse.json({ error: 'No hay entradas en el changelog' }, { status: 400 });
     }
 
-    const adminClient = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.SUPABASE_SERVICE_ROLE_KEY,
-        { auth: { persistSession: false } }
-    );
+    const adminClient = getAdminClient();
+
+    // Check if this entry was already broadcast
+    const { data: existing } = await adminClient
+        .from('newsletter_broadcasts')
+        .select('entry_date')
+        .eq('entry_date', latest.date)
+        .single();
+
+    if (existing) {
+        return NextResponse.json(
+            { error: 'already_sent', message: `Ya se envió la entrada "${latest.date}"` },
+            { status: 409 }
+        );
+    }
 
     const { data: subscribers, error } = await adminClient
         .from('leads_newsletter')
@@ -107,12 +136,16 @@ export async function POST(request) {
         }),
     }));
 
-    // Resend batch: max 100 per call
     let sent = 0;
     for (let i = 0; i < emails.length; i += 100) {
         await resend.batch.send(emails.slice(i, i + 100));
         sent += Math.min(100, emails.length - i);
     }
+
+    // Log the broadcast so it can't be sent again for this entry
+    await adminClient
+        .from('newsletter_broadcasts')
+        .insert({ entry_date: latest.date, sent_count: sent });
 
     return NextResponse.json({ sent, date: latest.date });
 }
