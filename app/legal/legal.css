@@ -672,3 +672,112 @@
 .section-padding-bottom-100 {
     padding-bottom: 100px !important;
 }
+
+/* =========================================
+   CHANGELOG / NOVEDADES
+========================================= */
+
+.changelog-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    margin-top: 0.5rem;
+}
+
+.changelog-entry {
+    border-left: 2px solid rgba(251, 191, 36, 0.25);
+    padding-left: 1.75rem;
+    position: relative;
+}
+
+.changelog-entry::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 7px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #fbbf24;
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+
+.changelog-entry-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+}
+
+.changelog-date {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fbbf24;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.changelog-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: rgba(251, 191, 36, 0.12);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.changelog-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.changelog-items li {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    padding-left: 1.25rem;
+    position: relative;
+}
+
+.changelog-items li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: rgba(251, 191, 36, 0.5);
+    font-size: 0.8rem;
+}
+
+/* Light theme */
+.light-theme .changelog-entry {
+    border-left-color: rgba(180, 83, 9, 0.25);
+}
+
+.light-theme .changelog-entry::before {
+    background: #b7791f;
+    box-shadow: 0 0 8px rgba(180, 83, 9, 0.3);
+}
+
+.light-theme .changelog-date {
+    color: #b7791f;
+}
+
+.light-theme .changelog-badge {
+    background: rgba(180, 83, 9, 0.08);
+    color: #b7791f;
+    border-color: rgba(180, 83, 9, 0.25);
+}
+
+.light-theme .changelog-items li {
+    color: #475569;
+}
+
+.light-theme .changelog-items li::before {
+    color: rgba(180, 83, 9, 0.5);
+}

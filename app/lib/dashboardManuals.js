@@ -21,20 +21,47 @@ Tu centro de mando jurídico inteligente. Desde aquí tienes una visión global 
 ## Terminal de Estrategia Jurídica
 Motor de inteligencia artificial conectado a jurisprudencia actualizada y normativa vigente. Diseñado para reducir horas de investigación a segundos.
 
-### Paso a paso para una investigación de élite
-1.  **Contexto:** Ingresa tu consulta en lenguaje natural (ej: "Responsabilidad de plataforma de delivery por accidente de repartidor en CABA").
-2.  **Ámbito:** Selecciona la jurisdicción (Nacional/Federal o Provincial) para filtrar precedentes relevantes.
-3.  **Generación:** Ejecuta **"Generar Estrategia IA"** para obtener un análisis detallado.
+---
 
-### Qué obtendrás
+### Pestaña 1: Jurisprudencia
+
+#### Paso a paso
+1.  **Contexto:** Ingresá tu consulta en lenguaje natural (ej: "Responsabilidad de plataforma de delivery por accidente de repartidor en CABA").
+2.  **Ámbito:** Seleccioná la jurisdicción (Nacional/Federal o Provincial) para filtrar precedentes relevantes.
+3.  **Generación:** Ejecutá **"Generar Estrategia IA"** para obtener un análisis detallado.
+
+#### Qué obtendrás
 *   **Análisis Predictivo:** Viabilidad del caso basada en tendencias jurisprudenciales.
 *   **Precedentes:** Listado de fallos concordantes con acceso directo a la fuente.
 *   **Prueba Sugerida:** Listado técnico de elementos probatorios para el caso.
 *   **Estrategia:** Recomendación de encuadre legal y pasos a seguir.
 
-### Acciones Útiles
-*   **Exportar:** Descarga el informe en PDF o Word para integrarlo a tu escrito.
-*   **Refinar:** Si un fallo no es exacto, usa el botón de "Refrescar" para buscar una alternativa puntual.
+#### Tips para mejores resultados
+*   Usá frases exactas entre comillas: "daño moral" accidente tránsito
+*   Agregá "fallo" o "sentencia" al final para filtrar resultados judiciales
+*   Combiná jurisdicción: "mala praxis médica cordoba camara"
+
+---
+
+### Pestaña 2: Antecedentes Judiciales de Empresa
+
+Herramienta de **due diligence corporativo**: buscá causas, demandas y sentencias públicas vinculadas a una empresa antes de aceptar un caso.
+
+#### Cómo usar
+1.  **Razón Social:** Ingresá el nombre de la empresa (ej: "Carrefour", "YPF SA", "Techint").
+2.  **CUIT (opcional):** Añadís el CUIT para cruzar información adicional.
+3.  **Jurisdicción:** Filtrá por fuero Federal, CABA, PBA o buscá en todas.
+4.  **Buscar expedientes:** La IA rastrea bases de datos públicas y extrae causas reales con carátula, tribunal, tipo y estado.
+
+#### Qué obtendrás por cada causa encontrada
+*   **Carátula:** Formato estándar "DEMANDANTE c/ EMPRESA s/ MATERIA"
+*   **Expediente:** Número de causa si está disponible
+*   **Tribunal:** Cámara o juzgado interviniente
+*   **Tipo:** Laboral / Civil / Comercial / Penal / etc.
+*   **Estado:** Activo / Archivado / Con sentencia
+
+> [!TIP]
+> Los resultados provienen de fuentes públicas indexadas. No reemplaza una consulta directa al sistema oficial del PJN o SCBA.
 `,
 
     clients: `

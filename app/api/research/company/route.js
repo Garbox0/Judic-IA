@@ -74,16 +74,23 @@ export async function POST(request) {
     const cuitTerm = cuit ? `"${cuit.replace(/\s/g, '')}"` : null;
     const primaryTerm = nameTerm || cuitTerm;
 
+    const currentYear = new Date().getFullYear();
+    // Build year range string: "2023 OR 2024 OR 2025 OR 2026"
+    const recentYears = Array.from({ length: currentYear - 2022 }, (_, i) => 2023 + i).join(' OR ');
+
     // Core queries — always use company name (courts index by name, not CUIT)
     const queries = [
-        `${primaryTerm} expediente judicial Argentina`,
+        // Recent cases first: target 2023–present
+        `${primaryTerm} expediente judicial ${recentYears}`,
+        // Standard caratula format used by all Argentine courts
         `${primaryTerm} c/ OR s/ causa sentencia`,
-        `${primaryTerm} site:scw.pjn.gov.ar OR site:pjn.gov.ar`,
+        // PJN federal databases (main court system)
+        `${primaryTerm} site:scw.pjn.gov.ar OR site:pjn.gov.ar OR site:jurisprudencia.csjn.gov.ar`,
     ];
 
     // If we stripped "SA"/"SRL", search the clean name too (catches variations)
     if (cleanNameTerm) {
-        queries.push(`${cleanNameTerm} demanda judicial Argentina`);
+        queries.push(`${cleanNameTerm} demanda judicial Argentina ${recentYears}`);
     }
 
     // CUIT as secondary signal (not primary — courts rarely index by CUIT)
@@ -94,13 +101,13 @@ export async function POST(request) {
     // Jurisdiction-specific court databases
     const jurisdictionSites = {
         buenosaires: [
-            `${primaryTerm} site:scba.gov.ar OR site:juba.scba.gov.ar`,
+            `${primaryTerm} site:scba.gov.ar OR site:juba.scba.gov.ar OR site:mpba.gov.ar`,
         ],
         caba: [
-            `${primaryTerm} site:jusbaires.gob.ar OR site:mpd.gov.ar`,
+            `${primaryTerm} site:jusbaires.gob.ar OR site:mpd.gov.ar OR site:pjn.gov.ar`,
         ],
         todas: [
-            `${primaryTerm} site:scba.gov.ar OR site:jusbaires.gob.ar OR site:justiciacordoba.gob.ar`,
+            `${primaryTerm} site:scba.gov.ar OR site:jusbaires.gob.ar OR site:justiciacordoba.gob.ar OR site:pjn.gov.ar`,
         ]
     };
 
@@ -122,7 +129,8 @@ export async function POST(request) {
                 count: '10',
                 country: 'ar',
                 search_lang: 'es',
-                extra_snippets: 'true'
+                extra_snippets: 'true',
+                freshness: 'py'  // Prioritize pages indexed in the past year
             });
             const res = await fetch(`https://api.search.brave.com/res/v1/web/search?${params}`, {
                 headers: {

@@ -462,8 +462,8 @@ export default function Home() {
 
             <div className="nav-group">
               <h4>Soporte</h4>
-              <a href="mailto:Soporte@judic-ia.com">Ayuda Técnica</a>
-              <a href="mailto:Billing@judic-ia.com">Ventas y Facturación</a>
+              <a href="mailto:soporte@judic-ia.com">Ayuda Técnica</a>
+              <a href="mailto:billing@judic-ia.com">Ventas y Facturación</a>
               <Link href="/legal?tab=seguridad">Centro de Seguridad</Link>
             </div>
 
@@ -473,6 +473,7 @@ export default function Home() {
               <Link href="/legal?tab=privacidad">Privacidad</Link>
               <Link href="/legal">Aviso Legal</Link>
               <Link href="/legal?tab=cookies">Cookies</Link>
+              <Link href="/legal?tab=novedades">Novedades</Link>
             </div>
           </div>
 

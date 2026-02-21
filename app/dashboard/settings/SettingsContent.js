@@ -8,7 +8,8 @@ import { useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
-import { CONTACT_CHANNELS, buildMailto } from '../../lib/contact-channels';
+import { CONTACT_CHANNELS, buildMailto, buildWhatsApp, WHATSAPP_SUPPORT_NUMBER } from '../../lib/contact-channels';
+import { CHANGELOG } from '../../lib/changelog';
 import {
     User,
     Shield,
@@ -30,7 +31,9 @@ import {
     Download,
     Eye,
     Clock,
-    X
+    X,
+    MessageCircle,
+    Sparkles
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -86,6 +89,8 @@ export default function SettingsPage({ isDemo = false }) {
     const [previewUrl, setPreviewUrl] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [showPhotoNudge, setShowPhotoNudge] = useState(false);
+    const avatarSectionRef = useRef(null);
     const [deletionStep, setDeletionStep] = useState('initial'); // initial, otp_sent, verified
     const [deletionOtp, setDeletionOtp] = useState('');
 
@@ -94,6 +99,11 @@ export default function SettingsPage({ isDemo = false }) {
     const [invoicesLoading, setInvoicesLoading] = useState(false);
     const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState(null);
+
+    // Admin broadcast panel
+    const [subscriberCount, setSubscriberCount] = useState(null);
+    const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
+    const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
     const [formData, setFormData] = useState({
         full_name: '',
@@ -188,7 +198,12 @@ export default function SettingsPage({ isDemo = false }) {
         if (activeTab === 'billing' && !isDemo) {
             fetchInvoices();
         }
-    }, [searchParams, activeTab]);
+
+        // Fetch subscriber count when admin opens support tab
+        if (activeTab === 'support' && isAdmin) {
+            fetchSubscriberCount();
+        }
+    }, [searchParams, activeTab, isAdmin]);
 
     const fetchInvoices = async () => {
         setInvoicesLoading(true);
@@ -205,6 +220,36 @@ export default function SettingsPage({ isDemo = false }) {
             console.error('Error fetching invoices:', error);
         } finally {
             setInvoicesLoading(false);
+        }
+    };
+
+    const fetchSubscriberCount = async () => {
+        try {
+            const res = await fetch('/api/newsletter/broadcast');
+            if (res.ok) {
+                const data = await res.json();
+                setSubscriberCount(data.count);
+            }
+        } catch (e) {
+            console.error('Error fetching subscriber count:', e);
+        }
+    };
+
+    const sendBroadcast = async () => {
+        if (isSendingBroadcast) return;
+        setIsSendingBroadcast(true);
+        try {
+            const res = await fetch('/api/newsletter/broadcast', { method: 'POST' });
+            const data = await res.json();
+            if (res.ok) {
+                toast.success(`✓ Enviado a ${data.sent} suscriptores`);
+            } else {
+                toast.error(data.error || 'Error al enviar');
+            }
+        } catch (e) {
+            toast.error('Error de conexión');
+        } finally {
+            setIsSendingBroadcast(false);
         }
     };
 
@@ -579,7 +624,7 @@ export default function SettingsPage({ isDemo = false }) {
                         {activeTab === 'profile' && (
                             <div className="stg-tab-pane">
                                 <div className="stg-profile-header">
-                                    <div className="stg-photo-col">
+                                    <div className="stg-photo-col" ref={avatarSectionRef}>
                                         <label htmlFor="avatar_upload" className="stg-label">Imagen 4x4</label>
 
                                         <div {...getRootProps()} className={`stg-avatar-box ${isDragActive ? 'drag-active' : ''}`}>
@@ -785,6 +830,11 @@ export default function SettingsPage({ isDemo = false }) {
                                             onClick={() => {
                                                 if (formData.verification_status !== 'verified') {
                                                     toast.error("Tu perfil debe estar verificado para activar esta opción.");
+                                                    return;
+                                                }
+                                                // When ENABLING: nudge if no photo
+                                                if (!formData.is_public && !formData.avatar_url && !previewUrl) {
+                                                    setShowPhotoNudge(true);
                                                     return;
                                                 }
                                                 setFormData(prev => ({ ...prev, is_public: !prev.is_public }));
@@ -1120,6 +1170,22 @@ export default function SettingsPage({ isDemo = false }) {
                                         </a>
                                     </div>
 
+                                    <div className="stg-support-card stg-support-card-wa">
+                                        <div className="icon-circle icon-circle-wa">
+                                            <MessageCircle size={32} />
+                                        </div>
+                                        <h4>Chat directo</h4>
+                                        <p>¿Necesitás ayuda rápida? Escribinos por WhatsApp.</p>
+                                        <a
+                                            href={buildWhatsApp(WHATSAPP_SUPPORT_NUMBER, formData.full_name, formData.plan_tier)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="stg-link-btn stg-link-btn-wa"
+                                        >
+                                            Abrir WhatsApp
+                                        </a>
+                                    </div>
+
                                     <div className="stg-support-card">
                                         <div className="icon-circle"><Receipt size={32} className="text-amber-400" /></div>
                                         <h4>{CONTACT_CHANNELS.billing.label}</h4>
@@ -1135,6 +1201,28 @@ export default function SettingsPage({ isDemo = false }) {
                                             {CONTACT_CHANNELS.billing.email}
                                         </a>
                                     </div>
+                                    {isAdmin && CHANGELOG[0] && (
+                                        <div className="stg-admin-broadcast-card">
+                                            <div className="stg-admin-broadcast-header">
+                                                <Sparkles size={18} className="stg-admin-broadcast-icon" />
+                                                <span className="stg-admin-broadcast-title">Notificación de novedades</span>
+                                                {subscriberCount !== null && (
+                                                    <span className="stg-admin-broadcast-count">{subscriberCount} suscriptores</span>
+                                                )}
+                                            </div>
+                                            <p className="stg-admin-broadcast-entry">
+                                                Última entrada: <strong>{CHANGELOG[0].date}</strong> · {CHANGELOG[0].items.length} cambios
+                                            </p>
+                                            <button
+                                                className="stg-admin-broadcast-btn"
+                                                onClick={sendBroadcast}
+                                                disabled={isSendingBroadcast}
+                                            >
+                                                {isSendingBroadcast ? 'Enviando...' : 'Enviar novedades por email'}
+                                            </button>
+                                        </div>
+                                    )}
+
                                     <div className="stg-discrete-danger">
                                         <button
                                             onClick={() => {
@@ -1258,6 +1346,40 @@ export default function SettingsPage({ isDemo = false }) {
                 </div>
             </div>
 
+
+            {/* PHOTO NUDGE MODAL */}
+            {showPhotoNudge && (
+                <div className="photo-nudge-overlay" onClick={() => setShowPhotoNudge(false)}>
+                    <div className="photo-nudge-card" onClick={e => e.stopPropagation()}>
+                        <div className="photo-nudge-icon">📸</div>
+                        <h3 className="photo-nudge-title">Los perfiles con foto generan más consultas</h3>
+                        <p className="photo-nudge-body">
+                            Los clientes tienen <strong>5 veces más probabilidad</strong> de contactar
+                            a un abogado con foto. Tu imagen profesional es tu primera carta de presentación.
+                        </p>
+                        <div className="photo-nudge-actions">
+                            <button
+                                className="photo-nudge-btn-primary"
+                                onClick={() => {
+                                    setShowPhotoNudge(false);
+                                    avatarSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }}
+                            >
+                                <Camera size={16} /> Subir mi foto
+                            </button>
+                            <button
+                                className="photo-nudge-btn-secondary"
+                                onClick={() => {
+                                    setShowPhotoNudge(false);
+                                    setFormData(prev => ({ ...prev, is_public: true }));
+                                }}
+                            >
+                                Activar sin foto de todas formas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {!isDemo && (
                 <Script

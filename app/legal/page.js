@@ -6,7 +6,8 @@ import "../landing.css";
 import Image from "next/image"; // Added import
 import "./legal.css";
 
-import { Lock, ShieldCheck, Cloud, FileText, User, Shield, Sun, Moon } from 'lucide-react';
+import { Lock, ShieldCheck, Cloud, FileText, User, Shield, Sun, Moon, Sparkles } from 'lucide-react';
+import { CHANGELOG } from '@/app/lib/changelog';
 
 export default function LegalPage() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function LegalPage() {
 
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['terminos', 'privacidad', 'seguridad'].includes(tab)) {
+    if (tab && ['terminos', 'privacidad', 'seguridad', 'novedades'].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -44,7 +45,8 @@ export default function LegalPage() {
   const tabs = [
     { id: 'terminos', label: 'Términos', icon: <FileText size={20} /> },
     { id: 'privacidad', label: 'Privacidad', icon: <User size={20} /> },
-    { id: 'seguridad', label: 'Seguridad', icon: <Shield size={20} /> }
+    { id: 'seguridad', label: 'Seguridad', icon: <Shield size={20} /> },
+    { id: 'novedades', label: 'Novedades', icon: <Sparkles size={20} /> },
   ];
 
   const handleTabClick = (id) => {
@@ -216,6 +218,34 @@ export default function LegalPage() {
                     <div className="security-footer-note">
                       <div className="note-pulse"></div>
                       <p>Las consultas se procesan en entornos volátiles aislados, garantizando el secreto profesional absoluto.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'novedades' && (
+                <div className="legal-section-fade">
+                  <div className="content-header-v3">
+                    <div className="content-num">04</div>
+                    <h2 className="section-title-v3">Novedades de <span className="gradient-text italic-serif">Judic-IA</span></h2>
+                  </div>
+                  <div className="legal-text-body-premium">
+                    <p className="lead-text">Seguimos mejorando la plataforma. Acá encontrás un registro de los últimos cambios y nuevas funcionalidades.</p>
+
+                    <div className="changelog-list">
+                      {CHANGELOG.map((entry, i) => (
+                        <div className="changelog-entry" key={i}>
+                          <div className="changelog-entry-header">
+                            <span className="changelog-date">{entry.date}</span>
+                            {entry.badge && <span className="changelog-badge">{entry.badge}</span>}
+                          </div>
+                          <ul className="changelog-items">
+                            {entry.items.map((item, j) => (
+                              <li key={j}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>

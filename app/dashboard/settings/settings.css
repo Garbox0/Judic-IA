@@ -133,6 +133,33 @@
     color: #020617;
 }
 
+/* WhatsApp support card */
+.stg-support-card-wa {
+    border-color: rgba(37, 211, 102, 0.2);
+}
+
+.stg-support-card-wa:hover {
+    border-color: rgba(37, 211, 102, 0.5) !important;
+    background: rgba(37, 211, 102, 0.04) !important;
+}
+
+.icon-circle-wa {
+    color: #25d366;
+    background: rgba(37, 211, 102, 0.1);
+    border-color: rgba(37, 211, 102, 0.2);
+}
+
+.stg-link-btn-wa {
+    background: rgba(37, 211, 102, 0.12);
+    color: #25d366;
+    border-color: rgba(37, 211, 102, 0.3);
+}
+
+.stg-link-btn-wa:hover {
+    background: #25d366 !important;
+    color: #020617 !important;
+}
+
 /* ENCAPSULATED ROOT - PREVENT OVERLAP */
 .stg-root {
     min-height: 100vh;
@@ -1935,4 +1962,221 @@ body.light-theme .stg-toggle-knob {
 
 body.light-theme .stg-toggle-switch.active .stg-toggle-knob {
     background: #d97706;
+}
+
+/* ── PHOTO NUDGE MODAL ───────────────────────────────────────────── */
+.photo-nudge-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(2, 6, 23, 0.82);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.photo-nudge-card {
+    background: #0f172a;
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    border-radius: 20px;
+    padding: 2rem 1.75rem;
+    text-align: center;
+    max-width: 360px;
+    width: 100%;
+    animation: zoomIn 0.18s ease-out;
+}
+
+.photo-nudge-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.photo-nudge-title {
+    color: #f8fafc;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0 0 0.75rem 0;
+    line-height: 1.4;
+}
+
+.photo-nudge-body {
+    color: #94a3b8;
+    font-size: 0.875rem;
+    line-height: 1.65;
+    margin: 0 0 1.5rem 0;
+}
+
+.photo-nudge-body strong {
+    color: #fbbf24;
+}
+
+.photo-nudge-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.photo-nudge-btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: #fbbf24;
+    color: #020617;
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.photo-nudge-btn-primary:hover {
+    background: #f59e0b;
+}
+
+.photo-nudge-btn-secondary {
+    background: transparent;
+    color: #475569;
+    border: none;
+    font-size: 0.78rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0.25rem;
+    transition: color 0.15s;
+}
+
+.photo-nudge-btn-secondary:hover {
+    color: #94a3b8;
+}
+
+/* Light theme overrides */
+body.light-theme .photo-nudge-card {
+    background: #ffffff;
+    border-color: rgba(217, 119, 6, 0.3);
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.15);
+}
+
+body.light-theme .photo-nudge-title {
+    color: #0f172a;
+}
+
+body.light-theme .photo-nudge-body {
+    color: #64748b;
+}
+
+/* =========================================
+   ADMIN BROADCAST PANEL
+========================================= */
+
+.stg-admin-broadcast-card {
+    background: rgba(251, 191, 36, 0.04);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.stg-admin-broadcast-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.stg-admin-broadcast-icon {
+    color: #fbbf24;
+    flex-shrink: 0;
+}
+
+.stg-admin-broadcast-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fbbf24;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    flex: 1;
+}
+
+.stg-admin-broadcast-count {
+    font-size: 0.78rem;
+    color: #64748b;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 2px 10px;
+}
+
+.stg-admin-broadcast-entry {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin: 0;
+}
+
+.stg-admin-broadcast-entry strong {
+    color: #e2e8f0;
+}
+
+.stg-admin-broadcast-btn {
+    align-self: flex-start;
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 10px;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.stg-admin-broadcast-btn:hover:not(:disabled) {
+    background: #fbbf24;
+    color: #020617;
+}
+
+.stg-admin-broadcast-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Light theme */
+body.light-theme .stg-admin-broadcast-card {
+    background: rgba(180, 83, 9, 0.04);
+    border-color: rgba(180, 83, 9, 0.2);
+}
+
+body.light-theme .stg-admin-broadcast-title,
+body.light-theme .stg-admin-broadcast-icon {
+    color: #b7791f;
+}
+
+body.light-theme .stg-admin-broadcast-count {
+    background: rgba(0,0,0,0.04);
+    border-color: rgba(0,0,0,0.08);
+    color: #64748b;
+}
+
+body.light-theme .stg-admin-broadcast-entry {
+    color: #475569;
+}
+
+body.light-theme .stg-admin-broadcast-entry strong {
+    color: #1e293b;
+}
+
+body.light-theme .stg-admin-broadcast-btn {
+    background: rgba(180, 83, 9, 0.08);
+    color: #b7791f;
+    border-color: rgba(180, 83, 9, 0.25);
+}
+
+body.light-theme .stg-admin-broadcast-btn:hover:not(:disabled) {
+    background: #b7791f;
+    color: #fff;
 }

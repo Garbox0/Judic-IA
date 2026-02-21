@@ -1,3 +1,14 @@
+// WhatsApp support number (Argentina format: 549 + area code + number, no spaces)
+// Example: 5491112345678 for +54 9 11 1234-5678
+export const WHATSAPP_SUPPORT_NUMBER = '5491121632824';
+
+export function buildWhatsApp(number, userName, planTier) {
+    const name = userName || 'Usuario';
+    const plan = planTier || 'free';
+    const text = `Hola, soy ${name} (plan ${plan}) y necesito ayuda con Judic-IA.`;
+    return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
+}
+
 export const CONTACT_CHANNELS = {
     sales: {
         key: "sales",

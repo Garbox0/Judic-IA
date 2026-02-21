@@ -1108,6 +1108,22 @@ body.light-theme .category-card.active {
     border-color: #fbbf24 !important;
 }
 
+/* LIGHT THEME: Search Tips */
+body.light-theme .tips-content-box {
+    background: rgba(251, 191, 36, 0.08) !important;
+    border-color: rgba(217, 119, 6, 0.25) !important;
+    color: #334155 !important;
+}
+
+body.light-theme .tips-list {
+    color: #1e293b !important;
+}
+
+body.light-theme .tips-example {
+    color: #64748b !important;
+    opacity: 1 !important;
+}
+
 /* Input Fields */
 body.light-theme .search-box input {
     background: #ffffff !important;
@@ -2553,3 +2569,40 @@ body.light-theme .empresa-caratula { color: #0f172a; }
 body.light-theme .empresa-resumen { color: rgba(15, 23, 42, 0.5); }
 body.light-theme .empresa-meta { color: rgba(15, 23, 42, 0.5); }
 body.light-theme .empresa-count { color: rgba(15, 23, 42, 0.45); }
+
+/* ── Light theme: Quota / Credits Modal ───────────────────────────── */
+body.light-theme .quota-modal-card {
+    background: #ffffff;
+    border-color: rgba(217, 119, 6, 0.3);
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.12);
+}
+
+body.light-theme .credit-pack-card {
+    background: rgba(251, 191, 36, 0.06);
+    border-color: rgba(217, 119, 6, 0.25);
+    color: #0f172a;
+}
+
+body.light-theme .credit-pack-card:hover:not(:disabled) {
+    background: rgba(251, 191, 36, 0.12);
+    border-color: rgba(217, 119, 6, 0.5);
+    box-shadow: 0 8px 24px rgba(217, 119, 6, 0.12);
+}
+
+body.light-theme .pack-price {
+    color: #334155;
+}
+
+body.light-theme .pack-label {
+    color: #64748b;
+}
+
+body.light-theme .quota-reset-note {
+    color: #94a3b8;
+}
+
+body.light-theme .quota-buy-btn {
+    color: #b45309;
+    border-color: rgba(180, 83, 9, 0.4);
+    background: rgba(251, 191, 36, 0.1);
+}
