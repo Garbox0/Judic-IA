@@ -1280,9 +1280,14 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                     onClick={async () => {
                                         setBuyingPack(pack.id);
                                         try {
+                                            const { data: { session: creditsSession } } = await supabase.auth.getSession();
+                                            const creditsToken = creditsSession?.access_token;
                                             const res = await fetch('/api/mp/credits/create', {
                                                 method: 'POST',
-                                                headers: { 'Content-Type': 'application/json' },
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    ...(creditsToken && { 'Authorization': `Bearer ${creditsToken}` }),
+                                                },
                                                 body: JSON.stringify({ pack_id: pack.id }),
                                             });
                                             const data = await res.json();
