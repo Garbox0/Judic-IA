@@ -41,9 +41,11 @@ export async function POST(request) {
     .eq("id", userId)
     .single();
 
+  const activeTiers = ["professional", "enterprise", "trial"];
+  const activeStatuses = ["active", "trialing"];
   const hasActiveSub =
-    profile?.subscription_status === "active" ||
-    profile?.plan_tier === "enterprise";
+    activeStatuses.includes(profile?.subscription_status) ||
+    activeTiers.includes(profile?.plan_tier);
 
   if (!hasActiveSub) {
     return NextResponse.json(
