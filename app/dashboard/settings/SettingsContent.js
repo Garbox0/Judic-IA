@@ -1207,43 +1207,45 @@ export default function SettingsPage({ isDemo = false }) {
                                             {CONTACT_CHANNELS.billing.email}
                                         </a>
                                     </div>
-                                    {isAdmin && CHANGELOG[0] && (
-                                        <div className="stg-admin-broadcast-card">
-                                            <div className="stg-admin-broadcast-header">
-                                                <Sparkles size={18} className="stg-admin-broadcast-icon" />
-                                                <span className="stg-admin-broadcast-title">Notificación de novedades</span>
-                                                {subscriberCount !== null && (
-                                                    <span className="stg-admin-broadcast-count">{subscriberCount} suscriptores</span>
-                                                )}
-                                            </div>
-                                            <p className="stg-admin-broadcast-entry">
-                                                Última entrada: <strong>{CHANGELOG[0].date}</strong> · {CHANGELOG[0].items.length} cambios
-                                            </p>
-                                            {broadcastAlreadySent ? (
-                                                <span className="stg-admin-broadcast-sent">✓ Ya enviado para esta entrada</span>
-                                            ) : (
-                                                <button
-                                                    className="stg-admin-broadcast-btn"
-                                                    onClick={sendBroadcast}
-                                                    disabled={isSendingBroadcast}
-                                                >
-                                                    {isSendingBroadcast ? 'Enviando...' : 'Enviar novedades por email'}
-                                                </button>
+                                </div>
+
+                                {isAdmin && CHANGELOG[0] && (
+                                    <div className="stg-admin-broadcast-card">
+                                        <div className="stg-admin-broadcast-header">
+                                            <Sparkles size={18} className="stg-admin-broadcast-icon" />
+                                            <span className="stg-admin-broadcast-title">Notificación de novedades</span>
+                                            {subscriberCount !== null && (
+                                                <span className="stg-admin-broadcast-count">{subscriberCount} suscriptores</span>
                                             )}
                                         </div>
-                                    )}
-
-                                    <div className="stg-discrete-danger">
-                                        <button
-                                            onClick={() => {
-                                                if (isDemo) { toast.error("🔒 Función restringida en Demo"); return; }
-                                                setDeleteModalOpen(true);
-                                            }}
-                                            className="stg-discrete-delete-btn"
-                                        >
-                                            Eliminar mi cuenta definitivamente
-                                        </button>
+                                        <p className="stg-admin-broadcast-entry">
+                                            Última entrada: <strong>{CHANGELOG[0].date}</strong> · {CHANGELOG[0].items.length} cambios
+                                        </p>
+                                        {broadcastAlreadySent ? (
+                                            <span className="stg-admin-broadcast-sent">✓ Ya enviado para esta entrada</span>
+                                        ) : (
+                                            <button
+                                                className="stg-admin-broadcast-btn"
+                                                onClick={sendBroadcast}
+                                                disabled={isSendingBroadcast}
+                                            >
+                                                {isSendingBroadcast ? 'Enviando...' : 'Enviar novedades por email'}
+                                            </button>
+                                        )}
                                     </div>
+                                )}
+
+                                <div className="stg-discrete-danger">
+                                    <button
+                                        onClick={() => {
+                                            if (isDemo) { toast.error("🔒 Función restringida en Demo"); return; }
+                                            setDeleteModalOpen(true);
+                                        }}
+                                        className="stg-discrete-delete-btn"
+                                    >
+                                        Eliminar mi cuenta definitivamente
+                                    </button>
+                                </div>
 
                                     {deleteModalOpen && (
                                         <div className="stg-modal-overlay">
