@@ -46,7 +46,7 @@ export async function GET() {
     ]);
 
     const latest = CHANGELOG[0] ?? null;
-    const alreadySent = lastBroadcast?.entry_date === latest?.date;
+    const alreadySent = lastBroadcast?.entry_date === latest?.id;
 
     return NextResponse.json({
         count: count ?? 0,
@@ -84,12 +84,12 @@ export async function POST(request) {
     const { data: existing } = await adminClient
         .from('newsletter_broadcasts')
         .select('entry_date')
-        .eq('entry_date', latest.date)
+        .eq('entry_date', latest.id)
         .single();
 
     if (existing) {
         return NextResponse.json(
-            { error: 'already_sent', message: `Ya se envió la entrada "${latest.date}"` },
+            { error: 'already_sent', message: `Ya se envió la entrada "${latest.id}"` },
             { status: 409 }
         );
     }
@@ -145,7 +145,7 @@ export async function POST(request) {
     // Log the broadcast so it can't be sent again for this entry
     await adminClient
         .from('newsletter_broadcasts')
-        .insert({ entry_date: latest.date, sent_count: sent });
+        .insert({ entry_date: latest.id, sent_count: sent });
 
     return NextResponse.json({ sent, date: latest.date });
 }

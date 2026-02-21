@@ -2,16 +2,17 @@
 //
 // Para agregar una novedad:
 // 1. Agregá un objeto nuevo al PRINCIPIO de este array
-// 2. Hacé commit y deploy
-// 3. Disparar la notificación a suscriptores:
-//    POST https://judic-ia.com/api/newsletter/broadcast
-//    Header: x-broadcast-secret: [tu BROADCAST_SECRET del .env]
+// 2. id: usar fecha ISO del día (YYYY-MM-DD) — NO cambiar una vez publicado
+// 3. date: texto libre para mostrar al usuario ("21 Feb 2026", "Mar 2026", etc.)
+// 4. Hacé commit y deploy
+// 5. Ir a Configuración → Soporte → click "Enviar novedades por email"
 //
 // Solo se notifica la primera entrada (la más reciente).
 
 export const CHANGELOG = [
     {
-        date: "Febrero 2026",
+        id: "2026-02-21",       // identificador único de esta release
+        date: "21 Feb 2026",    // texto que ve el usuario
         badge: "Nuevo",
         items: [
             "Canal de soporte directo por WhatsApp integrado en Configuración → Soporte",
