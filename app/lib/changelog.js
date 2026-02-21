@@ -34,6 +34,14 @@
 
 export const CHANGELOG = [
     {
+        id: 2,
+        date: "21 Feb 2026",
+        badge: "Nuevo",
+        items: [
+            "Prueba de envío de novedades por email a suscriptores (solo para testing, no se envió nada real)",
+        ],
+    },
+    {
         id: 1,
         date: "21 Feb 2026",
         badge: "Nuevo",
