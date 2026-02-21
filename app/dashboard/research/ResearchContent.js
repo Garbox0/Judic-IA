@@ -1132,7 +1132,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                             })()}
 
                             {loading && (
-                                <div className="loader-container loader-wrapper">
+                                <div className="loader-container loader-wrapper" aria-live="polite" aria-atomic="true">
                                     <div className="loader-text-wrapper">
                                         <Loader2 className="spin-animation text-amber-400" size={48} />
                                         <p className="loader-status-text">
@@ -1187,7 +1187,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         )} {/* end activeTab === 'jurisprudencia' */}
 
                         {activeTab === 'jurisprudencia' && results && (
-                            <div className="results-area">
+                            <div className="results-area" aria-live="polite" aria-busy={loading}>
                                 {results.brave_used && (
                                     <div className="badge-brave">
                                         <span>🦁 Brave Search Pro Activo</span>
@@ -1257,6 +1257,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                                         <button
                                                                             className="btn-preview-icon"
                                                                             title="Buscar nueva alternativa (Refresh)"
+                                                                            aria-label="Buscar nueva alternativa"
                                                                             onClick={() => handleRefreshCase(i)}
                                                                             disabled={refreshingCases[i]}
                                                                         >
@@ -1268,6 +1269,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                                             rel="noopener noreferrer"
                                                                             className="btn-link-icon"
                                                                             title="Abrir Fuente"
+                                                                            aria-label="Abrir fuente de jurisprudencia"
                                                                             onClick={() => trackClick(safeUrl, 'open_link')}
                                                                         >
                                                                             <ExternalLink size={16} />
@@ -1275,6 +1277,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                                         <button
                                                                             className="btn-preview-icon"
                                                                             title={capturingCases[i] ? "Generando PDF limpio..." : "Visualizar (PDF Limpio)"}
+                                                                            aria-label={capturingCases[i] ? "Generando PDF limpio..." : "Ver fallo en PDF limpio"}
                                                                             onClick={() => handleCapture(i, safeUrl, c.title)}
                                                                             disabled={capturingCases[i]}
                                                                         >
@@ -1357,11 +1360,11 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
             {/* QUOTA LIMIT MODAL — CREDIT PACKS */}
             {quotaModalOpen && (
                 <div className="quota-modal-overlay" onClick={() => { setQuotaModalOpen(false); setQuotaExhausted(false); }}>
-                    <div className="quota-modal-card quota-modal-packs" onClick={e => e.stopPropagation()}>
+                    <div className="quota-modal-card quota-modal-packs" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="quota-modal-title">
                         <div className="quota-icon-circle">
                             <span className="quota-icon-emoji">{quotaExhausted ? '⚠️' : '🔍'}</span>
                         </div>
-                        <h3 className="quota-title">
+                        <h3 className="quota-title" id="quota-modal-title">
                             {quotaExhausted ? 'Búsquedas Agotadas' : 'Comprar Búsquedas Extra'}
                         </h3>
                         <p className="quota-desc">
@@ -1454,7 +1457,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
             {/* QUERY ENHANCEMENT MODAL */}
             {enhancementModal && (
                 <div className="quota-modal-overlay" onClick={() => setEnhancementModal(null)}>
-                    <div className="enhancement-modal-card" onClick={e => e.stopPropagation()}>
+                    <div className="enhancement-modal-card" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="enhancement-modal-title">
                         <button
                             className="modal-close-btn"
                             onClick={() => setEnhancementModal(null)}
@@ -1465,7 +1468,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         <div className="enhancement-icon-circle">
                             <Sparkles size={32} className="text-amber-400" />
                         </div>
-                        <h3 className="enhancement-title">Mejora de Búsqueda Detectada</h3>
+                        <h3 className="enhancement-title" id="enhancement-modal-title">Mejora de Búsqueda Detectada</h3>
 
                         <div className="enhancement-quality-badge">
                             <AlertCircle size={16} />
@@ -1535,7 +1538,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
             {/* REFORMULATION SUGGESTIONS MODAL */}
             {reformulationModal && (
                 <div className="quota-modal-overlay" onClick={() => setReformulationModal(null)}>
-                    <div className="enhancement-modal-card" onClick={e => e.stopPropagation()}>
+                    <div className="enhancement-modal-card" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="reformulation-modal-title">
                         <button
                             className="modal-close-btn"
                             onClick={() => setReformulationModal(null)}
@@ -1546,7 +1549,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         <div className="enhancement-icon-circle">
                             <AlertCircle size={32} className="text-orange-400" />
                         </div>
-                        <h3 className="enhancement-title">Resultados Limitados</h3>
+                        <h3 className="enhancement-title" id="reformulation-modal-title">Resultados Limitados</h3>
 
                         <p className="reformulation-desc">
                             La búsqueda "{reformulationModal.original}" obtuvo resultados de calidad limitada (score promedio: {reformulationModal.avgScore}/100).

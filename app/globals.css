@@ -597,3 +597,22 @@ button {
   white-space: nowrap;
   border-width: 0;
 }
+
+/* Skip to content — visible solo al recibir foco (teclado/lector de pantalla) */
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: 1rem;
+  background: var(--primary);
+  color: #020617;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0 0 8px 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  z-index: 9999;
+  transition: top 0.15s ease;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 0;
+}

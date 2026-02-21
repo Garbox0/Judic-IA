@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { HelpCircle, X, ChevronRight, BookOpen } from 'lucide-react';
 import './usage-guide.css';
 
@@ -9,6 +9,28 @@ import './usage-guide.css';
  */
 export default function UsageGuide({ content, mode = 'fixed' }) {
     const [isOpen, setIsOpen] = useState(false);
+    const triggerRef = useRef(null);
+    const modalRef = useRef(null);
+
+    // Mover foco al modal al abrirse; restituir al trigger al cerrarse
+    useEffect(() => {
+        if (isOpen) {
+            modalRef.current?.focus();
+        }
+    }, [isOpen]);
+
+    // Cerrar con Escape
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                setIsOpen(false);
+                triggerRef.current?.focus();
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen]);
 
     // Simple markdown renderer for the demo content
     const renderMarkdown = (text) => {
@@ -91,8 +113,16 @@ export default function UsageGuide({ content, mode = 'fixed' }) {
     };
 
     const modalContent = isOpen ? (
-        <div className="guide-overlay" onClick={() => setIsOpen(false)}>
-            <div className="guide-modal custom-scrollbar" onClick={e => e.stopPropagation()}>
+        <div className="guide-overlay" onClick={() => { setIsOpen(false); triggerRef.current?.focus(); }}>
+            <div
+                className="guide-modal custom-scrollbar"
+                onClick={e => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="guide-modal-title"
+                tabIndex={-1}
+                ref={modalRef}
+            >
 
                 {/* HEADER */}
                 <div className="guide-header">
@@ -100,9 +130,9 @@ export default function UsageGuide({ content, mode = 'fixed' }) {
                         <div className="guide-icon">
                             <BookOpen size={24} color="#fbbf24" />
                         </div>
-                        <h2>Manual de Uso</h2>
+                        <h2 id="guide-modal-title">Manual de Uso</h2>
                     </div>
-                    <button onClick={() => setIsOpen(false)} className="guide-close-btn">
+                    <button onClick={() => { setIsOpen(false); triggerRef.current?.focus(); }} className="guide-close-btn" aria-label="Cerrar manual de uso">
                         <X size={24} />
                     </button>
                 </div>
@@ -114,7 +144,7 @@ export default function UsageGuide({ content, mode = 'fixed' }) {
 
                 {/* FOOTER */}
                 <div className="guide-footer">
-                    <button onClick={() => setIsOpen(false)} className="btn-close-guide">
+                    <button onClick={() => { setIsOpen(false); triggerRef.current?.focus(); }} className="btn-close-guide">
                         Entendido
                     </button>
                 </div>
@@ -127,6 +157,7 @@ export default function UsageGuide({ content, mode = 'fixed' }) {
             onClick={() => setIsOpen(true)}
             className={mode === 'inline' ? 'usage-guide-inline-trigger' : 'usage-guide-trigger'}
             title="Ver Manual de Uso"
+            aria-label="Abrir manual de uso"
         >
             <HelpCircle size={mode === 'inline' ? 14 : 20} />
         </button>
@@ -139,9 +170,12 @@ export default function UsageGuide({ content, mode = 'fixed' }) {
         <>
             {/* TRIGGER BUTTON */}
             <button
+                ref={triggerRef}
                 onClick={() => setIsOpen(true)}
                 className={mode === 'inline' ? 'usage-guide-inline-trigger' : 'usage-guide-trigger'}
                 title="Ver Manual de Uso"
+                aria-label="Abrir manual de uso"
+                aria-expanded={isOpen}
             >
                 <HelpCircle size={mode === 'inline' ? 14 : 20} />
             </button>

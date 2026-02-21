@@ -276,14 +276,14 @@ export default function CasesPage() {
                                         </td>
                                         <td>
                                             <div className="action-cell">
-                                                <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Abrir Carpeta"><FolderOpen size={16} /></Link>
-                                                <button onClick={() => handleArchiveCase(item.id, true)} className="btn-archive" title="Archivar"><Archive size={16} /></button>
+                                                <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Abrir Carpeta" aria-label="Abrir carpeta del expediente"><FolderOpen size={16} /></Link>
+                                                <button onClick={() => handleArchiveCase(item.id, true)} className="btn-archive" title="Archivar" aria-label="Archivar expediente"><Archive size={16} /></button>
                                                 {item.inquiry?.source !== 'manual' ? (
-                                                    <Link href={`/dashboard/clients?id=${item.inquiry_id}`} className="btn-chat" title="Ver Chat Original"><MessageSquare size={16} /></Link>
+                                                    <Link href={`/dashboard/clients?id=${item.inquiry_id}`} className="btn-chat" title="Ver Chat Original" aria-label="Ver chat original"><MessageSquare size={16} /></Link>
                                                 ) : (
-                                                    <button className="btn-chat disabled" title="Chat no disponible (Manual)" disabled><MessageSquare size={16} /></button>
+                                                    <button className="btn-chat disabled" title="Chat no disponible (Manual)" aria-label="Chat no disponible" disabled><MessageSquare size={16} /></button>
                                                 )}
-                                                <button onClick={() => setCaseToDelete(item)} className="btn-delete" title="Eliminar Expediente"><Trash2 size={16} /></button>
+                                                <button onClick={() => setCaseToDelete(item)} className="btn-delete" title="Eliminar Expediente" aria-label="Eliminar expediente"><Trash2 size={16} /></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -332,9 +332,9 @@ export default function CasesPage() {
                                             <td className="opacity-70"><span className="date-cell">{new Date(item.updated_at).toLocaleDateString()}</span></td>
                                             <td>
                                                 <div className="action-cell">
-                                                    <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Ver Carpeta"><FolderOpen size={16} /></Link>
-                                                    <button onClick={() => handleArchiveCase(item.id, false)} className="btn-unarchive" title="Desarchivar / Recuperar"><RotateCcw size={16} /></button>
-                                                    <button onClick={() => setCaseToDelete(item)} className="btn-delete" title="Eliminar Definitivamente"><Trash2 size={16} /></button>
+                                                    <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Ver Carpeta" aria-label="Ver carpeta archivada"><FolderOpen size={16} /></Link>
+                                                    <button onClick={() => handleArchiveCase(item.id, false)} className="btn-unarchive" title="Desarchivar / Recuperar" aria-label="Desarchivar expediente"><RotateCcw size={16} /></button>
+                                                    <button onClick={() => setCaseToDelete(item)} className="btn-delete" title="Eliminar Definitivamente" aria-label="Eliminar expediente definitivamente"><Trash2 size={16} /></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -349,9 +349,9 @@ export default function CasesPage() {
             {/* DELETE MODAL */}
             {caseToDelete && (
                 <div className="modal-overlay">
-                    <div className="modal-box glass-panel">
-                        <div className="mb-1rem flex-center"><AlertTriangle size={48} className="text-red-500" /></div>
-                        <h2>¿Eliminar Definitivamente?</h2>
+                    <div className="modal-box glass-panel" role="dialog" aria-modal="true" aria-labelledby="delete-case-title">
+                        <div className="mb-1rem flex-center"><AlertTriangle size={48} className="text-red-500" aria-hidden="true" /></div>
+                        <h2 id="delete-case-title">¿Eliminar Definitivamente?</h2>
                         <p>Se borrará la "Carpeta Legal" <strong>{caseToDelete.title}</strong>.</p>
                         <p>Se eliminará el expediente, toda su documentación y chats asociados de forma irreversible.</p>
                         <div className="modal-actions">
@@ -364,10 +364,10 @@ export default function CasesPage() {
 
             {/* NOTIFICATION UI */}
             {notification && (
-                <div className={`notification-toast ${notification.type}`}>
-                    {notification.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
+                <div className={`notification-toast ${notification.type}`} role="alert" aria-live="polite">
+                    {notification.type === 'success' ? <CheckCircle2 size={18} aria-hidden="true" /> : <AlertTriangle size={18} aria-hidden="true" />}
                     <span>{notification.message}</span>
-                    <button onClick={() => setNotification(null)} className="btn-close-toast"><X size={14} /></button>
+                    <button onClick={() => setNotification(null)} className="btn-close-toast" aria-label="Cerrar notificación"><X size={14} /></button>
                 </div>
             )}
 

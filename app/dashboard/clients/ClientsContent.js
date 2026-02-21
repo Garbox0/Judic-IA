@@ -408,7 +408,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                     <div className="inbox-header flex justify-between items-center px-6 h-[70px]">
                         <h1 className="inbox-title">Inbox</h1>
                         <div className="flex gap-2 items-center">
-                            <Link href={isDemo ? basePath : "/dashboard"} className="btn-icon-ghost" title="Volver">
+                            <Link href={isDemo ? basePath : "/dashboard"} className="btn-icon-ghost" title="Volver" aria-label="Volver al dashboard">
                                 <ChevronLeft size={20} />
                             </Link>
                         </div>
@@ -428,8 +428,10 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
                     <div className="search-inbox-container">
                         <div className="premium-search-box">
-                            <Search className="search-icon-inside" size={14} />
+                            <Search className="search-icon-inside" size={14} aria-hidden="true" />
+                            <label htmlFor="inbox-search" className="sr-only">Buscar clientes</label>
                             <input
+                                id="inbox-search"
                                 type="text"
                                 placeholder="Buscar en clientes..."
                                 className="premium-search-input"
@@ -467,6 +469,11 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                     key={client.id}
                                     className={`inbox-item ${selectedClient?.id === client.id ? 'active' : ''}`}
                                     onClick={() => selectClient(client)}
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label={`Abrir chat con ${client.contact_name || 'cliente'}`}
+                                    aria-pressed={selectedClient?.id === client.id}
+                                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && selectClient(client)}
                                 >
                                     <div className="avatar-circle small">
                                         {client.contact_name ? client.contact_name[0].toUpperCase() : '?'}
@@ -505,7 +512,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                             {/* CHAT HEADER */}
                             <header className="chat-header-inline">
                                 <div className="flex items-center gap-2">
-                                    <button className="btn-back-mobile" onClick={() => setSelectedClient(null)}>
+                                    <button className="btn-back-mobile" onClick={() => setSelectedClient(null)} aria-label="Volver a la lista de clientes">
                                         <ChevronLeft size={20} />
                                     </button>
                                     <div className="chat-client-info" onClick={() => setShowSidebar(!showSidebar)}>
@@ -523,6 +530,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                     <button
                                         className="btn-action-icon"
                                         title="Convertir a Expediente"
+                                        aria-label={selectedClient.is_case ? "Ya convertido a expediente" : "Convertir a expediente"}
                                         onClick={convertToCase}
                                         disabled={selectedClient.is_case || converting}
                                     >
@@ -535,6 +543,8 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                         className={`btn-action-icon ${showSidebar ? 'text-amber-400 bg-amber-400/10' : 'btn-toggle-discovery'}`}
                                         onClick={() => setShowSidebar(!showSidebar)}
                                         title={showSidebar ? "Ocultar Detalles" : "Ver Detalles"}
+                                        aria-label={showSidebar ? "Ocultar panel de detalles" : "Ver detalles del cliente"}
+                                        aria-expanded={showSidebar}
                                     >
                                         {showSidebar ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
                                     </button>
@@ -545,7 +555,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                             <div className="chat-main-split">
 
                                 {/* CHAT MESSAGES */}
-                                <div className="chat-viewport custom-scrollbar">
+                                <div className="chat-viewport custom-scrollbar" aria-live="polite" aria-label="Historial de mensajes" role="log">
                                     {loadingChat ? (
                                         <div className="loader-center"><Loader className="animate-spin" /></div>
                                     ) : (
@@ -628,7 +638,9 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                             ) : (
                                 <form className="chat-input-area" onSubmit={sendLawyerReply}>
                                     <div className="input-row">
+                                        <label htmlFor="chat-reply-input" className="sr-only">Escribir mensaje</label>
                                         <input
+                                            id="chat-reply-input"
                                             type="text"
                                             placeholder="Escribe un mensaje..."
                                             value={replyInput}
@@ -658,9 +670,9 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
             {/* --- MODALS (Delete/Success) --- */}
             {clientToDelete && (
                 <div className="modal-overlay-inline">
-                    <div className="modal-box">
-                        <AlertTriangle size={40} className="text-amber" />
-                        <h3>¿Eliminar Consulta?</h3>
+                    <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="delete-client-title">
+                        <AlertTriangle size={40} className="text-amber" aria-hidden="true" />
+                        <h3 id="delete-client-title">¿Eliminar Consulta?</h3>
                         <p>Esta acción es irreversible.</p>
                         <div className="modal-btns">
                             <button onClick={() => setClientToDelete(null)}>Cancelar</button>

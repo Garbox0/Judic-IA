@@ -610,18 +610,18 @@ export default function SettingsPage({ isDemo = false }) {
 
                 <div className="stg-layout-split">
                     {/* Sidebar de Ajustes (Interno) */}
-                    <aside className="stg-tabs-nav">
-                        <button className={`stg-tab-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => handleTabChange('profile')}>
-                            <User size={18} /> Perfil Profesional
+                    <aside className="stg-tabs-nav" role="tablist" aria-label="Secciones de configuración">
+                        <button role="tab" aria-selected={activeTab === 'profile'} className={`stg-tab-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => handleTabChange('profile')}>
+                            <User size={18} aria-hidden="true" /> Perfil Profesional
                         </button>
-                        <button className={`stg-tab-btn ${activeTab === 'security' ? 'active' : ''}`} onClick={() => handleTabChange('security')}>
-                            <Shield size={18} /> Seguridad
+                        <button role="tab" aria-selected={activeTab === 'security'} className={`stg-tab-btn ${activeTab === 'security' ? 'active' : ''}`} onClick={() => handleTabChange('security')}>
+                            <Shield size={18} aria-hidden="true" /> Seguridad
                         </button>
-                        <button className={`stg-tab-btn ${activeTab === 'billing' ? 'active' : ''}`} onClick={() => handleTabChange('billing')}>
-                            <CreditCard size={18} /> Facturación
+                        <button role="tab" aria-selected={activeTab === 'billing'} className={`stg-tab-btn ${activeTab === 'billing' ? 'active' : ''}`} onClick={() => handleTabChange('billing')}>
+                            <CreditCard size={18} aria-hidden="true" /> Facturación
                         </button>
-                        <button className={`stg-tab-btn ${activeTab === 'support' ? 'active' : ''}`} onClick={() => handleTabChange('support')}>
-                            <LifeBuoy size={18} /> Soporte y Ayuda
+                        <button role="tab" aria-selected={activeTab === 'support'} className={`stg-tab-btn ${activeTab === 'support' ? 'active' : ''}`} onClick={() => handleTabChange('support')}>
+                            <LifeBuoy size={18} aria-hidden="true" /> Soporte y Ayuda
                         </button>
                     </aside>
 
@@ -756,6 +756,7 @@ export default function SettingsPage({ isDemo = false }) {
                                                         <input
                                                             type="checkbox"
                                                             name="is_correspondent"
+                                                            aria-label="Activar disponibilidad para corresponsalía"
                                                             checked={formData.is_correspondent}
                                                             onChange={(e) => {
                                                                 if (formData.verification_status !== 'verified') {
@@ -780,6 +781,7 @@ export default function SettingsPage({ isDemo = false }) {
                                                                         key={zone}
                                                                         type="button"
                                                                         className={`stg-chip ${formData.coverage_zones.includes(zone) ? 'selected' : ''}`}
+                                                                        aria-pressed={formData.coverage_zones.includes(zone)}
                                                                         onClick={() => toggleZone(zone)}
                                                                     >
                                                                         {zone}
@@ -806,6 +808,7 @@ export default function SettingsPage({ isDemo = false }) {
                                                 key={spec}
                                                 type="button"
                                                 className={`stg-chip ${formData.especialidades.includes(spec) ? 'selected' : ''}`}
+                                                aria-pressed={formData.especialidades.includes(spec)}
                                                 onClick={() => toggleSpecialty(spec)}
                                             >
                                                 {spec}
@@ -832,6 +835,9 @@ export default function SettingsPage({ isDemo = false }) {
                                         </div>
                                         <button
                                             type="button"
+                                            role="switch"
+                                            aria-checked={formData.is_public}
+                                            aria-label="Perfil público en marketplace"
                                             className={`stg-toggle-switch ${formData.is_public ? 'active' : ''}`}
                                             onClick={() => {
                                                 if (formData.verification_status !== 'verified') {
@@ -994,8 +1000,8 @@ export default function SettingsPage({ isDemo = false }) {
                                         {/* Custom Confirmation Modal */}
                                         {modalOpen && (
                                             <div className="modal-overlay-v2">
-                                                <div className="modal-content-v2">
-                                                    <h3 className="modal-title-v2">
+                                                <div className="modal-content-v2" role="dialog" aria-modal="true" aria-labelledby="cancel-sub-modal-title">
+                                                    <h3 id="cancel-sub-modal-title" className="modal-title-v2">
                                                         ¿Cancelar Suscripción?
                                                     </h3>
                                                     <p className="modal-text-v2">
@@ -1100,8 +1106,9 @@ export default function SettingsPage({ isDemo = false }) {
                                                                         setInvoiceModalOpen(true);
                                                                     }}
                                                                     title="Ver factura"
+                                                                    aria-label="Ver factura"
                                                                 >
-                                                                    <Eye size={16} />
+                                                                    <Eye size={16} aria-hidden="true" />
                                                                 </button>
                                                                 <a
                                                                     href={invoice.file_url}
@@ -1109,8 +1116,9 @@ export default function SettingsPage({ isDemo = false }) {
                                                                     rel="noopener noreferrer"
                                                                     className="stg-invoice-btn download"
                                                                     title="Descargar factura"
+                                                                    aria-label="Descargar factura"
                                                                 >
-                                                                    <Download size={16} />
+                                                                    <Download size={16} aria-hidden="true" />
                                                                 </a>
                                                             </>
                                                         )}
@@ -1124,14 +1132,15 @@ export default function SettingsPage({ isDemo = false }) {
                                 {/* Invoice PDF Viewer Modal */}
                                 {invoiceModalOpen && selectedInvoice && (
                                     <div className="modal-overlay-v2" onClick={() => setInvoiceModalOpen(false)}>
-                                        <div className="invoice-modal-content" onClick={e => e.stopPropagation()}>
+                                        <div className="invoice-modal-content" role="dialog" aria-modal="true" aria-labelledby="invoice-modal-title" onClick={e => e.stopPropagation()}>
                                             <div className="invoice-modal-header">
-                                                <h3>Factura - {selectedInvoice.description}</h3>
+                                                <h3 id="invoice-modal-title">Factura - {selectedInvoice.description}</h3>
                                                 <button
                                                     className="invoice-modal-close"
                                                     onClick={() => setInvoiceModalOpen(false)}
+                                                    aria-label="Cerrar factura"
                                                 >
-                                                    <X size={20} />
+                                                    <X size={20} aria-hidden="true" />
                                                 </button>
                                             </div>
                                             <div className="invoice-modal-body">
@@ -1249,7 +1258,7 @@ export default function SettingsPage({ isDemo = false }) {
 
                                     {deleteModalOpen && (
                                         <div className="stg-modal-overlay">
-                                            <div className="stg-modal-content">
+                                            <div className="stg-modal-content" role="dialog" aria-modal="true" aria-label="Eliminar cuenta definitivamente">
                                                 {deletionStep === 'initial' && (
                                                     <>
                                                         <h3 className="text-xl font-bold mb-4 text-red-500">¿Estás absolutamente seguro?</h3>
@@ -1361,9 +1370,9 @@ export default function SettingsPage({ isDemo = false }) {
             {/* PHOTO NUDGE MODAL */}
             {showPhotoNudge && (
                 <div className="photo-nudge-overlay" onClick={() => setShowPhotoNudge(false)}>
-                    <div className="photo-nudge-card" onClick={e => e.stopPropagation()}>
-                        <div className="photo-nudge-icon">📸</div>
-                        <h3 className="photo-nudge-title">Los perfiles con foto generan más consultas</h3>
+                    <div className="photo-nudge-card" role="dialog" aria-modal="true" aria-labelledby="photo-nudge-title" onClick={e => e.stopPropagation()}>
+                        <div className="photo-nudge-icon" aria-hidden="true">📸</div>
+                        <h3 id="photo-nudge-title" className="photo-nudge-title">Los perfiles con foto generan más consultas</h3>
                         <p className="photo-nudge-body">
                             Los clientes tienen <strong>5 veces más probabilidad</strong> de contactar
                             a un abogado con foto. Tu imagen profesional es tu primera carta de presentación.

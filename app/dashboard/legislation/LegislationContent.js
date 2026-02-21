@@ -720,9 +720,11 @@ export default function LegislationPage() {
 
                 {/* SECTION 3: CÓDIGOS DE FORMA (COLLAPSIBLE) */}
                 <section className="legislation-section">
-                    <div
+                    <button
                         className="section-head collapsible-header collapsible-header-btn"
                         onClick={() => setIsProceduralExpanded(!isProceduralExpanded)}
+                        aria-expanded={isProceduralExpanded}
+                        aria-controls="procedural-codes-content"
                     >
                         <div className="icon-badge blue">
                             <Map size={20} />
@@ -738,7 +740,7 @@ export default function LegislationPage() {
                                 </span>
                             </div>
                         </div>
-                    </div>
+                    </button>
 
                     {isProceduralExpanded && (
                         <>

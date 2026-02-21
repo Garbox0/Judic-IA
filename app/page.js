@@ -78,6 +78,7 @@ export default function Home() {
 
   return (
     <main className="landing-v3">
+      <a href="#main-content" className="skip-link">Saltar al contenido principal</a>
       <div className="bg-mesh"></div>
 
       {/* 💎 NAVIGATION 3.0 */}
@@ -113,7 +114,7 @@ export default function Home() {
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
 
-            <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(true)}>
+            <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(true)} aria-label="Abrir menú de navegación" aria-expanded={mobileMenuOpen}>
               ☰
             </button>
           </div>
@@ -123,7 +124,7 @@ export default function Home() {
       {/* 📱 MOBILE OVERLAY 3.0 */}
       {mobileMenuOpen && (
         <div className="mobile-menu-overlay">
-          <button className="mobile-menu-btn mobile-menu-close" onClick={() => setMobileMenuOpen(false)}>
+          <button className="mobile-menu-btn mobile-menu-close" onClick={() => setMobileMenuOpen(false)} aria-label="Cerrar menú de navegación">
             ✕
           </button>
 
@@ -145,7 +146,7 @@ export default function Home() {
       )}
 
       {/* 🚀 HERO SECTION 3.0 */}
-      <section className="hero-section">
+      <section className="hero-section" id="main-content">
         <div className="hero-grid">
           <div className="hero-content reveal">
             <div className="badge-new">✨ Judic-IA v3.0 • Elite Intelligence</div>

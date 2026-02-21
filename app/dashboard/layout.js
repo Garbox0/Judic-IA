@@ -154,6 +154,8 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
 
   return (
     <div className={`dashboard-layout ${isDemo ? 'demo-mode' : ''} ${theme === 'light' ? 'light-theme' : ''}`}>
+      <a href="#main-content" className="skip-link">Saltar al contenido principal</a>
+
       {/* MOBILE OVERLAY */}
       {mobileSidebarOpen && (
         <div
@@ -168,6 +170,7 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
           className="mobile-toggle-btn"
           onClick={() => setMobileSidebarOpen(true)}
           aria-label="Abrir menú"
+          aria-expanded={mobileSidebarOpen}
         >
           <Menu size={20} />
         </button>
@@ -179,7 +182,8 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
         className="floating-theme-toggle"
         onClick={toggleTheme}
         title={`Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`}
-        aria-label="Alternar tema"
+        aria-label={`Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`}
+        aria-pressed={theme === 'light'}
       >
         {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
       </button>
@@ -207,7 +211,7 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
           </div>
         </div>
 
-        <nav className="nav-links">
+        <nav className="nav-links" aria-label="Menú principal">
           {/* We mapped these manually, so we just update the Hrefs */}
           <Link href={isDemo ? `${basePath}/research` : '/dashboard/research'} className={`nav-item ${pathname.includes('/research') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <Scale size={18} className="nav-icon" />
@@ -287,6 +291,7 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
             <button
               className="btn-logout"
               title="Cerrar Sesión"
+              aria-label="Cerrar sesión"
               onClick={() => supabase.auth.signOut().then(() => router.push('/login'))}
             >
               <LogOut size={18} />
@@ -296,7 +301,7 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className="main-viewport">
+      <main className="main-viewport" id="main-content">
         {children}
       </main>
 

@@ -231,8 +231,8 @@ ${formattedRespondents || 'Sin datos de denunciados.'}
 
     return (
         <div className="modal-overlay">
-            <div className="manual-case-modal glass-panel fade-in">
-                <button className="btn-close-modal" onClick={handleClose}><X size={20} /></button>
+            <div className="manual-case-modal glass-panel fade-in" role="dialog" aria-modal="true" aria-labelledby="manual-case-modal-title">
+                <button className="btn-close-modal" onClick={handleClose} aria-label="Cerrar modal"><X size={20} aria-hidden="true" /></button>
 
                 {success ? (
                     <div className="success-state">
@@ -250,7 +250,7 @@ ${formattedRespondents || 'Sin datos de denunciados.'}
                                 <Plus size={32} className="header-icon" />
                             </div>
                             <div className="header-text">
-                                <h2>Nuevo Expediente Manual</h2>
+                                <h2 id="manual-case-modal-title">Nuevo Expediente Manual</h2>
                                 <p>Carga los datos de las partes y archivos del caso.</p>
                             </div>
                         </div>
@@ -269,7 +269,7 @@ ${formattedRespondents || 'Sin datos de denunciados.'}
                                     {claimants.map((c, i) => (
                                         <div key={i} className="dynamic-row-box">
                                             {claimants.length > 1 && (
-                                                <button type="button" className="btn-remove-row" onClick={() => removeClaimant(i)}><UserMinus size={14} /></button>
+                                                <button type="button" className="btn-remove-row" onClick={() => removeClaimant(i)} aria-label={`Quitar parte actora ${i + 1}`}><UserMinus size={14} aria-hidden="true" /></button>
                                             )}
                                             <div className="input-row">
                                                 <div className="input-group">
@@ -288,6 +288,7 @@ ${formattedRespondents || 'Sin datos de denunciados.'}
                                                                 key={type}
                                                                 type="button"
                                                                 className={c.idType === type ? 'active' : ''}
+                                                                aria-pressed={c.idType === type}
                                                                 onClick={() => updateClaimant(i, 'idType', type)}
                                                             >
                                                                 {type}
@@ -347,7 +348,7 @@ ${formattedRespondents || 'Sin datos de denunciados.'}
                                     {respondents.map((r, i) => (
                                         <div key={i} className="dynamic-row-box secondary">
                                             {respondents.length > 1 && (
-                                                <button type="button" className="btn-remove-row" onClick={() => removeRespondent(i)}><UserMinus size={14} /></button>
+                                                <button type="button" className="btn-remove-row" onClick={() => removeRespondent(i)} aria-label={`Quitar parte demandada ${i + 1}`}><UserMinus size={14} aria-hidden="true" /></button>
                                             )}
                                             <div className="input-row">
                                                 <div className="input-group">
@@ -365,6 +366,7 @@ ${formattedRespondents || 'Sin datos de denunciados.'}
                                                                 key={type}
                                                                 type="button"
                                                                 className={r.idType === type ? 'active' : ''}
+                                                                aria-pressed={r.idType === type}
                                                                 onClick={() => updateRespondent(i, 'idType', type)}
                                                             >
                                                                 {type}
@@ -423,7 +425,11 @@ ${formattedRespondents || 'Sin datos de denunciados.'}
                                     <h3><FileText size={16} /> Documentación Existente</h3>
                                     <div
                                         className="drop-zone"
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-label="Adjuntar documentos: click o Enter para seleccionar archivos"
                                         onClick={() => fileInputRef.current.click()}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current.click(); } }}
                                     >
                                         <div className="drop-icon-cloud">
                                             <Upload size={32} />
@@ -446,7 +452,7 @@ ${formattedRespondents || 'Sin datos de denunciados.'}
                                                 <div key={i} className="file-chip-premium">
                                                     <div className="f-icon"><FileText size={14} /></div>
                                                     <span className="f-name">{f.name}</span>
-                                                    <button type="button" className="btn-del-file" onClick={() => removeFile(i)}><X size={12} /></button>
+                                                    <button type="button" className="btn-del-file" onClick={() => removeFile(i)} aria-label={`Quitar archivo ${f.name}`}><X size={12} aria-hidden="true" /></button>
                                                 </div>
                                             ))}
                                         </div>

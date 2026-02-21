@@ -340,6 +340,7 @@ export default function FederalContent() {
                                 <button
                                     className="fed-lawyer-action-btn"
                                     title="Iniciar conversacion"
+                                    aria-label={`Iniciar conversación con ${lawyer.full_name}`}
                                     onClick={() => handleStartChat(lawyer)}
                                 >
                                     <MessageCircle size={18} />
@@ -496,6 +497,8 @@ export default function FederalContent() {
                                 <button
                                     className="fed-guide-header"
                                     onClick={() => setExpandedGuide(expandedGuide === guide.id ? null : guide.id)}
+                                    aria-expanded={expandedGuide === guide.id}
+                                    aria-controls={`guide-body-${guide.id}`}
                                 >
                                     <div className="fed-guide-header-left">
                                         <div className="fed-guide-icon">
@@ -516,7 +519,7 @@ export default function FederalContent() {
                                 </button>
 
                                 {expandedGuide === guide.id && (
-                                    <div className="fed-guide-body">
+                                    <div className="fed-guide-body" id={`guide-body-${guide.id}`}>
                                         <div className="fed-guide-section">
                                             <h4>Pasos</h4>
                                             <ol className="fed-guide-steps">

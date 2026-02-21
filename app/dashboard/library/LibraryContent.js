@@ -192,6 +192,7 @@ export default function LibraryPage() {
                                         <button
                                             className="btn-delete"
                                             title="Eliminar recurso"
+                                            aria-label="Eliminar recurso de la biblioteca"
                                             disabled={deletingId === item.id}
                                             onClick={() => handleDelete(item)}
                                         >
@@ -201,6 +202,7 @@ export default function LibraryPage() {
                                     <Link
                                         href={`/dashboard/legislation/viewer/knowledge-base?url=${encodeURIComponent(item.pdf_url || item.url)}&title=${encodeURIComponent(item.autos || 'Fallo de Base de Conocimiento')}`}
                                         className="card-link"
+                                        aria-label={`Abrir fallo: ${item.autos}`}
                                     >
                                         <ExternalLink size={18} />
                                     </Link>
@@ -233,8 +235,8 @@ export default function LibraryPage() {
             </div>
 
             {toast && (
-                <div className="library-toast">
-                    <Check size={16} />
+                <div className="library-toast" role="alert" aria-live="polite">
+                    <Check size={16} aria-hidden="true" />
                     {toast}
                 </div>
             )}
