@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
-import { QuotaSummary, QuotaSummarySkeleton } from '@/app/components/QuotaDisplay';
 
 export default function DashboardHome({ isDemo = false, basePath = '/dashboard' }) {
   const [user, setUser] = useState(isDemo ? { user_metadata: { first_name: 'Dr. Martínez' } } : null);
@@ -156,10 +155,6 @@ export default function DashboardHome({ isDemo = false, basePath = '/dashboard' 
         </div>
         <UsageGuide content={dashboardManuals.dashboard} />
       </header>
-
-      {!isDemo && (
-        profile ? <QuotaSummary profile={profile} /> : <QuotaSummarySkeleton />
-      )}
 
       {showPaymentBanner && (
         <div className="dash-payment-banner">

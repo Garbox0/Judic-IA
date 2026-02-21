@@ -111,8 +111,6 @@ export function QuotaSummary({ profile }) {
       </div>
 
       <div className="quota-grid">
-        <QuotaDisplay profile={profile} action="ai_messages" />
-        <QuotaDisplay profile={profile} action="inquiries" />
         <QuotaDisplay profile={profile} action="research_reports" />
       </div>
     </div>
@@ -130,7 +128,7 @@ export function QuotaSummarySkeleton() {
         <div className="skeleton-text" style={{ width: '100px', height: '2rem', borderRadius: '8px' }} />
       </div>
       <div className="quota-grid">
-        {[1, 2, 3].map(i => (
+        {[1].map(i => (
           <div key={i} className="quota-display">
             <div className="quota-header">
               <div className="skeleton-text" style={{ width: '100px', height: '0.875rem' }} />

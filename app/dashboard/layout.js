@@ -24,7 +24,6 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
-const SafeChatWidget = dynamic(() => import('../components/SafeChatWidget'), { ssr: false });
 const CommunityChatWidget = dynamic(() => import('../components/CommunityChatWidget'), { ssr: false });
 const SessionGuard = dynamic(() => import('../components/SessionGuard'), { ssr: false });
 
@@ -301,16 +300,7 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
         {children}
       </main>
 
-      {!isDemo && (
-        <>
-          <SafeChatWidget
-            mode="internal"
-            initialMessage="Hola. Soy tu asistente de soporte técnico. ¿En qué puedo ayudarte?"
-          />
-          {/* Internal Community Chat */}
-          <CommunityChatWidget />
-        </>
-      )}
+      {!isDemo && <CommunityChatWidget />}
 
       {/* SECURITY HEARTBEAT */}
       {!isDemo && <SessionGuard targetId={user?.id} tableName="profiles" />}
