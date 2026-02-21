@@ -167,8 +167,9 @@ export default function IntakeFormContent({ id }) {
         url.searchParams.set('cid', newCid);
         window.history.replaceState({}, '', url.toString());
 
-        setUiState('pending');
-        startPolling(newCid);
+        // Usar el status real devuelto por la API (recovery puede ya estar en 'Nuevo')
+        const actualStatus = data.status || 'pending_review';
+        applyStatus(actualStatus, [], newCid);
     };
 
     // Envío de mensajes en el chat
@@ -487,6 +488,9 @@ function AnonymousIntakeForm({ lawyerName, onSubmit }) {
 
                 <p className="intake-privacy">
                     Tus datos son confidenciales y solo serán compartidos con el profesional seleccionado.
+                </p>
+                <p className="intake-recovery-hint">
+                    ¿Ya iniciaste una consulta? Ingresá el mismo email para recuperar el acceso.
                 </p>
             </form>
         </div>

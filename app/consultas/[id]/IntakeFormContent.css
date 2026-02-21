@@ -428,6 +428,20 @@ body.light-theme .user-session {
     margin-top: 0.25rem;
 }
 
+.intake-recovery-hint {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-align: center;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+body.light-theme .intake-recovery-hint {
+    color: #64748b;
+    border-top-color: rgba(0, 0, 0, 0.05);
+}
+
 /* ─── Pantalla de Espera (Pending) ──────────────────────────────────── */
 
 .pending-screen {

@@ -68,7 +68,7 @@ export async function POST(request) {
         // 2. Verificar si ya existe una consulta activa (evitar duplicados)
         const { data: existing } = await supabaseAdmin
             .from('inquiries')
-            .select('id')
+            .select('id, status')
             .eq('assigned_lawyer_id', lawyerId)
             .eq('contact_email', emailLower)
             .neq('status', 'rejected')
@@ -87,8 +87,28 @@ export async function POST(request) {
         const lawyerEmail = profile?.email;
 
         if (existing) {
-            // Reutilizar CID existente (no reenviar notificación)
-            return NextResponse.json({ cid: existing.id, lawyerName });
+            // Recuperación de sesión: re-enviar email de acceso al cliente
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://judic-ia.com';
+            const returnUrl = `${baseUrl}/consultas/${lawyerId}?cid=${existing.id}`;
+
+            sendEmail({
+                resendClient: resend,
+                to: email,
+                from: 'Judic-IA <noreply@judic-ia.com>',
+                subject: `Tu link de acceso a la consulta con ${lawyerName}`,
+                html: getHtmlEmail({
+                    heading: 'Recuperá tu consulta',
+                    bodyContent: `
+                        <p>Hola <strong>${firstName.trim()}</strong>,</p>
+                        <p>Encontramos tu consulta activa con <strong>${lawyerName}</strong>. Guardá este email para acceder desde cualquier dispositivo.</p>
+                    `,
+                    buttonText: 'Continuar Consulta',
+                    buttonUrl: returnUrl,
+                    previewText: `Tu acceso a la consulta con ${lawyerName}`
+                })
+            }).catch(() => {}); // Fire-and-forget, no bloquear la respuesta
+
+            return NextResponse.json({ cid: existing.id, lawyerName, status: existing.status });
         }
 
         // 3. Generar nuevo CID e insertar inquiry
@@ -170,7 +190,7 @@ export async function POST(request) {
             }) : Promise.resolve()
         ]);
 
-        return NextResponse.json({ cid, lawyerName });
+        return NextResponse.json({ cid, lawyerName, status: 'pending_review' });
     } catch (error) {
         console.error('Error en intake anónimo:', error);
         return NextResponse.json({ error: 'Error interno del servidor.' }, { status: 500 });
