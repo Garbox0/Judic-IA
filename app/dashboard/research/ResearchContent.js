@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
 import { generateResearchPDF } from '../../lib/pdfGenerator';
@@ -26,7 +26,9 @@ import {
     Loader2,
     Sparkles,
     AlertCircle,
-    TrendingUp
+    TrendingUp,
+    Mic,
+    MicOff
 } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
@@ -63,6 +65,12 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const [quotaExhausted, setQuotaExhausted] = useState(false); // true = llegó a 0, false = compra proactiva
     const [trialExpired, setTrialExpired] = useState(false); // [NEW] Trial Expiration Check
 
+    // 🎤 VOICE INPUT
+    const [isListening, setIsListening] = useState(false);
+    const [hasSpeechSupport, setHasSpeechSupport] = useState(false);
+    const [micError, setMicError] = useState('');
+    const recognitionRef = useRef(null);
+
     // 🏢 EMPRESA TAB
     const [activeTab, setActiveTab] = useState('jurisprudencia');
     const [empresaName, setEmpresaName] = useState('');
@@ -93,6 +101,59 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         }).catch(() => { }); // Fire-and-forget
     };
 
+
+    useEffect(() => {
+        setHasSpeechSupport(!!(window.SpeechRecognition || window.webkitSpeechRecognition));
+    }, []);
+
+    async function startVoiceInput() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+
+        if (isListening) {
+            recognitionRef.current?.stop();
+            setIsListening(false);
+            return;
+        }
+
+        // Pedir permiso de micrófono explícitamente para que el browser muestre el diálogo nativo
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(t => t.stop());
+        } catch {
+            setMicError('Permiso de micrófono denegado. Habilitalo desde la configuración del navegador.');
+            setTimeout(() => setMicError(''), 6000);
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'es-AR';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onresult = (e) => {
+            const transcript = e.results[0][0].transcript;
+            setQuery(prev => prev ? prev + ' ' + transcript : transcript);
+        };
+        recognition.onerror = (e) => {
+            setIsListening(false);
+            const msgs = {
+                'not-allowed': 'Permiso denegado. Habilitá el micrófono en la configuración del navegador.',
+                'network': 'Tu navegador no puede acceder al servicio de voz. Probá con Chrome o Edge.',
+                'no-speech': '',
+            };
+            const msg = msgs[e.error] ?? 'No se pudo acceder al micrófono.';
+            if (msg) {
+                setMicError(msg);
+                setTimeout(() => setMicError(''), 6000);
+            }
+        };
+        recognition.onend = () => setIsListening(false);
+
+        recognitionRef.current = recognition;
+        recognition.start();
+        setIsListening(true);
+    }
 
     useEffect(() => {
         let timer;
@@ -1012,11 +1073,25 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                 />
+                                {hasSpeechSupport && (
+                                    <button
+                                        type="button"
+                                        onClick={startVoiceInput}
+                                        className={`btn-mic${isListening ? ' listening' : ''}`}
+                                        title={isListening ? 'Detener grabación' : 'Dictar consulta por voz'}
+                                        aria-label={isListening ? 'Detener grabación' : 'Dictar consulta por voz'}
+                                    >
+                                        {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+                                    </button>
+                                )}
                                 <button type="submit" disabled={loading} className="btn-search-submit">
                                     {loading ? <Zap size={18} className="spin-animation" /> : <Search size={18} />}
                                     {loading ? 'Procesando Inteligencia...' : 'Generar Estrategia IA'}
                                 </button>
                             </form>
+                            {micError && (
+                                <p className="mic-error-hint">{micError}</p>
+                            )}
 
                             {!isDemoProp && userProfile && (() => {
                                 const limit = getPlanLimit(userProfile.plan_tier, 'research_reports');

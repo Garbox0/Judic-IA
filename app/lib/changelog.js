@@ -34,6 +34,14 @@
 
 export const CHANGELOG = [
     {
+        id: 2,
+        date: "21 Feb 2026",
+        badge: "Nuevo",
+        items: [
+            "Dictado por voz en Jurisprudencia: buscá con el micrófono sin escribir",
+        ],
+    },
+    {
         id: 1,
         date: "21 Feb 2026",
         badge: "Nuevo",

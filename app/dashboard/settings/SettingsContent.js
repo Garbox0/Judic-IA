@@ -1351,7 +1351,6 @@ export default function SettingsPage({ isDemo = false }) {
                                             </div>
                                         </div>
                                     )}
-                                </div>
                             </div>
                         )}
                     </main>
