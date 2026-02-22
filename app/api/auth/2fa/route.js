@@ -43,6 +43,14 @@ export async function POST(request) {
     } catch { /* no body */ }
 
     const supabase = getAdminClient();
+
+    // Limpiar OTPs anteriores del mismo usuario y purpose (evitar acumulación)
+    await supabase.from('user_otps')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('purpose', purpose)
+        .eq('verified', false);
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
 
