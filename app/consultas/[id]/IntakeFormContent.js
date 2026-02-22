@@ -242,9 +242,13 @@ export default function IntakeFormContent({ id }) {
             form.append('role', 'user');
 
             const res = await fetch('/api/chat/upload', { method: 'POST', body: form });
-            const data = await res.json();
             if (!res.ok) {
-                setUploadError(data.error || 'Error al subir el archivo.');
+                if (res.status === 413) {
+                    setUploadError('El archivo es demasiado grande para enviar.');
+                } else {
+                    const data = await res.json().catch(() => ({}));
+                    setUploadError(data.error || 'Error al subir el archivo.');
+                }
                 return;
             }
             // Refrescar mensajes para mostrar el adjunto
@@ -628,7 +632,7 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
     };
 
     const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
-    const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); if (!e.currentTarget.contains(e.relatedTarget)) setIsDragging(false); };
     const handleDrop = (e) => {
         e.preventDefault(); e.stopPropagation(); setIsDragging(false);
         const file = e.dataTransfer.files?.[0];

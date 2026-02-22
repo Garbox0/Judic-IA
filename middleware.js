@@ -152,7 +152,7 @@ export async function middleware(request) {
         "object-src 'none'",
         "worker-src 'self' blob: https://unpkg.com",
         "manifest-src 'self'",
-        "media-src 'self'",
+        `media-src 'self' ${legislationOrigin}`,
         "base-uri 'self'",
         "form-action 'self'",
         "frame-ancestors 'self'",

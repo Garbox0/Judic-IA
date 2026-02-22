@@ -345,9 +345,14 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                 headers: { 'Authorization': `Bearer ${session?.access_token}` },
                 body: form,
             });
-            const data = await res.json();
             if (!res.ok) {
-                setUploadError(data.error || 'Error al subir el archivo.');
+                if (res.status === 413) {
+                    setUploadError('El archivo es demasiado grande para enviar.');
+                } else {
+                    const data = await res.json().catch(() => ({}));
+                    setUploadError(data.error || 'Error al subir el archivo.');
+                }
+                return;
             }
             // El mensaje aparece por Realtime
         } catch (err) {
@@ -365,7 +370,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     };
 
     const handleChatDragOver = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
-    const handleChatDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleChatDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); if (!e.currentTarget.contains(e.relatedTarget)) setIsDragging(false); };
     const handleChatDrop = (e) => {
         e.preventDefault(); e.stopPropagation(); setIsDragging(false);
         const file = e.dataTransfer.files?.[0];
