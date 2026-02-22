@@ -97,6 +97,7 @@ export default function SettingsPage({ isDemo = false }) {
     // 2FA por email
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
     const [twoFaStep, setTwoFaStep] = useState('idle'); // 'idle' | 'otp_sent' | 'loading'
+    const [showDisable2faConfirm, setShowDisable2faConfirm] = useState(false);
     const [twoFaOtp, setTwoFaOtp] = useState('');
     const [twoFaError, setTwoFaError] = useState('');
 
@@ -463,11 +464,16 @@ export default function SettingsPage({ isDemo = false }) {
 
     const handle2FaToggle = async () => {
         setTwoFaError('');
-        // Advertencia al desactivar
+        // Mostrar modal de confirmación al desactivar
         if (twoFactorEnabled) {
-            const ok = window.confirm('⚠️ Al desactivar el 2FA tu cuenta quedará protegida solo por contraseña. ¿Querés continuar?');
-            if (!ok) return;
+            setShowDisable2faConfirm(true);
+            return;
         }
+        await proceed2FaToggle();
+    };
+
+    const proceed2FaToggle = async () => {
+        setShowDisable2faConfirm(false);
         setTwoFaStep('loading');
         try {
             const { data: { session } } = await supabase.auth.getSession();
@@ -1124,6 +1130,28 @@ export default function SettingsPage({ isDemo = false }) {
                                                 </span>
                                             </div>
                                         </div>
+
+                                        {/* Modal: confirmar desactivación 2FA */}
+                                        {showDisable2faConfirm && (
+                                            <div className="modal-overlay-v2">
+                                                <div className="modal-content-v2" role="dialog" aria-modal="true" aria-labelledby="disable-2fa-modal-title">
+                                                    <h3 id="disable-2fa-modal-title" className="modal-title-v2">
+                                                        ¿Desactivar verificación en dos pasos?
+                                                    </h3>
+                                                    <p className="modal-text-v2">
+                                                        Tu cuenta quedará protegida únicamente por contraseña. Cualquier persona que obtenga tus credenciales podría acceder sin verificación adicional.
+                                                    </p>
+                                                    <div className="modal-btn-row">
+                                                        <button onClick={() => setShowDisable2faConfirm(false)} className="btn-modal-ghost">
+                                                            Mantener 2FA
+                                                        </button>
+                                                        <button onClick={proceed2FaToggle} className="btn-modal-danger">
+                                                            Desactivar de todas formas
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
 
                                         {/* Custom Confirmation Modal */}
                                         {modalOpen && (
