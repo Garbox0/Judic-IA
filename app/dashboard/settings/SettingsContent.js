@@ -945,35 +945,31 @@ export default function SettingsPage({ isDemo = false }) {
                                     </div>
                                 </div>
                                 <div className="stg-divider"></div>
-                                <h3 className="stg-sec-title">Verificación en Dos Pasos</h3>
-                                <div className="stg-field-row multi stg-bg-box" style={{ flexDirection: 'column', gap: '1rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-                                        <div>
-                                            <p className="stg-label" style={{ marginBottom: '0.25rem' }}>
-                                                {twoFactorEnabled
-                                                    ? <><Shield size={14} style={{ display: 'inline', color: '#4ade80', marginRight: '0.4rem' }} />Activada — se pedirá un código al iniciar sesión</>
-                                                    : <><ShieldOff size={14} style={{ display: 'inline', color: '#94a3b8', marginRight: '0.4rem' }} />Desactivada</>
-                                                }
-                                            </p>
+                                <div className="stg-f-group">
+                                    <div className="stg-toggle-row">
+                                        <div className="stg-toggle-info">
+                                            <label className="stg-label" style={{ marginBottom: 0 }}>Verificación en Dos Pasos</label>
                                             <p className="stg-hint">Cada vez que iniciés sesión recibirás un código en tu email para confirmar tu identidad.</p>
                                         </div>
-                                        {twoFaStep === 'idle' && (
+                                        {twoFaStep === 'loading' ? (
+                                            <span className="stg-hint" style={{ whiteSpace: 'nowrap' }}>Enviando...</span>
+                                        ) : (
                                             <button
                                                 type="button"
-                                                className={twoFactorEnabled ? 'stg-outline-btn' : 'stg-gold-btn'}
+                                                role="switch"
+                                                aria-checked={twoFactorEnabled}
+                                                aria-label="Verificación en dos pasos"
+                                                className={`stg-toggle-switch ${twoFactorEnabled ? 'active' : ''}`}
                                                 onClick={handle2FaToggle}
-                                                style={{ whiteSpace: 'nowrap' }}
+                                                disabled={twoFaStep === 'otp_sent'}
                                             >
-                                                {twoFactorEnabled ? 'Desactivar 2FA' : 'Activar 2FA'}
+                                                <span className="stg-toggle-knob" />
                                             </button>
-                                        )}
-                                        {twoFaStep === 'loading' && (
-                                            <span className="stg-hint">Enviando código...</span>
                                         )}
                                     </div>
 
                                     {twoFaStep === 'otp_sent' && (
-                                        <form onSubmit={handle2FaVerify} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                        <form onSubmit={handle2FaVerify} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
                                             <p className="stg-hint">
                                                 Ingresá el código de 6 dígitos que enviamos a <strong>{user?.email}</strong>.
                                             </p>
