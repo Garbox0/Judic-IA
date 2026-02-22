@@ -34,6 +34,17 @@
 
 export const CHANGELOG = [
     {
+        id: 3,
+        date: "22 Feb 2026",
+        badge: "Seguridad",
+        items: [
+            "Verificación en dos pasos (2FA) por email: activala en Configuración → Seguridad",
+            "El código OTP se solicita en cada inicio de sesión y expira a los 10 minutos",
+            "La verificación queda respaldada en el token JWT del servidor — no manipulable desde el navegador",
+            "Consultas anónimas: sistema de bloqueo por abogado y bans globales de plataforma para prevenir abusos",
+        ],
+    },
+    {
         id: 2,
         date: "21 Feb 2026",
         badge: "Nuevo",
