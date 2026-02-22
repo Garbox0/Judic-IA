@@ -4,6 +4,24 @@ import { Send, Loader, Paperclip } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './chat.css';
 
+function isImageFile(name) {
+    return /\.(jpg|jpeg|png|webp)$/i.test(name || '');
+}
+
+async function downloadFile(url, name) {
+    try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name || 'archivo';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    } catch {
+        window.open(url, '_blank');
+    }
+}
+
 export default function ChatWidget({
     mode = 'intake',
     lawyerId,
@@ -231,12 +249,30 @@ export default function ChatWidget({
                             <span className="msg-role-tag assistant-tag">Asistente IA</span>
                         )}
                         {msg.attachment_url ? (
-                            <p className="msg-attachment">
-                                <Paperclip size={13} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                                <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer" className="msg-attachment-link">
-                                    {msg.attachment_name || 'Archivo adjunto'}
-                                </a>
-                            </p>
+                            <div className="msg-attachment-wrap">
+                                {isImageFile(msg.attachment_name) ? (
+                                    <img
+                                        src={msg.attachment_url}
+                                        alt={msg.attachment_name}
+                                        className="msg-img-preview"
+                                        onClick={() => window.open(msg.attachment_url, '_blank')}
+                                    />
+                                ) : (
+                                    <p className="msg-attachment">
+                                        <Paperclip size={13} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                                        <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer" className="msg-attachment-link">
+                                            {msg.attachment_name || 'Archivo adjunto'}
+                                        </a>
+                                    </p>
+                                )}
+                                <button
+                                    className="btn-download-file"
+                                    onClick={() => downloadFile(msg.attachment_url, msg.attachment_name)}
+                                    title="Descargar archivo"
+                                >
+                                    ↓ Descargar
+                                </button>
+                            </div>
                         ) : (
                             <p>{msg.content}</p>
                         )}

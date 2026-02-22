@@ -32,6 +32,24 @@ import './clients.css';
 import { dashboardManuals } from '../../lib/dashboardManuals';
 import UsageGuide from '../../components/UsageGuide';
 
+function isImageFile(name) {
+    return /\.(jpg|jpeg|png|webp)$/i.test(name || '');
+}
+
+async function downloadFile(url, name) {
+    try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name || 'archivo';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    } catch {
+        window.open(url, '_blank');
+    }
+}
+
 export default function ClientsPage({ isDemo = false, basePath = '/dashboard' }) {
     const [clients, setClients] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -640,16 +658,34 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                             return (
                                                 <div key={msg.id} className={`chat-bubble ${msg.role}`}>
                                                     {msg.attachment_url ? (
-                                                        <div className="bubble-attachment">
-                                                            <Paperclip size={14} className="attachment-icon" />
-                                                            <a
-                                                                href={msg.attachment_url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="attachment-link"
+                                                        <div className="msg-attachment-wrap">
+                                                            {isImageFile(msg.attachment_name) ? (
+                                                                <img
+                                                                    src={msg.attachment_url}
+                                                                    alt={msg.attachment_name}
+                                                                    className="msg-img-preview"
+                                                                    onClick={() => window.open(msg.attachment_url, '_blank')}
+                                                                />
+                                                            ) : (
+                                                                <div className="bubble-attachment">
+                                                                    <Paperclip size={14} className="attachment-icon" />
+                                                                    <a
+                                                                        href={msg.attachment_url}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="attachment-link"
+                                                                    >
+                                                                        {msg.attachment_name || 'Archivo adjunto'}
+                                                                    </a>
+                                                                </div>
+                                                            )}
+                                                            <button
+                                                                className="btn-download-file"
+                                                                onClick={() => downloadFile(msg.attachment_url, msg.attachment_name)}
+                                                                title="Descargar archivo"
                                                             >
-                                                                {msg.attachment_name || 'Archivo adjunto'}
-                                                            </a>
+                                                                ↓ Descargar
+                                                            </button>
                                                         </div>
                                                     ) : (
                                                         <div className="bubble-content">{msg.content}</div>

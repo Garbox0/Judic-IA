@@ -667,6 +667,50 @@ body.light-theme .clients-rejection-reason span {
     opacity: 0.75;
 }
 
+/* ATTACHMENT PREVIEW / DOWNLOAD */
+.msg-attachment-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+}
+
+.msg-img-preview {
+    max-width: 200px;
+    max-height: 160px;
+    border-radius: 8px;
+    object-fit: cover;
+    cursor: pointer;
+    display: block;
+    transition: opacity 0.2s;
+}
+
+.msg-img-preview:hover {
+    opacity: 0.85;
+}
+
+.btn-download-file {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: 0.15s;
+    align-self: flex-start;
+    font-family: inherit;
+}
+
+.btn-download-file:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.12);
+}
+
 /* UPLOAD ERROR BAR */
 .upload-error-bar {
     background: rgba(239, 68, 68, 0.1);
