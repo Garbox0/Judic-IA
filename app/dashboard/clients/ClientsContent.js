@@ -687,7 +687,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                     style={{ position: 'relative' }}
                                 >
                                     {isDragging && (
-                                        <div className="chat-drop-overlay">
+                                        <div className="chat-drop-overlay" aria-live="assertive" aria-atomic="true">
                                             <span>Soltá el archivo para adjuntarlo</span>
                                         </div>
                                     )}
@@ -705,20 +705,25 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                             {isImageFile(msg.attachment_name) ? (
                                                                 <img
                                                                     src={msg.attachment_url}
-                                                                    alt={msg.attachment_name}
+                                                                    alt={msg.attachment_name || 'Imagen adjunta'}
                                                                     className="msg-img-preview"
                                                                     onClick={() => window.open(msg.attachment_url, '_blank')}
+                                                                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && window.open(msg.attachment_url, '_blank')}
+                                                                    tabIndex={0}
+                                                                    role="button"
+                                                                    aria-label={`Ver imagen ${msg.attachment_name || 'adjunta'}`}
                                                                 />
                                                             ) : isAudioFile(msg.attachment_name) ? (
-                                                                <audio controls src={msg.attachment_url} className="msg-audio-player" />
+                                                                <audio controls src={msg.attachment_url} className="msg-audio-player" aria-label={`Reproducir audio: ${msg.attachment_name || 'adjunto'}`} />
                                                             ) : isVideoFile(msg.attachment_name) ? (
-                                                                <video controls src={msg.attachment_url} className="msg-video-player" preload="metadata" />
+                                                                <video controls src={msg.attachment_url} className="msg-video-player" preload="metadata" aria-label={`Reproducir video: ${msg.attachment_name || 'adjunto'}`} />
                                                             ) : (
                                                                 <div className="msg-file-card">
                                                                     <div
                                                                         className="msg-file-ext-badge"
                                                                         style={{ background: getFileColor(getFileExt(msg.attachment_name)) }}
                                                                     >
+                                                                        aria-hidden="true"
                                                                         {getFileExt(msg.attachment_name).toUpperCase()}
                                                                     </div>
                                                                     <span className="msg-file-name">{msg.attachment_name || 'Archivo adjunto'}</span>
@@ -731,6 +736,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                         className="btn-download-file"
+                                                                        aria-label={`Abrir ${msg.attachment_name || 'archivo'} en nueva ventana`}
                                                                     >
                                                                         Abrir
                                                                     </a>
@@ -738,6 +744,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                                 <button
                                                                     className="btn-download-file"
                                                                     onClick={() => downloadFile(msg.attachment_url, msg.attachment_name)}
+                                                                    aria-label={`Descargar ${msg.attachment_name || 'archivo'}`}
                                                                 >
                                                                     ↓ Descargar
                                                                 </button>
@@ -827,7 +834,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                             ) : (
                                 <form className="chat-input-area" onSubmit={sendLawyerReply}>
                                     {uploadError && (
-                                        <div className="upload-error-bar">{uploadError}</div>
+                                        <div className="upload-error-bar" role="alert" aria-live="assertive">{uploadError}</div>
                                     )}
                                     <div className="input-row">
                                         <label htmlFor="chat-reply-input" className="sr-only">Escribir mensaje</label>

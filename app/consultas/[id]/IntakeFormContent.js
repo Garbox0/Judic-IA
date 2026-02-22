@@ -279,7 +279,7 @@ export default function IntakeFormContent({ id }) {
 
     if (uiState === 'rejected') {
         return (
-            <div className="error-screen">
+            <div className="error-screen" role="alert">
                 <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', maxWidth: '440px', borderRadius: '20px', border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(15,23,42,0.9)' }}>
                     <div style={{ width: '70px', height: '70px', background: 'rgba(239,68,68,0.1)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(239,68,68,0.3)' }}>
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
@@ -644,7 +644,7 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
         >
             <div className="chat-messages-area" style={{ position: 'relative' }}>
                 {isDragging && (
-                    <div className="chat-drop-overlay">
+                    <div className="chat-drop-overlay" aria-live="assertive" aria-atomic="true">
                         <span>Soltá el archivo para adjuntarlo</span>
                     </div>
                 )}
@@ -669,19 +669,24 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                                 {isImageFile(msg.attachment_name) ? (
                                     <img
                                         src={msg.attachment_url}
-                                        alt={msg.attachment_name}
+                                        alt={msg.attachment_name || 'Imagen adjunta'}
                                         className="msg-img-preview"
                                         onClick={() => window.open(msg.attachment_url, '_blank')}
+                                        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && window.open(msg.attachment_url, '_blank')}
+                                        tabIndex={0}
+                                        role="button"
+                                        aria-label={`Ver imagen ${msg.attachment_name || 'adjunta'}`}
                                     />
                                 ) : isAudioFile(msg.attachment_name) ? (
-                                    <audio controls src={msg.attachment_url} className="msg-audio-player" />
+                                    <audio controls src={msg.attachment_url} className="msg-audio-player" aria-label={`Reproducir audio: ${msg.attachment_name || 'adjunto'}`} />
                                 ) : isVideoFile(msg.attachment_name) ? (
-                                    <video controls src={msg.attachment_url} className="msg-video-player" preload="metadata" />
+                                    <video controls src={msg.attachment_url} className="msg-video-player" preload="metadata" aria-label={`Reproducir video: ${msg.attachment_name || 'adjunto'}`} />
                                 ) : (
                                     <div className="msg-file-card">
                                         <div
                                             className="msg-file-ext-badge"
                                             style={{ background: getFileColor(getFileExt(msg.attachment_name)) }}
+                                            aria-hidden="true"
                                         >
                                             {getFileExt(msg.attachment_name).toUpperCase()}
                                         </div>
@@ -695,6 +700,7 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="btn-download-file"
+                                            aria-label={`Abrir ${msg.attachment_name || 'archivo'} en nueva ventana`}
                                         >
                                             Abrir
                                         </a>
@@ -702,6 +708,7 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                                     <button
                                         className="btn-download-file"
                                         onClick={() => downloadFile(msg.attachment_url, msg.attachment_name)}
+                                        aria-label={`Descargar ${msg.attachment_name || 'archivo'}`}
                                     >
                                         ↓ Descargar
                                     </button>
@@ -720,7 +727,7 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
 
             <form className="chat-input-area" onSubmit={onSend}>
                 {uploadError && (
-                    <div className="chat-upload-error">{uploadError}</div>
+                    <div className="chat-upload-error" role="alert" aria-live="assertive">{uploadError}</div>
                 )}
                 <div className="chat-input-row">
                     <input

@@ -246,7 +246,7 @@ export default function ChatWidget({
     return (
         <div className={`chat-widget-inline ${embedded ? 'embedded' : ''}`}>
             {/* Messages Area */}
-            <div className="chat-messages-area">
+            <div className="chat-messages-area" aria-live="polite" role="log" aria-label="Historial de mensajes">
                 {/* Welcome message if no history */}
                 {messages.length === 0 && initialized && (
                     <div className="message-bubble received welcome-msg">
@@ -270,19 +270,24 @@ export default function ChatWidget({
                                 {isImageFile(msg.attachment_name) ? (
                                     <img
                                         src={msg.attachment_url}
-                                        alt={msg.attachment_name}
+                                        alt={msg.attachment_name || 'Imagen adjunta'}
                                         className="msg-img-preview"
                                         onClick={() => window.open(msg.attachment_url, '_blank')}
+                                        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && window.open(msg.attachment_url, '_blank')}
+                                        tabIndex={0}
+                                        role="button"
+                                        aria-label={`Ver imagen ${msg.attachment_name || 'adjunta'}`}
                                     />
                                 ) : isAudioFile(msg.attachment_name) ? (
-                                    <audio controls src={msg.attachment_url} className="msg-audio-player" />
+                                    <audio controls src={msg.attachment_url} className="msg-audio-player" aria-label={`Reproducir audio: ${msg.attachment_name || 'adjunto'}`} />
                                 ) : isVideoFile(msg.attachment_name) ? (
-                                    <video controls src={msg.attachment_url} className="msg-video-player" preload="metadata" />
+                                    <video controls src={msg.attachment_url} className="msg-video-player" preload="metadata" aria-label={`Reproducir video: ${msg.attachment_name || 'adjunto'}`} />
                                 ) : (
                                     <div className="msg-file-card">
                                         <div
                                             className="msg-file-ext-badge"
                                             style={{ background: getFileColor(getFileExt(msg.attachment_name)) }}
+                                            aria-hidden="true"
                                         >
                                             {getFileExt(msg.attachment_name).toUpperCase()}
                                         </div>
@@ -296,6 +301,7 @@ export default function ChatWidget({
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="btn-download-file"
+                                            aria-label={`Abrir ${msg.attachment_name || 'archivo'} en nueva ventana`}
                                         >
                                             Abrir
                                         </a>
@@ -303,6 +309,7 @@ export default function ChatWidget({
                                     <button
                                         className="btn-download-file"
                                         onClick={() => downloadFile(msg.attachment_url, msg.attachment_name)}
+                                        aria-label={`Descargar ${msg.attachment_name || 'archivo'}`}
                                     >
                                         ↓ Descargar
                                     </button>
@@ -322,13 +329,14 @@ export default function ChatWidget({
             {/* Input Area */}
             <form className="chat-input-area" onSubmit={handleSendMessage}>
                 {uploadError && (
-                    <div className="chat-upload-error">{uploadError}</div>
+                    <div className="chat-upload-error" role="alert" aria-live="assertive">{uploadError}</div>
                 )}
                 <div className="chat-input-row">
                     <input
                         type="text"
                         className="chat-input"
                         placeholder="Escribe tu mensaje..."
+                        aria-label="Escribir mensaje"
                         value={messageInput}
                         onChange={(e) => setMessageInput(e.target.value)}
                         disabled={sending || !sessionId}
@@ -354,6 +362,7 @@ export default function ChatWidget({
                     <button
                         type="submit"
                         className="chat-send-btn"
+                        aria-label="Enviar mensaje"
                         disabled={sending || !messageInput.trim() || !sessionId}
                     >
                         {sending ? <Loader size={18} className="animate-spin" /> : <Send size={18} />}

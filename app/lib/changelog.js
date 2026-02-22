@@ -34,6 +34,16 @@
 
 export const CHANGELOG = [
     {
+        id: 5,
+        date: "22 Feb 2026",
+        badge: "Mejora",
+        items: [
+            "Accesibilidad mejorada en el chat: imágenes, audios y videos ahora son completamente navegables por teclado",
+            "Lectores de pantalla anuncian correctamente los archivos adjuntos, errores y mensajes nuevos",
+            "Mejor compatibilidad con tecnologías de asistencia en todas las pantallas del chat",
+        ],
+    },
+    {
         id: 4,
         date: "22 Feb 2026",
         badge: "Nuevo",
