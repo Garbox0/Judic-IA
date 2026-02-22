@@ -34,6 +34,18 @@
 
 export const CHANGELOG = [
     {
+        id: 4,
+        date: "22 Feb 2026",
+        badge: "Nuevo",
+        items: [
+            "Chat con clientes: enviá y recibí archivos directamente en la conversación (imágenes, PDFs, audios, videos y documentos)",
+            "Las imágenes se muestran como vista previa inline; los audios y videos tienen reproductor integrado",
+            "Botón para descargar cualquier archivo adjunto directamente a tu dispositivo",
+            "Escaneo de seguridad automático en todos los archivos recibidos",
+            "Los clientes también pueden adjuntar archivos desde su chat",
+        ],
+    },
+    {
         id: 3,
         date: "22 Feb 2026",
         badge: "Seguridad",
