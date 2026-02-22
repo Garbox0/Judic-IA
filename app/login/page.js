@@ -88,9 +88,9 @@ export default function LoginPage() {
     };
     checkUser();
 
-    // Listen for sign-in event specifically
+    // Solo para sesiones existentes (recarga de página) — el login fresco lo maneja handleLogin()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+      if (event === 'INITIAL_SESSION' && session?.user) {
         await validateProfileAndRedirect(session.user.id);
       }
     });
