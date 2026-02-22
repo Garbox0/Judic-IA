@@ -727,8 +727,8 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                                     <div
                                                                         className="msg-file-ext-badge"
                                                                         style={{ background: getFileColor(getFileExt(msg.attachment_name)) }}
-                                                                    >
                                                                         aria-hidden="true"
+                                                                    >
                                                                         {getFileExt(msg.attachment_name).toUpperCase()}
                                                                     </div>
                                                                     <span className="msg-file-name">{msg.attachment_name || 'Archivo adjunto'}</span>
