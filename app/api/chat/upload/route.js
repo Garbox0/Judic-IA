@@ -8,11 +8,13 @@ const ALLOWED_TYPES = {
     'image/jpeg': 'jpg',
     'image/png': 'png',
     'image/webp': 'webp',
+    'video/mp4': 'mp4',
+    'audio/mpeg': 'mp3',
+    'audio/mp3': 'mp3',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-    'application/msword': 'doc',
     'text/plain': 'txt',
 };
-const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB (videos)
 const BUCKET = 'chat-attachments';
 const CLAMAV_URL = `${process.env.CLAMAV_API_URL}/scan`;
 const MINIO_PUBLIC_BASE = process.env.CLAMAV_API_URL; // mismo dominio: archivos.judic-ia.com
@@ -70,14 +72,14 @@ export async function POST(request) {
     const ext = ALLOWED_TYPES[mimeType];
     if (!ext) {
         return NextResponse.json({
-            error: 'Tipo de archivo no permitido. Permitidos: PDF, JPG, PNG, DOCX, DOC, TXT'
+            error: 'Tipo de archivo no permitido. Permitidos: PDF, JPG, PNG, WEBP, MP4, MP3, DOCX, TXT'
         }, { status: 422 });
     }
 
     // 4. Validar tamaño
     const bytes = await file.arrayBuffer();
     if (bytes.byteLength > MAX_SIZE_BYTES) {
-        return NextResponse.json({ error: 'El archivo supera el límite de 10 MB' }, { status: 413 });
+        return NextResponse.json({ error: 'El archivo supera el límite de 50 MB' }, { status: 413 });
     }
     const buffer = Buffer.from(bytes);
 

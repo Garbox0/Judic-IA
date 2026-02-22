@@ -347,6 +347,24 @@
     flex-wrap: wrap;
 }
 
+/* Audio / Video players */
+.msg-audio-player {
+    width: 240px;
+    max-width: 100%;
+    height: 36px;
+    border-radius: 20px;
+    outline: none;
+}
+
+.msg-video-player {
+    width: 240px;
+    max-width: 100%;
+    max-height: 180px;
+    border-radius: 10px;
+    outline: none;
+    display: block;
+}
+
 /* Light theme overrides for file card */
 .light-theme .msg-file-card {
     background: rgba(15, 23, 42, 0.04);

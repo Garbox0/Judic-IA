@@ -36,13 +36,21 @@ function isImageFile(name) {
     return /\.(jpg|jpeg|png|webp)$/i.test(name || '');
 }
 
+function isAudioFile(name) {
+    return /\.(mp3)$/i.test(name || '');
+}
+
+function isVideoFile(name) {
+    return /\.(mp4)$/i.test(name || '');
+}
+
 function getFileExt(name) {
     const m = (name || '').match(/\.(\w+)$/);
     return m ? m[1].toLowerCase() : 'file';
 }
 
 function getFileColor(ext) {
-    return { pdf: '#ef4444', docx: '#3b82f6', doc: '#3b82f6', txt: '#64748b' }[ext] || '#6b7280';
+    return { pdf: '#ef4444', docx: '#3b82f6', mp4: '#10b981', mp3: '#8b5cf6', txt: '#64748b' }[ext] || '#6b7280';
 }
 
 async function downloadFile(url, name) {
@@ -675,6 +683,14 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                                     className="msg-img-preview"
                                                                     onClick={() => window.open(msg.attachment_url, '_blank')}
                                                                 />
+                                                            ) : isAudioFile(msg.attachment_name) ? (
+                                                                <audio controls className="msg-audio-player">
+                                                                    <source src={msg.attachment_url} type="audio/mpeg" />
+                                                                </audio>
+                                                            ) : isVideoFile(msg.attachment_name) ? (
+                                                                <video controls className="msg-video-player">
+                                                                    <source src={msg.attachment_url} type="video/mp4" />
+                                                                </video>
                                                             ) : (
                                                                 <div className="msg-file-card">
                                                                     <div
@@ -687,7 +703,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                                 </div>
                                                             )}
                                                             <div className="msg-file-actions">
-                                                                {!isImageFile(msg.attachment_name) && (
+                                                                {!isImageFile(msg.attachment_name) && !isAudioFile(msg.attachment_name) && !isVideoFile(msg.attachment_name) && (
                                                                     <a
                                                                         href={msg.attachment_url}
                                                                         target="_blank"
@@ -806,7 +822,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                             ref={fileInputRef}
                                             type="file"
                                             className="sr-only"
-                                            accept=".pdf,.jpg,.jpeg,.png,.webp,.docx,.doc,.txt"
+                                            accept=".pdf,.jpg,.jpeg,.png,.webp,.mp4,.mp3,.docx,.txt"
                                             onChange={handleFileUpload}
                                             aria-label="Adjuntar archivo"
                                         />
