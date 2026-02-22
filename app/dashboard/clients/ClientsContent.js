@@ -25,7 +25,8 @@ import {
     ChevronLeft,
     PanelRightOpen,
     PanelRightClose,
-    MessageSquare
+    MessageSquare,
+    Paperclip
 } from 'lucide-react';
 import './clients.css';
 import { dashboardManuals } from '../../lib/dashboardManuals';
@@ -56,6 +57,9 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
     // Refs for scrolling
     const messagesEndRef = useRef(null);
+    const fileInputRef = useRef(null);
+    const [uploadingFile, setUploadingFile] = useState(false);
+    const [uploadError, setUploadError] = useState(null);
 
     // 1. INITIAL FETCH & AUTH
     useEffect(() => {
@@ -285,6 +289,39 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
             console.error(err);
         } finally {
             setConverting(false);
+        }
+    };
+
+    // --- FILE UPLOAD ---
+    const handleFileUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file || !selectedClient || isDemo) return;
+        e.target.value = '';
+
+        setUploadError(null);
+        setUploadingFile(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const form = new FormData();
+            form.append('file', file);
+            form.append('inquiryId', selectedClient.id);
+            form.append('role', 'lawyer');
+
+            const res = await fetch('/api/chat/upload', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${session?.access_token}` },
+                body: form,
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setUploadError(data.error || 'Error al subir el archivo.');
+            }
+            // El mensaje aparece por Realtime
+        } catch (err) {
+            setUploadError('Error de conexión al subir el archivo.');
+            console.error('[upload]', err);
+        } finally {
+            setUploadingFile(false);
         }
     };
 
@@ -602,7 +639,21 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
                                             return (
                                                 <div key={msg.id} className={`chat-bubble ${msg.role}`}>
-                                                    <div className="bubble-content">{msg.content}</div>
+                                                    {msg.attachment_url ? (
+                                                        <div className="bubble-attachment">
+                                                            <Paperclip size={14} className="attachment-icon" />
+                                                            <a
+                                                                href={msg.attachment_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="attachment-link"
+                                                            >
+                                                                {msg.attachment_name || 'Archivo adjunto'}
+                                                            </a>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="bubble-content">{msg.content}</div>
+                                                    )}
                                                     <div className="bubble-time">{formatTime(msg.created_at)}</div>
                                                 </div>
                                             );
@@ -683,6 +734,9 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                 </div>
                             ) : (
                                 <form className="chat-input-area" onSubmit={sendLawyerReply}>
+                                    {uploadError && (
+                                        <div className="upload-error-bar">{uploadError}</div>
+                                    )}
                                     <div className="input-row">
                                         <label htmlFor="chat-reply-input" className="sr-only">Escribir mensaje</label>
                                         <input
@@ -693,6 +747,25 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                             onChange={e => setReplyInput(e.target.value)}
                                             disabled={sendingReply}
                                         />
+                                        {/* Adjuntar archivo */}
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            className="sr-only"
+                                            accept=".pdf,.jpg,.jpeg,.png,.webp,.docx,.doc,.txt"
+                                            onChange={handleFileUpload}
+                                            aria-label="Adjuntar archivo"
+                                        />
+                                        <button
+                                            type="button"
+                                            className="btn-attach"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={uploadingFile}
+                                            title="Adjuntar archivo (PDF, imagen, DOCX — máx. 10 MB)"
+                                            aria-label="Adjuntar archivo"
+                                        >
+                                            {uploadingFile ? <Loader className="animate-spin" size={18} /> : <Paperclip size={18} />}
+                                        </button>
                                         <button type="submit" disabled={!replyInput.trim() || sendingReply} className="btn-send" aria-label="Enviar mensaje">
                                             {sendingReply ? <Loader className="animate-spin" size={18} /> : <Send size={18} />}
                                         </button>

@@ -614,6 +614,70 @@ body.light-theme .clients-rejection-reason span {
     opacity: 0.7;
 }
 
+/* FILE ATTACH BUTTON */
+.btn-attach {
+    background: transparent;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    color: #94a3b8;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-attach:hover:not(:disabled) {
+    background: rgba(148, 163, 184, 0.1);
+    color: #e2e8f0;
+    border-color: rgba(148, 163, 184, 0.4);
+}
+
+.btn-attach:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ATTACHMENT BUBBLE */
+.bubble-attachment {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 0;
+}
+
+.attachment-icon {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.attachment-link {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-size: 0.9rem;
+    word-break: break-all;
+    transition: opacity 0.15s;
+}
+
+.attachment-link:hover {
+    opacity: 0.75;
+}
+
+/* UPLOAD ERROR BAR */
+.upload-error-bar {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    margin-bottom: 6px;
+}
+
 /* DETAILS SIDEBAR OVERLAY */
 .details-sidebar-inline {
     position: absolute;

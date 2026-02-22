@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, Loader } from 'lucide-react';
+import { Send, Loader, Paperclip } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './chat.css';
 
@@ -23,6 +23,9 @@ export default function ChatWidget({
     const [initialized, setInitialized] = useState(false);
     const messagesEndRef = useRef(null);
     const channelRef = useRef(null);
+    const fileInputRef = useRef(null);
+    const [uploadingFile, setUploadingFile] = useState(false);
+    const [uploadError, setUploadError] = useState(null);
 
     // Scroll to bottom on new messages
     useEffect(() => {
@@ -161,6 +164,35 @@ export default function ChatWidget({
         }
     }, [messageInput, sending, sessionId, lawyerId, clientUserId, clientEmail, clientName, clientPhone]);
 
+    const handleFileUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file || !sessionId) return;
+        e.target.value = '';
+
+        setUploadError(null);
+        setUploadingFile(true);
+        try {
+            const form = new FormData();
+            form.append('file', file);
+            form.append('inquiryId', sessionId);
+            form.append('role', 'user');
+
+            const res = await fetch('/api/chat/upload', {
+                method: 'POST',
+                body: form,
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setUploadError(data.error || 'Error al subir el archivo.');
+            }
+            // El mensaje aparece por Realtime
+        } catch {
+            setUploadError('Error de conexión al subir el archivo.');
+        } finally {
+            setUploadingFile(false);
+        }
+    };
+
     const getRoleLabel = (role) => {
         if (role === 'user') return 'Tú';
         if (role === 'lawyer') return 'Abogado';
@@ -198,7 +230,16 @@ export default function ChatWidget({
                         {msg.role === 'assistant' && (
                             <span className="msg-role-tag assistant-tag">Asistente IA</span>
                         )}
-                        <p>{msg.content}</p>
+                        {msg.attachment_url ? (
+                            <p className="msg-attachment">
+                                <Paperclip size={13} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                                <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer" className="msg-attachment-link">
+                                    {msg.attachment_name || 'Archivo adjunto'}
+                                </a>
+                            </p>
+                        ) : (
+                            <p>{msg.content}</p>
+                        )}
                         <span className="message-time">
                             {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
@@ -209,21 +250,44 @@ export default function ChatWidget({
 
             {/* Input Area */}
             <form className="chat-input-area" onSubmit={handleSendMessage}>
-                <input
-                    type="text"
-                    className="chat-input"
-                    placeholder="Escribe tu mensaje..."
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                    disabled={sending || !sessionId}
-                />
-                <button
-                    type="submit"
-                    className="chat-send-btn"
-                    disabled={sending || !messageInput.trim() || !sessionId}
-                >
-                    {sending ? <Loader size={18} className="animate-spin" /> : <Send size={18} />}
-                </button>
+                {uploadError && (
+                    <div className="chat-upload-error">{uploadError}</div>
+                )}
+                <div className="chat-input-row">
+                    <input
+                        type="text"
+                        className="chat-input"
+                        placeholder="Escribe tu mensaje..."
+                        value={messageInput}
+                        onChange={(e) => setMessageInput(e.target.value)}
+                        disabled={sending || !sessionId}
+                    />
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        className="sr-only"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp,.docx,.doc,.txt"
+                        onChange={handleFileUpload}
+                        aria-label="Adjuntar archivo"
+                    />
+                    <button
+                        type="button"
+                        className="chat-attach-btn"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingFile || !sessionId}
+                        title="Adjuntar archivo (PDF, imagen, DOCX — máx. 10 MB)"
+                        aria-label="Adjuntar archivo"
+                    >
+                        {uploadingFile ? <Loader size={16} className="animate-spin" /> : <Paperclip size={16} />}
+                    </button>
+                    <button
+                        type="submit"
+                        className="chat-send-btn"
+                        disabled={sending || !messageInput.trim() || !sessionId}
+                    >
+                        {sending ? <Loader size={18} className="animate-spin" /> : <Send size={18} />}
+                    </button>
+                </div>
             </form>
         </div>
     );
