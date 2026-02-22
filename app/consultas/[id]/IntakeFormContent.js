@@ -22,9 +22,12 @@ export default function IntakeFormContent({ id }) {
     const [messageInput, setMessageInput] = useState('');
     const [sending, setSending] = useState(false);
     const messagesEndRef = useRef(null);
+    const fileInputRef = useRef(null);
+    const [uploadingFile, setUploadingFile] = useState(false);
+    const [uploadError, setUploadError] = useState(null);
 
     // UI
-    const [isLightMode, setIsLightMode] = useState(false);
+    const [isLightMode, setIsLightMode] = useState(true);
     const pollingRef = useRef(null);
     const uiStateRef = useRef('loading');
     const cidRef = useRef(null);
@@ -32,6 +35,12 @@ export default function IntakeFormContent({ id }) {
     // Mantener refs sincronizados con el estado
     useEffect(() => { uiStateRef.current = uiState; }, [uiState]);
     useEffect(() => { cidRef.current = cid; }, [cid]);
+
+    // Aplicar light theme por defecto al montar
+    useEffect(() => {
+        document.body.classList.add('light-theme');
+        return () => document.body.classList.remove('light-theme');
+    }, []);
 
     // Scroll al último mensaje
     useEffect(() => {
@@ -220,6 +229,39 @@ export default function IntakeFormContent({ id }) {
         }
     }, [messageInput, sending, id, clientEmail, clientName, clientPhone]);
 
+    const handleFileUpload = useCallback(async (e) => {
+        const file = e.target.files?.[0];
+        const activeCid = cidRef.current;
+        if (!file || !activeCid) return;
+        e.target.value = '';
+
+        setUploadError(null);
+        setUploadingFile(true);
+        try {
+            const form = new FormData();
+            form.append('file', file);
+            form.append('inquiryId', activeCid);
+            form.append('role', 'user');
+
+            const res = await fetch('/api/chat/upload', { method: 'POST', body: form });
+            const data = await res.json();
+            if (!res.ok) {
+                setUploadError(data.error || 'Error al subir el archivo.');
+                return;
+            }
+            // Refrescar mensajes para mostrar el adjunto
+            const msgsRes = await fetch(`/api/intake/messages?cid=${activeCid}`);
+            if (msgsRes.ok) {
+                const msgsData = await msgsRes.json();
+                setMessages(msgsData.messages || []);
+            }
+        } catch {
+            setUploadError('Error de conexión al subir el archivo.');
+        } finally {
+            setUploadingFile(false);
+        }
+    }, [id]);
+
     const toggleTheme = () => {
         setIsLightMode(prev => !prev);
         document.body.classList.toggle('light-theme');
@@ -356,6 +398,10 @@ export default function IntakeFormContent({ id }) {
                                 sending={sending}
                                 messagesEndRef={messagesEndRef}
                                 lawyerName={lawyer?.full_name}
+                                fileInputRef={fileInputRef}
+                                onFileChange={handleFileUpload}
+                                uploadingFile={uploadingFile}
+                                uploadError={uploadError}
                             />
                         )}
                     </div>
@@ -528,7 +574,7 @@ function PendingScreen() {
 
 // ─── Chat anónimo ──────────────────────────────────────────────────────────────
 
-function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sending, messagesEndRef, lawyerName }) {
+function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sending, messagesEndRef, lawyerName, fileInputRef, onFileChange, uploadingFile, uploadError }) {
     const getRoleBubbleClass = (role) => role === 'user' ? 'sent' : 'received';
 
     const getRoleLabel = (role) => {
@@ -556,7 +602,16 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                                 {getRoleLabel(msg.role)}
                             </span>
                         )}
-                        <p>{msg.content}</p>
+                        {msg.attachment_url ? (
+                            <p className="msg-attachment">
+                                📎{' '}
+                                <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer" className="msg-attachment-link">
+                                    {msg.attachment_name || 'Archivo adjunto'}
+                                </a>
+                            </p>
+                        ) : (
+                            <p>{msg.content}</p>
+                        )}
                         <span className="message-time">
                             {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
@@ -566,28 +621,55 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
             </div>
 
             <form className="chat-input-area" onSubmit={onSend}>
-                <input
-                    type="text"
-                    className="chat-input"
-                    placeholder="Escribí tu mensaje..."
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                    disabled={sending}
-                    maxLength={5000}
-                    aria-label="Escribí tu mensaje"
-                />
-                <button
-                    type="submit"
-                    className="chat-send-btn"
-                    disabled={sending || !messageInput.trim()}
-                    aria-label="Enviar mensaje"
-                >
-                    {sending ? (
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                    ) : (
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                    )}
-                </button>
+                {uploadError && (
+                    <div className="chat-upload-error">{uploadError}</div>
+                )}
+                <div className="chat-input-row">
+                    <input
+                        type="text"
+                        className="chat-input"
+                        placeholder="Escribí tu mensaje..."
+                        value={messageInput}
+                        onChange={(e) => setMessageInput(e.target.value)}
+                        disabled={sending}
+                        maxLength={5000}
+                        aria-label="Escribí tu mensaje"
+                    />
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        className="sr-only"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp,.docx,.doc,.txt"
+                        onChange={onFileChange}
+                        aria-label="Adjuntar archivo"
+                    />
+                    <button
+                        type="button"
+                        className="chat-attach-btn"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingFile}
+                        title="Adjuntar archivo (PDF, imagen, DOCX — máx. 10 MB)"
+                        aria-label="Adjuntar archivo"
+                    >
+                        {uploadingFile ? (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                        ) : (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                        )}
+                    </button>
+                    <button
+                        type="submit"
+                        className="chat-send-btn"
+                        disabled={sending || !messageInput.trim()}
+                        aria-label="Enviar mensaje"
+                    >
+                        {sending ? (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                        ) : (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        )}
+                    </button>
+                </div>
             </form>
         </div>
     );
