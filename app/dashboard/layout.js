@@ -95,18 +95,10 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
       if (!profileError && profileData) {
         setProfile(profileData);
 
-        // 2FA: si está habilitado y no verificado (JWT app_metadata), redirigir
-        if (
-          profileData.two_factor_email &&
-          !user.app_metadata?.two_fa_verified_at &&
-          !window.location.pathname.includes('/2fa-verify')
-        ) {
-          await fetch('/api/auth/2fa', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-            body: JSON.stringify({ purpose: 'login' })
-          }).catch(() => {});
-          router.push('/dashboard/2fa-verify');
+        // 2FA: si está habilitado y no verificado (JWT app_metadata), volver al login
+        // El login detecta la sesión activa y muestra el paso OTP automáticamente
+        if (profileData.two_factor_email && !user.app_metadata?.two_fa_verified_at) {
+          router.push('/login');
           return;
         }
 

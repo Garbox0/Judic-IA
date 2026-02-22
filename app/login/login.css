@@ -221,6 +221,76 @@ button:disabled {
     }
 }
 
+/* OTP INLINE STEP */
+.otp-hint {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+.otp-hint strong { color: #cbd5e1; }
+
+.otp-inputs-row {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.otp-digit {
+    width: 46px;
+    height: 54px;
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.1);
+    background: rgba(15,23,42,0.6);
+    color: white;
+    outline: none;
+    transition: border-color 0.2s;
+    caret-color: #fbbf24;
+}
+.otp-digit:focus { border-color: rgba(251,191,36,0.6); }
+.otp-digit:not(:placeholder-shown) { border-color: rgba(251,191,36,0.4); }
+
+.otp-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.otp-resend-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+.otp-resend-btn:disabled { opacity: 0.5; cursor: default; }
+
+.otp-cancel-btn {
+    background: none;
+    border: none;
+    color: #475569;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+/* Light theme OTP overrides */
+.light-theme .otp-hint { color: #475569; }
+.light-theme .otp-hint strong { color: #1e293b; }
+.light-theme .otp-digit {
+    background: white;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+.light-theme .otp-digit:focus { border-color: #d97706; }
+.light-theme .otp-cancel-btn { color: #94a3b8; }
+
 /* LIGHT THEME OVERRIDES */
 .light-theme .auth-body {
     background: radial-gradient(circle at 50% 10%, #f8fafc, #e2e8f0);
