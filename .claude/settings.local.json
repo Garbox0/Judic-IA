@@ -30,7 +30,8 @@
       "Bash(grep:*)",
       "Bash(node -e:*)",
       "Bash(/d/Antigravity/Judic-IA/app/dashboard/research/research.css:*)",
-      "Bash(email para recuperar el acceso\" debajo del formulario:*)"
+      "Bash(email para recuperar el acceso\" debajo del formulario:*)",
+      "Bash(git rm:*)"
     ]
   }
 }
