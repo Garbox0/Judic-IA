@@ -1131,28 +1131,6 @@ export default function SettingsPage({ isDemo = false }) {
                                             </div>
                                         </div>
 
-                                        {/* Modal: confirmar desactivación 2FA */}
-                                        {showDisable2faConfirm && (
-                                            <div className="modal-overlay-v2">
-                                                <div className="modal-content-v2" role="dialog" aria-modal="true" aria-labelledby="disable-2fa-modal-title">
-                                                    <h3 id="disable-2fa-modal-title" className="modal-title-v2">
-                                                        ¿Desactivar verificación en dos pasos?
-                                                    </h3>
-                                                    <p className="modal-text-v2">
-                                                        Tu cuenta quedará protegida únicamente por contraseña. Cualquier persona que obtenga tus credenciales podría acceder sin verificación adicional.
-                                                    </p>
-                                                    <div className="modal-btn-row">
-                                                        <button onClick={() => setShowDisable2faConfirm(false)} className="btn-modal-ghost">
-                                                            Mantener 2FA
-                                                        </button>
-                                                        <button onClick={proceed2FaToggle} className="btn-modal-danger">
-                                                            Desactivar de todas formas
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
                                         {/* Custom Confirmation Modal */}
                                         {modalOpen && (
                                             <div className="modal-overlay-v2">
@@ -1522,6 +1500,28 @@ export default function SettingsPage({ isDemo = false }) {
                 </div>
             </div>
 
+
+            {/* Modal: confirmar desactivación 2FA */}
+            {showDisable2faConfirm && (
+                <div className="modal-overlay-v2">
+                    <div className="modal-content-v2" role="dialog" aria-modal="true" aria-labelledby="disable-2fa-modal-title">
+                        <h3 id="disable-2fa-modal-title" className="modal-title-v2">
+                            ¿Desactivar verificación en dos pasos?
+                        </h3>
+                        <p className="modal-text-v2">
+                            Tu cuenta quedará protegida únicamente por contraseña. Cualquier persona que obtenga tus credenciales podría acceder sin verificación adicional.
+                        </p>
+                        <div className="modal-btn-row">
+                            <button onClick={() => setShowDisable2faConfirm(false)} className="btn-modal-ghost">
+                                Mantener 2FA
+                            </button>
+                            <button onClick={proceed2FaToggle} className="btn-modal-danger">
+                                Desactivar de todas formas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* PHOTO NUDGE MODAL */}
             {showPhotoNudge && (
