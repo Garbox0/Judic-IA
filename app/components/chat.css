@@ -469,6 +469,16 @@
     border-top: 1px solid #e2e8f0;
 }
 
+.light-theme .chat-attach-btn {
+    border-color: rgba(15, 23, 42, 0.2);
+    color: #64748b;
+}
+
+.light-theme .chat-attach-btn:hover:not(:disabled) {
+    background: rgba(15, 23, 42, 0.06);
+    color: #0f172a;
+}
+
 /* =========================================
    LAWYER REPLY INPUT (ClientsContent modal)
    ========================================= */

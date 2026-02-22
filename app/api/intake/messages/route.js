@@ -30,7 +30,7 @@ export async function GET(request) {
 
         const { data: messages, error: messagesError } = await supabaseAdmin
             .from('messages')
-            .select('id, content, role, created_at')
+            .select('id, content, role, created_at, attachment_url, attachment_name')
             .eq('inquiry_id', cid)
             .order('created_at', { ascending: true });
 
