@@ -115,9 +115,9 @@ export async function POST(request) {
         }
 
         const scanResult = await scanRes.json();
-        // ClamAV responde: { status: 'OK' | 'FOUND', ...}
-        if (scanResult.status !== 'OK') {
-            console.warn('[upload] Archivo infectado detectado:', scanResult);
+        // ClamAV responde: { clean: true/false, threat: null | 'NombreVirus', ... }
+        if (!scanResult.clean) {
+            console.warn('[upload] Archivo infectado detectado:', scanResult.threat, scanResult.raw_result);
             return NextResponse.json({
                 error: 'El archivo fue bloqueado por razones de seguridad.'
             }, { status: 422 });
