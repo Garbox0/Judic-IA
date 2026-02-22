@@ -52,13 +52,26 @@ export default function LoginPage() {
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, two_factor_email')
           .eq('id', userId)
-          .maybeSingle(); // Use maybeSingle to avoid throw errors on missing
+          .maybeSingle();
 
         if (profile) {
-          console.log("✅ Profile verified. Redirecting to dashboard...");
-          router.push('/dashboard');
+          // Si tiene 2FA y no está verificado en el JWT → verificar
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          if (profile.two_factor_email && !currentSession?.user?.app_metadata?.two_fa_verified_at) {
+            if (currentSession) {
+              await fetch('/api/auth/2fa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentSession.access_token}` },
+                body: JSON.stringify({ purpose: 'login' })
+              });
+            }
+            router.push('/dashboard/2fa-verify');
+          } else {
+            console.log("✅ Profile verified. Redirecting to dashboard...");
+            router.push('/dashboard');
+          }
         } else {
           console.warn("⚠️ User has session but no profile row. Staying on login.");
         }
@@ -108,10 +121,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       let msg = error.message;
@@ -119,7 +129,30 @@ export default function LoginPage() {
       if (msg === "Invalid login credentials") msg = "Credenciales inválidas. Revisa tu email y contraseña.";
       setError(msg);
       setLoading(false);
-    } else {
+      return;
+    }
+
+    // Verificar si el usuario tiene 2FA habilitado
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('two_factor_email')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      if (profile?.two_factor_email) {
+        // Siempre requerir OTP en cada login fresco (independiente del estado previo del JWT)
+        await fetch('/api/auth/2fa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.session.access_token}` },
+          body: JSON.stringify({ purpose: 'login' })
+        });
+        router.push('/dashboard/2fa-verify');
+      } else {
+        router.refresh();
+        router.push('/dashboard');
+      }
+    } catch {
       router.refresh();
       router.push('/dashboard');
     }

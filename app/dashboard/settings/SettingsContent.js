@@ -94,6 +94,12 @@ export default function SettingsPage({ isDemo = false }) {
     const [deletionStep, setDeletionStep] = useState('initial'); // initial, otp_sent, verified
     const [deletionOtp, setDeletionOtp] = useState('');
 
+    // 2FA por email
+    const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+    const [twoFaStep, setTwoFaStep] = useState('idle'); // 'idle' | 'otp_sent' | 'loading'
+    const [twoFaOtp, setTwoFaOtp] = useState('');
+    const [twoFaError, setTwoFaError] = useState('');
+
     // Invoice state
     const [invoices, setInvoices] = useState([]);
     const [invoicesLoading, setInvoicesLoading] = useState(false);
@@ -156,6 +162,7 @@ export default function SettingsPage({ isDemo = false }) {
                 setUser(user);
                 const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
                 if (data) {
+                    setTwoFactorEnabled(data.two_factor_email || false);
                     let t = '', f = '';
                     if (data.matricula) {
                         const match = data.matricula.match(/T°?\s*(\d+)\s*F°?\s*(\d+)/i);
@@ -453,6 +460,64 @@ export default function SettingsPage({ isDemo = false }) {
         }
     };
 
+
+    const handle2FaToggle = async () => {
+        setTwoFaError('');
+        setTwoFaStep('loading');
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const purpose = twoFactorEnabled ? 'disable_2fa' : 'enable_2fa';
+            const res = await fetch('/api/auth/2fa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                body: JSON.stringify({ purpose })
+            });
+            if (!res.ok) {
+                const d = await res.json();
+                setTwoFaError(d.error || 'Error al enviar el código');
+                setTwoFaStep('idle');
+                return;
+            }
+            setTwoFaOtp('');
+            setTwoFaStep('otp_sent');
+        } catch {
+            setTwoFaError('Error de conexión.');
+            setTwoFaStep('idle');
+        }
+    };
+
+    const handle2FaVerify = async (e) => {
+        e.preventDefault();
+        if (twoFaOtp.length < 6) return;
+        setTwoFaStep('loading');
+        setTwoFaError('');
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const purpose = twoFactorEnabled ? 'disable_2fa' : 'enable_2fa';
+            const res = await fetch('/api/auth/2fa', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                body: JSON.stringify({ otp: twoFaOtp, purpose })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setTwoFaError(data.error || 'Código inválido.');
+                setTwoFaStep('otp_sent');
+                return;
+            }
+            const newValue = !twoFactorEnabled;
+            setTwoFactorEnabled(newValue);
+            setTwoFaStep('idle');
+            setTwoFaOtp('');
+            toast.success(newValue
+                ? '✅ Verificación en dos pasos activada.'
+                : '✅ Verificación en dos pasos desactivada.'
+            );
+        } catch {
+            setTwoFaError('Error de conexión.');
+            setTwoFaStep('otp_sent');
+        }
+    };
 
     const handleSaveSecurity = async () => {
         if (isDemo) {
@@ -879,6 +944,64 @@ export default function SettingsPage({ isDemo = false }) {
                                         <input id="phone" name="phone" autoComplete="tel" className="stg-dark-input" value={formData.phone} onChange={handleChange} placeholder="+54 9..." />
                                     </div>
                                 </div>
+                                <div className="stg-divider"></div>
+                                <h3 className="stg-sec-title">Verificación en Dos Pasos</h3>
+                                <div className="stg-field-row multi stg-bg-box" style={{ flexDirection: 'column', gap: '1rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                                        <div>
+                                            <p className="stg-label" style={{ marginBottom: '0.25rem' }}>
+                                                {twoFactorEnabled
+                                                    ? <><Shield size={14} style={{ display: 'inline', color: '#4ade80', marginRight: '0.4rem' }} />Activada — se pedirá un código al iniciar sesión</>
+                                                    : <><ShieldOff size={14} style={{ display: 'inline', color: '#94a3b8', marginRight: '0.4rem' }} />Desactivada</>
+                                                }
+                                            </p>
+                                            <p className="stg-hint">Cada vez que iniciés sesión recibirás un código en tu email para confirmar tu identidad.</p>
+                                        </div>
+                                        {twoFaStep === 'idle' && (
+                                            <button
+                                                type="button"
+                                                className={twoFactorEnabled ? 'stg-outline-btn' : 'stg-gold-btn'}
+                                                onClick={handle2FaToggle}
+                                                style={{ whiteSpace: 'nowrap' }}
+                                            >
+                                                {twoFactorEnabled ? 'Desactivar 2FA' : 'Activar 2FA'}
+                                            </button>
+                                        )}
+                                        {twoFaStep === 'loading' && (
+                                            <span className="stg-hint">Enviando código...</span>
+                                        )}
+                                    </div>
+
+                                    {twoFaStep === 'otp_sent' && (
+                                        <form onSubmit={handle2FaVerify} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                            <p className="stg-hint">
+                                                Ingresá el código de 6 dígitos que enviamos a <strong>{user?.email}</strong>.
+                                            </p>
+                                            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                                <input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    maxLength={6}
+                                                    value={twoFaOtp}
+                                                    onChange={e => { setTwoFaOtp(e.target.value.replace(/\D/g, '').slice(0, 6)); setTwoFaError(''); }}
+                                                    placeholder="000000"
+                                                    className="stg-dark-input"
+                                                    style={{ width: '140px', letterSpacing: '0.3em', fontWeight: 700, fontSize: '1.1rem' }}
+                                                    autoFocus
+                                                    required
+                                                />
+                                                <button type="submit" className="stg-gold-btn" disabled={twoFaOtp.length < 6}>
+                                                    Confirmar
+                                                </button>
+                                                <button type="button" className="stg-outline-btn" onClick={() => { setTwoFaStep('idle'); setTwoFaOtp(''); setTwoFaError(''); }}>
+                                                    Cancelar
+                                                </button>
+                                            </div>
+                                            {twoFaError && <p className="stg-hint" style={{ color: '#fca5a5' }}>{twoFaError}</p>}
+                                        </form>
+                                    )}
+                                </div>
+
                                 <div className="stg-divider"></div>
                                 <h3 className="stg-sec-title">Gabinete de Identidad</h3>
                                 <div className="stg-field-row multi stg-bg-box align-items-end">

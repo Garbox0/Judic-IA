@@ -54,6 +54,17 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Abogado no disponible' }, { status: 404 });
         }
 
+        // Check platform-level ban
+        const { data: platformBan } = await adminClient
+            .from('platform_bans')
+            .select('id')
+            .eq('email', cleanEmail)
+            .maybeSingle();
+
+        if (platformBan) {
+            return NextResponse.json({ error: 'No es posible realizar esta solicitud en este momento.' }, { status: 403 });
+        }
+
         // Check if this email is blocked by this lawyer
         const { data: blocked } = await adminClient
             .from('blocked_contacts')
@@ -227,7 +238,7 @@ export async function PATCH(request) {
                 .update({ status: 'blocked' })
                 .eq('id', inquiryId);
 
-            // Add email to blocked_contacts
+            // Add email to blocked_contacts (previene nuevas inquiries de este email)
             if (inquiry.contact_email) {
                 await adminClient
                     .from('blocked_contacts')
@@ -236,6 +247,11 @@ export async function PATCH(request) {
                         email: inquiry.contact_email.toLowerCase()
                     }, { onConflict: 'lawyer_id,email' });
             }
+
+            // Revocar CID activo (previene envío de mensajes desde la sesión existente)
+            await adminClient
+                .from('revoked_access')
+                .upsert({ session_id: inquiryId, reason: 'blocked_by_lawyer' }, { onConflict: 'session_id' });
 
             return NextResponse.json({ success: true, status: 'blocked' });
         }

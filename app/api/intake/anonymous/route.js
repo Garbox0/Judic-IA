@@ -50,7 +50,21 @@ export async function POST(request) {
     const emailLower = email.toLowerCase().trim();
 
     try {
-        // 1. Verificar si el cliente está bloqueado por este abogado
+        // 1a. Verificar ban global de plataforma
+        const { data: platformBan } = await supabaseAdmin
+            .from('platform_bans')
+            .select('id')
+            .eq('email', emailLower)
+            .maybeSingle();
+
+        if (platformBan) {
+            return NextResponse.json(
+                { error: 'No es posible realizar esta solicitud en este momento.' },
+                { status: 403 }
+            );
+        }
+
+        // 1b. Verificar si el cliente está bloqueado por este abogado
         const { data: blocked } = await supabaseAdmin
             .from('blocked_contacts')
             .select('id')
@@ -71,7 +85,7 @@ export async function POST(request) {
             .select('id, status')
             .eq('assigned_lawyer_id', lawyerId)
             .eq('contact_email', emailLower)
-            .neq('status', 'rejected')
+            .not('status', 'in', '("rejected","blocked")')
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();

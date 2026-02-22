@@ -18,6 +18,14 @@ export default function SessionGuard({ targetId, tableName = 'profiles' }) {
 
             if (!error && count === 0) {
                 console.warn(`Heartbeat failed: Record ${targetId} not found in ${tableName}. Logging out...`);
+                // Limpiar flag 2FA del JWT antes de cerrar sesión
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    await fetch('/api/auth/2fa/logout', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${session.access_token}` }
+                    }).catch(() => {});
+                }
                 await supabase.auth.signOut();
                 if (tableName === 'inquiries') {
                     window.location.href = '/?error=case_closed';

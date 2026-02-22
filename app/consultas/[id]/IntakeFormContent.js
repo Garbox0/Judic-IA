@@ -108,7 +108,12 @@ export default function IntakeFormContent({ id }) {
 
     function applyStatus(status, msgs, activeCid) {
         setMessages(msgs);
-        if (status === 'rejected') {
+        if (status === 'rejected' || status === 'blocked') {
+            clearInterval(pollingRef.current);
+            // Limpiar CID local al ser bloqueado/rechazado
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem(`judic_ia_cid_${id}`);
+            }
             setUiState('rejected');
         } else if (status === 'pending_review') {
             setUiState('pending');
@@ -130,8 +135,11 @@ export default function IntakeFormContent({ id }) {
                 const data = await res.json();
                 setMessages(data.messages || []);
 
-                if (data.status === 'rejected') {
+                if (data.status === 'rejected' || data.status === 'blocked') {
                     clearInterval(pollingRef.current);
+                    if (typeof window !== 'undefined') {
+                        localStorage.removeItem(`judic_ia_cid_${id}`);
+                    }
                     setUiState('rejected');
                 } else if (uiStateRef.current === 'pending' && data.status !== 'pending_review') {
                     setUiState('chat');

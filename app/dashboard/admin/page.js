@@ -30,7 +30,9 @@ import {
     DollarSign,
     Play,
     Zap,
-    HardDrive
+    HardDrive,
+    ShieldOff,
+    Trash2
 } from 'lucide-react';
 import {
     BarChart,
@@ -65,7 +67,11 @@ export default function AdminPage() {
     const [currentUser, setCurrentUser] = useState(null);
     const [activeModal, setActiveModal] = useState(null);
     const [notifications, setNotifications] = useState([]);
-    const [activeTab, setActiveTab] = useState('users'); // 'users' | 'verification' | 'invoices' | 'subscriptions' | 'kb-audit'
+    const [activeTab, setActiveTab] = useState('users'); // 'users' | 'verification' | 'invoices' | 'subscriptions' | 'kb-audit' | 'bans'
+    const [bans, setBans] = useState([]);
+    const [banEmail, setBanEmail] = useState('');
+    const [banReason, setBanReason] = useState('');
+    const [banSubmitting, setBanSubmitting] = useState(false);
     const [adminInvoices, setAdminInvoices] = useState([]);
     const [uploadingInvoice, setUploadingInvoice] = useState(null);
     const [auditReport, setAuditReport] = useState(null);
@@ -158,9 +164,69 @@ export default function AdminPage() {
             setLoading(false);
         }
 
-        // Also fetch invoices and audit
+        // Also fetch invoices, audit and bans
         fetchAdminInvoices();
         fetchAuditReport();
+        fetchBans();
+    };
+
+    const fetchBans = async () => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+            const res = await fetch('/api/admin/bans', {
+                headers: { 'Authorization': `Bearer ${session.access_token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setBans(data.bans || []);
+            }
+        } catch (err) {
+            console.error('Error fetching bans:', err);
+        }
+    };
+
+    const handleAddBan = async (e) => {
+        e.preventDefault();
+        if (!banEmail.trim()) return;
+        setBanSubmitting(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const res = await fetch('/api/admin/bans', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                body: JSON.stringify({ email: banEmail.trim(), reason: banReason.trim() || null })
+            });
+            if (res.ok) {
+                setBanEmail('');
+                setBanReason('');
+                fetchBans();
+                showNotification('success', `Email baneado: ${banEmail.trim().toLowerCase()}`);
+            } else {
+                const d = await res.json();
+                showNotification('error', d.error || 'Error al banear');
+            }
+        } catch {
+            showNotification('error', 'Error de conexión');
+        } finally {
+            setBanSubmitting(false);
+        }
+    };
+
+    const handleLiftBan = async (email) => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const res = await fetch(`/api/admin/bans?email=${encodeURIComponent(email)}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${session.access_token}` }
+            });
+            if (res.ok) {
+                fetchBans();
+                showNotification('success', `Ban levantado: ${email}`);
+            }
+        } catch {
+            showNotification('error', 'Error al levantar ban');
+        }
     };
 
     const fetchAdminInvoices = async () => {
@@ -567,6 +633,18 @@ export default function AdminPage() {
                             {auditReport?.invalid_files > 0 && (
                                 <span className="bg-rose text-white text-[9px] font-black px-2 py-0.5 rounded-full ml-1 animate-pulse">
                                     {auditReport.invalid_files}
+                                </span>
+                            )}
+                        </button>
+                        <button
+                            onClick={() => { setActiveTab('bans'); fetchBans(); }}
+                            className={`tab-trigger ${activeTab === 'bans' ? 'active rose' : ''}`}
+                        >
+                            <ShieldOff size={14} />
+                            Bans
+                            {bans.length > 0 && (
+                                <span className="bg-rose text-white text-[9px] font-black px-2 py-0.5 rounded-full ml-1">
+                                    {bans.length}
                                 </span>
                             )}
                         </button>
@@ -1082,6 +1160,92 @@ export default function AdminPage() {
                                                 </div>
                                             )}
                                         </div>
+                                    </div>
+                                </div>
+                            )}
+                            {activeTab === 'bans' && (
+                                <div className="glass-card overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    <div className="p-10 border-b border-admin-stroke space-y-1">
+                                        <h3 className="text-2xl font-black text-admin-primary tracking-tighter">Bans de Plataforma</h3>
+                                        <p className="text-[10px] font-black text-admin-muted uppercase tracking-[0.3em] opacity-60">Bloqueo global por email — impide acceso a todos los abogados</p>
+                                    </div>
+
+                                    {/* Formulario para banear */}
+                                    <div className="px-10 py-8 border-b border-admin-stroke">
+                                        <form onSubmit={handleAddBan} className="flex flex-col md:flex-row gap-4 items-end">
+                                            <div className="flex flex-col gap-2 flex-1">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-admin-muted">Email a banear</label>
+                                                <input
+                                                    type="email"
+                                                    required
+                                                    value={banEmail}
+                                                    onChange={e => setBanEmail(e.target.value)}
+                                                    placeholder="usuario@dominio.com"
+                                                    className="bg-admin-surface border border-admin-stroke rounded-2xl py-4 px-6 text-sm text-admin-primary focus:outline-none focus:border-rose/40 font-bold placeholder:text-admin-text-muted/50 transition-all"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-2 flex-1">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-admin-muted">Motivo (opcional)</label>
+                                                <input
+                                                    type="text"
+                                                    value={banReason}
+                                                    onChange={e => setBanReason(e.target.value)}
+                                                    placeholder="Ej: abuso, spam, etc."
+                                                    maxLength={200}
+                                                    className="bg-admin-surface border border-admin-stroke rounded-2xl py-4 px-6 text-sm text-admin-primary focus:outline-none focus:border-rose/40 font-bold placeholder:text-admin-text-muted/50 transition-all"
+                                                />
+                                            </div>
+                                            <button
+                                                type="submit"
+                                                disabled={banSubmitting || !banEmail.trim()}
+                                                className="premium-btn rose flex items-center gap-2 whitespace-nowrap disabled:opacity-50"
+                                            >
+                                                <ShieldOff size={16} />
+                                                {banSubmitting ? 'Baneando...' : 'Banear Email'}
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    {/* Lista de bans */}
+                                    <div className="mx-10 mt-8 mb-10">
+                                        {bans.length === 0 ? (
+                                            <div className="flex flex-col items-center justify-center py-20">
+                                                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/5">
+                                                    <ShieldOff size={36} className="text-admin-muted opacity-20" />
+                                                </div>
+                                                <p className="text-admin-muted text-[10px] font-black uppercase tracking-widest opacity-60">Sin bans activos</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {bans.map(ban => (
+                                                    <div key={ban.id} className="table-row flex items-center justify-between gap-4 group">
+                                                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                            <div className="w-10 h-10 rounded-xl bg-rose/10 border border-rose/20 flex items-center justify-center shrink-0">
+                                                                <ShieldOff size={16} className="text-rose" />
+                                                            </div>
+                                                            <div className="flex flex-col min-w-0">
+                                                                <span className="font-mono text-sm text-admin-primary font-bold truncate">{ban.email}</span>
+                                                                {ban.reason && (
+                                                                    <span className="text-[10px] text-admin-muted opacity-60 truncate">{ban.reason}</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-4 shrink-0">
+                                                            <span className="text-[9px] font-black text-admin-muted opacity-40 hidden md:block">
+                                                                {new Date(ban.created_at).toLocaleDateString('es-AR')}
+                                                            </span>
+                                                            <button
+                                                                onClick={() => handleLiftBan(ban.email)}
+                                                                className="action-btn text-rose hover:bg-rose/10 hover:border-rose/30"
+                                                                title="Levantar ban"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
