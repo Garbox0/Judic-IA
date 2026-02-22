@@ -463,6 +463,11 @@ export default function SettingsPage({ isDemo = false }) {
 
     const handle2FaToggle = async () => {
         setTwoFaError('');
+        // Advertencia al desactivar
+        if (twoFactorEnabled) {
+            const ok = window.confirm('⚠️ Al desactivar el 2FA tu cuenta quedará protegida solo por contraseña. ¿Querés continuar?');
+            if (!ok) return;
+        }
         setTwoFaStep('loading');
         try {
             const { data: { session } } = await supabase.auth.getSession();
@@ -509,6 +514,10 @@ export default function SettingsPage({ isDemo = false }) {
             setTwoFactorEnabled(newValue);
             setTwoFaStep('idle');
             setTwoFaOtp('');
+            // Al desactivar, resetear el banner para que vuelva a aparecer en el dashboard
+            if (!newValue && user?.id) {
+                localStorage.removeItem(`2fa_banner_dismissed_${user.id}`);
+            }
             toast.success(newValue
                 ? '✅ Verificación en dos pasos activada.'
                 : '✅ Verificación en dos pasos desactivada.'
