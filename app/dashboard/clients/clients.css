@@ -705,6 +705,53 @@ body.light-theme .clients-rejection-reason span {
     color: var(--foreground-soft, #cbd5e1) !important;
 }
 
+/* Header action groups (icon + label como unidad) */
+.chat-action-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.chat-action-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #94a3b8;
+    white-space: nowrap;
+    cursor: default;
+}
+
+.chat-action-divider {
+    width: 1px;
+    height: 18px;
+    background: rgba(148, 163, 184, 0.2);
+}
+
+.btn-sidebar-block {
+    width: 100%;
+    background: rgba(251, 191, 36, 0.08);
+    color: #d97706;
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    padding: 0.8rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: 0.2s;
+    font-weight: 600;
+}
+
+.btn-sidebar-block:hover:not(:disabled) {
+    background: rgba(251, 191, 36, 0.18);
+    border-color: rgba(251, 191, 36, 0.5);
+}
+
+.btn-sidebar-block:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .btn-sidebar-danger {
     width: 100%;
     background: rgba(239, 68, 68, 0.1);

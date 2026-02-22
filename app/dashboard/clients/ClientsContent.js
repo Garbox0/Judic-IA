@@ -546,36 +546,45 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                     </div>
                                 </div>
 
-                                <div className="chat-actions flex items-center gap-3 mr-16 md:mr-12">
-                                    <button
-                                        className={`btn-action-icon ${selectedClient.is_case ? 'text-amber-400' : ''}`}
-                                        title={selectedClient.is_case ? "Expediente ya creado" : "Crear Expediente"}
-                                        aria-label={selectedClient.is_case ? "Expediente ya creado" : "Crear expediente"}
-                                        onClick={selectedClient.is_case ? undefined : convertToCase}
-                                        disabled={selectedClient.is_case || converting}
-                                    >
-                                        {converting
-                                            ? <Loader size={18} className="animate-spin" />
-                                            : selectedClient.is_case
-                                                ? <FolderOpen size={18} />
-                                                : <FolderPlus size={18} />
-                                        }
-                                    </button>
-                                    <span className="discovery-hint hidden md:block">
-                                        {selectedClient.is_case ? 'Expediente' : 'Crear Expediente'}
-                                    </span>
-                                    <span className="discovery-hint hidden md:block">
-                                        {showSidebar ? "Ocultar Detalles" : "Ver Detalles"}
-                                    </span>
-                                    <button
-                                        className={`btn-action-icon ${showSidebar ? 'text-amber-400 bg-amber-400/10' : 'btn-toggle-discovery'}`}
-                                        onClick={() => setShowSidebar(!showSidebar)}
-                                        title={showSidebar ? "Ocultar Detalles" : "Ver Detalles"}
-                                        aria-label={showSidebar ? "Ocultar panel de detalles" : "Ver detalles del cliente"}
-                                        aria-expanded={showSidebar}
-                                    >
-                                        {showSidebar ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
-                                    </button>
+                                <div className="chat-actions flex items-center gap-2 mr-16 md:mr-12">
+                                    {/* Expediente: icono + label como unidad */}
+                                    <div className="chat-action-group">
+                                        <button
+                                            className={`btn-action-icon ${selectedClient.is_case ? 'text-amber-400' : ''}`}
+                                            title={selectedClient.is_case ? "Expediente ya creado" : "Crear Expediente"}
+                                            aria-label={selectedClient.is_case ? "Expediente ya creado" : "Crear expediente"}
+                                            onClick={selectedClient.is_case ? undefined : convertToCase}
+                                            disabled={selectedClient.is_case || converting}
+                                        >
+                                            {converting
+                                                ? <Loader size={18} className="animate-spin" />
+                                                : selectedClient.is_case
+                                                    ? <FolderOpen size={18} />
+                                                    : <FolderPlus size={18} />
+                                            }
+                                        </button>
+                                        <span className="chat-action-label hidden md:block">
+                                            {selectedClient.is_case ? 'Expediente' : 'Crear Expediente'}
+                                        </span>
+                                    </div>
+
+                                    <div className="chat-action-divider hidden md:block" />
+
+                                    {/* Ver/Ocultar Detalles: label + icono como unidad */}
+                                    <div className="chat-action-group">
+                                        <span className="chat-action-label hidden md:block">
+                                            {showSidebar ? "Ocultar Detalles" : "Ver Detalles"}
+                                        </span>
+                                        <button
+                                            className={`btn-action-icon ${showSidebar ? 'text-amber-400 bg-amber-400/10' : 'btn-toggle-discovery'}`}
+                                            onClick={() => setShowSidebar(!showSidebar)}
+                                            title={showSidebar ? "Ocultar Detalles" : "Ver Detalles"}
+                                            aria-label={showSidebar ? "Ocultar panel de detalles" : "Ver detalles del cliente"}
+                                            aria-expanded={showSidebar}
+                                        >
+                                            {showSidebar ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
+                                        </button>
+                                    </div>
                                 </div>
                             </header>
 
@@ -626,7 +635,16 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                             <p className="summary-text">{selectedClient.ai_summary || 'Sin resumen disponible.'}</p>
                                         </div>
 
-                                        <div className="mt-8 border-t border-slate-700/50 pt-4">
+                                        <div className="mt-8 border-t border-slate-700/50 pt-4 flex flex-col gap-2">
+                                            {selectedClient.status !== 'pending_review' && (
+                                                <button
+                                                    className="btn-sidebar-block"
+                                                    onClick={() => handleModeration('block')}
+                                                    disabled={moderating}
+                                                >
+                                                    <ShieldAlert size={16} /> Bloquear Cliente
+                                                </button>
+                                            )}
                                             <button className="btn-sidebar-danger" onClick={() => setClientToDelete(selectedClient.id)}>
                                                 <Trash2 size={16} /> Eliminar Consulta
                                             </button>
