@@ -13,6 +13,7 @@ import {
   Settings,
   BookOpen,
   ShieldCheck,
+  ShieldAlert,
   Menu,
   Crown,
   Sparkles,
@@ -20,7 +21,8 @@ import {
   Calculator,
   Globe,
   Sun,
-  Moon
+  Moon,
+  X
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -37,6 +39,7 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
   const [profile, setProfile] = useState(isDemo ? (mockProfile || demoProfile) : null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [theme, setTheme] = useState('light');
+  const [show2faBanner, setShow2faBanner] = useState(false);
 
   // Load theme from localStorage
   useEffect(() => {
@@ -94,6 +97,12 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
 
       if (!profileError && profileData) {
         setProfile(profileData);
+
+        // Banner 2FA: mostrar si no tiene 2FA y no lo descartó antes
+        if (!profileData.two_factor_email) {
+          const dismissed = localStorage.getItem(`2fa_banner_dismissed_${user.id}`);
+          if (!dismissed) setShow2faBanner(true);
+        }
 
         // 2FA: si está habilitado y no verificado (JWT app_metadata), volver al login
         // El login detecta la sesión activa y muestra el paso OTP automáticamente
@@ -319,6 +328,27 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
 
       {/* MAIN CONTENT AREA */}
       <main className="main-viewport" id="main-content">
+        {!isDemo && show2faBanner && (
+          <div className="banner-2fa" role="alert">
+            <ShieldAlert size={18} className="banner-2fa-icon" />
+            <span>
+              Tu cuenta no está protegida con verificación en dos pasos.{' '}
+              <Link href="/dashboard/settings?tab=security" className="banner-2fa-link" onClick={() => setShow2faBanner(false)}>
+                Activar 2FA →
+              </Link>
+            </span>
+            <button
+              className="banner-2fa-close"
+              aria-label="Descartar aviso"
+              onClick={() => {
+                setShow2faBanner(false);
+                localStorage.setItem(`2fa_banner_dismissed_${user?.id}`, '1');
+              }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
         {children}
       </main>
 
