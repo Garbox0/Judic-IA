@@ -1236,6 +1236,38 @@ body.light-theme .stg-rejection-reason-box p {
 }
 
 
+body.light-theme .modal-content-v2 {
+    background: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.1) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+}
+
+body.light-theme .modal-title-v2 {
+    color: #0f172a !important;
+}
+
+body.light-theme .modal-text-v2 {
+    color: #64748b !important;
+}
+
+body.light-theme .btn-modal-ghost {
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+}
+
+body.light-theme .btn-modal-ghost:hover {
+    background: #e2e8f0 !important;
+}
+
+body.light-theme .btn-modal-danger {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+}
+
+body.light-theme .btn-modal-danger:hover {
+    background: #b91c1c !important;
+}
+
 .stg-discrete-danger {
     margin-top: 2rem;
     padding-top: 1.5rem;
