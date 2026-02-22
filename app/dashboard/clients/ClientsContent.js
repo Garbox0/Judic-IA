@@ -10,6 +10,8 @@ import {
     X,
     Loader,
     Folder,
+    FolderPlus,
+    FolderOpen,
     PartyPopper,
     Check,
     Send,
@@ -92,7 +94,25 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                     .order('created_at', { ascending: false });
 
                 if (error) console.error("❌ Error fetching inquiries:", error);
-                if (!error) setClients(data || []);
+                if (!error) {
+                    const clients = data || [];
+                    // Marcar qué inquiries ya tienen expediente creado
+                    if (clients.length) {
+                        const { data: casesData } = await supabase
+                            .from('cases')
+                            .select('inquiry_id')
+                            .eq('assigned_to', user.id)
+                            .not('inquiry_id', 'is', null);
+                        if (casesData?.length) {
+                            const caseSet = new Set(casesData.map(c => c.inquiry_id));
+                            setClients(clients.map(c => ({ ...c, is_case: caseSet.has(c.id) })));
+                        } else {
+                            setClients(clients);
+                        }
+                    } else {
+                        setClients(clients);
+                    }
+                }
             }
             setLoading(false);
         };
@@ -528,14 +548,22 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
                                 <div className="chat-actions flex items-center gap-3 mr-16 md:mr-12">
                                     <button
-                                        className="btn-action-icon"
-                                        title="Convertir a Expediente"
-                                        aria-label={selectedClient.is_case ? "Ya convertido a expediente" : "Convertir a expediente"}
-                                        onClick={convertToCase}
+                                        className={`btn-action-icon ${selectedClient.is_case ? 'text-amber-400' : ''}`}
+                                        title={selectedClient.is_case ? "Expediente ya creado" : "Crear Expediente"}
+                                        aria-label={selectedClient.is_case ? "Expediente ya creado" : "Crear expediente"}
+                                        onClick={selectedClient.is_case ? undefined : convertToCase}
                                         disabled={selectedClient.is_case || converting}
                                     >
-                                        {selectedClient.is_case ? <Folder className="text-blue" size={18} /> : <Folder size={18} />}
+                                        {converting
+                                            ? <Loader size={18} className="animate-spin" />
+                                            : selectedClient.is_case
+                                                ? <FolderOpen size={18} />
+                                                : <FolderPlus size={18} />
+                                        }
                                     </button>
+                                    <span className="discovery-hint hidden md:block">
+                                        {selectedClient.is_case ? 'Expediente' : 'Crear Expediente'}
+                                    </span>
                                     <span className="discovery-hint hidden md:block">
                                         {showSidebar ? "Ocultar Detalles" : "Ver Detalles"}
                                     </span>

@@ -112,6 +112,18 @@ export async function POST(request) {
 
         if (inqError || !inquiry) throw new Error("Consulta no encontrada.");
 
+        // 3b. IDEMPOTENCY: si ya existe un expediente para esta inquiry, devolver el existente
+        const { data: existingCase } = await adminClient
+            .from('cases')
+            .select('id')
+            .eq('inquiry_id', inquiryId)
+            .maybeSingle();
+
+        if (existingCase) {
+            console.log(`ℹ️ Expediente ya existía para inquiry ${inquiryId}: ${existingCase.id}`);
+            return NextResponse.json({ success: true, case: existingCase, orgId, already_existed: true });
+        }
+
         // 4. CREATE CASE
         console.log(`   📝 Creating case for inquiry: ${inquiryId}`);
         const { data: newCase, error: caseError } = await adminClient
