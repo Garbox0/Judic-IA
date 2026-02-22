@@ -678,7 +678,16 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                             </header>
 
                             {/* FLEX CONTAINER FOR CHAT + SIDEBAR */}
-                            <div className="chat-main-split">
+                            <div className="chat-main-split" style={{ position: 'relative' }}
+                                onDragOver={handleChatDragOver}
+                                onDragLeave={handleChatDragLeave}
+                                onDrop={handleChatDrop}
+                            >
+                                {isDragging && (
+                                    <div className="chat-drop-overlay" aria-live="assertive" aria-atomic="true">
+                                        <span>Soltá el archivo para adjuntarlo</span>
+                                    </div>
+                                )}
 
                                 {/* CHAT MESSAGES */}
                                 <div
@@ -686,16 +695,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                     aria-live="polite"
                                     aria-label="Historial de mensajes"
                                     role="log"
-                                    onDragOver={handleChatDragOver}
-                                    onDragLeave={handleChatDragLeave}
-                                    onDrop={handleChatDrop}
-                                    style={{ position: 'relative' }}
                                 >
-                                    {isDragging && (
-                                        <div className="chat-drop-overlay" aria-live="assertive" aria-atomic="true">
-                                            <span>Soltá el archivo para adjuntarlo</span>
-                                        </div>
-                                    )}
                                     {loadingChat ? (
                                         <div className="loader-center"><Loader className="animate-spin" /></div>
                                     ) : (

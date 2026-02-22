@@ -642,16 +642,17 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
     return (
         <div
             className="chat-widget-inline embedded"
+            style={{ position: 'relative' }}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
-            <div className="chat-messages-area" style={{ position: 'relative' }}>
-                {isDragging && (
-                    <div className="chat-drop-overlay" aria-live="assertive" aria-atomic="true">
-                        <span>Soltá el archivo para adjuntarlo</span>
-                    </div>
-                )}
+            {isDragging && (
+                <div className="chat-drop-overlay" aria-live="assertive" aria-atomic="true">
+                    <span>Soltá el archivo para adjuntarlo</span>
+                </div>
+            )}
+            <div className="chat-messages-area">
                 {messages.length === 0 && (
                     <div className="message-bubble received welcome-msg">
                         <p>Bienvenido. Escribí tu consulta y {lawyerName || 'el profesional'} te responderá a la brevedad.</p>
