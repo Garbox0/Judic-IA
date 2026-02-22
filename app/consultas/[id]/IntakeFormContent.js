@@ -229,11 +229,9 @@ export default function IntakeFormContent({ id }) {
         }
     }, [messageInput, sending, id, clientEmail, clientName, clientPhone]);
 
-    const handleFileUpload = useCallback(async (e) => {
-        const file = e.target.files?.[0];
+    const uploadFile = useCallback(async (file) => {
         const activeCid = cidRef.current;
         if (!file || !activeCid) return;
-        e.target.value = '';
 
         setUploadError(null);
         setUploadingFile(true);
@@ -261,6 +259,12 @@ export default function IntakeFormContent({ id }) {
             setUploadingFile(false);
         }
     }, [id]);
+
+    const handleFileInputChange = useCallback((e) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (file) uploadFile(file);
+    }, [uploadFile]);
 
     const toggleTheme = () => {
         setIsLightMode(prev => !prev);
@@ -399,7 +403,8 @@ export default function IntakeFormContent({ id }) {
                                 messagesEndRef={messagesEndRef}
                                 lawyerName={lawyer?.full_name}
                                 fileInputRef={fileInputRef}
-                                onFileChange={handleFileUpload}
+                                onFileChange={handleFileInputChange}
+                                onFileDrop={uploadFile}
                                 uploadingFile={uploadingFile}
                                 uploadError={uploadError}
                             />
@@ -611,7 +616,9 @@ async function downloadFile(url, name) {
 
 // ─── Chat anónimo ──────────────────────────────────────────────────────────────
 
-function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sending, messagesEndRef, lawyerName, fileInputRef, onFileChange, uploadingFile, uploadError }) {
+function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sending, messagesEndRef, lawyerName, fileInputRef, onFileChange, onFileDrop, uploadingFile, uploadError }) {
+    const [isDragging, setIsDragging] = useState(false);
+
     const getRoleBubbleClass = (role) => role === 'user' ? 'sent' : 'received';
 
     const getRoleLabel = (role) => {
@@ -620,9 +627,27 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
         return null;
     };
 
+    const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+    const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleDrop = (e) => {
+        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file && onFileDrop) onFileDrop(file);
+    };
+
     return (
-        <div className="chat-widget-inline embedded">
-            <div className="chat-messages-area">
+        <div
+            className="chat-widget-inline embedded"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
+            <div className="chat-messages-area" style={{ position: 'relative' }}>
+                {isDragging && (
+                    <div className="chat-drop-overlay">
+                        <span>Soltá el archivo para adjuntarlo</span>
+                    </div>
+                )}
                 {messages.length === 0 && (
                     <div className="message-bubble received welcome-msg">
                         <p>Bienvenido. Escribí tu consulta y {lawyerName || 'el profesional'} te responderá a la brevedad.</p>
@@ -649,13 +674,9 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                                         onClick={() => window.open(msg.attachment_url, '_blank')}
                                     />
                                 ) : isAudioFile(msg.attachment_name) ? (
-                                    <audio controls className="msg-audio-player">
-                                        <source src={msg.attachment_url} type="audio/mpeg" />
-                                    </audio>
+                                    <audio controls src={msg.attachment_url} className="msg-audio-player" />
                                 ) : isVideoFile(msg.attachment_name) ? (
-                                    <video controls className="msg-video-player">
-                                        <source src={msg.attachment_url} type="video/mp4" />
-                                    </video>
+                                    <video controls src={msg.attachment_url} className="msg-video-player" preload="metadata" />
                                 ) : (
                                     <div className="msg-file-card">
                                         <div

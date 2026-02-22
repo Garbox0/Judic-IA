@@ -275,13 +275,9 @@ export default function ChatWidget({
                                         onClick={() => window.open(msg.attachment_url, '_blank')}
                                     />
                                 ) : isAudioFile(msg.attachment_name) ? (
-                                    <audio controls className="msg-audio-player">
-                                        <source src={msg.attachment_url} type="audio/mpeg" />
-                                    </audio>
+                                    <audio controls src={msg.attachment_url} className="msg-audio-player" />
                                 ) : isVideoFile(msg.attachment_name) ? (
-                                    <video controls className="msg-video-player">
-                                        <source src={msg.attachment_url} type="video/mp4" />
-                                    </video>
+                                    <video controls src={msg.attachment_url} className="msg-video-player" preload="metadata" />
                                 ) : (
                                     <div className="msg-file-card">
                                         <div

@@ -95,6 +95,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     const fileInputRef = useRef(null);
     const [uploadingFile, setUploadingFile] = useState(false);
     const [uploadError, setUploadError] = useState(null);
+    const [isDragging, setIsDragging] = useState(false);
 
     // 1. INITIAL FETCH & AUTH
     useEffect(() => {
@@ -328,11 +329,8 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     };
 
     // --- FILE UPLOAD ---
-    const handleFileUpload = async (e) => {
-        const file = e.target.files?.[0];
+    const uploadFile = async (file) => {
         if (!file || !selectedClient || isDemo) return;
-        e.target.value = '';
-
         setUploadError(null);
         setUploadingFile(true);
         try {
@@ -358,6 +356,20 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
         } finally {
             setUploadingFile(false);
         }
+    };
+
+    const handleFileUpload = (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (file) uploadFile(file);
+    };
+
+    const handleChatDragOver = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+    const handleChatDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleChatDrop = (e) => {
+        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file) uploadFile(file);
     };
 
     // --- MARKETPLACE MODERATION ---
@@ -664,7 +676,21 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                             <div className="chat-main-split">
 
                                 {/* CHAT MESSAGES */}
-                                <div className="chat-viewport custom-scrollbar" aria-live="polite" aria-label="Historial de mensajes" role="log">
+                                <div
+                                    className="chat-viewport custom-scrollbar"
+                                    aria-live="polite"
+                                    aria-label="Historial de mensajes"
+                                    role="log"
+                                    onDragOver={handleChatDragOver}
+                                    onDragLeave={handleChatDragLeave}
+                                    onDrop={handleChatDrop}
+                                    style={{ position: 'relative' }}
+                                >
+                                    {isDragging && (
+                                        <div className="chat-drop-overlay">
+                                            <span>Soltá el archivo para adjuntarlo</span>
+                                        </div>
+                                    )}
                                     {loadingChat ? (
                                         <div className="loader-center"><Loader className="animate-spin" /></div>
                                     ) : (
@@ -684,13 +710,9 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                                     onClick={() => window.open(msg.attachment_url, '_blank')}
                                                                 />
                                                             ) : isAudioFile(msg.attachment_name) ? (
-                                                                <audio controls className="msg-audio-player">
-                                                                    <source src={msg.attachment_url} type="audio/mpeg" />
-                                                                </audio>
+                                                                <audio controls src={msg.attachment_url} className="msg-audio-player" />
                                                             ) : isVideoFile(msg.attachment_name) ? (
-                                                                <video controls className="msg-video-player">
-                                                                    <source src={msg.attachment_url} type="video/mp4" />
-                                                                </video>
+                                                                <video controls src={msg.attachment_url} className="msg-video-player" preload="metadata" />
                                                             ) : (
                                                                 <div className="msg-file-card">
                                                                     <div
