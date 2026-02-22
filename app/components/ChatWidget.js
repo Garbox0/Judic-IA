@@ -8,6 +8,15 @@ function isImageFile(name) {
     return /\.(jpg|jpeg|png|webp)$/i.test(name || '');
 }
 
+function getFileExt(name) {
+    const m = (name || '').match(/\.(\w+)$/);
+    return m ? m[1].toLowerCase() : 'file';
+}
+
+function getFileColor(ext) {
+    return { pdf: '#ef4444', docx: '#3b82f6', doc: '#3b82f6', txt: '#64748b' }[ext] || '#6b7280';
+}
+
 async function downloadFile(url, name) {
     try {
         const res = await fetch(url);
@@ -258,20 +267,34 @@ export default function ChatWidget({
                                         onClick={() => window.open(msg.attachment_url, '_blank')}
                                     />
                                 ) : (
-                                    <p className="msg-attachment">
-                                        <Paperclip size={13} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                                        <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer" className="msg-attachment-link">
-                                            {msg.attachment_name || 'Archivo adjunto'}
-                                        </a>
-                                    </p>
+                                    <div className="msg-file-card">
+                                        <div
+                                            className="msg-file-ext-badge"
+                                            style={{ background: getFileColor(getFileExt(msg.attachment_name)) }}
+                                        >
+                                            {getFileExt(msg.attachment_name).toUpperCase()}
+                                        </div>
+                                        <span className="msg-file-name">{msg.attachment_name || 'Archivo adjunto'}</span>
+                                    </div>
                                 )}
-                                <button
-                                    className="btn-download-file"
-                                    onClick={() => downloadFile(msg.attachment_url, msg.attachment_name)}
-                                    title="Descargar archivo"
-                                >
-                                    ↓ Descargar
-                                </button>
+                                <div className="msg-file-actions">
+                                    {!isImageFile(msg.attachment_name) && (
+                                        <a
+                                            href={msg.attachment_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn-download-file"
+                                        >
+                                            Abrir
+                                        </a>
+                                    )}
+                                    <button
+                                        className="btn-download-file"
+                                        onClick={() => downloadFile(msg.attachment_url, msg.attachment_name)}
+                                    >
+                                        ↓ Descargar
+                                    </button>
+                                </div>
                             </div>
                         ) : (
                             <p>{msg.content}</p>

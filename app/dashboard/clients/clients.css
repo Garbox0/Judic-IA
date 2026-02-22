@@ -711,6 +711,52 @@ body.light-theme .clients-rejection-reason span {
     background: rgba(255, 255, 255, 0.12);
 }
 
+/* File card (PDF, DOCX, etc.) */
+.msg-file-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 10px 12px;
+    max-width: 240px;
+}
+
+.msg-file-ext-badge {
+    width: 36px;
+    height: 42px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.58rem;
+    font-weight: 800;
+    color: white;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+}
+
+.msg-file-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+    word-break: break-all;
+    line-height: 1.3;
+    color: inherit;
+}
+
+.msg-file-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Sent bubble (user) overrides */
+.chat-bubble.user .msg-file-card {
+    background: rgba(251, 191, 36, 0.12);
+    border-color: rgba(251, 191, 36, 0.2);
+}
+
 /* UPLOAD ERROR BAR */
 .upload-error-bar {
     background: rgba(239, 68, 68, 0.1);
