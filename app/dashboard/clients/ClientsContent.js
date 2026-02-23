@@ -932,7 +932,10 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
                             {/* COMPOSE OVERLAY — WhatsApp-style full preview */}
                             {pendingFiles.length > 0 && (
-                                <div className="compose-overlay" role="dialog" aria-modal="true" aria-label="Vista previa antes de enviar">
+                                <div className="compose-overlay" role="dialog" aria-modal="true" aria-label="Vista previa antes de enviar"
+                                    onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                    onDrop={(e) => { e.preventDefault(); e.stopPropagation(); const fs = Array.from(e.dataTransfer.files||[]); if (fs.length) addFilesToPending(fs); }}
+                                >
                                     <div className="compose-overlay-header">
                                         <span className="compose-overlay-title">
                                             {pendingFiles[activeFileIdx]?.file.name}
