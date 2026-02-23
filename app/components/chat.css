@@ -720,6 +720,306 @@
     color: #fbbf24;
 }
 
+/* =========================================
+   COMPOSE PANEL (file preview before send)
+   ========================================= */
+.compose-panel {
+    padding: 0.65rem 0.9rem 0.5rem;
+    background: rgba(255, 255, 255, 0.04);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    animation: composeFadeIn 0.18s ease;
+}
+
+@keyframes composeFadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.compose-preview-row {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.compose-thumb {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+    background: rgba(0,0,0,0.3);
+}
+
+.compose-file-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.22);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    gap: 0.15rem;
+}
+
+.compose-file-ext {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #fbbf24;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.compose-file-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.compose-filename {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.88);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compose-filesize {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.4);
+}
+
+.compose-cancel-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.35);
+    cursor: pointer;
+    padding: 0.3rem;
+    border-radius: 50%;
+    line-height: 1;
+    transition: color 0.15s, background 0.15s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compose-cancel-btn:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.compose-caption-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.compose-caption-input {
+    flex: 1;
+    background: rgba(0,0,0,0.22);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.9);
+    font-size: 0.875rem;
+    padding: 0.5rem 0.8rem;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.compose-caption-input::placeholder {
+    color: rgba(255,255,255,0.28);
+}
+
+.compose-caption-input:focus {
+    border-color: #fbbf24;
+}
+
+.compose-send-btn {
+    background: linear-gradient(135deg, #fbbf24, #d97706);
+    border: none;
+    border-radius: 10px;
+    color: #1e293b;
+    font-size: 0.875rem;
+    font-weight: 700;
+    padding: 0.5rem 0.95rem;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.compose-send-btn:hover:not(:disabled) {
+    opacity: 0.88;
+    transform: scale(1.03);
+}
+
+.compose-send-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Light theme */
+.light-theme .compose-panel {
+    background: #f1f5f9;
+    border-top: 1px solid #e2e8f0;
+}
+
+.light-theme .compose-filename {
+    color: #0f172a;
+}
+
+.light-theme .compose-filesize {
+    color: #64748b;
+}
+
+.light-theme .compose-cancel-btn {
+    color: #94a3b8;
+}
+
+.light-theme .compose-caption-input {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+.light-theme .compose-caption-input::placeholder {
+    color: #94a3b8;
+}
+
+.light-theme .compose-caption-input:focus {
+    border-color: #3b82f6;
+}
+
+/* =========================================
+   RECORDING UI
+   ========================================= */
+.recording-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.85rem;
+    background: rgba(239, 68, 68, 0.07);
+    border: 1px solid rgba(239, 68, 68, 0.18);
+    border-radius: 12px;
+    flex: 1;
+}
+
+.recording-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #ef4444;
+    flex-shrink: 0;
+    animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.15; }
+}
+
+.recording-time {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #ef4444;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+    min-width: 2.8rem;
+}
+
+.recording-label {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.45);
+    flex: 1;
+}
+
+.light-theme .recording-label {
+    color: #64748b;
+}
+
+.recording-stop-btn {
+    background: #ef4444;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s, transform 0.15s;
+}
+
+.recording-stop-btn:hover {
+    background: #dc2626;
+    transform: scale(1.08);
+}
+
+/* Mic button */
+.chat-mic-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.45);
+    cursor: pointer;
+    padding: 0.45rem;
+    border-radius: 8px;
+    transition: color 0.15s, background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.chat-mic-btn:hover {
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.1);
+}
+
+.chat-mic-btn.recording {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+    animation: micPulse 1s ease-in-out infinite;
+}
+
+@keyframes micPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
+    50%       { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+}
+
+.light-theme .chat-mic-btn {
+    color: #94a3b8;
+}
+
+.light-theme .chat-mic-btn:hover {
+    color: #d97706;
+    background: rgba(217, 119, 6, 0.08);
+}
+
+/* Caption text below attachment in message bubbles */
+.msg-caption {
+    margin: 0.3rem 0 0;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: rgba(255,255,255,0.85);
+    word-break: break-word;
+}
+
+.light-theme .msg-caption {
+    color: #1e293b;
+}
+
 .chat-msg.assistant .msg-label {
     color: #a78bfa;
 }

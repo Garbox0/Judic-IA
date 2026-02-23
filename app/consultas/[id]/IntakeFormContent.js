@@ -22,9 +22,6 @@ export default function IntakeFormContent({ id }) {
     const [messageInput, setMessageInput] = useState('');
     const [sending, setSending] = useState(false);
     const messagesEndRef = useRef(null);
-    const fileInputRef = useRef(null);
-    const [uploadingFile, setUploadingFile] = useState(false);
-    const [uploadError, setUploadError] = useState(null);
 
     // UI
     const [isLightMode, setIsLightMode] = useState(true);
@@ -190,6 +187,20 @@ export default function IntakeFormContent({ id }) {
     };
 
     // Envío de mensajes en el chat
+    const refreshMessages = useCallback(async () => {
+        const activeCid = cidRef.current;
+        if (!activeCid) return;
+        try {
+            const res = await fetch(`/api/intake/messages?cid=${activeCid}`);
+            if (res.ok) {
+                const data = await res.json();
+                setMessages(data.messages || []);
+            }
+        } catch (err) {
+            console.error('Error al refrescar mensajes:', err);
+        }
+    }, []);
+
     const handleSendMessage = useCallback(async (e) => {
         e.preventDefault();
         const activeCid = cidRef.current;
@@ -215,60 +226,13 @@ export default function IntakeFormContent({ id }) {
                     clientPhone
                 })
             });
-
-            // Actualizar mensajes inmediatamente después de enviar
-            const res = await fetch(`/api/intake/messages?cid=${activeCid}`);
-            if (res.ok) {
-                const data = await res.json();
-                setMessages(data.messages || []);
-            }
+            await refreshMessages();
         } catch (err) {
             console.error('Error al enviar mensaje:', err);
         } finally {
             setSending(false);
         }
-    }, [messageInput, sending, id, clientEmail, clientName, clientPhone]);
-
-    const uploadFile = useCallback(async (file) => {
-        const activeCid = cidRef.current;
-        if (!file || !activeCid) return;
-
-        setUploadError(null);
-        setUploadingFile(true);
-        try {
-            const form = new FormData();
-            form.append('file', file);
-            form.append('inquiryId', activeCid);
-            form.append('role', 'user');
-
-            const res = await fetch('/api/chat/upload', { method: 'POST', body: form });
-            if (!res.ok) {
-                if (res.status === 413) {
-                    setUploadError('El archivo es demasiado grande para enviar.');
-                } else {
-                    const data = await res.json().catch(() => ({}));
-                    setUploadError(data.error || 'Error al subir el archivo.');
-                }
-                return;
-            }
-            // Refrescar mensajes para mostrar el adjunto
-            const msgsRes = await fetch(`/api/intake/messages?cid=${activeCid}`);
-            if (msgsRes.ok) {
-                const msgsData = await msgsRes.json();
-                setMessages(msgsData.messages || []);
-            }
-        } catch {
-            setUploadError('Error de conexión al subir el archivo.');
-        } finally {
-            setUploadingFile(false);
-        }
-    }, [id]);
-
-    const handleFileInputChange = useCallback((e) => {
-        const file = e.target.files?.[0];
-        e.target.value = '';
-        if (file) uploadFile(file);
-    }, [uploadFile]);
+    }, [messageInput, sending, id, clientEmail, clientName, clientPhone, refreshMessages]);
 
     const toggleTheme = () => {
         setIsLightMode(prev => !prev);
@@ -406,11 +370,8 @@ export default function IntakeFormContent({ id }) {
                                 sending={sending}
                                 messagesEndRef={messagesEndRef}
                                 lawyerName={lawyer?.full_name}
-                                fileInputRef={fileInputRef}
-                                onFileChange={handleFileInputChange}
-                                onFileDrop={uploadFile}
-                                uploadingFile={uploadingFile}
-                                uploadError={uploadError}
+                                cid={cid}
+                                onMessagesRefresh={refreshMessages}
                             />
                         )}
                     </div>
@@ -588,11 +549,11 @@ function isImageFile(name) {
 }
 
 function isAudioFile(name) {
-    return /\.(mp3)$/i.test(name || '');
+    return /\.(mp3|webm|ogg|m4a)$/i.test(name || '');
 }
 
 function isVideoFile(name) {
-    return /\.(mp4)$/i.test(name || '');
+    return /\.(mp4|mov)$/i.test(name || '');
 }
 
 function getFileExt(name) {
@@ -620,23 +581,130 @@ async function downloadFile(url, name) {
 
 // ─── Chat anónimo ──────────────────────────────────────────────────────────────
 
-function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sending, messagesEndRef, lawyerName, fileInputRef, onFileChange, onFileDrop, uploadingFile, uploadError }) {
+function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sending, messagesEndRef, lawyerName, cid, onMessagesRefresh }) {
     const [isDragging, setIsDragging] = useState(false);
 
-    const getRoleBubbleClass = (role) => role === 'user' ? 'sent' : 'received';
+    // Compose panel state
+    const [pendingFile, setPendingFile] = useState(null);
+    const [pendingCaption, setPendingCaption] = useState('');
+    const [pendingPreviewUrl, setPendingPreviewUrl] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadError, setUploadError] = useState(null);
 
+    // Recording state
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingSeconds, setRecordingSeconds] = useState(0);
+    const mediaRecorderRef = useRef(null);
+    const audioChunksRef = useRef([]);
+    const recordingTimerRef = useRef(null);
+    const fileInputRef = useRef(null);
+
+    // Generate preview URL for file
+    useEffect(() => {
+        if (!pendingFile) { setPendingPreviewUrl(null); return; }
+        if (isImageFile(pendingFile.name) || isVideoFile(pendingFile.name) || isAudioFile(pendingFile.name)) {
+            const url = URL.createObjectURL(pendingFile);
+            setPendingPreviewUrl(url);
+            return () => URL.revokeObjectURL(url);
+        }
+        setPendingPreviewUrl(null);
+    }, [pendingFile]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            clearInterval(recordingTimerRef.current);
+            if (mediaRecorderRef.current?.state === 'recording') {
+                mediaRecorderRef.current.stop();
+            }
+        };
+    }, []);
+
+    const getRoleBubbleClass = (role) => role === 'user' ? 'sent' : 'received';
     const getRoleLabel = (role) => {
         if (role === 'lawyer') return lawyerName || 'Abogado';
         if (role === 'assistant') return 'Asistente IA';
         return null;
     };
+    const formatTime = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
     const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
     const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); if (!e.currentTarget.contains(e.relatedTarget)) setIsDragging(false); };
     const handleDrop = (e) => {
         e.preventDefault(); e.stopPropagation(); setIsDragging(false);
         const file = e.dataTransfer.files?.[0];
-        if (file && onFileDrop) onFileDrop(file);
+        if (file) { setPendingFile(file); setPendingCaption(''); setUploadError(null); }
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (file) { setPendingFile(file); setPendingCaption(''); setUploadError(null); }
+    };
+
+    const handleSendCompose = async () => {
+        if (!pendingFile || isUploading || !cid) return;
+        setIsUploading(true);
+        setUploadError(null);
+        try {
+            const form = new FormData();
+            form.append('file', pendingFile);
+            form.append('inquiryId', cid);
+            form.append('role', 'user');
+            if (pendingCaption.trim()) form.append('caption', pendingCaption.trim());
+
+            const res = await fetch('/api/chat/upload', { method: 'POST', body: form });
+            if (!res.ok) {
+                if (res.status === 413) {
+                    setUploadError('El archivo es demasiado grande para enviar.');
+                } else {
+                    const data = await res.json().catch(() => ({}));
+                    setUploadError(data.error || 'Error al subir el archivo.');
+                }
+                return;
+            }
+            setPendingFile(null);
+            setPendingCaption('');
+            await onMessagesRefresh();
+        } catch {
+            setUploadError('Error de conexión al subir el archivo.');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mr = new MediaRecorder(stream);
+            audioChunksRef.current = [];
+            mr.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+            mr.onstop = () => {
+                stream.getTracks().forEach(t => t.stop());
+                clearInterval(recordingTimerRef.current);
+                const mimeType = mr.mimeType || 'audio/webm';
+                const blob = new Blob(audioChunksRef.current, { type: mimeType });
+                const ext = mimeType.includes('ogg') ? 'ogg' : mimeType.includes('mp4') ? 'm4a' : 'webm';
+                const file = new File([blob], `audio-${Date.now()}.${ext}`, { type: mimeType });
+                setPendingFile(file);
+                setPendingCaption('');
+                setUploadError(null);
+                setIsRecording(false);
+            };
+            mr.start();
+            mediaRecorderRef.current = mr;
+            setIsRecording(true);
+            setRecordingSeconds(0);
+            recordingTimerRef.current = setInterval(() => setRecordingSeconds(s => s + 1), 1000);
+        } catch (err) {
+            console.error('No se pudo acceder al micrófono:', err);
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current?.state === 'recording') {
+            mediaRecorderRef.current.stop();
+        }
     };
 
     return (
@@ -652,7 +720,13 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                     <span>Soltá el archivo para adjuntarlo</span>
                 </div>
             )}
-            <div className="chat-messages-area">
+
+            <div
+                className="chat-messages-area"
+                role="log"
+                aria-live="polite"
+                aria-label="Historial de mensajes"
+            >
                 {messages.length === 0 && (
                     <div className="message-bubble received welcome-msg">
                         <p>Bienvenido. Escribí tu consulta y {lawyerName || 'el profesional'} te responderá a la brevedad.</p>
@@ -698,6 +772,9 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                                         <span className="msg-file-name">{msg.attachment_name || 'Archivo adjunto'}</span>
                                     </div>
                                 )}
+                                {msg.content && !msg.content.startsWith('📎') && (
+                                    <p className="msg-caption">{msg.content}</p>
+                                )}
                                 <div className="msg-file-actions">
                                     {!isImageFile(msg.attachment_name) && !isAudioFile(msg.attachment_name) && !isVideoFile(msg.attachment_name) && (
                                         <a
@@ -730,55 +807,137 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                 <div ref={messagesEndRef} />
             </div>
 
+            {/* Compose panel: file preview before sending */}
+            {pendingFile && (
+                <div className="compose-panel">
+                    <div className="compose-preview-row">
+                        {isImageFile(pendingFile.name) && pendingPreviewUrl ? (
+                            <img src={pendingPreviewUrl} alt="Vista previa" className="compose-thumb" />
+                        ) : isVideoFile(pendingFile.name) && pendingPreviewUrl ? (
+                            <video src={pendingPreviewUrl} className="compose-thumb" muted aria-hidden="true" />
+                        ) : (
+                            <div className="compose-file-icon">
+                                {isAudioFile(pendingFile.name) ? (
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                                ) : (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                )}
+                                <span className="compose-file-ext">{getFileExt(pendingFile.name)}</span>
+                            </div>
+                        )}
+                        <div className="compose-file-details">
+                            <span className="compose-filename">{pendingFile.name}</span>
+                            <span className="compose-filesize">{(pendingFile.size / 1024 / 1024).toFixed(1)} MB</span>
+                        </div>
+                        <button
+                            type="button"
+                            className="compose-cancel-btn"
+                            onClick={() => { setPendingFile(null); setPendingCaption(''); setUploadError(null); }}
+                            aria-label="Cancelar adjunto"
+                        >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    <div className="compose-caption-row">
+                        <input
+                            type="text"
+                            className="compose-caption-input"
+                            placeholder="Agregar descripción (opcional)..."
+                            value={pendingCaption}
+                            onChange={(e) => setPendingCaption(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendCompose(); } }}
+                            maxLength={500}
+                            aria-label="Descripción del archivo"
+                            autoFocus
+                        />
+                        <button
+                            type="button"
+                            className="compose-send-btn"
+                            onClick={handleSendCompose}
+                            disabled={isUploading}
+                            aria-label="Enviar archivo"
+                        >
+                            {isUploading ? 'Enviando...' : 'Enviar'}
+                        </button>
+                    </div>
+                    {uploadError && (
+                        <div className="chat-upload-error" role="alert" aria-live="assertive">{uploadError}</div>
+                    )}
+                </div>
+            )}
+
             <form className="chat-input-area" onSubmit={onSend}>
-                {uploadError && (
-                    <div className="chat-upload-error" role="alert" aria-live="assertive">{uploadError}</div>
-                )}
                 <div className="chat-input-row">
-                    <input
-                        type="text"
-                        className="chat-input"
-                        placeholder="Escribí tu mensaje..."
-                        value={messageInput}
-                        onChange={(e) => setMessageInput(e.target.value)}
-                        disabled={sending}
-                        maxLength={5000}
-                        aria-label="Escribí tu mensaje"
-                    />
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        className="sr-only"
-                        accept=".pdf,.jpg,.jpeg,.png,.webp,.mp4,.mp3,.docx,.txt"
-                        onChange={onFileChange}
-                        aria-label="Adjuntar archivo"
-                    />
-                    <button
-                        type="button"
-                        className="chat-attach-btn"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploadingFile}
-                        title="Adjuntar archivo (PDF, imagen, DOCX — máx. 10 MB)"
-                        aria-label="Adjuntar archivo"
-                    >
-                        {uploadingFile ? (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                        ) : (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                        )}
-                    </button>
-                    <button
-                        type="submit"
-                        className="chat-send-btn"
-                        disabled={sending || !messageInput.trim()}
-                        aria-label="Enviar mensaje"
-                    >
-                        {sending ? (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                        ) : (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                        )}
-                    </button>
+                    {isRecording ? (
+                        <>
+                            <div className="recording-bar" role="status" aria-live="polite" aria-label={`Grabando: ${formatTime(recordingSeconds)}`}>
+                                <span className="recording-dot" aria-hidden="true" />
+                                <span className="recording-time">{formatTime(recordingSeconds)}</span>
+                                <span className="recording-label">Grabando audio...</span>
+                            </div>
+                            <button
+                                type="button"
+                                className="recording-stop-btn"
+                                onClick={stopRecording}
+                                aria-label="Detener grabación"
+                            >
+                                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true"><rect width="10" height="10" rx="2"/></svg>
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <input
+                                type="text"
+                                className="chat-input"
+                                placeholder="Escribí tu mensaje..."
+                                value={messageInput}
+                                onChange={(e) => setMessageInput(e.target.value)}
+                                disabled={sending}
+                                maxLength={5000}
+                                aria-label="Escribí tu mensaje"
+                            />
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                className="sr-only"
+                                accept=".pdf,.jpg,.jpeg,.png,.webp,.mp4,.mp3,.webm,.ogg,.m4a,.docx,.txt"
+                                onChange={handleFileChange}
+                                aria-label="Adjuntar archivo"
+                            />
+                            <button
+                                type="button"
+                                className="chat-attach-btn"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={!!pendingFile}
+                                title="Adjuntar archivo"
+                                aria-label="Adjuntar archivo"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                            </button>
+                            <button
+                                type="button"
+                                className="chat-mic-btn"
+                                onClick={startRecording}
+                                disabled={!!pendingFile}
+                                aria-label="Grabar audio"
+                                title="Grabar nota de voz"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                            </button>
+                            <button
+                                type="submit"
+                                className="chat-send-btn"
+                                disabled={sending || !messageInput.trim()}
+                                aria-label="Enviar mensaje"
+                            >
+                                {sending ? (
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                                ) : (
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                )}
+                            </button>
+                        </>
+                    )}
                 </div>
             </form>
         </div>

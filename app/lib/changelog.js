@@ -34,6 +34,15 @@
 
 export const CHANGELOG = [
     {
+        id: 6,
+        date: "22 Feb 2026",
+        badge: "Nuevo",
+        items: [
+            "Vista previa antes de enviar: al adjuntar un archivo podés escribir una descripción o enviarlo tal cual, como en WhatsApp",
+            "Grabación de notas de voz directamente desde el chat con un botón de micrófono",
+        ],
+    },
+    {
         id: 5,
         date: "22 Feb 2026",
         badge: "Mejora",
