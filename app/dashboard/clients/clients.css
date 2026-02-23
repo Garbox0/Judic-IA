@@ -1770,7 +1770,7 @@ body.light-theme .smart-link-mini {
     right: 0.4rem;
     background: none;
     border: none;
-    color: rgba(255,255,255,0.22);
+    color: rgba(255,255,255,0.55);
     cursor: pointer;
     padding: 0.2rem;
     border-radius: 4px;
@@ -1786,9 +1786,12 @@ body.light-theme .smart-link-mini {
     display: flex;
 }
 
-.msg-edit-btn:hover {
+.msg-edit-btn:hover,
+.msg-edit-btn:focus-visible {
     color: #3b82f6;
     background: rgba(59, 130, 246, 0.1);
+    outline: 2px solid rgba(59, 130, 246, 0.35);
+    outline-offset: 1px;
 }
 
 .msg-edit-row {

@@ -375,7 +375,7 @@ export default function CaseDetailPage({ params }) {
                                             <span className="file-meta">
                                                 {new Date(file.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                                                 {file.from_chat && (
-                                                    <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', background: 'rgba(251,191,36,0.15)', color: '#fbbf24', padding: '1px 6px', borderRadius: '99px', border: '1px solid rgba(251,191,36,0.25)' }}>
+                                                    <span aria-label={file.chat_role === 'lawyer' ? 'Enviado por vos en el chat' : 'Enviado por el cliente en el chat'} style={{ marginLeft: '0.5rem', fontSize: '0.7rem', background: 'rgba(251,191,36,0.2)', color: '#f5c842', padding: '1px 6px', borderRadius: '99px', border: '1px solid rgba(251,191,36,0.4)' }}>
                                                         {file.chat_role === 'lawyer' ? 'Enviado por vos' : 'Del cliente'}
                                                     </span>
                                                 )}
@@ -385,9 +385,10 @@ export default function CaseDetailPage({ params }) {
                                             <button
                                                 className="btn-delete-file-mini"
                                                 onClick={() => handleDeleteAttachment(file.id, file.file_name)}
+                                                aria-label={`Eliminar archivo ${file.file_name}`}
                                                 title="Eliminar archivo"
                                             >
-                                                <Trash2 size={14} />
+                                                <Trash2 size={14} aria-hidden="true" />
                                             </button>
                                         )}
                                     </div>

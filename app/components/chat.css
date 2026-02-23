@@ -1037,7 +1037,7 @@
     right: 0.4rem;
     background: none;
     border: none;
-    color: rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.55);
     cursor: pointer;
     padding: 0.2rem;
     border-radius: 4px;
@@ -1053,13 +1053,16 @@
     display: flex;
 }
 
-.msg-edit-btn:hover {
+.msg-edit-btn:hover,
+.msg-edit-btn:focus-visible {
     color: #fbbf24;
     background: rgba(251, 191, 36, 0.1);
+    outline: 2px solid rgba(251, 191, 36, 0.4);
+    outline-offset: 1px;
 }
 
 .light-theme .msg-edit-btn {
-    color: rgba(0,0,0,0.2);
+    color: rgba(0,0,0,0.45);
 }
 
 .light-theme .msg-edit-btn:hover {
