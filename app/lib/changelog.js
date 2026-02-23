@@ -34,6 +34,28 @@
 
 export const CHANGELOG = [
     {
+        id: 8,
+        date: "23 Feb 2026",
+        badge: "Nuevo",
+        items: [
+            "Podés registrar más de una matrícula: si ejercés en varios colegios o provincias, agregá todas tus matrículas al perfil y cada una se verifica de forma independiente",
+            "Al elegir 'Otro' colegio ahora seleccionás la provincia y escribís el nombre del colegio por separado, para que aparezcas correctamente en las búsquedas del marketplace",
+            "Las matrículas verificadas se muestran como insignias en tu perfil público",
+            "Las zonas de cobertura se actualizan automáticamente a medida que tus matrículas son verificadas",
+        ],
+    },
+    {
+        id: 7,
+        date: "23 Feb 2026",
+        badge: "Mejora",
+        items: [
+            "Rediseño del chat del abogado: interfaz más ordenada, botones alineados y de tamaño uniforme",
+            "Los mensajes que enviás destacan más visualmente con una sombra dorada",
+            "Fondo más limpio en la conversación, más fácil de leer en sesiones largas",
+            "Panel de detalles del cliente con mejor separación visual",
+        ],
+    },
+    {
         id: 6,
         date: "22 Feb 2026",
         badge: "Nuevo",
