@@ -606,12 +606,12 @@ async function downloadFile(url, name) {
 function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sending, messagesEndRef, lawyerName, cid, onMessagesRefresh }) {
     const [isDragging, setIsDragging] = useState(false);
 
-    // Compose panel state
-    const [pendingFile, setPendingFile] = useState(null);
-    const [pendingCaption, setPendingCaption] = useState('');
-    const [pendingPreviewUrl, setPendingPreviewUrl] = useState(null);
+    // Compose panel state (multi-file)
+    const [pendingFiles, setPendingFiles] = useState([]);
+    const [activeFileIdx, setActiveFileIdx] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState(null);
+    const pendingFilesRef = useRef([]);
 
     // Recording state
     const [isRecording, setIsRecording] = useState(false);
@@ -621,24 +621,26 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
     const recordingTimerRef = useRef(null);
     const fileInputRef = useRef(null);
 
-    // Generate preview URL for file
-    useEffect(() => {
-        if (!pendingFile) { setPendingPreviewUrl(null); return; }
-        if (isImageFile(pendingFile.name) || isVideoFile(pendingFile.name) || isAudioFile(pendingFile.name)) {
-            const url = URL.createObjectURL(pendingFile);
-            setPendingPreviewUrl(url);
-            return () => URL.revokeObjectURL(url);
-        }
-        setPendingPreviewUrl(null);
-    }, [pendingFile]);
+    // Waveform refs
+    const analyserRef = useRef(null);
+    const audioCtxRef = useRef(null);
+    const waveformCanvasRef = useRef(null);
+    const animFrameRef = useRef(null);
 
     // Cleanup on unmount
+    useEffect(() => {
+        pendingFilesRef.current = pendingFiles;
+    }, [pendingFiles]);
+
     useEffect(() => {
         return () => {
             clearInterval(recordingTimerRef.current);
             if (mediaRecorderRef.current?.state === 'recording') {
                 mediaRecorderRef.current.stop();
             }
+            if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+            if (audioCtxRef.current) audioCtxRef.current.close().catch(() => {});
+            pendingFilesRef.current.forEach(pf => { if (pf.previewUrl) URL.revokeObjectURL(pf.previewUrl); });
         };
     }, []);
 
@@ -693,66 +695,126 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
 
     const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
     const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); if (!e.currentTarget.contains(e.relatedTarget)) setIsDragging(false); };
-    const handleDrop = (e) => {
-        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
-        const file = e.dataTransfer.files?.[0];
-        if (file) { setPendingFile(file); setPendingCaption(''); setUploadError(null); }
+
+    const addFilesToPending = (files) => {
+        const newEntries = [];
+        for (const file of files) {
+            if (isAudioFile(file.name)) {
+                // Audio → upload immediately, no compose
+                uploadFile(file, '');
+            } else {
+                const previewUrl = (isImageFile(file.name) || isVideoFile(file.name)) ? URL.createObjectURL(file) : null;
+                newEntries.push({ id: `${Date.now()}-${Math.random()}`, file, caption: '', previewUrl });
+            }
+        }
+        if (newEntries.length > 0) {
+            setPendingFiles(prev => {
+                const combined = [...prev, ...newEntries].slice(0, 5);
+                setActiveFileIdx(combined.length - 1);
+                return combined;
+            });
+        }
+        setUploadError(null);
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files?.[0];
-        e.target.value = '';
-        if (file) { setPendingFile(file); setPendingCaption(''); setUploadError(null); }
+    const removePendingFile = (idx) => {
+        setPendingFiles(prev => {
+            const pf = prev[idx];
+            if (pf?.previewUrl) URL.revokeObjectURL(pf.previewUrl);
+            const next = prev.filter((_, i) => i !== idx);
+            setActiveFileIdx(i => Math.min(i, Math.max(0, next.length - 1)));
+            return next;
+        });
     };
 
-    const handleSendCompose = async () => {
-        if (!pendingFile || isUploading || !cid) return;
+    const updateActiveCaption = (caption) => {
+        setPendingFiles(prev => prev.map((pf, i) => i === activeFileIdx ? { ...pf, caption } : pf));
+    };
+
+    const uploadFile = async (file, caption) => {
+        if (!cid) return;
         setIsUploading(true);
         setUploadError(null);
         try {
             const form = new FormData();
-            form.append('file', pendingFile);
+            form.append('file', file);
             form.append('inquiryId', cid);
             form.append('role', 'user');
-            if (pendingCaption.trim()) form.append('caption', pendingCaption.trim());
-
+            if (caption?.trim()) form.append('caption', caption.trim());
             const res = await fetch('/api/chat/upload', { method: 'POST', body: form });
             if (!res.ok) {
-                if (res.status === 413) {
-                    setUploadError('El archivo es demasiado grande para enviar.');
-                } else {
-                    const data = await res.json().catch(() => ({}));
-                    setUploadError(data.error || 'Error al subir el archivo.');
-                }
+                if (res.status === 413) setUploadError('El archivo es demasiado grande para enviar.');
+                else { const d = await res.json().catch(() => ({})); setUploadError(d.error || 'Error al subir el archivo.'); }
                 return;
             }
-            setPendingFile(null);
-            setPendingCaption('');
             await onMessagesRefresh();
-        } catch {
-            setUploadError('Error de conexión al subir el archivo.');
-        } finally {
-            setIsUploading(false);
-        }
+        } catch { setUploadError('Error de conexión al subir el archivo.'); }
+        finally { setIsUploading(false); }
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+        const files = Array.from(e.dataTransfer.files || []);
+        if (files.length > 0) addFilesToPending(files);
+    };
+
+    const handleFileChange = (e) => {
+        const files = Array.from(e.target.files || []);
+        e.target.value = '';
+        if (files.length > 0) addFilesToPending(files);
     };
 
     const startRecording = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // Web Audio API for live waveform
+            const audioCtx = new AudioContext();
+            audioCtxRef.current = audioCtx;
+            const source = audioCtx.createMediaStreamSource(stream);
+            const analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 128;
+            source.connect(analyser);
+            analyserRef.current = analyser;
+
+            const drawWaveform = () => {
+                const canvas = waveformCanvasRef.current;
+                if (!canvas || !analyserRef.current) {
+                    animFrameRef.current = requestAnimationFrame(drawWaveform);
+                    return;
+                }
+                const dpr = window.devicePixelRatio || 1;
+                const w = canvas.clientWidth || 180;
+                const h = canvas.clientHeight || 28;
+                if (canvas.width !== w * dpr) { canvas.width = w * dpr; canvas.height = h * dpr; }
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const data = new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(data);
+                const barW = canvas.width / data.length;
+                data.forEach((val, i) => {
+                    const barH = Math.max(2 * dpr, (val / 255) * canvas.height);
+                    ctx.fillStyle = `rgba(251,191,36,${0.3 + (val / 255) * 0.7})`;
+                    ctx.fillRect(i * barW, canvas.height - barH, Math.max(1, barW - 1.5 * dpr), barH);
+                });
+                animFrameRef.current = requestAnimationFrame(drawWaveform);
+            };
+            drawWaveform();
+
             const mr = new MediaRecorder(stream);
             audioChunksRef.current = [];
             mr.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
             mr.onstop = () => {
                 stream.getTracks().forEach(t => t.stop());
                 clearInterval(recordingTimerRef.current);
+                if (animFrameRef.current) { cancelAnimationFrame(animFrameRef.current); animFrameRef.current = null; }
+                if (audioCtxRef.current) { audioCtxRef.current.close().catch(() => {}); audioCtxRef.current = null; }
+                analyserRef.current = null;
+                setIsRecording(false);
                 const mimeType = mr.mimeType || 'audio/webm';
                 const blob = new Blob(audioChunksRef.current, { type: mimeType });
                 const ext = mimeType.includes('ogg') ? 'ogg' : mimeType.includes('mp4') ? 'm4a' : 'webm';
                 const file = new File([blob], `audio-${Date.now()}.${ext}`, { type: mimeType });
-                setPendingFile(file);
-                setPendingCaption('');
-                setUploadError(null);
-                setIsRecording(false);
+                uploadFile(file, '');
             };
             mr.start();
             mediaRecorderRef.current = mr;
@@ -876,73 +938,92 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Compose panel: file preview before sending */}
-            {pendingFile && (
-                <div className="compose-panel">
-                    <div className="compose-preview-row">
-                        {isImageFile(pendingFile.name) && pendingPreviewUrl ? (
-                            <img src={pendingPreviewUrl} alt="Vista previa" className="compose-thumb" />
-                        ) : isVideoFile(pendingFile.name) && pendingPreviewUrl ? (
-                            <video src={pendingPreviewUrl} className="compose-thumb" muted aria-hidden="true" />
-                        ) : (
-                            <div className="compose-file-icon">
-                                {isAudioFile(pendingFile.name) ? (
-                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                                ) : (
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                )}
-                                <span className="compose-file-ext">{getFileExt(pendingFile.name)}</span>
-                            </div>
-                        )}
-                        <div className="compose-file-details">
-                            <span className="compose-filename">{pendingFile.name}</span>
-                            <span className="compose-filesize">{(pendingFile.size / 1024 / 1024).toFixed(1)} MB</span>
+            {/* Compose bar: multi-file preview before sending */}
+            {pendingFiles.length > 0 && (() => {
+                const af = pendingFiles[activeFileIdx];
+                return (
+                    <div className="compose-files-bar">
+                        {/* Active file preview */}
+                        <div className="compose-active-preview">
+                            {af.previewUrl && isImageFile(af.file.name) ? (
+                                <img src={af.previewUrl} alt="Vista previa" className="compose-active-img" />
+                            ) : af.previewUrl && isVideoFile(af.file.name) ? (
+                                <video src={af.previewUrl} className="compose-active-img" muted aria-hidden="true" />
+                            ) : (
+                                <div className="compose-active-file">
+                                    <span className="compose-active-ext">{getFileExt(af.file.name).toUpperCase()}</span>
+                                    <span className="compose-active-name">{af.file.name}</span>
+                                    <span className="compose-active-size">{(af.file.size / 1024 / 1024).toFixed(1)} MB</span>
+                                </div>
+                            )}
                         </div>
-                        <button
-                            type="button"
-                            className="compose-cancel-btn"
-                            onClick={() => { setPendingFile(null); setPendingCaption(''); setUploadError(null); }}
-                            aria-label="Cancelar adjunto"
-                        >
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        </button>
+                        {/* Thumbnail strip */}
+                        <div className="compose-strip" role="list" aria-label="Archivos adjuntos">
+                            {pendingFiles.map((pf, i) => (
+                                <div key={pf.id} className={`compose-strip-item${i === activeFileIdx ? ' active' : ''}`} role="listitem">
+                                    <div
+                                        className="compose-strip-thumb"
+                                        onClick={() => setActiveFileIdx(i)}
+                                        aria-label={`Archivo ${i + 1}: ${pf.file.name}`}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && setActiveFileIdx(i)}
+                                    >
+                                        {pf.previewUrl && isImageFile(pf.file.name) ? (
+                                            <img src={pf.previewUrl} alt={pf.file.name} />
+                                        ) : pf.previewUrl && isVideoFile(pf.file.name) ? (
+                                            <video src={pf.previewUrl} muted aria-hidden="true" />
+                                        ) : (
+                                            <span className="compose-strip-ext">{getFileExt(pf.file.name).toUpperCase()}</span>
+                                        )}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="compose-strip-remove"
+                                        onClick={() => removePendingFile(i)}
+                                        aria-label={`Quitar archivo ${i + 1}`}
+                                    >×</button>
+                                </div>
+                            ))}
+                            {pendingFiles.length < 5 && (
+                                <button
+                                    type="button"
+                                    className="compose-strip-add"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    aria-label="Agregar otro archivo"
+                                    title="Agregar más archivos"
+                                >+</button>
+                            )}
+                        </div>
+                        {uploadError && (
+                            <p className="compose-chip-error" role="alert">{uploadError}</p>
+                        )}
                     </div>
-                    <div className="compose-caption-row">
-                        <input
-                            type="text"
-                            className="compose-caption-input"
-                            placeholder="Agregar descripción (opcional)..."
-                            value={pendingCaption}
-                            onChange={(e) => setPendingCaption(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendCompose(); } }}
-                            maxLength={500}
-                            aria-label="Descripción del archivo"
-                            autoFocus
-                        />
-                        <button
-                            type="button"
-                            className="compose-send-btn"
-                            onClick={handleSendCompose}
-                            disabled={isUploading}
-                            aria-label="Enviar archivo"
-                        >
-                            {isUploading ? 'Enviando...' : 'Enviar'}
-                        </button>
-                    </div>
-                    {uploadError && (
-                        <div className="chat-upload-error" role="alert" aria-live="assertive">{uploadError}</div>
-                    )}
-                </div>
-            )}
+                );
+            })()}
 
-            <form className="chat-input-area" onSubmit={onSend}>
+            <form className="chat-input-area" onSubmit={async (e) => {
+                e.preventDefault();
+                if (pendingFiles.length > 0) {
+                    const files = [...pendingFiles];
+                    setPendingFiles([]);
+                    setActiveFileIdx(0);
+                    pendingFilesRef.current = [];
+                    for (const pf of files) {
+                        await uploadFile(pf.file, pf.caption);
+                        if (pf.previewUrl) URL.revokeObjectURL(pf.previewUrl);
+                    }
+                    return;
+                }
+                onSend(e);
+            }}>
                 <div className="chat-input-row">
                     {isRecording ? (
                         <>
                             <div className="recording-bar" role="status" aria-live="polite" aria-label={`Grabando: ${formatTime(recordingSeconds)}`}>
                                 <span className="recording-dot" aria-hidden="true" />
                                 <span className="recording-time">{formatTime(recordingSeconds)}</span>
-                                <span className="recording-label">Grabando audio...</span>
+                                <canvas ref={waveformCanvasRef} className="recording-waveform" aria-hidden="true" />
                             </div>
                             <button
                                 type="button"
@@ -958,16 +1039,17 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                             <input
                                 type="text"
                                 className="chat-input"
-                                placeholder="Escribí tu mensaje..."
-                                value={messageInput}
-                                onChange={(e) => setMessageInput(e.target.value)}
+                                placeholder={pendingFiles.length > 0 ? 'Agregar descripción (opcional)...' : 'Escribí tu mensaje...'}
+                                value={pendingFiles.length > 0 ? (pendingFiles[activeFileIdx]?.caption ?? '') : messageInput}
+                                onChange={(e) => pendingFiles.length > 0 ? updateActiveCaption(e.target.value) : setMessageInput(e.target.value)}
                                 disabled={sending}
-                                maxLength={5000}
-                                aria-label="Escribí tu mensaje"
+                                maxLength={pendingFiles.length > 0 ? 500 : 5000}
+                                aria-label={pendingFiles.length > 0 ? 'Descripción del archivo' : 'Escribí tu mensaje'}
                             />
                             <input
                                 ref={fileInputRef}
                                 type="file"
+                                multiple
                                 className="sr-only"
                                 accept=".pdf,.jpg,.jpeg,.png,.webp,.mp4,.mp3,.webm,.ogg,.m4a,.docx,.txt"
                                 onChange={handleFileChange}
@@ -977,7 +1059,6 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                                 type="button"
                                 className="chat-attach-btn"
                                 onClick={() => fileInputRef.current?.click()}
-                                disabled={!!pendingFile}
                                 title="Adjuntar archivo"
                                 aria-label="Adjuntar archivo"
                             >
@@ -987,7 +1068,6 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                                 type="button"
                                 className="chat-mic-btn"
                                 onClick={startRecording}
-                                disabled={!!pendingFile}
                                 aria-label="Grabar audio"
                                 title="Grabar nota de voz"
                             >
@@ -996,10 +1076,10 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                             <button
                                 type="submit"
                                 className="chat-send-btn"
-                                disabled={sending || !messageInput.trim()}
+                                disabled={sending || isUploading || (!messageInput.trim() && !pendingFiles.length)}
                                 aria-label="Enviar mensaje"
                             >
-                                {sending ? (
+                                {(sending || isUploading) ? (
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                                 ) : (
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
