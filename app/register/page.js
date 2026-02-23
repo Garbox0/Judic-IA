@@ -32,6 +32,14 @@ export default function RegisterPage() {
     const [message, setMessage] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const PROVINCES = [
+        'CABA', 'Buenos Aires', 'Catamarca', 'Chaco', 'Chubut',
+        'Córdoba', 'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy',
+        'La Pampa', 'La Rioja', 'Mendoza', 'Misiones', 'Neuquén',
+        'Río Negro', 'Salta', 'San Juan', 'San Luis', 'Santa Cruz',
+        'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego', 'Tucumán'
+    ];
+
     const COLEGIO_ZONA_MAP = {
         'CPACF (Capital Federal)': 'Capital Federal',
         'CASI (San Isidro)': 'Buenos Aires',
@@ -44,11 +52,14 @@ export default function RegisterPage() {
         setMatriculas(prev => prev.map((m, i) => {
             if (i !== index) return m;
             const updated = { ...m, [field]: value };
-            if (field === 'colegio' && value !== 'Otro') {
-                updated.zona = COLEGIO_ZONA_MAP[value] || value;
+            if (field === 'colegio') {
+                if (value !== 'Otro') {
+                    updated.zona = COLEGIO_ZONA_MAP[value] || value;
+                } else {
+                    updated.zona = '';
+                }
                 updated.custom = '';
             }
-            if (field === 'custom') updated.zona = value;
             return updated;
         }));
     };
@@ -307,7 +318,8 @@ export default function RegisterPage() {
         for (let i = 0; i < matriculas.length; i++) {
             const m = matriculas[i];
             if (!m.colegio) { setError(`Seleccioná el colegio para la matrícula ${i + 1}.`); return; }
-            if (m.colegio === 'Otro' && !m.custom.trim()) { setError(`Especificá el colegio para la matrícula ${i + 1}.`); return; }
+            if (m.colegio === 'Otro' && !m.zona) { setError(`Seleccioná la provincia para la matrícula ${i + 1}.`); return; }
+            if (m.colegio === 'Otro' && !m.custom.trim()) { setError(`Especificá el nombre del colegio para la matrícula ${i + 1}.`); return; }
             if (!m.tomo) { setError(`Ingresá el Tomo para la matrícula ${i + 1}.`); return; }
             if (!m.folio) { setError(`Ingresá el Folio para la matrícula ${i + 1}.`); return; }
         }
@@ -558,17 +570,31 @@ export default function RegisterPage() {
                                         </select>
                                     </div>
                                     {m.colegio === 'Otro' && (
-                                        <div className="register-field full-width slide-up">
-                                            <label htmlFor={`custom-${idx}`}>Especificar Colegio / Jurisdicción</label>
-                                            <input
-                                                id={`custom-${idx}`}
-                                                type="text"
-                                                placeholder="Ej: Colegio de Abogados de Tucumán"
-                                                value={m.custom}
-                                                onChange={e => updateMatricula(idx, 'custom', e.target.value)}
-                                                required
-                                            />
-                                        </div>
+                                        <>
+                                            <div className="register-field full-width slide-up">
+                                                <label htmlFor={`zona-${idx}`}>Provincia</label>
+                                                <select
+                                                    id={`zona-${idx}`}
+                                                    value={m.zona}
+                                                    onChange={e => updateMatricula(idx, 'zona', e.target.value)}
+                                                    required
+                                                >
+                                                    <option value="">Seleccionar provincia...</option>
+                                                    {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                                                </select>
+                                            </div>
+                                            <div className="register-field full-width slide-up">
+                                                <label htmlFor={`custom-${idx}`}>Nombre del Colegio</label>
+                                                <input
+                                                    id={`custom-${idx}`}
+                                                    type="text"
+                                                    placeholder="Ej: Colegio de Abogados de Tucumán"
+                                                    value={m.custom}
+                                                    onChange={e => updateMatricula(idx, 'custom', e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                        </>
                                     )}
                                     <div className="register-field-row">
                                         <div className="flex-1">

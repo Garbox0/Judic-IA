@@ -167,11 +167,14 @@ export default function SettingsPage({ isDemo = false }) {
             matriculas: prev.matriculas.map((m, i) => {
                 if (i !== index) return m;
                 const updated = { ...m, [field]: value };
-                if (field === 'colegio' && value !== 'Otro') {
-                    updated.zona = COLEGIO_ZONA_MAP[value] || value;
+                if (field === 'colegio') {
+                    if (value !== 'Otro') {
+                        updated.zona = COLEGIO_ZONA_MAP[value] || value;
+                    } else {
+                        updated.zona = '';
+                    }
                     updated.custom = '';
                 }
-                if (field === 'custom') updated.zona = value;
                 if (m.status === 'rejected') { updated.status = 'pending'; updated.rejection_reason = null; }
                 return updated;
             })
@@ -914,17 +917,31 @@ export default function SettingsPage({ isDemo = false }) {
                                                             </div>
                                                         </div>
                                                         {!isVerified && m.colegio === 'Otro' && (
-                                                            <div className="stg-f-group" style={{ marginTop: '0.5rem' }}>
-                                                                <label htmlFor={`m-custom-${idx}`} className="stg-label">Especificar Colegio</label>
-                                                                <input
-                                                                    id={`m-custom-${idx}`}
-                                                                    className="stg-dark-input underline"
-                                                                    type="text"
-                                                                    placeholder="Ej: Colegio de Abogados de Tucumán"
-                                                                    value={m.custom || ''}
-                                                                    onChange={e => updateMatricula(idx, 'custom', e.target.value)}
-                                                                />
-                                                            </div>
+                                                            <>
+                                                                <div className="stg-f-group" style={{ marginTop: '0.5rem' }}>
+                                                                    <label htmlFor={`m-zona-${idx}`} className="stg-label">Provincia</label>
+                                                                    <select
+                                                                        id={`m-zona-${idx}`}
+                                                                        className="stg-dark-input underline"
+                                                                        value={m.zona || ''}
+                                                                        onChange={e => updateMatricula(idx, 'zona', e.target.value)}
+                                                                    >
+                                                                        <option value="">Seleccionar provincia...</option>
+                                                                        {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                                                                    </select>
+                                                                </div>
+                                                                <div className="stg-f-group" style={{ marginTop: '0.5rem' }}>
+                                                                    <label htmlFor={`m-custom-${idx}`} className="stg-label">Nombre del Colegio</label>
+                                                                    <input
+                                                                        id={`m-custom-${idx}`}
+                                                                        className="stg-dark-input underline"
+                                                                        type="text"
+                                                                        placeholder="Ej: Colegio de Abogados de Tucumán"
+                                                                        value={m.custom || ''}
+                                                                        onChange={e => updateMatricula(idx, 'custom', e.target.value)}
+                                                                    />
+                                                                </div>
+                                                            </>
                                                         )}
                                                     </fieldset>
                                                 );
