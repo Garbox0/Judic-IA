@@ -558,10 +558,15 @@ body.light-theme .clients-rejection-reason span {
     box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
 }
 
+.chat-input-area form {
+    width: 100%;
+}
+
 .input-row {
     display: flex;
     align-items: center;
     gap: 0.6rem;
+    width: 100%;
     max-width: 1000px;
     margin: 0 auto;
 }
