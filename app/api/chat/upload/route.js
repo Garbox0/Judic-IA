@@ -71,8 +71,9 @@ export async function POST(request) {
         return NextResponse.json({ error: 'Faltan parámetros: file e inquiryId' }, { status: 400 });
     }
 
-    // 3. Validar tipo
-    const mimeType = file.type;
+    // 3. Validar tipo — normalizar MIME (e.g. "audio/webm;codecs=opus" → "audio/webm")
+    const rawMime = file.type;
+    const mimeType = rawMime.split(';')[0].trim().toLowerCase();
     const ext = ALLOWED_TYPES[mimeType];
     if (!ext) {
         return NextResponse.json({
