@@ -90,12 +90,35 @@ export default function CaseDetailPage({ params }) {
     };
 
     const fetchAttachments = async (inquiryId) => {
-        const { data } = await supabase
+        // 1. Manually uploaded attachments (Supabase Storage)
+        const { data: manual } = await supabase
             .from('attachments')
             .select('*')
             .eq('inquiry_id', inquiryId)
             .order('created_at', { ascending: false });
-        setAttachments(data || []);
+
+        // 2. Chat attachments (from messages table)
+        const { data: chatMsgs } = await supabase
+            .from('messages')
+            .select('id, attachment_url, attachment_name, created_at, role')
+            .eq('inquiry_id', inquiryId)
+            .not('attachment_url', 'is', null)
+            .order('created_at', { ascending: false });
+
+        const chatAttachments = (chatMsgs || []).map(msg => ({
+            id: `chat-${msg.id}`,
+            inquiry_id: inquiryId,
+            file_name: msg.attachment_name || 'Archivo adjunto',
+            file_url: msg.attachment_url,
+            file_type: null,
+            created_at: msg.created_at,
+            from_chat: true,
+            chat_role: msg.role,
+        }));
+
+        const all = [...(manual || []), ...chatAttachments]
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        setAttachments(all);
     };
 
     const handleDeleteCase = async () => {
@@ -296,7 +319,7 @@ export default function CaseDetailPage({ params }) {
             {/* TABS */}
             <div className="tabs-nav">
                 <button className={`tab-btn ${activeTab === 'info' ? 'active' : ''}`} onClick={() => setActiveTab('info')}><FileText size={18} /> Información</button>
-                <button className={`tab-btn ${activeTab === 'files' ? 'active' : ''}`} onClick={() => setActiveTab('files')}><FolderOpen size={18} /> Archivos ({attachments.length})</button>
+                <button className={`tab-btn ${activeTab === 'files' ? 'active' : ''}`} onClick={() => setActiveTab('files')}><FolderOpen size={18} /> Archivos {attachments.length > 0 && `(${attachments.length})`}</button>
                 <button
                     className={`tab-btn ${activeTab === 'chat' ? 'active' : ''} ${caseData.inquiry?.source === 'manual' ? 'disabled' : ''}`}
                     onClick={() => caseData.inquiry?.source !== 'manual' && setActiveTab('chat')}
@@ -361,15 +384,24 @@ export default function CaseDetailPage({ params }) {
                                         <div className="file-icon"><FileText size={24} /></div>
                                         <div className="file-info">
                                             <a href={file.file_url} target="_blank" rel="noopener noreferrer" className="file-name">{file.file_name}</a>
-                                            <span className="file-meta">{new Date(file.created_at).toLocaleDateString()}</span>
+                                            <span className="file-meta">
+                                                {new Date(file.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                {file.from_chat && (
+                                                    <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', background: 'rgba(251,191,36,0.15)', color: '#fbbf24', padding: '1px 6px', borderRadius: '99px', border: '1px solid rgba(251,191,36,0.25)' }}>
+                                                        {file.chat_role === 'lawyer' ? 'Enviado por vos' : 'Del cliente'}
+                                                    </span>
+                                                )}
+                                            </span>
                                         </div>
-                                        <button
-                                            className="btn-delete-file-mini"
-                                            onClick={() => handleDeleteAttachment(file.id, file.file_name)}
-                                            title="Eliminar archivo"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
+                                        {!file.from_chat && (
+                                            <button
+                                                className="btn-delete-file-mini"
+                                                onClick={() => handleDeleteAttachment(file.id, file.file_name)}
+                                                title="Eliminar archivo"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        )}
                                     </div>
                                 ))
                             )}

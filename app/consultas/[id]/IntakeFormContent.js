@@ -627,6 +627,47 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
         return null;
     };
     const formatTime = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+    const formatMsgTime = (isoString) => {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        const time = date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+        const msgDay = new Date(date); msgDay.setHours(0, 0, 0, 0);
+        if (msgDay.getTime() === today.getTime()) return `Hoy · ${time}`;
+        if (msgDay.getTime() === yesterday.getTime()) return `Ayer · ${time}`;
+        return `${date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })} · ${time}`;
+    };
+
+    // Edit message state
+    const [editingMsgId, setEditingMsgId] = useState(null);
+    const [editingContent, setEditingContent] = useState('');
+    const [savingEdit, setSavingEdit] = useState(false);
+
+    const startEdit = (msg) => { setEditingMsgId(msg.id); setEditingContent(msg.content); };
+    const cancelEdit = () => { setEditingMsgId(null); setEditingContent(''); };
+
+    const saveEdit = async (msgId) => {
+        if (!editingContent.trim() || savingEdit || !cid) return;
+        setSavingEdit(true);
+        try {
+            const res = await fetch('/api/chat/edit-message', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messageId: msgId, content: editingContent.trim(), cid }),
+            });
+            if (res.ok) {
+                const { message: updated } = await res.json();
+                // Update message in the messages array (via onMessagesRefresh or local patch)
+                await onMessagesRefresh();
+                cancelEdit();
+            }
+        } catch (err) {
+            console.error('[edit]', err);
+        } finally {
+            setSavingEdit(false);
+        }
+    };
 
     const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
     const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); if (!e.currentTarget.contains(e.relatedTarget)) setIsDragging(false); };
@@ -743,6 +784,12 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                                 {getRoleLabel(msg.role)}
                             </span>
                         )}
+                        {/* Edit button for client's own text messages */}
+                        {msg.role === 'user' && !msg.attachment_url && editingMsgId !== msg.id && (
+                            <button className="msg-edit-btn" onClick={() => startEdit(msg)} aria-label="Editar mensaje" title="Editar">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </button>
+                        )}
                         {msg.attachment_url ? (
                             <div className="msg-attachment-wrap">
                                 {isImageFile(msg.attachment_name) ? (
@@ -777,30 +824,30 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                                 )}
                                 <div className="msg-file-actions">
                                     {!isImageFile(msg.attachment_name) && !isAudioFile(msg.attachment_name) && !isVideoFile(msg.attachment_name) && (
-                                        <a
-                                            href={msg.attachment_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="btn-download-file"
-                                            aria-label={`Abrir ${msg.attachment_name || 'archivo'} en nueva ventana`}
-                                        >
-                                            Abrir
-                                        </a>
+                                        <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer" className="btn-download-file" aria-label={`Abrir ${msg.attachment_name || 'archivo'} en nueva ventana`}>Abrir</a>
                                     )}
-                                    <button
-                                        className="btn-download-file"
-                                        onClick={() => downloadFile(msg.attachment_url, msg.attachment_name)}
-                                        aria-label={`Descargar ${msg.attachment_name || 'archivo'}`}
-                                    >
-                                        ↓ Descargar
-                                    </button>
+                                    <button className="btn-download-file" onClick={() => downloadFile(msg.attachment_url, msg.attachment_name)} aria-label={`Descargar ${msg.attachment_name || 'archivo'}`}>↓ Descargar</button>
                                 </div>
                             </div>
+                        ) : editingMsgId === msg.id ? (
+                            <div className="msg-edit-row">
+                                <input
+                                    className="msg-edit-input"
+                                    value={editingContent}
+                                    onChange={e => setEditingContent(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveEdit(msg.id); } if (e.key === 'Escape') cancelEdit(); }}
+                                    autoFocus
+                                    maxLength={5000}
+                                    aria-label="Editar mensaje"
+                                />
+                                <button className="msg-edit-save" onClick={() => saveEdit(msg.id)} disabled={savingEdit || !editingContent.trim()}>Guardar</button>
+                                <button className="msg-edit-cancel" onClick={cancelEdit}>Cancelar</button>
+                            </div>
                         ) : (
-                            <p>{msg.content}</p>
+                            <p>{msg.content}{msg.edited_at && <span className="msg-edited-tag">(editado)</span>}</p>
                         )}
                         <span className="message-time">
-                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {formatMsgTime(msg.created_at)}
                         </span>
                     </div>
                 ))}

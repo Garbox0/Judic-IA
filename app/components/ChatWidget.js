@@ -317,6 +317,47 @@ export default function ChatWidget({
         return 'received';
     };
 
+    const formatMsgTime = (isoString) => {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        const time = date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+        const msgDay = new Date(date); msgDay.setHours(0, 0, 0, 0);
+        if (msgDay.getTime() === today.getTime()) return `Hoy · ${time}`;
+        if (msgDay.getTime() === yesterday.getTime()) return `Ayer · ${time}`;
+        return `${date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })} · ${time}`;
+    };
+
+    // Edit message state
+    const [editingMsgId, setEditingMsgId] = useState(null);
+    const [editingContent, setEditingContent] = useState('');
+    const [savingEdit, setSavingEdit] = useState(false);
+
+    const startEdit = (msg) => { setEditingMsgId(msg.id); setEditingContent(msg.content); };
+    const cancelEdit = () => { setEditingMsgId(null); setEditingContent(''); };
+
+    const saveEdit = async (msgId) => {
+        if (!editingContent.trim() || savingEdit || !sessionId) return;
+        setSavingEdit(true);
+        try {
+            const res = await fetch('/api/chat/edit-message', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messageId: msgId, content: editingContent.trim(), cid: sessionId }),
+            });
+            if (res.ok) {
+                const { message: updated } = await res.json();
+                setMessages(prev => prev.map(m => m.id === msgId ? { ...m, content: updated.content, edited_at: updated.edited_at } : m));
+                cancelEdit();
+            }
+        } catch (err) {
+            console.error('[edit]', err);
+        } finally {
+            setSavingEdit(false);
+        }
+    };
+
     // Don't render anything if we have no lawyer context (e.g. SafeChatWidget in dashboard layout)
     if (!lawyerId || !clientUserId) return null;
 
@@ -341,6 +382,11 @@ export default function ChatWidget({
                         )}
                         {msg.role === 'assistant' && (
                             <span className="msg-role-tag assistant-tag">Asistente IA</span>
+                        )}
+                        {msg.role === 'user' && !msg.attachment_url && editingMsgId !== msg.id && (
+                            <button className="msg-edit-btn" onClick={() => startEdit(msg)} aria-label="Editar mensaje" title="Editar">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </button>
                         )}
                         {msg.attachment_url ? (
                             <div className="msg-attachment-wrap">
@@ -395,12 +441,27 @@ export default function ChatWidget({
                                     </button>
                                 </div>
                             </div>
+                        ) : editingMsgId === msg.id ? (
+                            <div className="msg-edit-row">
+                                <input
+                                    className="msg-edit-input"
+                                    value={editingContent}
+                                    onChange={e => setEditingContent(e.target.value)}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveEdit(msg.id); }
+                                        if (e.key === 'Escape') cancelEdit();
+                                    }}
+                                    autoFocus
+                                    maxLength={5000}
+                                    aria-label="Editar mensaje"
+                                />
+                                <button className="msg-edit-save" onClick={() => saveEdit(msg.id)} disabled={savingEdit || !editingContent.trim()}>Guardar</button>
+                                <button className="msg-edit-cancel" onClick={cancelEdit}>Cancelar</button>
+                            </div>
                         ) : (
-                            <p>{msg.content}</p>
+                            <p>{msg.content}{msg.edited_at && <span className="msg-edited-tag"> (editado)</span>}</p>
                         )}
-                        <span className="message-time">
-                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                        <span className="message-time">{formatMsgTime(msg.created_at)}</span>
                     </div>
                 ))}
                 <div ref={messagesEndRef} />

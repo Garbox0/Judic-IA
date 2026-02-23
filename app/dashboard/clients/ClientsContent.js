@@ -496,16 +496,49 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
     // --- RENDER HELPERS ---
 
-    // Format relative time (e.g. "14:30", "Ayer", "12/05")
     const formatTime = (isoString) => {
         if (!isoString) return '';
         const date = new Date(isoString);
-        const now = new Date();
-        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+        const time = date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+        const msgDay = new Date(date); msgDay.setHours(0, 0, 0, 0);
+        if (msgDay.getTime() === today.getTime()) return `Hoy · ${time}`;
+        if (msgDay.getTime() === yesterday.getTime()) return `Ayer · ${time}`;
+        return `${date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })} · ${time}`;
+    };
 
-        if (diffDays === 0) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        if (diffDays === 1) return 'Ayer';
-        return date.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
+    // Edit message state
+    const [editingMsgId, setEditingMsgId] = React.useState(null);
+    const [editingContent, setEditingContent] = React.useState('');
+    const [savingEdit, setSavingEdit] = React.useState(false);
+
+    const startEdit = (msg) => { setEditingMsgId(msg.id); setEditingContent(msg.content); };
+    const cancelEdit = () => { setEditingMsgId(null); setEditingContent(''); };
+
+    const saveEdit = async (msgId) => {
+        if (!editingContent.trim() || savingEdit) return;
+        setSavingEdit(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const res = await fetch('/api/chat/edit-message', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`,
+                },
+                body: JSON.stringify({ messageId: msgId, content: editingContent.trim() }),
+            });
+            if (res.ok) {
+                const { message: updated } = await res.json();
+                setChatHistory(prev => prev.map(m => m.id === msgId ? { ...m, content: updated.content, edited_at: updated.edited_at } : m));
+                cancelEdit();
+            }
+        } catch (err) {
+            console.error('[edit]', err);
+        } finally {
+            setSavingEdit(false);
+        }
     };
 
     // ⏳ Wait for verification status before rendering anything
@@ -787,6 +820,17 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
                                             return (
                                                 <div key={msg.id} className={`chat-bubble ${msg.role}`}>
+                                                    {/* Edit button — only for lawyer's own text messages */}
+                                                    {msg.role === 'lawyer' && !msg.attachment_url && editingMsgId !== msg.id && (
+                                                        <button
+                                                            className="msg-edit-btn"
+                                                            onClick={() => startEdit(msg)}
+                                                            aria-label="Editar mensaje"
+                                                            title="Editar"
+                                                        >
+                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                        </button>
+                                                    )}
                                                     {msg.attachment_url ? (
                                                         <div className="msg-attachment-wrap">
                                                             {isImageFile(msg.attachment_name) ? (
@@ -840,8 +884,27 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                                 </button>
                                                             </div>
                                                         </div>
+                                                    ) : editingMsgId === msg.id ? (
+                                                        <div className="bubble-content">
+                                                            <div className="msg-edit-row">
+                                                                <input
+                                                                    className="msg-edit-input"
+                                                                    value={editingContent}
+                                                                    onChange={e => setEditingContent(e.target.value)}
+                                                                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveEdit(msg.id); } if (e.key === 'Escape') cancelEdit(); }}
+                                                                    autoFocus
+                                                                    maxLength={5000}
+                                                                    aria-label="Editar mensaje"
+                                                                />
+                                                                <button className="msg-edit-save" onClick={() => saveEdit(msg.id)} disabled={savingEdit || !editingContent.trim()}>Guardar</button>
+                                                                <button className="msg-edit-cancel" onClick={cancelEdit}>Cancelar</button>
+                                                            </div>
+                                                        </div>
                                                     ) : (
-                                                        <div className="bubble-content">{msg.content}</div>
+                                                        <div className="bubble-content">
+                                                            {msg.content}
+                                                            {msg.edited_at && <span className="msg-edited-tag">(editado)</span>}
+                                                        </div>
                                                     )}
                                                     <div className="bubble-time">{formatTime(msg.created_at)}</div>
                                                 </div>
