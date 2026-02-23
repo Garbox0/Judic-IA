@@ -196,6 +196,8 @@ export async function PATCH(request) {
                     const chatUrl = `${baseUrl}/consultas/${user.id}?cid=${inquiryId}`;
                     const lawyerName = lawyerProfile?.full_name || 'El profesional';
 
+                    const safeClientName = (inquiry.contact_name || '').replace(/[<>"'&]/g, c => ({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;','&':'&amp;'}[c]));
+                    const safeLawyerName = lawyerName.replace(/[<>"'&]/g, c => ({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;','&':'&amp;'}[c]));
                     await sendEmail({
                         resendClient: resend,
                         to: inquiry.contact_email,
@@ -204,13 +206,20 @@ export async function PATCH(request) {
                         html: getHtmlEmail({
                             heading: '¡Tu consulta fue aceptada!',
                             bodyContent: `
-                                <p>Hola <strong>${inquiry.contact_name || ''}</strong>,</p>
-                                <p><strong>${lawyerName}</strong> aceptó tu solicitud de consulta y está disponible para atenderte.</p>
-                                <p>Hacé clic en el botón para comenzar la conversación:</p>
+                                <p>Hola <strong>${safeClientName}</strong>,</p>
+                                <p><strong>${safeLawyerName}</strong> aceptó tu solicitud de consulta y está disponible para atenderte.</p>
+                                <p>Tocá el botón para acceder a tu chat. El link es personal — guardalo para retomar la conversación desde cualquier dispositivo.</p>
                             `,
                             buttonText: 'Ir al Chat',
                             buttonUrl: chatUrl,
-                            previewText: `${lawyerName} aceptó tu consulta — Es tu turno`
+                            afterButtonContent: `
+                                <p style="text-align:center;font-size:13px;color:#64748b;margin:0 0 6px 0;">O copiá este link directamente:</p>
+                                <p style="text-align:center;margin:0 0 12px 0;word-break:break-all;">
+                                    <a href="${chatUrl}" style="color:#3b82f6;font-size:13px;">${chatUrl}</a>
+                                </p>
+                                <p style="text-align:center;font-size:12px;color:#94a3b8;margin:0;">⚠️ Este link es personal y da acceso directo a tu consulta. No lo compartas.</p>
+                            `,
+                            previewText: `${lawyerName} aceptó tu consulta — Accedé al chat`
                         })
                     });
                 } catch (emailErr) {

@@ -5,7 +5,7 @@ import styles from '../../page.module.css';
 import './IntakeFormContent.css';
 import '../../components/chat.css';
 
-// Estado de la UI: 'loading' | 'show-form' | 'pending' | 'chat' | 'rejected' | 'restricted'
+// Estado de la UI: 'loading' | 'show-form' | 'pending' | 'chat' | 'rejected' | 'not_found' | 'restricted'
 
 export default function IntakeFormContent({ id }) {
     const searchParams = useSearchParams();
@@ -76,9 +76,9 @@ export default function IntakeFormContent({ id }) {
                 setLawyer(lawyerData);
 
                 if (!messagesRes.ok) {
-                    // CID inválido o expirado
+                    // Inquiry eliminada o inaccesible — limpiar CID y mostrar "no disponible"
                     localStorage.removeItem(`judic_ia_cid_${id}`);
-                    setUiState('show-form');
+                    setUiState('not_found');
                     return;
                 }
 
@@ -243,6 +243,28 @@ export default function IntakeFormContent({ id }) {
 
     if (uiState === 'loading') {
         return <div className="loading-screen">Cargando...</div>;
+    }
+
+    if (uiState === 'not_found') {
+        return (
+            <div className="error-screen" role="alert">
+                <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', maxWidth: '440px', borderRadius: '20px', border: '1px solid rgba(100,116,139,0.3)', background: 'rgba(15,23,42,0.9)' }}>
+                    <div style={{ width: '70px', height: '70px', background: 'rgba(100,116,139,0.1)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(100,116,139,0.3)' }}>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </div>
+                    <h2 style={{ color: '#fbbf24', marginBottom: '1rem', fontFamily: 'Playfair Display, serif' }}>Consulta no encontrada</h2>
+                    <p style={{ color: '#cbd5e1', lineHeight: '1.6' }}>
+                        Esta consulta ya no está disponible. Es posible que haya sido eliminada.
+                    </p>
+                    <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '0.75rem' }}>
+                        Si querés iniciar una nueva consulta, podés hacerlo desde el marketplace.
+                    </p>
+                    <a href="/abogados" style={{ display: 'inline-block', marginTop: '2rem', padding: '0.75rem 2rem', background: 'rgba(251,191,36,0.15)', color: '#fbbf24', borderRadius: '99px', border: '1px solid rgba(251,191,36,0.3)', textDecoration: 'none', fontSize: '0.9rem' }}>
+                        Ver abogados
+                    </a>
+                </div>
+            </div>
+        );
     }
 
     if (uiState === 'rejected') {
