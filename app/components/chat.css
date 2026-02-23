@@ -1156,6 +1156,202 @@
 }
 
 /* =========================================
+   COMPOSE OVERLAY (WhatsApp-style, client chat)
+   ========================================= */
+.chat-widget-inline { position: relative; }
+
+.compose-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    background: rgba(4, 10, 30, 0.97);
+    border-radius: 12px;
+    animation: composeFadeIn 0.2s ease;
+}
+
+.compose-overlay-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    flex-shrink: 0;
+}
+
+.compose-overlay-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    margin-right: 0.75rem;
+}
+
+.compose-overlay-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    padding: 0.35rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+}
+
+.compose-overlay-close:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.compose-overlay-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 1.25rem;
+    min-height: 0;
+}
+
+.compose-overlay-img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+    display: block;
+}
+
+.compose-overlay-file {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: center;
+}
+
+.compose-overlay-file-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 14px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 2px solid rgba(59, 130, 246, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compose-overlay-ext {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #3b82f6;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.compose-overlay-filename {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.88);
+    word-break: break-all;
+    line-height: 1.4;
+}
+
+.compose-overlay-filesize {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.compose-overlay-footer {
+    padding: 0.6rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+}
+
+.compose-overlay-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding: 0.1rem 0;
+}
+
+.compose-overlay-strip::-webkit-scrollbar { height: 3px; }
+.compose-overlay-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+
+.compose-overlay-caption-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.compose-overlay-caption {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.875rem;
+    padding: 0.65rem 0.9rem;
+    outline: none;
+    transition: border-color 0.15s;
+    min-width: 0;
+}
+
+.compose-overlay-caption::placeholder { color: rgba(255, 255, 255, 0.28); }
+.compose-overlay-caption:focus { border-color: #fbbf24; }
+
+.compose-overlay-send {
+    background: linear-gradient(135deg, #fbbf24, #d97706);
+    border: none;
+    border-radius: 10px;
+    color: #1e293b;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity 0.15s, transform 0.15s;
+}
+
+.compose-overlay-send:hover:not(:disabled) { opacity: 0.88; transform: scale(1.05); }
+.compose-overlay-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.compose-overlay-error {
+    font-size: 0.75rem;
+    color: #f87171;
+    margin: 0;
+    text-align: center;
+}
+
+/* Light theme */
+.light-theme .compose-overlay { background: rgba(241, 245, 249, 0.98); }
+.light-theme .compose-overlay-header { border-bottom-color: #e2e8f0; }
+.light-theme .compose-overlay-title { color: #334155; }
+.light-theme .compose-overlay-close { color: #94a3b8; }
+.light-theme .compose-overlay-footer { border-top-color: #e2e8f0; }
+.light-theme .compose-overlay-caption { background: #fff; border-color: #cbd5e1; color: #0f172a; }
+.light-theme .compose-overlay-caption::placeholder { color: #94a3b8; }
+.light-theme .compose-overlay-caption:focus { border-color: #3b82f6; }
+.light-theme .compose-overlay-filename { color: #0f172a; }
+.light-theme .compose-overlay-filesize { color: #64748b; }
+
+/* =========================================
    COMPOSE FILES BAR (multi-file, WhatsApp-style)
    ========================================= */
 .compose-files-bar {

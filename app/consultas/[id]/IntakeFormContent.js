@@ -761,6 +761,22 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
         finally { setIsUploading(false); }
     };
 
+    const clearPendingFiles = () => {
+        pendingFilesRef.current.forEach(pf => { if (pf.previewUrl) URL.revokeObjectURL(pf.previewUrl); });
+        setPendingFiles([]);
+        setActiveFileIdx(0);
+        pendingFilesRef.current = [];
+    };
+
+    const sendPendingFiles = async () => {
+        if (!pendingFiles.length || isUploading) return;
+        const filesToSend = [...pendingFiles];
+        clearPendingFiles();
+        for (const { file, caption } of filesToSend) {
+            await uploadFile(file, caption);
+        }
+    };
+
     const handleDrop = (e) => {
         e.preventDefault(); e.stopPropagation(); setIsDragging(false);
         const files = Array.from(e.dataTransfer.files || []);
@@ -949,84 +965,82 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Compose bar: multi-file preview before sending */}
+            {/* COMPOSE OVERLAY — WhatsApp-style full preview */}
             {pendingFiles.length > 0 && (() => {
                 const af = pendingFiles[activeFileIdx];
                 return (
-                    <div className="compose-files-bar">
-                        {/* Active file preview */}
-                        <div className="compose-active-preview">
-                            {af.previewUrl && isImageFile(af.file.name) ? (
-                                <img src={af.previewUrl} alt="Vista previa" className="compose-active-img" />
-                            ) : af.previewUrl && isVideoFile(af.file.name) ? (
-                                <video src={af.previewUrl} className="compose-active-img" muted aria-hidden="true" />
+                    <div className="compose-overlay" role="dialog" aria-modal="true" aria-label="Vista previa antes de enviar">
+                        <div className="compose-overlay-header">
+                            <span className="compose-overlay-title">{af?.file.name}</span>
+                            <button type="button" className="compose-overlay-close" onClick={clearPendingFiles} aria-label="Cancelar adjuntos">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        <div className="compose-overlay-body">
+                            {af?.previewUrl && isImageFile(af.file.name) ? (
+                                <img src={af.previewUrl} alt={af.file.name} className="compose-overlay-img" />
+                            ) : af?.previewUrl && isVideoFile(af.file.name) ? (
+                                <video src={af.previewUrl} className="compose-overlay-img" muted controls />
                             ) : (
-                                <div className="compose-active-file">
-                                    <span className="compose-active-ext">{getFileExt(af.file.name).toUpperCase()}</span>
-                                    <span className="compose-active-name">{af.file.name}</span>
-                                    <span className="compose-active-size">{(af.file.size / 1024 / 1024).toFixed(1)} MB</span>
+                                <div className="compose-overlay-file">
+                                    <div className="compose-overlay-file-icon">
+                                        <span className="compose-overlay-ext">{getFileExt(af?.file.name || '').toUpperCase()}</span>
+                                    </div>
+                                    <span className="compose-overlay-filename">{af?.file.name}</span>
+                                    <span className="compose-overlay-filesize">{((af?.file.size || 0) / 1024 / 1024).toFixed(1)} MB</span>
                                 </div>
                             )}
                         </div>
-                        {/* Thumbnail strip */}
-                        <div className="compose-strip" role="list" aria-label="Archivos adjuntos">
-                            {pendingFiles.map((pf, i) => (
-                                <div key={pf.id} className={`compose-strip-item${i === activeFileIdx ? ' active' : ''}`} role="listitem">
-                                    <button
-                                        type="button"
-                                        className="compose-strip-thumb"
-                                        onClick={() => setActiveFileIdx(i)}
-                                        aria-label={`Archivo ${i + 1}: ${pf.file.name}${i === activeFileIdx ? ' (seleccionado)' : ''}`}
-                                        aria-current={i === activeFileIdx}
-                                    >
-                                        {pf.previewUrl && isImageFile(pf.file.name) ? (
-                                            <img src={pf.previewUrl} alt={pf.file.name} />
-                                        ) : pf.previewUrl && isVideoFile(pf.file.name) ? (
-                                            <video src={pf.previewUrl} muted aria-hidden="true" />
-                                        ) : (
-                                            <span className="compose-strip-ext">{getFileExt(pf.file.name).toUpperCase()}</span>
-                                        )}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="compose-strip-remove"
-                                        onClick={() => removePendingFile(i)}
-                                        aria-label={`Quitar archivo ${i + 1}`}
-                                    >×</button>
-                                </div>
-                            ))}
-                            {pendingFiles.length < 5 && (
-                                <button
-                                    type="button"
-                                    className="compose-strip-add"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    aria-label="Agregar otro archivo"
-                                    title="Agregar más archivos"
-                                >+</button>
-                            )}
+                        <div className="compose-overlay-footer">
+                            <div className="compose-overlay-strip" role="list" aria-label="Archivos adjuntos">
+                                {pendingFiles.map((pf, i) => (
+                                    <div key={pf.id} className={`compose-strip-item${i === activeFileIdx ? ' active' : ''}`} role="listitem">
+                                        <button type="button" className="compose-strip-thumb"
+                                            onClick={() => setActiveFileIdx(i)}
+                                            aria-label={`Archivo ${i + 1}: ${pf.file.name}${i === activeFileIdx ? ' (seleccionado)' : ''}`}
+                                            aria-current={i === activeFileIdx}>
+                                            {pf.previewUrl && isImageFile(pf.file.name) ? <img src={pf.previewUrl} alt={pf.file.name} /> :
+                                             pf.previewUrl && isVideoFile(pf.file.name) ? <video src={pf.previewUrl} muted aria-hidden="true" /> :
+                                             <span className="compose-strip-ext">{getFileExt(pf.file.name).toUpperCase()}</span>}
+                                        </button>
+                                        <button type="button" className="compose-strip-remove"
+                                            onClick={() => removePendingFile(i)}
+                                            aria-label={`Quitar archivo ${i + 1}`}>×</button>
+                                    </div>
+                                ))}
+                                {pendingFiles.length < 5 && (
+                                    <button type="button" className="compose-strip-add"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        aria-label="Agregar otro archivo">+</button>
+                                )}
+                            </div>
+                            <div className="compose-overlay-caption-row">
+                                <input type="text" className="compose-overlay-caption"
+                                    placeholder="Agregar descripción (opcional)..."
+                                    value={pendingFiles[activeFileIdx]?.caption ?? ''}
+                                    onChange={e => updateActiveCaption(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendPendingFiles(); } }}
+                                    maxLength={500}
+                                    aria-label="Descripción del archivo"
+                                    autoFocus
+                                />
+                                <button type="button" className="compose-overlay-send"
+                                    onClick={sendPendingFiles}
+                                    disabled={isUploading}
+                                    aria-label={`Enviar ${pendingFiles.length} archivo${pendingFiles.length > 1 ? 's' : ''}`}>
+                                    {isUploading
+                                        ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                                        : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                    }
+                                </button>
+                            </div>
+                            {uploadError && <p className="compose-overlay-error" role="alert">{uploadError}</p>}
                         </div>
-                        {uploadError && (
-                            <p className="compose-chip-error" role="alert">{uploadError}</p>
-                        )}
                     </div>
                 );
             })()}
 
-            <form className="chat-input-area" onSubmit={async (e) => {
-                e.preventDefault();
-                if (pendingFiles.length > 0) {
-                    const files = [...pendingFiles];
-                    setPendingFiles([]);
-                    setActiveFileIdx(0);
-                    pendingFilesRef.current = [];
-                    for (const pf of files) {
-                        await uploadFile(pf.file, pf.caption);
-                        if (pf.previewUrl) URL.revokeObjectURL(pf.previewUrl);
-                    }
-                    return;
-                }
-                onSend(e);
-            }}>
+            <form className="chat-input-area" onSubmit={onSend}>
                 <div className="chat-input-row">
                     {isRecording ? (
                         <>
@@ -1049,12 +1063,12 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                             <input
                                 type="text"
                                 className="chat-input"
-                                placeholder={pendingFiles.length > 0 ? 'Agregar descripción (opcional)...' : 'Escribí tu mensaje...'}
-                                value={pendingFiles.length > 0 ? (pendingFiles[activeFileIdx]?.caption ?? '') : messageInput}
-                                onChange={(e) => pendingFiles.length > 0 ? updateActiveCaption(e.target.value) : setMessageInput(e.target.value)}
+                                placeholder="Escribí tu mensaje..."
+                                value={messageInput}
+                                onChange={(e) => setMessageInput(e.target.value)}
                                 disabled={sending}
-                                maxLength={pendingFiles.length > 0 ? 500 : 5000}
-                                aria-label={pendingFiles.length > 0 ? 'Descripción del archivo' : 'Escribí tu mensaje'}
+                                maxLength={5000}
+                                aria-label="Escribí tu mensaje"
                             />
                             <input
                                 ref={fileInputRef}
@@ -1086,7 +1100,7 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                             <button
                                 type="submit"
                                 className="chat-send-btn"
-                                disabled={sending || isUploading || (!messageInput.trim() && !pendingFiles.length)}
+                                disabled={sending || isUploading || !messageInput.trim()}
                                 aria-label="Enviar mensaje"
                             >
                                 {(sending || isUploading) ? (

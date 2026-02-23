@@ -341,16 +341,26 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
         setAttachments(files || []);
     };
 
+    const clearPendingFiles = () => {
+        pendingFilesRef.current.forEach(pf => { if (pf.previewUrl) URL.revokeObjectURL(pf.previewUrl); });
+        setPendingFiles([]);
+        setActiveFileIdx(0);
+        pendingFilesRef.current = [];
+    };
+
+    const sendPendingFiles = async () => {
+        if (!pendingFiles.length || isUploading) return;
+        const filesToSend = [...pendingFiles];
+        clearPendingFiles();
+        for (const { file, caption } of filesToSend) {
+            await uploadFile(file, caption);
+        }
+    };
+
     const sendLawyerReply = async (e) => {
         e.preventDefault();
-        // Send all pending files (each with its own caption)
         if (pendingFiles.length && !isUploading) {
-            const filesToSend = [...pendingFiles];
-            setPendingFiles([]);
-            setActiveFileIdx(0);
-            for (const { file, caption } of filesToSend) {
-                await uploadFile(file, caption);
-            }
+            await sendPendingFiles();
             return;
         }
         if (!replyInput.trim() || sendingReply || !selectedClient) return;
@@ -920,6 +930,85 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                 </div>
                             </header>
 
+                            {/* COMPOSE OVERLAY — WhatsApp-style full preview */}
+                            {pendingFiles.length > 0 && (
+                                <div className="compose-overlay" role="dialog" aria-modal="true" aria-label="Vista previa antes de enviar">
+                                    <div className="compose-overlay-header">
+                                        <span className="compose-overlay-title">
+                                            {pendingFiles[activeFileIdx]?.file.name}
+                                        </span>
+                                        <button type="button" className="compose-overlay-close" onClick={clearPendingFiles} aria-label="Cancelar adjuntos">
+                                            <X size={18} aria-hidden="true" />
+                                        </button>
+                                    </div>
+                                    <div className="compose-overlay-body">
+                                        {(() => {
+                                            const af = pendingFiles[activeFileIdx];
+                                            if (!af) return null;
+                                            if (af.previewUrl && isImageFile(af.file.name))
+                                                return <img src={af.previewUrl} alt={af.file.name} className="compose-overlay-img" />;
+                                            if (af.previewUrl && isVideoFile(af.file.name))
+                                                return <video src={af.previewUrl} className="compose-overlay-img" muted controls />;
+                                            return (
+                                                <div className="compose-overlay-file">
+                                                    <div className="compose-overlay-file-icon">
+                                                        <span className="compose-overlay-ext">{getFileExt(af.file.name).toUpperCase()}</span>
+                                                    </div>
+                                                    <span className="compose-overlay-filename">{af.file.name}</span>
+                                                    <span className="compose-overlay-filesize">{(af.file.size / 1024 / 1024).toFixed(1)} MB</span>
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                    <div className="compose-overlay-footer">
+                                        <div className="compose-overlay-strip" role="list" aria-label="Archivos adjuntos">
+                                            {pendingFiles.map((pf, i) => (
+                                                <div key={pf.id} className={`compose-strip-item ${i === activeFileIdx ? 'active' : ''}`} role="listitem">
+                                                    <button type="button" className="compose-strip-thumb"
+                                                        onClick={() => setActiveFileIdx(i)}
+                                                        aria-label={`${pf.file.name}${i === activeFileIdx ? ' (seleccionado)' : ''}`}
+                                                        aria-current={i === activeFileIdx}>
+                                                        {pf.previewUrl && isImageFile(pf.file.name) ? <img src={pf.previewUrl} alt="" /> :
+                                                         pf.previewUrl && isVideoFile(pf.file.name) ? <video src={pf.previewUrl} muted aria-hidden="true" /> :
+                                                         <span className="compose-strip-ext">{getFileExt(pf.file.name).toUpperCase()}</span>}
+                                                    </button>
+                                                    <button type="button" className="compose-strip-remove"
+                                                        onClick={() => removePendingFile(i)}
+                                                        aria-label={`Quitar ${pf.file.name}`}>
+                                                        <X size={10} aria-hidden="true" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {pendingFiles.length < 5 && (
+                                                <button type="button" className="compose-strip-add"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    aria-label="Agregar otro archivo">
+                                                    <span aria-hidden="true">+</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="compose-overlay-caption-row">
+                                            <input type="text" className="compose-overlay-caption"
+                                                placeholder="Agregar descripción (opcional)..."
+                                                value={pendingFiles[activeFileIdx]?.caption ?? ''}
+                                                onChange={e => updateActiveCaption(e.target.value)}
+                                                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendPendingFiles(); } }}
+                                                maxLength={500}
+                                                aria-label="Descripción del archivo"
+                                                autoFocus
+                                            />
+                                            <button type="button" className="compose-overlay-send"
+                                                onClick={sendPendingFiles}
+                                                disabled={isUploading}
+                                                aria-label={`Enviar ${pendingFiles.length} archivo${pendingFiles.length > 1 ? 's' : ''}`}>
+                                                {isUploading ? <Loader size={18} className="animate-spin" aria-hidden="true" /> : <Send size={18} aria-hidden="true" />}
+                                            </button>
+                                        </div>
+                                        {uploadError && <p className="compose-overlay-error" role="alert">{uploadError}</p>}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* FLEX CONTAINER FOR CHAT + SIDEBAR */}
                             <div className="chat-main-split" style={{ position: 'relative' }}
                                 onDragOver={handleChatDragOver}
@@ -1114,71 +1203,6 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                 </div>
                             ) : (
                                 <div className="chat-input-area">
-                                    {/* Multi-file compose bar */}
-                                    {pendingFiles.length > 0 && (
-                                        <div className="compose-files-bar" role="region" aria-label="Archivos a enviar">
-                                            {/* Active file preview */}
-                                            <div className="compose-active-preview">
-                                                {(() => {
-                                                    const active = pendingFiles[activeFileIdx];
-                                                    if (!active) return null;
-                                                    if (active.previewUrl && isImageFile(active.file.name))
-                                                        return <img src={active.previewUrl} alt={active.file.name} className="compose-active-img" />;
-                                                    if (active.previewUrl && isVideoFile(active.file.name))
-                                                        return <video src={active.previewUrl} className="compose-active-img" muted />;
-                                                    return (
-                                                        <div className="compose-active-file">
-                                                            <span className="compose-active-ext">{getFileExt(active.file.name).toUpperCase()}</span>
-                                                            <span className="compose-active-name">{active.file.name}</span>
-                                                            <span className="compose-active-size">{(active.file.size / 1024 / 1024).toFixed(1)} MB</span>
-                                                        </div>
-                                                    );
-                                                })()}
-                                            </div>
-                                            {/* Thumbnail strip */}
-                                            <div className="compose-strip" role="list">
-                                                {pendingFiles.map((pf, i) => (
-                                                    <div key={pf.id} className={`compose-strip-item ${i === activeFileIdx ? 'active' : ''}`} role="listitem">
-                                                        <button
-                                                            type="button"
-                                                            className="compose-strip-thumb"
-                                                            onClick={() => setActiveFileIdx(i)}
-                                                            aria-label={`${pf.file.name} ${i === activeFileIdx ? '(seleccionado)' : ''}`}
-                                                            aria-current={i === activeFileIdx}
-                                                        >
-                                                            {pf.previewUrl && isImageFile(pf.file.name)
-                                                                ? <img src={pf.previewUrl} alt="" />
-                                                                : pf.previewUrl && isVideoFile(pf.file.name)
-                                                                    ? <video src={pf.previewUrl} muted aria-hidden="true" />
-                                                                    : <span className="compose-strip-ext">{getFileExt(pf.file.name).toUpperCase()}</span>
-                                                            }
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            className="compose-strip-remove"
-                                                            onClick={() => removePendingFile(i)}
-                                                            aria-label={`Quitar ${pf.file.name}`}
-                                                        >
-                                                            <X size={10} aria-hidden="true" />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                                <button
-                                                    type="button"
-                                                    className="compose-strip-add"
-                                                    onClick={() => fileInputRef.current?.click()}
-                                                    aria-label="Agregar otro archivo"
-                                                    title="Agregar archivo"
-                                                >
-                                                    <span aria-hidden="true">+</span>
-                                                </button>
-                                            </div>
-                                            {uploadError && (
-                                                <p className="compose-chip-error" role="alert">{uploadError}</p>
-                                            )}
-                                        </div>
-                                    )}
-
                                     <form onSubmit={sendLawyerReply}>
                                         <div className="input-row">
                                             {isRecording ? (
