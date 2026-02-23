@@ -1525,6 +1525,118 @@ body.light-theme .smart-link-mini {
     transform: scale(1.05);
 }
 /* =========================================
+   INLINE ATTACHMENT CHIP
+   ========================================= */
+.compose-chip-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.25rem 0.6rem;
+    flex-wrap: wrap;
+}
+
+.compose-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 0.35rem 0.55rem 0.35rem 0.45rem;
+    max-width: 100%;
+    animation: composeFadeIn 0.18s ease;
+}
+
+.compose-chip-thumb {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.compose-chip-ext {
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 5px;
+    padding: 2px 5px;
+    flex-shrink: 0;
+    letter-spacing: 0.04em;
+}
+
+.compose-chip-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.compose-chip-size {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.35);
+    flex-shrink: 0;
+}
+
+.compose-chip-remove {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    padding: 0.15rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+    line-height: 1;
+}
+
+.compose-chip-remove:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.compose-chip-error {
+    font-size: 0.78rem;
+    color: #f87171;
+}
+
+/* Light theme */
+.light-theme .compose-chip {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.light-theme .compose-chip-name {
+    color: #0f172a;
+}
+
+.light-theme .compose-chip-size {
+    color: #94a3b8;
+}
+
+.light-theme .compose-chip-remove {
+    color: #94a3b8;
+}
+
+/* =========================================
+   WAVEFORM CANVAS
+   ========================================= */
+.recording-waveform {
+    flex: 1;
+    height: 28px;
+    border-radius: 4px;
+    display: block;
+}
+
+/* =========================================
    COMPOSE PANEL (lawyer side)
    ========================================= */
 .compose-panel {

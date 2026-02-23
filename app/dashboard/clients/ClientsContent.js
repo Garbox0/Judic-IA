@@ -109,6 +109,10 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const recordingTimerRef = useRef(null);
+    const analyserRef = useRef(null);
+    const audioCtxRef = useRef(null);
+    const waveformCanvasRef = useRef(null);
+    const animFrameRef = useRef(null);
 
     const formatRecordingTime = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
@@ -127,6 +131,8 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     React.useEffect(() => {
         return () => {
             clearInterval(recordingTimerRef.current);
+            cancelAnimationFrame(animFrameRef.current);
+            if (audioCtxRef.current) audioCtxRef.current.close();
             if (mediaRecorderRef.current?.state === 'recording') {
                 mediaRecorderRef.current.stop();
             }
@@ -307,6 +313,14 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
     const sendLawyerReply = async (e) => {
         e.preventDefault();
+        // If there's a pending non-audio file, send it with input as caption
+        if (pendingFile && !isUploading) {
+            const caption = replyInput.trim();
+            setReplyInput('');
+            const ok = await uploadFile(pendingFile, caption);
+            if (ok) setPendingFile(null);
+            return;
+        }
         if (!replyInput.trim() || sendingReply || !selectedClient) return;
 
         if (isDemo) {
@@ -414,7 +428,14 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     const handleFileUpload = (e) => {
         const file = e.target.files?.[0];
         e.target.value = '';
-        if (file) { setPendingFile(file); setPendingCaption(''); setUploadError(null); }
+        if (!file) return;
+        setUploadError(null);
+        if (isAudioFile(file.name)) {
+            // Audio files send immediately, no compose panel
+            uploadFile(file, '');
+        } else {
+            setPendingFile(file);
+        }
     };
 
     const handleChatDragOver = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
@@ -422,26 +443,67 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     const handleChatDrop = (e) => {
         e.preventDefault(); e.stopPropagation(); setIsDragging(false);
         const file = e.dataTransfer.files?.[0];
-        if (file) { setPendingFile(file); setPendingCaption(''); setUploadError(null); }
+        if (!file) return;
+        setUploadError(null);
+        if (isAudioFile(file.name)) {
+            uploadFile(file, '');
+        } else {
+            setPendingFile(file);
+        }
     };
 
     const startRecording = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            // Live waveform via Web Audio API
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContext();
+            const source = audioCtx.createMediaStreamSource(stream);
+            const analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 128;
+            source.connect(analyser);
+            analyserRef.current = analyser;
+            audioCtxRef.current = audioCtx;
+
+            const drawWaveform = () => {
+                const canvas = waveformCanvasRef.current;
+                if (!canvas || !analyserRef.current) return;
+                const ctx = canvas.getContext('2d');
+                const bufferLength = analyserRef.current.frequencyBinCount;
+                const data = new Uint8Array(bufferLength);
+                analyserRef.current.getByteFrequencyData(data);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const barWidth = canvas.width / bufferLength;
+                data.forEach((val, i) => {
+                    const h = Math.max(2, (val / 255) * canvas.height);
+                    const alpha = 0.35 + (val / 255) * 0.65;
+                    ctx.fillStyle = `rgba(251, 191, 36, ${alpha})`;
+                    ctx.beginPath();
+                    ctx.roundRect(i * barWidth, canvas.height - h, Math.max(1, barWidth - 1.5), h, 2);
+                    ctx.fill();
+                });
+                animFrameRef.current = requestAnimationFrame(drawWaveform);
+            };
+            drawWaveform();
+
             const mr = new MediaRecorder(stream);
             audioChunksRef.current = [];
             mr.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
             mr.onstop = () => {
                 stream.getTracks().forEach(t => t.stop());
                 clearInterval(recordingTimerRef.current);
+                cancelAnimationFrame(animFrameRef.current);
+                if (audioCtxRef.current) { audioCtxRef.current.close(); audioCtxRef.current = null; }
+                analyserRef.current = null;
                 const mimeType = mr.mimeType || 'audio/webm';
                 const blob = new Blob(audioChunksRef.current, { type: mimeType });
                 const ext = mimeType.includes('ogg') ? 'ogg' : mimeType.includes('mp4') ? 'm4a' : 'webm';
                 const file = new File([blob], `audio-${Date.now()}.${ext}`, { type: mimeType });
-                setPendingFile(file);
-                setPendingCaption('');
                 setUploadError(null);
                 setIsRecording(false);
+                // Auto-send: audio never needs a compose panel
+                uploadFile(file, '');
             };
             mr.start();
             mediaRecorderRef.current = mr;
@@ -986,61 +1048,30 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                 </div>
                             ) : (
                                 <div className="chat-input-area">
-                                    {/* Compose panel */}
+                                    {/* Inline attachment chip (non-audio files) */}
                                     {pendingFile && (
-                                        <div className="compose-panel">
-                                            <div className="compose-preview-row">
+                                        <div className="compose-chip-row" role="status" aria-live="polite">
+                                            <div className="compose-chip">
                                                 {isImageFile(pendingFile.name) && pendingPreviewUrl ? (
-                                                    <img src={pendingPreviewUrl} alt="Vista previa" className="compose-thumb" />
+                                                    <img src={pendingPreviewUrl} alt="" className="compose-chip-thumb" aria-hidden="true" />
                                                 ) : isVideoFile(pendingFile.name) && pendingPreviewUrl ? (
-                                                    <video src={pendingPreviewUrl} className="compose-thumb" muted aria-hidden="true" />
+                                                    <video src={pendingPreviewUrl} className="compose-chip-thumb" muted aria-hidden="true" />
                                                 ) : (
-                                                    <div className="compose-file-icon">
-                                                        {isAudioFile(pendingFile.name) ? (
-                                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                                                        ) : (
-                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                                        )}
-                                                        <span className="compose-file-ext">{getFileExt(pendingFile.name)}</span>
-                                                    </div>
+                                                    <span className="compose-chip-ext" aria-hidden="true">{getFileExt(pendingFile.name).toUpperCase()}</span>
                                                 )}
-                                                <div className="compose-file-details">
-                                                    <span className="compose-filename">{pendingFile.name}</span>
-                                                    <span className="compose-filesize">{(pendingFile.size / 1024 / 1024).toFixed(1)} MB</span>
-                                                </div>
+                                                <span className="compose-chip-name">{pendingFile.name}</span>
+                                                <span className="compose-chip-size">{(pendingFile.size / 1024 / 1024).toFixed(1)} MB</span>
                                                 <button
                                                     type="button"
-                                                    className="compose-cancel-btn"
-                                                    onClick={() => { setPendingFile(null); setPendingCaption(''); setUploadError(null); }}
+                                                    className="compose-chip-remove"
+                                                    onClick={() => { setPendingFile(null); setUploadError(null); }}
                                                     aria-label="Cancelar adjunto"
                                                 >
-                                                    <X size={15} aria-hidden="true" />
-                                                </button>
-                                            </div>
-                                            <div className="compose-caption-row">
-                                                <input
-                                                    type="text"
-                                                    className="compose-caption-input"
-                                                    placeholder="Agregar descripción (opcional)..."
-                                                    value={pendingCaption}
-                                                    onChange={(e) => setPendingCaption(e.target.value)}
-                                                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendCompose(); } }}
-                                                    maxLength={500}
-                                                    aria-label="Descripción del archivo"
-                                                    autoFocus
-                                                />
-                                                <button
-                                                    type="button"
-                                                    className="compose-send-btn"
-                                                    onClick={handleSendCompose}
-                                                    disabled={isUploading}
-                                                    aria-label="Enviar archivo"
-                                                >
-                                                    {isUploading ? <Loader className="animate-spin" size={16} /> : 'Enviar'}
+                                                    <X size={13} aria-hidden="true" />
                                                 </button>
                                             </div>
                                             {uploadError && (
-                                                <div className="upload-error-bar" role="alert" aria-live="assertive">{uploadError}</div>
+                                                <span className="compose-chip-error" role="alert">{uploadError}</span>
                                             )}
                                         </div>
                                     )}
@@ -1052,7 +1083,13 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                     <div className="recording-bar" role="status" aria-live="polite" aria-label={`Grabando: ${formatRecordingTime(recordingSeconds)}`}>
                                                         <span className="recording-dot" aria-hidden="true" />
                                                         <span className="recording-time">{formatRecordingTime(recordingSeconds)}</span>
-                                                        <span className="recording-label">Grabando audio...</span>
+                                                        <canvas
+                                                            ref={waveformCanvasRef}
+                                                            className="recording-waveform"
+                                                            width={180}
+                                                            height={28}
+                                                            aria-hidden="true"
+                                                        />
                                                     </div>
                                                     <button
                                                         type="button"
@@ -1069,10 +1106,11 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                     <input
                                                         id="chat-reply-input"
                                                         type="text"
-                                                        placeholder="Escribe un mensaje..."
+                                                        placeholder={pendingFile ? "Agregar descripción (opcional)..." : "Escribe un mensaje..."}
                                                         value={replyInput}
                                                         onChange={e => setReplyInput(e.target.value)}
-                                                        disabled={sendingReply}
+                                                        disabled={sendingReply || isUploading}
+                                                        autoFocus={!!pendingFile}
                                                     />
                                                     <input
                                                         ref={fileInputRef}
@@ -1086,7 +1124,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                         type="button"
                                                         className="btn-attach"
                                                         onClick={() => fileInputRef.current?.click()}
-                                                        disabled={!!pendingFile}
+                                                        disabled={isUploading}
                                                         title="Adjuntar archivo"
                                                         aria-label="Adjuntar archivo"
                                                     >
@@ -1096,14 +1134,19 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                         type="button"
                                                         className="chat-mic-btn"
                                                         onClick={startRecording}
-                                                        disabled={!!pendingFile}
+                                                        disabled={isUploading}
                                                         title="Grabar nota de voz"
                                                         aria-label="Grabar audio"
                                                     >
                                                         <Mic size={18} />
                                                     </button>
-                                                    <button type="submit" disabled={!replyInput.trim() || sendingReply} className="btn-send" aria-label="Enviar mensaje">
-                                                        {sendingReply ? <Loader className="animate-spin" size={18} /> : <Send size={18} />}
+                                                    <button
+                                                        type="submit"
+                                                        disabled={(!replyInput.trim() && !pendingFile) || sendingReply || isUploading}
+                                                        className="btn-send"
+                                                        aria-label="Enviar mensaje"
+                                                    >
+                                                        {sendingReply || isUploading ? <Loader className="animate-spin" size={18} /> : <Send size={18} />}
                                                     </button>
                                                 </>
                                             )}
