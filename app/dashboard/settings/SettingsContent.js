@@ -120,6 +120,7 @@ export default function SettingsPage({ isDemo = false }) {
         tomo: '',
         folio: '',
         jurisdiccion: '',
+        matriculas: [],
         biography: '',
         phone: '',
         avatar_url: '',
@@ -133,6 +134,50 @@ export default function SettingsPage({ isDemo = false }) {
         is_public: false
     });
 
+    const COLEGIO_ZONA_MAP = {
+        'CPACF (Capital Federal)': 'Capital Federal',
+        'CASI (San Isidro)': 'Buenos Aires',
+        'CALP (La Plata)': 'Buenos Aires',
+        'Colegio de Córdoba': 'Córdoba',
+        'Colegio de Santa Fe': 'Santa Fe',
+    };
+    const MATRICULA_COLEGIO_OPTIONS = ['CPACF (Capital Federal)', 'CASI (San Isidro)', 'CALP (La Plata)', 'Colegio de Córdoba', 'Colegio de Santa Fe', 'Otro'];
+
+    const addMatricula = () => {
+        if (formData.matriculas.length >= 5) return;
+        setFormData(prev => ({
+            ...prev,
+            matriculas: [...prev.matriculas, {
+                id: crypto.randomUUID(), colegio: '', tomo: '', folio: '', zona: '', custom: '',
+                status: 'pending', principal: false, verified_at: null, rejection_reason: null
+            }]
+        }));
+    };
+
+    const removeMatricula = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            matriculas: prev.matriculas.filter((_, i) => i !== index)
+        }));
+    };
+
+    const updateMatricula = (index, field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            matriculas: prev.matriculas.map((m, i) => {
+                if (i !== index) return m;
+                const updated = { ...m, [field]: value };
+                if (field === 'colegio' && value !== 'Otro') {
+                    updated.zona = COLEGIO_ZONA_MAP[value] || value;
+                    updated.custom = '';
+                }
+                if (field === 'custom') updated.zona = value;
+                if (m.status === 'rejected') { updated.status = 'pending'; updated.rejection_reason = null; }
+                return updated;
+            })
+        }));
+    };
+
     useEffect(() => {
         const fetchProfile = async () => {
             if (isDemo) {
@@ -144,6 +189,7 @@ export default function SettingsPage({ isDemo = false }) {
                     matricula: 'Tº 100 Fº 1',
                     tomo: '100', folio: '1',
                     jurisdiccion: 'CABA',
+                    matriculas: [{ id: 'demo-1', colegio: 'CPACF (Capital Federal)', tomo: '100', folio: '1', zona: 'Capital Federal', status: 'verified', principal: true, verified_at: '2025-01-01', rejection_reason: null }],
                     biography: 'Perfil de demostración. Los cambios no se guardan.',
                     phone: '+54 9 11 1234-5678',
                     avatar_url: '',
@@ -169,12 +215,19 @@ export default function SettingsPage({ isDemo = false }) {
                         const match = data.matricula.match(/T°?\s*(\d+)\s*F°?\s*(\d+)/i);
                         if (match) { t = match[1]; f = match[2]; } else { t = data.matricula; }
                     }
+                    // Load matriculas: fall back to legacy single entry if column is empty
+                    const rawMatriculas = Array.isArray(data.matriculas) && data.matriculas.length > 0
+                        ? data.matriculas
+                        : (data.matricula || data.jurisdiccion)
+                            ? [{ id: 'legacy', colegio: data.jurisdiccion || '', tomo: t, folio: f, zona: data.jurisdiccion || '', status: data.verification_status || 'pending', principal: true, verified_at: null, rejection_reason: data.rejection_reason || null }]
+                            : [];
                     setFormData({
                         full_name: data.full_name || '',
                         especialidades: Array.isArray(data.especialidades) ? data.especialidades : [],
                         matricula: data.matricula || '',
                         tomo: t, folio: f,
                         jurisdiccion: data.jurisdiccion || '',
+                        matriculas: rawMatriculas,
                         biography: data.biography || '',
                         phone: data.phone || '',
                         avatar_url: data.avatar_url || '',
@@ -419,20 +472,36 @@ export default function SettingsPage({ isDemo = false }) {
                 if (previewUrl) URL.revokeObjectURL(previewUrl);
             }
 
+            // Sanitize matriculas: resolve 'Otro' custom field, ensure IDs
+            const updatedMatriculas = formData.matriculas.map(m => {
+                const { custom, ...clean } = m;
+                if (clean.colegio === 'Otro' && m.custom) clean.colegio = m.custom;
+                if (!clean.id || clean.id === 'legacy') clean.id = crypto.randomUUID();
+                return clean;
+            });
+            // Derive primary entry for backward-compat fields
+            const primary = updatedMatriculas.find(m => m.status === 'verified' && m.principal)
+                || updatedMatriculas.find(m => m.status === 'verified')
+                || updatedMatriculas[0];
+            const hasVerified = updatedMatriculas.some(m => m.status === 'verified');
+            const allRejected = updatedMatriculas.length > 0 && updatedMatriculas.every(m => m.status === 'rejected');
+            const newVerifStatus = hasVerified ? 'verified' : allRejected ? 'rejected' : 'pending';
+            const newMatricula = primary ? `T° ${primary.tomo} F° ${primary.folio}` : (formData.matricula || '');
+            const newJurisdiccion = primary ? primary.colegio : (formData.jurisdiccion || '');
+
             const updates = {
                 avatar_url: avatarUrlToSave,
                 full_name: formData.full_name,
                 biography: formData.biography,
-                jurisdiccion: formData.jurisdiccion,
+                jurisdiccion: newJurisdiccion,
                 especialidades: formData.especialidades,
                 is_correspondent: formData.is_correspondent,
                 coverage_zones: formData.coverage_zones,
                 is_public: formData.is_public,
-                matricula: (formData.tomo || formData.folio)
-                    ? `T° ${formData.tomo || ''} F° ${formData.folio || ''}`.trim()
-                    : formData.matricula,
-                verification_status: formData.verification_status === 'rejected' ? 'pending' : formData.verification_status,
-                ...(formData.verification_status === 'rejected' ? { rejection_reason: null } : {})
+                matricula: newMatricula,
+                matriculas: updatedMatriculas,
+                verification_status: newVerifStatus,
+                ...(newVerifStatus !== 'rejected' ? { rejection_reason: null } : {})
             };
 
             const { data: updateData, error: updateError } = await supabase
@@ -771,55 +840,105 @@ export default function SettingsPage({ isDemo = false }) {
                                                 )}
                                             </div>
                                         </div>
-                                        {formData.verification_status === 'rejected' && formData.rejection_reason && (
-                                            <div className="stg-rejection-reason-box">
-                                                <AlertTriangle size={14} />
-                                                <div>
-                                                    <strong>Motivo del rechazo:</strong>
-                                                    <p>{formData.rejection_reason}</p>
-                                                </div>
-                                            </div>
-                                        )}
-                                        <div className="stg-field-row multi">
-                                            <div className="stg-f-group flex-2">
-                                                <label htmlFor="jurisdiccion" className="stg-label">Colegio / Jurisdicción</label>
-                                                <input
-                                                    id="jurisdiccion"
-                                                    name="jurisdiccion"
-                                                    autoComplete="organization"
-                                                    className={`stg-dark-input ${formData.verification_status === 'verified' ? 'readonly' : 'underline'}`}
-                                                    value={formData.jurisdiccion}
-                                                    onChange={handleChange}
-                                                    readOnly={formData.verification_status === 'verified'}
-                                                    disabled={formData.verification_status === 'verified'}
-                                                />
-                                            </div>
-                                            <div className="stg-f-group flex-1">
-                                                <label htmlFor="tomo" className="stg-label">Tomo</label>
-                                                <input
-                                                    id="tomo"
-                                                    name="tomo"
-                                                    autoComplete="off"
-                                                    className={`stg-dark-input ${formData.verification_status === 'verified' ? 'readonly' : 'underline'}`}
-                                                    value={formData.tomo}
-                                                    onChange={handleChange}
-                                                    readOnly={formData.verification_status === 'verified'}
-                                                    disabled={formData.verification_status === 'verified'}
-                                                />
-                                            </div>
-                                            <div className="stg-f-group flex-1">
-                                                <label htmlFor="folio" className="stg-label">Folio</label>
-                                                <input
-                                                    id="folio"
-                                                    name="folio"
-                                                    autoComplete="off"
-                                                    className={`stg-dark-input ${formData.verification_status === 'verified' ? 'readonly' : 'underline'}`}
-                                                    value={formData.folio}
-                                                    onChange={handleChange}
-                                                    readOnly={formData.verification_status === 'verified'}
-                                                    disabled={formData.verification_status === 'verified'}
-                                                />
-                                            </div>
+                                        {/* MULTI-MATRICULA LIST */}
+                                        <div className="stg-matriculas-list" role="list" aria-label="Matrículas">
+                                            {formData.matriculas.map((m, idx) => {
+                                                const isVerified = m.status === 'verified';
+                                                const isRejected = m.status === 'rejected';
+                                                return (
+                                                    <fieldset key={m.id || idx} className="stg-matricula-entry" role="listitem">
+                                                        <legend className="stg-matricula-legend">
+                                                            <span>Matrícula {idx + 1}</span>
+                                                            <span className={`stg-matricula-badge stg-badge-${m.status || 'pending'}`}>
+                                                                {isVerified ? '✅ Verificada' : isRejected ? '❌ Rechazada' : '🟡 Pendiente'}
+                                                            </span>
+                                                            {!isVerified && formData.matriculas.length > 1 && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeMatricula(idx)}
+                                                                    aria-label={`Eliminar matrícula ${idx + 1}`}
+                                                                    className="stg-matricula-remove"
+                                                                >×</button>
+                                                            )}
+                                                        </legend>
+                                                        {isRejected && m.rejection_reason && (
+                                                            <div className="stg-rejection-reason-box" style={{ marginBottom: '0.75rem' }}>
+                                                                <AlertTriangle size={14} />
+                                                                <div>
+                                                                    <strong>Motivo del rechazo:</strong>
+                                                                    <p>{m.rejection_reason}</p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        <div className="stg-field-row multi">
+                                                            <div className="stg-f-group flex-2">
+                                                                <label htmlFor={`m-colegio-${idx}`} className="stg-label">Colegio / Jurisdicción</label>
+                                                                {isVerified ? (
+                                                                    <input id={`m-colegio-${idx}`} className="stg-dark-input readonly" value={m.colegio} readOnly disabled aria-readonly="true" />
+                                                                ) : (
+                                                                    <select
+                                                                        id={`m-colegio-${idx}`}
+                                                                        className="stg-dark-input underline"
+                                                                        value={m.colegio}
+                                                                        onChange={e => updateMatricula(idx, 'colegio', e.target.value)}
+                                                                        aria-label={`Colegio matrícula ${idx + 1}`}
+                                                                    >
+                                                                        <option value="">Seleccionar...</option>
+                                                                        {MATRICULA_COLEGIO_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                                                    </select>
+                                                                )}
+                                                            </div>
+                                                            <div className="stg-f-group flex-1">
+                                                                <label htmlFor={`m-tomo-${idx}`} className="stg-label">Tomo</label>
+                                                                <input
+                                                                    id={`m-tomo-${idx}`}
+                                                                    type={isVerified ? 'text' : 'number'}
+                                                                    className={`stg-dark-input ${isVerified ? 'readonly' : 'underline'}`}
+                                                                    value={m.tomo}
+                                                                    onChange={e => updateMatricula(idx, 'tomo', e.target.value)}
+                                                                    readOnly={isVerified} disabled={isVerified}
+                                                                    aria-readonly={isVerified}
+                                                                />
+                                                            </div>
+                                                            <div className="stg-f-group flex-1">
+                                                                <label htmlFor={`m-folio-${idx}`} className="stg-label">Folio</label>
+                                                                <input
+                                                                    id={`m-folio-${idx}`}
+                                                                    type={isVerified ? 'text' : 'number'}
+                                                                    className={`stg-dark-input ${isVerified ? 'readonly' : 'underline'}`}
+                                                                    value={m.folio}
+                                                                    onChange={e => updateMatricula(idx, 'folio', e.target.value)}
+                                                                    readOnly={isVerified} disabled={isVerified}
+                                                                    aria-readonly={isVerified}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        {!isVerified && m.colegio === 'Otro' && (
+                                                            <div className="stg-f-group" style={{ marginTop: '0.5rem' }}>
+                                                                <label htmlFor={`m-custom-${idx}`} className="stg-label">Especificar Colegio</label>
+                                                                <input
+                                                                    id={`m-custom-${idx}`}
+                                                                    className="stg-dark-input underline"
+                                                                    type="text"
+                                                                    placeholder="Ej: Colegio de Abogados de Tucumán"
+                                                                    value={m.custom || ''}
+                                                                    onChange={e => updateMatricula(idx, 'custom', e.target.value)}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </fieldset>
+                                                );
+                                            })}
+                                            {formData.matriculas.length < 5 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={addMatricula}
+                                                    className="stg-matricula-add"
+                                                    aria-label="Agregar matrícula adicional"
+                                                >
+                                                    + Agregar matrícula
+                                                </button>
+                                            )}
                                         </div>
 
                                         {/* SECCIÓN CORRESPONSALÍA */}

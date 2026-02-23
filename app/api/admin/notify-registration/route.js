@@ -25,10 +25,37 @@ export async function POST(request) {
 
     try {
         const body = await request.json();
-        const { fullName, email, matricula, jurisdiccion, date } = body;
+        const { fullName, email, matricula, jurisdiccion, matriculas, date } = body;
 
         if (!email || !fullName) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        }
+
+        // Build matriculas table for email
+        let matriculasHtml = '';
+        if (Array.isArray(matriculas) && matriculas.length > 0) {
+            const rows = matriculas.map(m =>
+                `<tr>
+                    <td style="padding:6px 10px;border:1px solid #e2e8f0;">${m.colegio || '-'}</td>
+                    <td style="padding:6px 10px;border:1px solid #e2e8f0;text-align:center;">${m.tomo || '-'}</td>
+                    <td style="padding:6px 10px;border:1px solid #e2e8f0;text-align:center;">${m.folio || '-'}</td>
+                </tr>`
+            ).join('');
+            matriculasHtml = `
+                <p><strong>Matrículas registradas (${matriculas.length}):</strong></p>
+                <table style="border-collapse:collapse;width:100%;font-size:14px;margin-bottom:12px;">
+                    <thead>
+                        <tr style="background:#f1f5f9;">
+                            <th style="padding:6px 10px;border:1px solid #e2e8f0;text-align:left;">Colegio</th>
+                            <th style="padding:6px 10px;border:1px solid #e2e8f0;">Tomo</th>
+                            <th style="padding:6px 10px;border:1px solid #e2e8f0;">Folio</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+        } else {
+            matriculasHtml = `<li><strong>Matrícula:</strong> ${matricula || 'No especificada'}</li>
+                        <li><strong>Jurisdicción:</strong> ${jurisdiccion || 'No especificada'}</li>`;
         }
 
         // Send Email to Admin
@@ -45,11 +72,10 @@ export async function POST(request) {
                     <ul>
                         <li><strong>Nombre:</strong> ${fullName}</li>
                         <li><strong>Email:</strong> ${email}</li>
-                        <li><strong>Matrícula:</strong> ${matricula || 'No especificada'}</li>
-                        <li><strong>Jurisdicción:</strong> ${jurisdiccion || 'No especificada'}</li>
                         <li><strong>Fecha:</strong> ${date || new Date().toLocaleString()}</li>
                     </ul>
-                    <p>Por favor, revisa el panel de administración para verificar sus credenciales si es necesario.</p>
+                    ${matriculasHtml}
+                    <p>Por favor, revisa el panel de administración para verificar sus credenciales.</p>
                 `,
                 buttonText: 'Ir al Panel Admin',
                 buttonUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://judic-ia.com'}/dashboard/admin`,

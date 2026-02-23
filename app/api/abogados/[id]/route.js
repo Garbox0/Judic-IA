@@ -23,7 +23,7 @@ export async function GET(request, { params }) {
         // Fetch public profile (only if public + verified)
         const { data: lawyer, error } = await adminClient
             .from('profiles')
-            .select('id, full_name, avatar_url, especialidades, jurisdiccion, matricula, biography, avg_rating, review_count')
+            .select('id, full_name, avatar_url, especialidades, jurisdiccion, matricula, matriculas, biography, avg_rating, review_count')
             .eq('id', id)
             .eq('role', 'lawyer')
             .eq('is_public', true)

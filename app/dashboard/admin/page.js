@@ -76,7 +76,7 @@ export default function AdminPage() {
     const [uploadingInvoice, setUploadingInvoice] = useState(null);
     const [auditReport, setAuditReport] = useState(null);
     const [auditLoading, setAuditLoading] = useState(false);
-    const [rejectModal, setRejectModal] = useState({ open: false, userId: null, reason: '' });
+    const [rejectModal, setRejectModal] = useState({ open: false, userId: null, matriculaId: null, reason: '' });
     const router = useRouter();
 
     useEffect(() => {
@@ -322,9 +322,8 @@ export default function AdminPage() {
                 if (!res.ok) throw new Error('Fallo al verificar');
                 showNotification('success', 'Abogado verificado.');
             } else if (action === 'reject-lawyer') {
-                // Open modal to get rejection reason
-                setRejectModal({ open: true, userId, reason: '' });
-                return; // Don't proceed, modal will handle the actual rejection
+                setRejectModal({ open: true, userId, matriculaId: null, reason: '' });
+                return;
             } else if (action === 'reset-verification') {
                 const res = await fetch('/api/admin/update-profile', {
                     method: 'POST',
@@ -345,6 +344,23 @@ export default function AdminPage() {
         }
     };
 
+    const handleVerifyMatricula = async (userId, matriculaId) => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error('Sesión expirada');
+            const res = await fetch('/api/admin/update-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                body: JSON.stringify({ action: 'update_matricula', userId, matriculaId, status: 'verified' })
+            });
+            if (!res.ok) throw new Error('Fallo al verificar matrícula');
+            showNotification('success', 'Matrícula verificada.');
+            initialFetch(session.user.id);
+        } catch (err) {
+            showNotification('error', err.message || 'Error al verificar');
+        }
+    };
+
     const handleRejectConfirm = async () => {
         if (!rejectModal.userId || !rejectModal.reason.trim()) {
             showNotification('error', 'Debés indicar un motivo de rechazo.');
@@ -353,23 +369,17 @@ export default function AdminPage() {
         try {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) throw new Error('Sesión expirada');
+            const body = rejectModal.matriculaId
+                ? { action: 'update_matricula', userId: rejectModal.userId, matriculaId: rejectModal.matriculaId, status: 'rejected', rejection_reason: rejectModal.reason.trim() }
+                : { userId: rejectModal.userId, updates: { verification_status: 'rejected', rejection_reason: rejectModal.reason.trim() } };
             const res = await fetch('/api/admin/update-profile', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify({
-                    userId: rejectModal.userId,
-                    updates: {
-                        verification_status: 'rejected',
-                        rejection_reason: rejectModal.reason.trim()
-                    }
-                })
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                body: JSON.stringify(body)
             });
             if (!res.ok) throw new Error('Fallo al rechazar');
             showNotification('success', 'Verificación rechazada con motivo.');
-            setRejectModal({ open: false, userId: null, reason: '' });
+            setRejectModal({ open: false, userId: null, matriculaId: null, reason: '' });
             initialFetch(session.user.id);
         } catch (err) {
             console.error(err);
@@ -798,9 +808,49 @@ export default function AdminPage() {
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex flex-col">
-                                                        <span className="text-admin-secondary text-sm font-black tracking-tight">{lawyer.matricula || 'N/D'}</span>
-                                                        <span className="text-[10px] text-admin-muted uppercase tracking-widest font-bold opacity-60">{lawyer.jurisdiccion || 'Territorio No Especificado'}</span>
+                                                    <div className="flex flex-col" style={{ gridColumn: 'span 2' }}>
+                                                        {/* Per-matricula list */}
+                                                        {Array.isArray(lawyer.matriculas) && lawyer.matriculas.length > 0 ? (
+                                                            <ul aria-label="Matrículas" style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                                {lawyer.matriculas.map(m => (
+                                                                    <li key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                                                        <span className="text-admin-secondary text-sm font-black tracking-tight">
+                                                                            {m.colegio} · T°{m.tomo} F°{m.folio}
+                                                                        </span>
+                                                                        <span style={{ fontSize: '10px', fontWeight: 700, padding: '1px 7px', borderRadius: '99px', textTransform: 'uppercase', letterSpacing: '0.05em', background: m.status === 'verified' ? 'rgba(16,185,129,0.12)' : m.status === 'rejected' ? 'rgba(244,63,94,0.12)' : 'rgba(251,191,36,0.12)', color: m.status === 'verified' ? '#10b981' : m.status === 'rejected' ? '#f43f5e' : '#fbbf24' }}>
+                                                                            {m.status === 'verified' ? '✅ Verificada' : m.status === 'rejected' ? '❌ Rechazada' : '🟡 Pendiente'}
+                                                                        </span>
+                                                                        {m.status !== 'verified' && (
+                                                                            <button
+                                                                                onClick={() => handleVerifyMatricula(lawyer.id, m.id)}
+                                                                                className="action-btn text-emerald hover:bg-emerald/10 hover:border-emerald/30"
+                                                                                aria-label={`Verificar ${m.colegio} T°${m.tomo} F°${m.folio}`}
+                                                                                title="Verificar esta matrícula"
+                                                                                style={{ padding: '2px 6px', fontSize: '10px', height: 'auto' }}
+                                                                            >
+                                                                                <ShieldCheck size={13} />
+                                                                            </button>
+                                                                        )}
+                                                                        {m.status !== 'rejected' && (
+                                                                            <button
+                                                                                onClick={() => setRejectModal({ open: true, userId: lawyer.id, matriculaId: m.id, reason: '' })}
+                                                                                className="action-btn text-rose hover:bg-rose/10 hover:border-rose/20"
+                                                                                aria-label={`Rechazar ${m.colegio} T°${m.tomo} F°${m.folio}`}
+                                                                                title="Rechazar esta matrícula"
+                                                                                style={{ padding: '2px 6px', fontSize: '10px', height: 'auto' }}
+                                                                            >
+                                                                                <ShieldAlert size={13} />
+                                                                            </button>
+                                                                        )}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        ) : (
+                                                            <>
+                                                                <span className="text-admin-secondary text-sm font-black tracking-tight">{lawyer.matricula || 'N/D'}</span>
+                                                                <span className="text-[10px] text-admin-muted uppercase tracking-widest font-bold opacity-60">{lawyer.jurisdiccion || 'Territorio No Especificado'}</span>
+                                                            </>
+                                                        )}
                                                     </div>
 
                                                     <div>
@@ -812,6 +862,7 @@ export default function AdminPage() {
                                                             <button
                                                                 onClick={() => handleAction(lawyer.id, 'verify-lawyer')}
                                                                 className="action-btn text-emerald hover:bg-emerald/10 hover:border-emerald/30"
+                                                                aria-label="Aprobar abogado"
                                                                 title="Aprobar"
                                                             >
                                                                 <ShieldCheck size={18} />
@@ -821,6 +872,7 @@ export default function AdminPage() {
                                                             <button
                                                                 onClick={() => handleAction(lawyer.id, 'reject-lawyer')}
                                                                 className="action-btn text-rose hover:bg-rose/10 hover:border-rose/20"
+                                                                aria-label="Rechazar abogado"
                                                                 title="Rechazar"
                                                             >
                                                                 <ShieldAlert size={18} />
@@ -829,6 +881,7 @@ export default function AdminPage() {
                                                         <button
                                                             onClick={() => handleAction(lawyer.id, 'reset-verification')}
                                                             className="action-btn text-admin-muted hover:bg-white/5 opacity-40 hover:opacity-100"
+                                                            aria-label="Reiniciar verificación"
                                                             title="Reiniciar"
                                                         >
                                                             <RefreshCw size={14} />
@@ -1444,7 +1497,7 @@ export default function AdminPage() {
             </div>
             {/* REJECT REASON MODAL */}
             {rejectModal.open && (
-                <div className="admin-modal-overlay" onClick={() => setRejectModal({ open: false, userId: null, reason: '' })}>
+                <div className="admin-modal-overlay" onClick={() => setRejectModal({ open: false, userId: null, matriculaId: null, reason: '' })}>
                     <div className="admin-modal-content" onClick={e => e.stopPropagation()}>
                         <h3 className="text-lg font-black text-admin-primary mb-4">Motivo de Rechazo</h3>
                         <p className="text-admin-muted text-sm mb-4">Indicá por qué se rechaza la verificación. El abogado verá este motivo en su perfil.</p>
@@ -1476,7 +1529,7 @@ export default function AdminPage() {
                         <div className="admin-modal-actions">
                             <button
                                 className="admin-modal-btn-cancel"
-                                onClick={() => setRejectModal({ open: false, userId: null, reason: '' })}
+                                onClick={() => setRejectModal({ open: false, userId: null, matriculaId: null, reason: '' })}
                             >
                                 Cancelar
                             </button>

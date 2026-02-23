@@ -36,9 +36,9 @@ export async function GET(request) {
             query = query.contains('especialidades', [especialidad]);
         }
 
-        // Filter by zona/jurisdiccion
+        // Filter by zona: match jurisdiccion OR coverage_zones contains the zone
         if (zona) {
-            query = query.ilike('jurisdiccion', `%${zona}%`);
+            query = query.or(`jurisdiccion.ilike.%${zona}%,coverage_zones.cs.{${zona}}`);
         }
 
         const { data, error, count } = await query;

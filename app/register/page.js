@@ -23,9 +23,7 @@ export default function RegisterPage() {
     const [cuitPrefix, setCuitPrefix] = useState('');
     const [cuitDni, setCuitDni] = useState('');
     const [cuitSuffix, setCuitSuffix] = useState('');
-    const [tomo, setTomo] = useState('');
-    const [folio, setFolio] = useState('');
-    const [jurisdiccion, setJurisdiccion] = useState('');
+    const [matriculas, setMatriculas] = useState([{ id: crypto.randomUUID(), colegio: '', tomo: '', folio: '', zona: '', custom: '' }]);
     const [specialties, setSpecialties] = useState([]);
     const [consent, setConsent] = useState(false);
 
@@ -34,7 +32,36 @@ export default function RegisterPage() {
     const [message, setMessage] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [customJurisdiccion, setCustomJurisdiccion] = useState('');
+    const COLEGIO_ZONA_MAP = {
+        'CPACF (Capital Federal)': 'Capital Federal',
+        'CASI (San Isidro)': 'Buenos Aires',
+        'CALP (La Plata)': 'Buenos Aires',
+        'Colegio de Córdoba': 'Córdoba',
+        'Colegio de Santa Fe': 'Santa Fe',
+    };
+
+    const updateMatricula = (index, field, value) => {
+        setMatriculas(prev => prev.map((m, i) => {
+            if (i !== index) return m;
+            const updated = { ...m, [field]: value };
+            if (field === 'colegio' && value !== 'Otro') {
+                updated.zona = COLEGIO_ZONA_MAP[value] || value;
+                updated.custom = '';
+            }
+            if (field === 'custom') updated.zona = value;
+            return updated;
+        }));
+    };
+
+    const addMatricula = () => {
+        if (matriculas.length >= 5) return;
+        setMatriculas(prev => [...prev, { id: crypto.randomUUID(), colegio: '', tomo: '', folio: '', zona: '', custom: '' }]);
+    };
+
+    const removeMatricula = (index) => {
+        if (matriculas.length <= 1) return;
+        setMatriculas(prev => prev.filter((_, i) => i !== index));
+    };
 
     const [redirectCountdown, setRedirectCountdown] = useState(null);
     const [theme, setTheme] = useState('light');
@@ -276,9 +303,13 @@ export default function RegisterPage() {
             setError("Selecciona al menos una especialidad.");
             return;
         }
-        if (jurisdiccion === 'Otro' && !customJurisdiccion) {
-            setError("Por favor especifica tu colegio o jurisdicción.");
-            return;
+        // Validate all matriculas
+        for (let i = 0; i < matriculas.length; i++) {
+            const m = matriculas[i];
+            if (!m.colegio) { setError(`Seleccioná el colegio para la matrícula ${i + 1}.`); return; }
+            if (m.colegio === 'Otro' && !m.custom.trim()) { setError(`Especificá el colegio para la matrícula ${i + 1}.`); return; }
+            if (!m.tomo) { setError(`Ingresá el Tomo para la matrícula ${i + 1}.`); return; }
+            if (!m.folio) { setError(`Ingresá el Folio para la matrícula ${i + 1}.`); return; }
         }
 
         setLoading(true);
@@ -313,8 +344,20 @@ export default function RegisterPage() {
         }
         // === END HIBP CHECK ===
 
-        const finalJurisdiccion = jurisdiccion === 'Otro' ? customJurisdiccion : jurisdiccion;
-        const finalMatricula = `T° ${tomo} F° ${folio}`;
+        const m0 = matriculas[0];
+        const finalJurisdiccion = m0.colegio === 'Otro' ? m0.custom : m0.colegio;
+        const finalMatricula = `T° ${m0.tomo} F° ${m0.folio}`;
+        const matriculasData = matriculas.map((m, i) => ({
+            id: m.id,
+            colegio: m.colegio === 'Otro' ? m.custom : m.colegio,
+            tomo: m.tomo,
+            folio: m.folio,
+            zona: m.zona || (m.colegio === 'Otro' ? m.custom : (COLEGIO_ZONA_MAP[m.colegio] || m.colegio)),
+            status: 'pending',
+            principal: i === 0,
+            verified_at: null,
+            rejection_reason: null,
+        }));
 
         const { data, error: signUpError } = await supabase.auth.signUp({
             email,
@@ -329,7 +372,8 @@ export default function RegisterPage() {
                     role: 'lawyer',
                     matricula: finalMatricula,
                     jurisdiccion: finalJurisdiccion,
-                    especialidades: specialties
+                    especialidades: specialties,
+                    matriculas: matriculasData,
                 }
             }
         });
@@ -356,6 +400,7 @@ export default function RegisterPage() {
                         email,
                         matricula: finalMatricula,
                         jurisdiccion: finalJurisdiccion,
+                        matriculas: matriculasData,
                         date: new Date().toLocaleString()
                     })
                 });
@@ -487,49 +532,83 @@ export default function RegisterPage() {
                                 )}
                             </div>
 
-                            <div className="register-field-row">
-                                <div className="flex-1">
-                                    <label htmlFor="tomo">Tomo</label>
-                                    <input
-                                        id="tomo"
-                                        name="tomo"
-                                        autoComplete="off"
-                                        type="number"
-                                        placeholder="80"
-                                        value={tomo}
-                                        onChange={e => setTomo(e.target.value)}
-                                        onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
-                                        required
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <label htmlFor="folio">Folio</label>
-                                    <input
-                                        id="folio"
-                                        name="folio"
-                                        autoComplete="off"
-                                        type="number"
-                                        placeholder="500"
-                                        value={folio}
-                                        onChange={e => setFolio(e.target.value)}
-                                        onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
-                                        required
-                                    />
-                                </div>
-                            </div>
+                            {matriculas.map((m, idx) => (
+                                <fieldset key={m.id} className="register-field full-width matricula-fieldset">
+                                    <legend className="legend-cuit matricula-legend">
+                                        Matrícula {idx + 1}
+                                        {idx > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => removeMatricula(idx)}
+                                                aria-label={`Eliminar matrícula ${idx + 1}`}
+                                                className="matricula-remove-btn"
+                                            >×</button>
+                                        )}
+                                    </legend>
+                                    <div className="register-field">
+                                        <label htmlFor={`colegio-${idx}`}>Colegio / Jurisdicción</label>
+                                        <select
+                                            id={`colegio-${idx}`}
+                                            value={m.colegio}
+                                            onChange={e => updateMatricula(idx, 'colegio', e.target.value)}
+                                            required
+                                        >
+                                            <option value="">Seleccionar...</option>
+                                            {JURISDICCION_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                        </select>
+                                    </div>
+                                    {m.colegio === 'Otro' && (
+                                        <div className="register-field full-width slide-up">
+                                            <label htmlFor={`custom-${idx}`}>Especificar Colegio / Jurisdicción</label>
+                                            <input
+                                                id={`custom-${idx}`}
+                                                type="text"
+                                                placeholder="Ej: Colegio de Abogados de Tucumán"
+                                                value={m.custom}
+                                                onChange={e => updateMatricula(idx, 'custom', e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="register-field-row">
+                                        <div className="flex-1">
+                                            <label htmlFor={`tomo-${idx}`}>Tomo</label>
+                                            <input
+                                                id={`tomo-${idx}`}
+                                                type="number"
+                                                placeholder="80"
+                                                value={m.tomo}
+                                                onChange={e => updateMatricula(idx, 'tomo', e.target.value)}
+                                                onKeyDown={e => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label htmlFor={`folio-${idx}`}>Folio</label>
+                                            <input
+                                                id={`folio-${idx}`}
+                                                type="number"
+                                                placeholder="500"
+                                                value={m.folio}
+                                                onChange={e => updateMatricula(idx, 'folio', e.target.value)}
+                                                onKeyDown={e => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            ))}
 
-                            <div className="register-field">
-                                <label htmlFor="jurisdiccion">Jurisdicción / Colegio</label>
-                                <select id="jurisdiccion" name="jurisdiccion" autoComplete="organization" value={jurisdiccion} onChange={e => setJurisdiccion(e.target.value)} required>
-                                    <option value="">Seleccionar...</option>
-                                    {JURISDICCION_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                </select>
-                            </div>
-
-                            {jurisdiccion === 'Otro' && (
-                                <div className="register-field full-width slide-up">
-                                    <label htmlFor="customJurisdiccion">Especificar Colegio / Jurisdicción</label>
-                                    <input id="customJurisdiccion" name="customJurisdiccion" autoComplete="organization" type="text" placeholder="Ej: Colegio de Abogados de Tucumán" value={customJurisdiccion} onChange={e => setCustomJurisdiccion(e.target.value)} required />
+                            {matriculas.length < 5 && (
+                                <div className="register-field full-width">
+                                    <button
+                                        type="button"
+                                        onClick={addMatricula}
+                                        className="matricula-add-btn"
+                                        aria-label="Agregar matrícula adicional"
+                                    >
+                                        + Agregar matrícula
+                                    </button>
                                 </div>
                             )}
 

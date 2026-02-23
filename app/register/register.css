@@ -743,6 +743,75 @@
     }
 }
 
+/* MATRICULA MULTI-ENTRY */
+.matricula-fieldset {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem 1rem 0.75rem;
+    margin-bottom: 0;
+}
+
+.matricula-legend {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0.25rem;
+}
+
+.matricula-remove-btn {
+    background: none;
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    color: #f87171;
+    border-radius: 4px;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.15s, color 0.15s;
+}
+
+.matricula-remove-btn:hover {
+    background: rgba(248, 113, 113, 0.15);
+    color: #fca5a5;
+}
+
+.matricula-add-btn {
+    width: 100%;
+    padding: 0.6rem 1rem;
+    background: transparent;
+    border: 1px dashed rgba(251, 191, 36, 0.4);
+    color: #fbbf24;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.matricula-add-btn:hover {
+    background: rgba(251, 191, 36, 0.07);
+    border-color: rgba(251, 191, 36, 0.7);
+}
+
+.light-theme .matricula-fieldset {
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+.light-theme .matricula-add-btn {
+    border-color: rgba(180, 135, 20, 0.4);
+    color: #b45309;
+}
+
+.light-theme .matricula-add-btn:hover {
+    background: rgba(180, 135, 20, 0.06);
+    border-color: rgba(180, 135, 20, 0.7);
+}
+
 /* LIGHT THEME MODAL OVERRIDES */
 .light-theme .register-success-modal {
     background: rgba(255, 255, 255, 0.95);

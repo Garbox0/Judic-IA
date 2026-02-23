@@ -169,11 +169,27 @@ export default function LawyerProfilePage() {
                         <div className="profile-info">
                             <h1 className="profile-name">{lawyer.full_name}</h1>
 
-                            {lawyer.matricula && (
-                                <p className="profile-matricula">
-                                    <Award size={14} aria-hidden="true" /> {lawyer.matricula}
-                                </p>
-                            )}
+                            {(() => {
+                                const verifiedMatriculas = Array.isArray(lawyer.matriculas)
+                                    ? lawyer.matriculas.filter(m => m.status === 'verified')
+                                    : [];
+                                if (verifiedMatriculas.length > 0) {
+                                    return (
+                                        <ul aria-label="Matrículas verificadas" style={{ listStyle: 'none', margin: '4px 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                            {verifiedMatriculas.map(m => (
+                                                <li key={m.id} className="profile-matricula">
+                                                    <Award size={14} aria-hidden="true" /> {m.colegio} · T°{m.tomo} F°{m.folio}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    );
+                                }
+                                return lawyer.matricula ? (
+                                    <p className="profile-matricula">
+                                        <Award size={14} aria-hidden="true" /> {lawyer.matricula}
+                                    </p>
+                                ) : null;
+                            })()}
 
                             {lawyer.jurisdiccion && (
                                 <p className="profile-zona">
