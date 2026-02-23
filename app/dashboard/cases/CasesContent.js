@@ -113,25 +113,14 @@ export default function CasesPage() {
     const handleDeleteCase = async () => {
         if (!caseToDelete) return;
         try {
-            // DEFENITIVE DELETE: Clean up case AND linked inquiry data
-            const res = await fetch("/api/clients/delete", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    inquiryId: caseToDelete.inquiry_id
-                })
-            });
-
-            if (!res.ok) {
-                // Fallback to only case delete if API fails
-                const { error } = await supabase.from('cases').delete().eq('id', caseToDelete.id);
-                if (error) throw error;
-            }
+            // Solo borra la carpeta/expediente, no la conversación ni la inquiry
+            const { error } = await supabase.from('cases').delete().eq('id', caseToDelete.id);
+            if (error) throw error;
 
             setCases(prev => prev.filter(c => c.id !== caseToDelete.id));
             setCaseToDelete(null);
             fetchCases();
-            showNotification("Expediente eliminado definitivamente.");
+            showNotification("Expediente eliminado.");
 
         } catch (error) {
             console.error("Delete Error:", error);

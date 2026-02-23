@@ -123,21 +123,9 @@ export default function CaseDetailPage({ params }) {
 
     const handleDeleteCase = async () => {
         try {
-            // DEFENITIVE DELETE: Clean up case AND linked inquiry data
-            const res = await fetch("/api/clients/delete", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    inquiryId: caseData.inquiry_id
-                })
-            });
-
-            if (!res.ok) {
-                // If atomic delete fails, try deleting ONLY the case as fallback
-                console.warn("Atomic delete failed, falling back to simple case delete.");
-                const { error } = await supabase.from('cases').delete().eq('id', id);
-                if (error) throw error;
-            }
+            // Solo borra la carpeta/expediente, no la conversación ni la inquiry
+            const { error } = await supabase.from('cases').delete().eq('id', id);
+            if (error) throw error;
 
             router.push('/dashboard/cases');
         } catch (error) {
