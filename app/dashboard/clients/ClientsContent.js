@@ -97,11 +97,11 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     const [uploadError, setUploadError] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
 
-    // Compose panel state
-    const [pendingFile, setPendingFile] = useState(null);
-    const [pendingCaption, setPendingCaption] = useState('');
-    const [pendingPreviewUrl, setPendingPreviewUrl] = useState(null);
+    // Compose panel state — multi-file
+    const [pendingFiles, setPendingFiles] = useState([]); // [{id, file, caption, previewUrl}]
+    const [activeFileIdx, setActiveFileIdx] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
+    const pendingFilesRef = useRef([]); // for unmount cleanup of ObjectURLs
 
     // Recording state
     const [isRecording, setIsRecording] = useState(false);
@@ -116,20 +116,13 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
     const formatRecordingTime = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
-    // Generate preview URL when pendingFile changes
-    React.useEffect(() => {
-        if (!pendingFile) { setPendingPreviewUrl(null); return; }
-        if (isImageFile(pendingFile.name) || isVideoFile(pendingFile.name) || isAudioFile(pendingFile.name)) {
-            const url = URL.createObjectURL(pendingFile);
-            setPendingPreviewUrl(url);
-            return () => URL.revokeObjectURL(url);
-        }
-        setPendingPreviewUrl(null);
-    }, [pendingFile]);
+    // Keep ref in sync for unmount cleanup
+    React.useEffect(() => { pendingFilesRef.current = pendingFiles; }, [pendingFiles]);
 
-    // Cleanup recording on unmount
+    // Cleanup on unmount
     React.useEffect(() => {
         return () => {
+            pendingFilesRef.current.forEach(pf => { if (pf.previewUrl) URL.revokeObjectURL(pf.previewUrl); });
             clearInterval(recordingTimerRef.current);
             cancelAnimationFrame(animFrameRef.current);
             if (audioCtxRef.current) audioCtxRef.current.close();
@@ -313,12 +306,14 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
     const sendLawyerReply = async (e) => {
         e.preventDefault();
-        // If there's a pending non-audio file, send it with input as caption
-        if (pendingFile && !isUploading) {
-            const caption = replyInput.trim();
-            setReplyInput('');
-            const ok = await uploadFile(pendingFile, caption);
-            if (ok) setPendingFile(null);
+        // Send all pending files (each with its own caption)
+        if (pendingFiles.length && !isUploading) {
+            const filesToSend = [...pendingFiles];
+            setPendingFiles([]);
+            setActiveFileIdx(0);
+            for (const { file, caption } of filesToSend) {
+                await uploadFile(file, caption);
+            }
             return;
         }
         if (!replyInput.trim() || sendingReply || !selectedClient) return;
@@ -416,40 +411,56 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
         }
     };
 
-    const handleSendCompose = async () => {
-        if (!pendingFile || isUploading) return;
-        const ok = await uploadFile(pendingFile, pendingCaption);
-        if (ok) {
-            setPendingFile(null);
-            setPendingCaption('');
+    const addFilesToPending = (files) => {
+        const toAdd = [];
+        for (const file of files) {
+            if (isAudioFile(file.name)) {
+                uploadFile(file, '');
+            } else {
+                const previewUrl = (isImageFile(file.name) || isVideoFile(file.name))
+                    ? URL.createObjectURL(file) : null;
+                toAdd.push({ id: `${Date.now()}-${Math.random()}`, file, caption: '', previewUrl });
+            }
+        }
+        if (toAdd.length) {
+            setPendingFiles(prev => {
+                const updated = [...prev, ...toAdd];
+                setActiveFileIdx(updated.length - 1);
+                return updated;
+            });
         }
     };
 
+    const removePendingFile = (idx) => {
+        setPendingFiles(prev => {
+            const updated = [...prev];
+            const [removed] = updated.splice(idx, 1);
+            if (removed.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+            return updated;
+        });
+        setActiveFileIdx(prev => Math.min(prev, Math.max(0, pendingFiles.length - 2)));
+    };
+
+    const updateActiveCaption = (caption) => {
+        setPendingFiles(prev => prev.map((pf, i) => i === activeFileIdx ? { ...pf, caption } : pf));
+    };
+
     const handleFileUpload = (e) => {
-        const file = e.target.files?.[0];
+        const files = Array.from(e.target.files || []);
         e.target.value = '';
-        if (!file) return;
+        if (!files.length) return;
         setUploadError(null);
-        if (isAudioFile(file.name)) {
-            // Audio files send immediately, no compose panel
-            uploadFile(file, '');
-        } else {
-            setPendingFile(file);
-        }
+        addFilesToPending(files);
     };
 
     const handleChatDragOver = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
     const handleChatDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); if (!e.currentTarget.contains(e.relatedTarget)) setIsDragging(false); };
     const handleChatDrop = (e) => {
         e.preventDefault(); e.stopPropagation(); setIsDragging(false);
-        const file = e.dataTransfer.files?.[0];
-        if (!file) return;
+        const files = Array.from(e.dataTransfer.files || []);
+        if (!files.length) return;
         setUploadError(null);
-        if (isAudioFile(file.name)) {
-            uploadFile(file, '');
-        } else {
-            setPendingFile(file);
-        }
+        addFilesToPending(files);
     };
 
     const startRecording = async () => {
@@ -468,20 +479,30 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
             const drawWaveform = () => {
                 const canvas = waveformCanvasRef.current;
-                if (!canvas || !analyserRef.current) return;
+                // Canvas not in DOM yet (waiting for state update) — retry next frame
+                if (!canvas || !analyserRef.current) {
+                    animFrameRef.current = requestAnimationFrame(drawWaveform);
+                    return;
+                }
+                // Sync canvas buffer to actual displayed size
+                const dpr = window.devicePixelRatio || 1;
+                const w = canvas.clientWidth || 180;
+                const h = canvas.clientHeight || 28;
+                if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
+                    canvas.width = w * dpr;
+                    canvas.height = h * dpr;
+                }
                 const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 const bufferLength = analyserRef.current.frequencyBinCount;
                 const data = new Uint8Array(bufferLength);
                 analyserRef.current.getByteFrequencyData(data);
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                const barWidth = canvas.width / bufferLength;
+                const barW = canvas.width / bufferLength;
                 data.forEach((val, i) => {
-                    const h = Math.max(2, (val / 255) * canvas.height);
-                    const alpha = 0.35 + (val / 255) * 0.65;
+                    const barH = Math.max(2 * dpr, (val / 255) * canvas.height);
+                    const alpha = 0.3 + (val / 255) * 0.7;
                     ctx.fillStyle = `rgba(251, 191, 36, ${alpha})`;
-                    ctx.beginPath();
-                    ctx.roundRect(i * barWidth, canvas.height - h, Math.max(1, barWidth - 1.5), h, 2);
-                    ctx.fill();
+                    ctx.fillRect(i * barW, canvas.height - barH, Math.max(1, barW - 1.5 * dpr), barH);
                 });
                 animFrameRef.current = requestAnimationFrame(drawWaveform);
             };
@@ -1048,30 +1069,67 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                 </div>
                             ) : (
                                 <div className="chat-input-area">
-                                    {/* Inline attachment chip (non-audio files) */}
-                                    {pendingFile && (
-                                        <div className="compose-chip-row" role="status" aria-live="polite">
-                                            <div className="compose-chip">
-                                                {isImageFile(pendingFile.name) && pendingPreviewUrl ? (
-                                                    <img src={pendingPreviewUrl} alt="" className="compose-chip-thumb" aria-hidden="true" />
-                                                ) : isVideoFile(pendingFile.name) && pendingPreviewUrl ? (
-                                                    <video src={pendingPreviewUrl} className="compose-chip-thumb" muted aria-hidden="true" />
-                                                ) : (
-                                                    <span className="compose-chip-ext" aria-hidden="true">{getFileExt(pendingFile.name).toUpperCase()}</span>
-                                                )}
-                                                <span className="compose-chip-name">{pendingFile.name}</span>
-                                                <span className="compose-chip-size">{(pendingFile.size / 1024 / 1024).toFixed(1)} MB</span>
+                                    {/* Multi-file compose bar */}
+                                    {pendingFiles.length > 0 && (
+                                        <div className="compose-files-bar" role="region" aria-label="Archivos a enviar">
+                                            {/* Active file preview */}
+                                            <div className="compose-active-preview">
+                                                {(() => {
+                                                    const active = pendingFiles[activeFileIdx];
+                                                    if (!active) return null;
+                                                    if (active.previewUrl && isImageFile(active.file.name))
+                                                        return <img src={active.previewUrl} alt={active.file.name} className="compose-active-img" />;
+                                                    if (active.previewUrl && isVideoFile(active.file.name))
+                                                        return <video src={active.previewUrl} className="compose-active-img" muted />;
+                                                    return (
+                                                        <div className="compose-active-file">
+                                                            <span className="compose-active-ext">{getFileExt(active.file.name).toUpperCase()}</span>
+                                                            <span className="compose-active-name">{active.file.name}</span>
+                                                            <span className="compose-active-size">{(active.file.size / 1024 / 1024).toFixed(1)} MB</span>
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </div>
+                                            {/* Thumbnail strip */}
+                                            <div className="compose-strip" role="list">
+                                                {pendingFiles.map((pf, i) => (
+                                                    <div key={pf.id} className={`compose-strip-item ${i === activeFileIdx ? 'active' : ''}`} role="listitem">
+                                                        <button
+                                                            type="button"
+                                                            className="compose-strip-thumb"
+                                                            onClick={() => setActiveFileIdx(i)}
+                                                            aria-label={`${pf.file.name} ${i === activeFileIdx ? '(seleccionado)' : ''}`}
+                                                            aria-current={i === activeFileIdx}
+                                                        >
+                                                            {pf.previewUrl && isImageFile(pf.file.name)
+                                                                ? <img src={pf.previewUrl} alt="" />
+                                                                : pf.previewUrl && isVideoFile(pf.file.name)
+                                                                    ? <video src={pf.previewUrl} muted aria-hidden="true" />
+                                                                    : <span className="compose-strip-ext">{getFileExt(pf.file.name).toUpperCase()}</span>
+                                                            }
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="compose-strip-remove"
+                                                            onClick={() => removePendingFile(i)}
+                                                            aria-label={`Quitar ${pf.file.name}`}
+                                                        >
+                                                            <X size={10} aria-hidden="true" />
+                                                        </button>
+                                                    </div>
+                                                ))}
                                                 <button
                                                     type="button"
-                                                    className="compose-chip-remove"
-                                                    onClick={() => { setPendingFile(null); setUploadError(null); }}
-                                                    aria-label="Cancelar adjunto"
+                                                    className="compose-strip-add"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    aria-label="Agregar otro archivo"
+                                                    title="Agregar archivo"
                                                 >
-                                                    <X size={13} aria-hidden="true" />
+                                                    <span aria-hidden="true">+</span>
                                                 </button>
                                             </div>
                                             {uploadError && (
-                                                <span className="compose-chip-error" role="alert">{uploadError}</span>
+                                                <p className="compose-chip-error" role="alert">{uploadError}</p>
                                             )}
                                         </div>
                                     )}
@@ -1102,21 +1160,24 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                 </>
                                             ) : (
                                                 <>
-                                                    <label htmlFor="chat-reply-input" className="sr-only">Escribir mensaje</label>
+                                                    <label htmlFor="chat-reply-input" className="sr-only">
+                                                        {pendingFiles.length ? `Descripción para ${pendingFiles[activeFileIdx]?.file.name || 'archivo'}` : 'Escribir mensaje'}
+                                                    </label>
                                                     <input
                                                         id="chat-reply-input"
                                                         type="text"
-                                                        placeholder={pendingFile ? "Agregar descripción (opcional)..." : "Escribe un mensaje..."}
-                                                        value={replyInput}
-                                                        onChange={e => setReplyInput(e.target.value)}
+                                                        placeholder={pendingFiles.length ? "Agregar descripción (opcional)..." : "Escribe un mensaje..."}
+                                                        value={pendingFiles.length > 0 ? (pendingFiles[activeFileIdx]?.caption || '') : replyInput}
+                                                        onChange={e => pendingFiles.length > 0 ? updateActiveCaption(e.target.value) : setReplyInput(e.target.value)}
                                                         disabled={sendingReply || isUploading}
-                                                        autoFocus={!!pendingFile}
+                                                        autoFocus={pendingFiles.length > 0}
                                                     />
                                                     <input
                                                         ref={fileInputRef}
                                                         type="file"
                                                         className="sr-only"
                                                         accept=".pdf,.jpg,.jpeg,.png,.webp,.mp4,.mp3,.webm,.ogg,.m4a,.docx,.txt"
+                                                        multiple
                                                         onChange={handleFileUpload}
                                                         aria-label="Adjuntar archivo"
                                                     />
@@ -1142,7 +1203,7 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                                                     </button>
                                                     <button
                                                         type="submit"
-                                                        disabled={(!replyInput.trim() && !pendingFile) || sendingReply || isUploading}
+                                                        disabled={(!replyInput.trim() && !pendingFiles.length) || sendingReply || isUploading}
                                                         className="btn-send"
                                                         aria-label="Enviar mensaje"
                                                     >
