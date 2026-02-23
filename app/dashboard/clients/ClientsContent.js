@@ -78,6 +78,8 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     const [copied, setCopied] = useState(false);
     const [clientToDelete, setClientToDelete] = useState(null);
     const [conversionSuccess, setConversionSuccess] = useState(false);
+    const deleteModalRef = useRef(null);
+    const deleteOpenedByRef = useRef(null);
     const [showSidebar, setShowSidebar] = useState(false);
     const [attachments, setAttachments] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -101,6 +103,8 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
     const [pendingFiles, setPendingFiles] = useState([]); // [{id, file, caption, previewUrl}]
     const [activeFileIdx, setActiveFileIdx] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
+    const [uploadStatusMsg, setUploadStatusMsg] = useState('');
+    const uploadStatusTimerRef = useRef(null);
     const pendingFilesRef = useRef([]); // for unmount cleanup of ObjectURLs
 
     // Recording state
@@ -118,6 +122,39 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
 
     // Keep ref in sync for unmount cleanup
     React.useEffect(() => { pendingFilesRef.current = pendingFiles; }, [pendingFiles]);
+
+    // Focus trap para el modal de eliminar consulta
+    useEffect(() => {
+        if (!clientToDelete) return;
+        // Guardar el elemento que abrió el modal para restaurar foco al cerrar
+        deleteOpenedByRef.current = document.activeElement;
+        // Mover foco al primer botón del modal
+        const modal = deleteModalRef.current;
+        if (modal) {
+            const firstFocusable = modal.querySelector('button, [href], input, [tabindex]:not([tabindex="-1"])');
+            firstFocusable?.focus();
+        }
+        // Atrapar Tab/Shift+Tab dentro del modal
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') { setClientToDelete(null); return; }
+            if (e.key !== 'Tab') return;
+            const focusable = modal?.querySelectorAll('button, [href], input, [tabindex]:not([tabindex="-1"])');
+            if (!focusable?.length) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (e.shiftKey) {
+                if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+            } else {
+                if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            // Restaurar foco al elemento que abrió el modal
+            deleteOpenedByRef.current?.focus();
+        };
+    }, [clientToDelete]);
 
     // Cleanup on unmount
     React.useEffect(() => {
@@ -378,6 +415,8 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
         if (!file || !selectedClient || isDemo) return false;
         setUploadError(null);
         setIsUploading(true);
+        clearTimeout(uploadStatusTimerRef.current);
+        setUploadStatusMsg('Enviando archivo...');
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const form = new FormData();
@@ -401,9 +440,12 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                 return false;
             }
             // El mensaje aparece por Realtime
+            setUploadStatusMsg('Archivo enviado');
+            uploadStatusTimerRef.current = setTimeout(() => setUploadStatusMsg(''), 3000);
             return true;
         } catch (err) {
             setUploadError('Error de conexión al subir el archivo.');
+            setUploadStatusMsg('');
             console.error('[upload]', err);
             return false;
         } finally {
@@ -811,6 +853,9 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
                         )}
                     </div>
                 </aside>
+
+                {/* Anuncio para lectores de pantalla: estado de carga de archivos */}
+                <span className="sr-only" aria-live="assertive" aria-atomic="true">{uploadStatusMsg}</span>
 
                 {/* 2. RIGHT PANEL: CHAT VIEW */}
                 <main className="inbox-chat-panel">
@@ -1232,10 +1277,10 @@ export default function ClientsPage({ isDemo = false, basePath = '/dashboard' })
             {/* --- MODALS (Delete/Success) --- */}
             {clientToDelete && (
                 <div className="modal-overlay-inline">
-                    <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="delete-client-title">
+                    <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="delete-client-title" aria-describedby="delete-client-desc" ref={deleteModalRef}>
                         <AlertTriangle size={40} className="text-amber" aria-hidden="true" />
                         <h3 id="delete-client-title">¿Eliminar Consulta?</h3>
-                        <p>Esta acción es irreversible.</p>
+                        <p id="delete-client-desc">Esta acción es irreversible.</p>
                         <div className="modal-btns">
                             <button onClick={() => setClientToDelete(null)}>Cancelar</button>
                             <button className="btn-danger" onClick={async () => {

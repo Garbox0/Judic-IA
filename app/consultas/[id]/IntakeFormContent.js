@@ -611,6 +611,8 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
     const [activeFileIdx, setActiveFileIdx] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState(null);
+    const [uploadStatusMsg, setUploadStatusMsg] = useState('');
+    const uploadStatusTimerRef = useRef(null);
     const pendingFilesRef = useRef([]);
 
     // Recording state
@@ -735,6 +737,8 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
         if (!cid) return;
         setIsUploading(true);
         setUploadError(null);
+        clearTimeout(uploadStatusTimerRef.current);
+        setUploadStatusMsg('Enviando archivo...');
         try {
             const form = new FormData();
             form.append('file', file);
@@ -748,7 +752,12 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                 return;
             }
             await onMessagesRefresh();
-        } catch { setUploadError('Error de conexión al subir el archivo.'); }
+            setUploadStatusMsg('Archivo enviado');
+            uploadStatusTimerRef.current = setTimeout(() => setUploadStatusMsg(''), 3000);
+        } catch {
+            setUploadError('Error de conexión al subir el archivo.');
+            setUploadStatusMsg('');
+        }
         finally { setIsUploading(false); }
     };
 
@@ -840,6 +849,8 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
+            {/* Anuncio para lectores de pantalla: estado de carga de archivos */}
+            <span className="sr-only" aria-live="assertive" aria-atomic="true">{uploadStatusMsg}</span>
             {isDragging && (
                 <div className="chat-drop-overlay" aria-live="assertive" aria-atomic="true">
                     <span>Soltá el archivo para adjuntarlo</span>
@@ -961,13 +972,12 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                         <div className="compose-strip" role="list" aria-label="Archivos adjuntos">
                             {pendingFiles.map((pf, i) => (
                                 <div key={pf.id} className={`compose-strip-item${i === activeFileIdx ? ' active' : ''}`} role="listitem">
-                                    <div
+                                    <button
+                                        type="button"
                                         className="compose-strip-thumb"
                                         onClick={() => setActiveFileIdx(i)}
-                                        aria-label={`Archivo ${i + 1}: ${pf.file.name}`}
-                                        role="button"
-                                        tabIndex={0}
-                                        onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && setActiveFileIdx(i)}
+                                        aria-label={`Archivo ${i + 1}: ${pf.file.name}${i === activeFileIdx ? ' (seleccionado)' : ''}`}
+                                        aria-current={i === activeFileIdx}
                                     >
                                         {pf.previewUrl && isImageFile(pf.file.name) ? (
                                             <img src={pf.previewUrl} alt={pf.file.name} />
@@ -976,7 +986,7 @@ function AnonymousChat({ messages, messageInput, setMessageInput, onSend, sendin
                                         ) : (
                                             <span className="compose-strip-ext">{getFileExt(pf.file.name).toUpperCase()}</span>
                                         )}
-                                    </div>
+                                    </button>
                                     <button
                                         type="button"
                                         className="compose-strip-remove"
