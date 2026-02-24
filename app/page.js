@@ -276,8 +276,8 @@ export default function Home() {
             </div>
             <ul className="price-features">
               <li>Asistente IA básico</li>
-              <li>Hasta 5 consultas diarias</li>
-              <li>Búsqueda de jurisprudencia (2/día)</li>
+              <li>Hasta 10 consultas diarias</li>
+              <li>Acceso al Hub Federal</li>
               <li>Soporte limitado</li>
             </ul>
             <Link href="/register" className="btn-secondary-v3 price-btn-wrap">
@@ -293,10 +293,10 @@ export default function Home() {
               <span className="price-currency">$</span>25.000<small className="price-period price-period-item">/ mes</small>
             </div>
             <ul className="price-features">
-              <li className="premium-check">Asistente IA ilimitado</li>
-              <li className="premium-check">Gestión completa de clientes</li>
-              <li className="premium-check">Alertas de plazos y vencimientos</li>
-              <li className="premium-check">Soporte VIP 24/7</li>
+              <li className="premium-check">Consultas ampliadas</li>
+              <li className="premium-check">Marketplace de Clientes (Lead Gen)</li>
+              <li className="premium-check">Gestión integral de expedientes</li>
+              <li className="premium-check">Soporte personalizado</li>
             </ul>
             <Link href="/register" className="btn-primary-v3 price-btn-featured">
               Suscribirse Ahora
