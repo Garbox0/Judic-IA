@@ -640,7 +640,7 @@ export default function RegisterPage() {
 
                             <div className="register-field full-width">
                                 <fieldset className="fieldset-reset">
-                                    <legend className="legend-cuit">Especialidades (Lo que atenderá tu IA)</legend>
+                                    <legend className="legend-cuit">Especialidades (Será visible para tus clientes)</legend>
                                     <div className="tags-container">
                                         {SPECIALTIES_OPTIONS.map(spec => (
                                             <button key={spec} type="button" className={`tag-btn ${specialties.includes(spec) ? 'selected' : ''}`} onClick={() => toggleSpecialty(spec)}>
