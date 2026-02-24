@@ -31,7 +31,13 @@
       "Bash(node -e:*)",
       "Bash(/d/Antigravity/Judic-IA/app/dashboard/research/research.css:*)",
       "Bash(email para recuperar el acceso\" debajo del formulario:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(python3:*)",
+      "Bash(node:*)",
+      "Bash(\"d:/Antigravity/Judic-IA/app/dashboard/clients/clients.css\":*)",
+      "Bash(\"d:/Antigravity/Judic-IA/app/components/chat.css\":*)",
+      "Bash(codecs=opus\" → \"audio/webm\".:*)",
+      "Bash(head -20 grep -rn \"matricula\\\\|colegio\" /d/Antigravity/Judic-IA/supabase/migrations/20260215_marketplace_schema.sql)"
     ]
   }
 }
