@@ -137,6 +137,8 @@ export async function middleware(request) {
         'https://*.cloudflareinsights.com',
         'https://unpkg.com',
         'https://old.pjn.gov.ar',
+        'https://captcha.pjn.gov.ar',
+        'https://scw.pjn.gov.ar',
         'https://api.pwnedpasswords.com',
         legislationOrigin
     ].join(' ');

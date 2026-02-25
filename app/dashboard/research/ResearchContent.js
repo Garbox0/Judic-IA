@@ -6,6 +6,8 @@ import { generateResearchPDF } from '../../lib/pdfGenerator';
 import Link from 'next/link';
 import Image from 'next/image';
 import { demoResearchHistory, demoFullResearchResult } from '../../lib/demoData'; // [NEW] Mock Data
+import dynamic from 'next/dynamic';
+const PJNSearchPanel = dynamic(() => import('./PJNSearchPanel'), { ssr: false });
 import SafeChatWidget from '../../components/SafeChatWidget';
 import TrialExpiredBlock from '../../components/TrialExpiredBlock';
 import { isTrialExpired } from '../../lib/subscription';
@@ -79,6 +81,26 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const [empresaLoading, setEmpresaLoading] = useState(false);
     const [empresaResults, setEmpresaResults] = useState(null); // { cases: [], message? }
     const [empresaError, setEmpresaError] = useState(null);
+    const [jurisprudenciaMode, setJurisprudenciaMode] = useState('ia');
+    const [manualQuery, setManualQuery] = useState('');
+    const [manualProvince, setManualProvince] = useState('Buenos Aires');
+    const [manualInstancia, setManualInstancia] = useState('todas');
+    const [manualJurisdiction, setManualJurisdiction] = useState('provincial');
+    const [manualFuero, setManualFuero] = useState('todas');
+    const [manualTribunal, setManualTribunal] = useState('');
+    const [manualDateFrom, setManualDateFrom] = useState('');
+    const [manualDateTo, setManualDateTo] = useState('');
+    const [manualKeywords, setManualKeywords] = useState('');
+    const [manualLoading, setManualLoading] = useState(false);
+    const [manualResults, setManualResults] = useState([]);
+    const [manualError, setManualError] = useState('');
+    const [manualSearched, setManualSearched] = useState(false);
+    const [manualMeta, setManualMeta] = useState(null);
+    const [manualCatalog, setManualCatalog] = useState(null); // { camaras: [], departamentos: [] }
+    const [manualCatalogLoaded, setManualCatalogLoaded] = useState(false);
+    const [indexFacets, setIndexFacets] = useState(null);  // { fueros, tribunales, total }
+    const [facetsLoaded, setFacetsLoaded] = useState(false);
+    const [tribunalSearch, setTribunalSearch] = useState('');
 
     // 🎯 QUERY ENHANCEMENT STATES
     const [assistedMode, setAssistedMode] = useState(true); // Default to assisted for better UX
@@ -101,6 +123,26 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         }).catch(() => { }); // Fire-and-forget
     };
 
+
+    // Load tribunal catalog once when manual mode is first activated
+    useEffect(() => {
+        if (jurisprudenciaMode !== 'manual' || manualCatalogLoaded) return;
+        setManualCatalogLoaded(true);
+        fetch('/api/research/catalog')
+            .then(r => r.ok ? r.json() : null)
+            .then(data => { if (data?.camaras?.length) setManualCatalog(data); })
+            .catch(() => { /* silent fail — tribunal field stays as datalist */ });
+    }, [jurisprudenciaMode, manualCatalogLoaded]);
+
+    // Load facets (fuero counts + tribunal list) from local index
+    useEffect(() => {
+        if (jurisprudenciaMode !== 'manual' || facetsLoaded) return;
+        setFacetsLoaded(true);
+        fetch('/api/research/facets')
+            .then(r => r.ok ? r.json() : null)
+            .then(data => { if (data?.fueros) setIndexFacets(data); })
+            .catch(() => { /* silent fail */ });
+    }, [jurisprudenciaMode, facetsLoaded]);
 
     useEffect(() => {
         setHasSpeechSupport(!!(window.SpeechRecognition || window.webkitSpeechRecognition));
@@ -466,6 +508,97 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     };
 
     // 🎯 PRE-FLIGHT CHECK: Analyze query quality before searching
+    const resetManualFilters = () => {
+        setManualQuery('');
+        setManualProvince('Buenos Aires');
+        setManualInstancia('todas');
+        setManualJurisdiction('provincial');
+        setManualFuero('todas');
+        setManualTribunal('');
+        setManualDateFrom('');
+        setManualDateTo('');
+        setManualKeywords('');
+        setManualError('');
+        setManualResults([]);
+        setManualSearched(false);
+        setManualMeta(null);
+    };
+
+    const handleManualSearch = async (e) => {
+        if (e) e.preventDefault();
+
+        const trimmedQuery = manualQuery.trim();
+        const trimmedKeywords = manualKeywords.trim();
+        const effectiveQuery = trimmedQuery || trimmedKeywords;
+
+        if (effectiveQuery.length < 3) {
+            setManualError('Escribi al menos 3 caracteres en Texto libre o Palabras clave.');
+            setManualResults([]);
+            setManualMeta(null);
+            setManualSearched(false);
+            return;
+        }
+
+        if (manualDateFrom && manualDateTo && manualDateFrom > manualDateTo) {
+            setManualError('Fecha desde no puede ser mayor a fecha hasta.');
+            setManualResults([]);
+            setManualMeta(null);
+            setManualSearched(false);
+            return;
+        }
+
+        setManualLoading(true);
+        setManualError('');
+        setManualSearched(true);
+
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const accessToken = session?.access_token;
+
+            const res = await fetch('/api/research/manual', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(accessToken && { 'Authorization': `Bearer ${accessToken}` })
+                },
+                body: JSON.stringify({
+                    query: effectiveQuery,
+                    province: manualProvince,
+                    instancia: manualInstancia,
+                    jurisdiction: manualJurisdiction,
+                    fuero: manualFuero,
+                    tribunal: manualTribunal.trim(),
+                    dateFrom: manualDateFrom || null,
+                    dateTo: manualDateTo || null,
+                    keywords: trimmedKeywords || null,
+                    limit: 60
+                })
+            });
+
+            const payload = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(payload?.message || payload?.error || 'No se pudo completar la busqueda manual BA.');
+            }
+
+            setManualResults(Array.isArray(payload.cases) ? payload.cases : []);
+            setManualMeta({
+                total: Number(payload.total) || 0,
+                totalMatched: Number(payload.totalMatched) || 0,
+                totalAvailable: Number(payload.totalAvailable) || 0,
+                scannedPages: Number(payload.scannedPages) || 0,
+                sourceLabel: payload.sourceLabel || 'SCBA publico',
+                sourceUrl: payload.sourceUrl || '',
+                message: payload.message || ''
+            });
+        } catch (err) {
+            setManualError(err?.message || 'Error de conexion en busqueda manual BA.');
+            setManualResults([]);
+            setManualMeta(null);
+        } finally {
+            setManualLoading(false);
+        }
+    };
+
     const handleSearch = async (e, forceQuery = null) => {
         if (e) e.preventDefault();
         const finalQuery = forceQuery || query || (placeholder.startsWith("Ej:") ? "" : placeholder);
@@ -825,6 +958,12 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                             >
                                 <Building2 size={15} /> Antecedentes Judiciales
                             </button>
+                            <button
+                                className={`research-tab ${activeTab === 'pjn' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('pjn')}
+                            >
+                                <Gavel size={15} /> PJN Federal
+                            </button>
                         </div>
 
                         {/* ── EMPRESA TAB ── */}
@@ -967,226 +1106,493 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                             </div>
                         )}
 
+                        {/* ── PJN FEDERAL TAB ── */}
+                        {activeTab === 'pjn' && (
+                            <div className="search-box-container glass-panel">
+                                <PJNSearchPanel />
+                            </div>
+                        )}
+
                         {/* ── JURISPRUDENCIA TAB ── */}
                         {activeTab === 'jurisprudencia' && (
-                        <div className="search-box-container glass-panel">
-                            {/* MODE SELECTOR - Two clear cards */}
-                            <div className="mode-selector">
-                                <span className="mode-selector-label">¿Cómo querés buscar?</span>
-                                <div className="mode-cards">
+                            <div className="search-box-container glass-panel">
+                                <div className="juris-mode-tabs">
                                     <button
-                                        onClick={() => setAssistedMode(true)}
-                                        className={`mode-card ${assistedMode ? 'selected' : ''}`}
-                                    >
-                                        <div className="mode-card-icon assisted-icon">
-                                            <Sparkles size={22} />
-                                        </div>
-                                        <span className="mode-card-title">Asistido por IA</span>
-                                        <span className="mode-card-desc">La IA analiza y mejora tu búsqueda antes de ejecutarla para obtener mejores resultados.</span>
-                                        {assistedMode && <span className="mode-card-badge">✓ Activo</span>}
-                                    </button>
-                                    <button
-                                        onClick={() => setAssistedMode(false)}
-                                        className={`mode-card ${!assistedMode ? 'selected' : ''}`}
-                                    >
-                                        <div className="mode-card-icon expert-icon">
-                                            <Zap size={22} />
-                                        </div>
-                                        <span className="mode-card-title">Búsqueda Directa</span>
-                                        <span className="mode-card-desc">Tu consulta se ejecuta tal cual la escribís, sin modificaciones. Ideal para búsquedas precisas.</span>
-                                        {!assistedMode && <span className="mode-card-badge">✓ Activo</span>}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="jurisdiction-selector">
-                                <label htmlFor="res_scope_nacional" className={`radio-btn ${scope === 'nacional' ? 'active' : ''}`}>
-                                    <input
-                                        id="res_scope_nacional"
-                                        type="radio"
-                                        name="scope"
-                                        value="nacional"
-                                        checked={scope === 'nacional'}
-                                        onChange={() => setScope('nacional')}
-                                    />
-                                    🇦🇷 Justicia Nacional / Federal
-                                </label>
-                                <label htmlFor="res_scope_provincial" className={`radio-btn ${scope === 'provincial' ? 'active' : ''}`}>
-                                    <input
-                                        id="res_scope_provincial"
-                                        type="radio"
-                                        name="scope"
-                                        value="provincial"
-                                        checked={scope === 'provincial'}
-                                        onChange={() => setScope('provincial')}
-                                    />
-                                    📍 Justicia Provincial
-                                </label>
-
-                                {scope === 'provincial' && (
-                                    <>
-                                        <label htmlFor="res_province_select" className="sr-only">Seleccionar Provincia</label>
-                                        <select
-                                            id="res_province_select"
-                                            className="province-select"
-                                            value={province}
-                                            onChange={(e) => setProvince(e.target.value)}
-                                        >
-                                            {provinces.map(p => <option key={p} value={p}>{p}</option>)}
-                                        </select>
-                                    </>
-                                )}
-                            </div>
-
-                            {/* 💡 SEARCH TIPS */}
-                            <details className="search-tips-details tips-details">
-                                <summary className="tips-summary">
-                                    <Zap size={14} fill="#fbbf24" />
-                                    <span>Tips para búsquedas de Alta Precisión</span>
-                                </summary>
-                                <div className="tips-content tips-content-box">
-                                    <p className="tips-intro-p">Para obtener los mejores resultados, utilizá estos patrones:</p>
-                                    <ul className="tips-list">
-                                        <li className="tips-li">
-                                            <strong>Tema + "fallo" o "sentencia":</strong> <span className="tips-example">Ej: "despido sin causa fallo", "cuota alimentaria sentencia"</span>
-                                        </li>
-                                        <li className="tips-li">
-                                            <strong>Frase exacta entre comillas:</strong> <span className="tips-example">Ej: "daño moral" accidente tránsito</span>
-                                        </li>
-                                        <li className="tips-li">
-                                            <strong>Jurisdicción específica:</strong> <span className="tips-example">Ej: "mala praxis médica cordoba camara"</span>
-                                        </li>
-                                        <li>
-                                            <strong>Autos (si conocés):</strong> <span className="tips-example">Ej: "autos garcia c/ perez s/ daños"</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </details>
-
-                            <form onSubmit={handleSearch} className="search-box">
-                                <label htmlFor="research_input" className="sr-only">Consulta de investigación jurídica</label>
-                                <input
-                                    id="research_input"
-                                    name="query"
-                                    type="text"
-                                    placeholder={placeholder}
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                />
-                                {hasSpeechSupport && (
-                                    <button
+                                        className={`juris-mode-tab ${jurisprudenciaMode === 'ia' ? 'active' : ''}`}
+                                        onClick={() => setJurisprudenciaMode('ia')}
                                         type="button"
-                                        onClick={startVoiceInput}
-                                        className={`btn-mic${isListening ? ' listening' : ''}`}
-                                        title={isListening ? 'Detener grabación' : 'Dictar consulta por voz'}
-                                        aria-label={isListening ? 'Detener grabación' : 'Dictar consulta por voz'}
                                     >
-                                        {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+                                        <Sparkles size={14} /> Estrategia IA
                                     </button>
-                                )}
-                                <button type="submit" disabled={loading} className="btn-search-submit">
-                                    {loading ? <Zap size={18} className="spin-animation" /> : <Search size={18} />}
-                                    {loading ? 'Procesando Inteligencia...' : 'Generar Estrategia IA'}
-                                </button>
-                            </form>
-                            {micError && (
-                                <p className="mic-error-hint">{micError}</p>
-                            )}
+                                    <button
+                                        className={`juris-mode-tab ${jurisprudenciaMode === 'manual' ? 'active' : ''}`}
+                                        onClick={() => setJurisprudenciaMode('manual')}
+                                        type="button"
+                                    >
+                                        <Search size={14} /> Busqueda Manual
+                                    </button>
+                                </div>
 
-                            {!isDemoProp && userProfile && (() => {
-                                const limit = getPlanLimit(userProfile.plan_tier, 'research_reports');
-                                const used = userProfile.research_reports_used || 0;
-                                const extra = userProfile.research_reports_extra || 0;
-                                const monthlyRemaining = limit === -1 ? null : Math.max(0, limit - used);
-                                const usingExtra = limit !== -1 && monthlyRemaining === 0 && extra > 0;
-                                const pct = limit === -1 ? 0 : Math.min(100, Math.round((used / limit) * 100));
-                                const isLow = limit !== -1 && !usingExtra && monthlyRemaining <= Math.ceil(limit * 0.2);
-                                return (
-                                    <div className="research-quota-bar">
-                                        <div className="research-quota-track">
-                                            <div
-                                                className={`research-quota-fill ${isLow || usingExtra ? 'low' : ''}`}
-                                                style={{ width: usingExtra ? '100%' : `${pct}%` }}
-                                            />
-                                        </div>
-                                        <span className={`research-quota-label ${isLow || usingExtra ? 'low' : ''}`}>
-                                            {limit === -1
-                                                ? '∞ búsquedas ilimitadas'
-                                                : usingExtra
-                                                    ? `${extra} créditos extra restantes`
-                                                    : `${monthlyRemaining} de ${limit} búsquedas disponibles este mes`}
-                                            {extra > 0 && !usingExtra && (
-                                                <span className="quota-extra-badge"> +{extra} extra</span>
-                                            )}
-                                            {limit !== -1 && userProfile?.subscription_status === 'active' && (
-                                                <button
-                                                    className="quota-buy-btn"
-                                                    onClick={() => setQuotaModalOpen(true)}
-                                                >
-                                                    + Comprar más
+                                {jurisprudenciaMode === 'manual' && (
+                                    <div className="manual-panel-inline">
+                                        <form onSubmit={handleManualSearch} className="manual-form-inline">
+                                            <div className="manual-grid-inline">
+                                                <div className="manual-field-inline">
+                                                    <label htmlFor="manual_province">Provincia</label>
+                                                    <select
+                                                        id="manual_province"
+                                                        value={manualProvince}
+                                                        onChange={(e) => setManualProvince(e.target.value)}
+                                                    >
+                                                        <option value="Buenos Aires">Buenos Aires</option>
+                                                    </select>
+                                                </div>
+                                                <div className="manual-field-inline">
+                                                    <label htmlFor="manual_instancia">Instancia</label>
+                                                    <select
+                                                        id="manual_instancia"
+                                                        value={manualInstancia}
+                                                        onChange={(e) => setManualInstancia(e.target.value)}
+                                                    >
+                                                        <option value="todas">Todas</option>
+                                                        <option value="scba">SCBA</option>
+                                                        <option value="camara">Camara</option>
+                                                        <option value="juzgado">Juzgado</option>
+                                                    </select>
+                                                </div>
+                                                <div className="manual-field-inline">
+                                                    <label htmlFor="manual_jurisdiction">Jurisdiccion</label>
+                                                    <select
+                                                        id="manual_jurisdiction"
+                                                        value={manualJurisdiction}
+                                                        onChange={(e) => setManualJurisdiction(e.target.value)}
+                                                    >
+                                                        <option value="provincial">Provincial (PBA)</option>
+                                                        <option value="todas">Todas</option>
+                                                    </select>
+                                                </div>
+                                                <div className="manual-field-inline">
+                                                    <label htmlFor="manual_fuero">
+                                                        Fuero
+                                                        {indexFacets?.total > 0 && (
+                                                            <span className="facet-index-badge">{indexFacets.total.toLocaleString('es-AR')} fallos</span>
+                                                        )}
+                                                    </label>
+                                                    <select
+                                                        id="manual_fuero"
+                                                        value={manualFuero}
+                                                        onChange={(e) => setManualFuero(e.target.value)}
+                                                    >
+                                                        <option value="todas">Todos los fueros</option>
+                                                        {indexFacets?.fueros?.length > 0
+                                                            ? indexFacets.fueros.map(f => (
+                                                                <option key={f.key} value={f.key}>
+                                                                    {f.label} ({f.count.toLocaleString('es-AR')})
+                                                                </option>
+                                                            ))
+                                                            : (
+                                                                <>
+                                                                    <option value="civil_comercial">Civil y Comercial</option>
+                                                                    <option value="familia">Familia</option>
+                                                                    <option value="laboral">Laboral</option>
+                                                                    <option value="penal">Penal</option>
+                                                                    <option value="contencioso_admin">Contencioso Administrativo</option>
+                                                                    <option value="previsional">Previsional</option>
+                                                                </>
+                                                            )
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <div className="manual-field-inline manual-field-tribunal">
+                                                    <label htmlFor="manual_tribunal_search">Tribunal/Juzgado</label>
+                                                    <input
+                                                        id="manual_tribunal_search"
+                                                        type="text"
+                                                        placeholder={indexFacets?.tribunales?.length > 0
+                                                            ? `Buscar entre ${indexFacets.tribunales.length} tribunales...`
+                                                            : 'Ej: Camara Civil Quilmes'}
+                                                        value={tribunalSearch}
+                                                        onChange={(e) => {
+                                                            setTribunalSearch(e.target.value);
+                                                            setManualTribunal(e.target.value);
+                                                        }}
+                                                        autoComplete="off"
+                                                        list="tribunal-datalist"
+                                                    />
+                                                    {indexFacets?.tribunales?.length > 0 && (
+                                                        <datalist id="tribunal-datalist">
+                                                            {indexFacets.tribunales
+                                                                .filter(t =>
+                                                                    !tribunalSearch ||
+                                                                    t.value.toLowerCase().includes(tribunalSearch.toLowerCase())
+                                                                )
+                                                                .slice(0, 50)
+                                                                .map(t => (
+                                                                    <option key={t.value} value={t.value}>
+                                                                        {t.value} ({t.count})
+                                                                    </option>
+                                                                ))
+                                                            }
+                                                        </datalist>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="manual-date-row-inline">
+                                                <div className="manual-field-inline">
+                                                    <label htmlFor="manual_date_from">Fecha desde</label>
+                                                    <input
+                                                        id="manual_date_from"
+                                                        type="date"
+                                                        value={manualDateFrom}
+                                                        onChange={(e) => setManualDateFrom(e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className="manual-field-inline">
+                                                    <label htmlFor="manual_date_to">Fecha hasta</label>
+                                                    <input
+                                                        id="manual_date_to"
+                                                        type="date"
+                                                        value={manualDateTo}
+                                                        onChange={(e) => setManualDateTo(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="manual-text-row-inline">
+                                                <div className="manual-field-inline">
+                                                    <label htmlFor="manual_query">Texto libre</label>
+                                                    <input
+                                                        id="manual_query"
+                                                        type="text"
+                                                        placeholder="Ej: despido sin causa, mala praxis, reajuste previsional"
+                                                        value={manualQuery}
+                                                        onChange={(e) => setManualQuery(e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className="manual-field-inline">
+                                                    <label htmlFor="manual_keywords">Palabras clave</label>
+                                                    <input
+                                                        id="manual_keywords"
+                                                        type="text"
+                                                        placeholder="Ej: alimentos, cuota, camara"
+                                                        value={manualKeywords}
+                                                        onChange={(e) => setManualKeywords(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="manual-actions-inline">
+                                                <button type="submit" disabled={manualLoading} className="btn-search-submit manual-inline-btn">
+                                                    {manualLoading ? <Loader2 size={18} className="spin-animation" /> : <Search size={18} />}
+                                                    {manualLoading ? 'Buscando...' : 'Buscar en BA'}
                                                 </button>
-                                            )}
-                                        </span>
-                                    </div>
-                                );
-                            })()}
+                                                <button type="button" className="manual-inline-clear" onClick={resetManualFilters}>
+                                                    Limpiar filtros
+                                                </button>
+                                            </div>
+                                        </form>
 
-                            {loading && (
-                                <div className="loader-container loader-wrapper" aria-live="polite" aria-atomic="true">
-                                    <div className="loader-text-wrapper">
-                                        <Loader2 className="spin-animation text-amber-400" size={48} />
-                                        <p className="loader-status-text">
-                                            {searchStatus}
+                                        <p className="manual-inline-hint">
+                                            Fuente publica de Buenos Aires (SCBA). Sin consumo de estrategia IA.
                                         </p>
+                                        {manualMeta?.sourceLabel && (
+                                            <p className="manual-inline-meta">
+                                                Fuente: {manualMeta.sourceLabel}
+                                                {manualMeta.sourceUrl && (
+                                                    <>
+                                                        {' '}|{' '}
+                                                        <a href={manualMeta.sourceUrl} target="_blank" rel="noopener noreferrer" className="manual-inline-link">
+                                                            Abrir portal
+                                                        </a>
+                                                    </>
+                                                )}
+                                            </p>
+                                        )}
+                                        {manualMeta?.message && (
+                                            <p className="manual-inline-meta">{manualMeta.message}</p>
+                                        )}
+
+                                        {manualError && (
+                                            <div className="manual-inline-error">
+                                                <AlertCircle size={16} /> {manualError}
+                                            </div>
+                                        )}
+
+                                        {manualSearched && !manualLoading && (
+                                            <div className="manual-inline-results">
+                                                <p className="manual-inline-count">
+                                                    {manualResults.length} resultado{manualResults.length !== 1 ? 's' : ''} visible{manualResults.length !== 1 ? 's' : ''}
+                                                    {manualMeta?.totalMatched ? ` | ${manualMeta.totalMatched} coincidentes` : ''}
+                                                    {manualMeta?.totalAvailable ? ` | ${manualMeta.totalAvailable} en fuente` : ''}
+                                                    {manualMeta?.scannedPages ? ` | ${manualMeta.scannedPages} pagina${manualMeta.scannedPages !== 1 ? 's' : ''} escaneada${manualMeta.scannedPages !== 1 ? 's' : ''}` : ''}
+                                                </p>
+
+                                                {manualResults.length === 0 ? (
+                                                    <p className="manual-inline-empty">No se encontraron coincidencias en la fuente publica de Buenos Aires.</p>
+                                                ) : (
+                                                    <div className="manual-inline-cases">
+                                                        {manualResults.map((item, idx) => {
+                                                            const sourceUrl = item.url || '';
+                                                            const pdfUrl = item.pdf_url || '';
+
+                                                            return (
+                                                                <div key={item.id || item.url || idx} className="manual-inline-card">
+                                                                    <div className="manual-inline-card-head">
+                                                                        <span className="manual-inline-tag">{item.province || 'Buenos Aires'}</span>
+                                                                        {item.instancia && <span className="manual-inline-tag">{item.instancia}</span>}
+                                                                        {item.fuero && <span className="manual-inline-tag">{item.fuero}</span>}
+                                                                        {item.date_label && <span className="manual-inline-score">{item.date_label}</span>}
+                                                                        {typeof item.relevance === 'number' && (
+                                                                            <span className="manual-inline-score">Score {Math.round(item.relevance)}</span>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <p className="manual-inline-title">{item.autos || 'Fallo sin titulo disponible'}</p>
+                                                                    {item.tribunal && <p className="manual-inline-meta-row">Tribunal/Juzgado: {item.tribunal}</p>}
+                                                                    {item.summary && <p className="manual-inline-summary">{item.summary}</p>}
+
+                                                                    <div className="manual-inline-links">
+                                                                        {sourceUrl && (
+                                                                            <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="manual-inline-link">
+                                                                                <ExternalLink size={13} /> Ver fuente
+                                                                            </a>
+                                                                        )}
+                                                                        {pdfUrl && (
+                                                                            <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="manual-inline-link">
+                                                                                <FileText size={13} /> Ver PDF
+                                                                            </a>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {results && (
-                                <div className="action-buttons">
-                                    <div className="copy-container">
-                                        <button
-                                            className="btn-action"
-                                            onClick={() => {
-                                                // ... copy logic same ...
-                                                const parts = [
-                                                    "🏦 ESTUDIO LEGAL - INVESTIGACIÓN DE IA (JUDIC-IA)",
-                                                    "",
-                                                    "📜 NORMATIVA APLICABLE:",
-                                                    results.laws,
-                                                    "",
-                                                    "⚖️ JURISPRUDENCIA & FALLOS:",
-                                                    results.cases.map(c => `🔹 ${c.title}\n   ${c.summary}\n   Fuente: ${c.source}`).join('\n\n'),
-                                                    "",
-                                                    results.calculation ? `💰 LIQUIDACIÓN ESTIMAD@:\n${results.calculation}\n` : null,
-                                                    results.evidence ? `🔍 PUNTOS DE PRUEBA:\n${results.evidence}\n` : null,
-                                                    "💡 ESTRATEGIA SUGERIDA:",
-                                                    results.strategy,
-                                                    "",
-                                                    "🔗 FUENTES & LINKS:",
-                                                    results.links?.map(l => `- ${l.title}: ${l.url}`).join('\n') || "No hay enlaces digitales directos."
-                                                ].filter(Boolean).join('\n');
+                                <div style={{ display: jurisprudenciaMode === 'manual' ? 'none' : 'block' }}>
+                                    {/* MODE SELECTOR - Two clear cards */}
+                                    <div className="mode-selector">
+                                        <span className="mode-selector-label">¿Cómo querés buscar?</span>
+                                        <div className="mode-cards">
+                                            <button
+                                                onClick={() => setAssistedMode(true)}
+                                                className={`mode-card ${assistedMode ? 'selected' : ''}`}
+                                            >
+                                                <div className="mode-card-icon assisted-icon">
+                                                    <Sparkles size={22} />
+                                                </div>
+                                                <span className="mode-card-title">Asistido por IA</span>
+                                                <span className="mode-card-desc">La IA analiza y mejora tu búsqueda antes de ejecutarla para obtener mejores resultados.</span>
+                                                {assistedMode && <span className="mode-card-badge">✓ Activo</span>}
+                                            </button>
+                                            <button
+                                                onClick={() => setAssistedMode(false)}
+                                                className={`mode-card ${!assistedMode ? 'selected' : ''}`}
+                                            >
+                                                <div className="mode-card-icon expert-icon">
+                                                    <Zap size={22} />
+                                                </div>
+                                                <span className="mode-card-title">Búsqueda Directa</span>
+                                                <span className="mode-card-desc">Tu consulta se ejecuta tal cual la escribís, sin modificaciones. Ideal para búsquedas precisas.</span>
+                                                {!assistedMode && <span className="mode-card-badge">✓ Activo</span>}
+                                            </button>
+                                        </div>
+                                    </div>
 
-                                                navigator.clipboard.writeText(parts);
-                                                setCopySuccess(true);
-                                                setTimeout(() => setCopySuccess(false), 2000);
-                                            }}
-                                        >
-                                            <ClipboardCopy size={16} />
-                                            <span>Copiar Texto</span>
+                                    <div className="jurisdiction-selector">
+                                        <label htmlFor="res_scope_nacional" className={`radio-btn ${scope === 'nacional' ? 'active' : ''}`}>
+                                            <input
+                                                id="res_scope_nacional"
+                                                type="radio"
+                                                name="scope"
+                                                value="nacional"
+                                                checked={scope === 'nacional'}
+                                                onChange={() => setScope('nacional')}
+                                            />
+                                            🇦🇷 Justicia Nacional / Federal
+                                        </label>
+                                        <label htmlFor="res_scope_provincial" className={`radio-btn ${scope === 'provincial' ? 'active' : ''}`}>
+                                            <input
+                                                id="res_scope_provincial"
+                                                type="radio"
+                                                name="scope"
+                                                value="provincial"
+                                                checked={scope === 'provincial'}
+                                                onChange={() => setScope('provincial')}
+                                            />
+                                            📍 Justicia Provincial
+                                        </label>
+
+                                        {scope === 'provincial' && (
+                                            <>
+                                                <label htmlFor="res_province_select" className="sr-only">Seleccionar Provincia</label>
+                                                <select
+                                                    id="res_province_select"
+                                                    className="province-select"
+                                                    value={province}
+                                                    onChange={(e) => setProvince(e.target.value)}
+                                                >
+                                                    {provinces.map(p => <option key={p} value={p}>{p}</option>)}
+                                                </select>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* 💡 SEARCH TIPS */}
+                                    <details className="search-tips-details tips-details">
+                                        <summary className="tips-summary">
+                                            <Zap size={14} fill="#fbbf24" />
+                                            <span>Tips para búsquedas de Alta Precisión</span>
+                                        </summary>
+                                        <div className="tips-content tips-content-box">
+                                            <p className="tips-intro-p">Para obtener los mejores resultados, utilizá estos patrones:</p>
+                                            <ul className="tips-list">
+                                                <li className="tips-li">
+                                                    <strong>Tema + "fallo" o "sentencia":</strong> <span className="tips-example">Ej: "despido sin causa fallo", "cuota alimentaria sentencia"</span>
+                                                </li>
+                                                <li className="tips-li">
+                                                    <strong>Frase exacta entre comillas:</strong> <span className="tips-example">Ej: "daño moral" accidente tránsito</span>
+                                                </li>
+                                                <li className="tips-li">
+                                                    <strong>Jurisdicción específica:</strong> <span className="tips-example">Ej: "mala praxis médica cordoba camara"</span>
+                                                </li>
+                                                <li>
+                                                    <strong>Autos (si conocés):</strong> <span className="tips-example">Ej: "autos garcia c/ perez s/ daños"</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </details>
+
+                                    <form onSubmit={handleSearch} className="search-box">
+                                        <label htmlFor="research_input" className="sr-only">Consulta de investigación jurídica</label>
+                                        <input
+                                            id="research_input"
+                                            name="query"
+                                            type="text"
+                                            placeholder={placeholder}
+                                            value={query}
+                                            onChange={(e) => setQuery(e.target.value)}
+                                        />
+                                        {hasSpeechSupport && (
+                                            <button
+                                                type="button"
+                                                onClick={startVoiceInput}
+                                                className={`btn-mic${isListening ? ' listening' : ''}`}
+                                                title={isListening ? 'Detener grabación' : 'Dictar consulta por voz'}
+                                                aria-label={isListening ? 'Detener grabación' : 'Dictar consulta por voz'}
+                                            >
+                                                {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+                                            </button>
+                                        )}
+                                        <button type="submit" disabled={loading} className="btn-search-submit">
+                                            {loading ? <Zap size={18} className="spin-animation" /> : <Search size={18} />}
+                                            {loading ? 'Procesando Inteligencia...' : 'Generar Estrategia IA'}
                                         </button>
-                                        {copySuccess && <span className="copy-toast">✨ ¡Copiado!</span>}
-                                    </div>
-                                    <button className="btn-action btn-pdf" onClick={handleDownloadPDF}>
-                                        <FileText size={16} />
-                                        <span>Exportar Informe de Estrategia</span>
-                                    </button>
+                                    </form>
+                                    {micError && (
+                                        <p className="mic-error-hint">{micError}</p>
+                                    )}
+
+                                    {!isDemoProp && userProfile && (() => {
+                                        const limit = getPlanLimit(userProfile.plan_tier, 'research_reports');
+                                        const used = userProfile.research_reports_used || 0;
+                                        const extra = userProfile.research_reports_extra || 0;
+                                        const monthlyRemaining = limit === -1 ? null : Math.max(0, limit - used);
+                                        const usingExtra = limit !== -1 && monthlyRemaining === 0 && extra > 0;
+                                        const pct = limit === -1 ? 0 : Math.min(100, Math.round((used / limit) * 100));
+                                        const isLow = limit !== -1 && !usingExtra && monthlyRemaining <= Math.ceil(limit * 0.2);
+                                        return (
+                                            <div className="research-quota-bar">
+                                                <div className="research-quota-track">
+                                                    <div
+                                                        className={`research-quota-fill ${isLow || usingExtra ? 'low' : ''}`}
+                                                        style={{ width: usingExtra ? '100%' : `${pct}%` }}
+                                                    />
+                                                </div>
+                                                <span className={`research-quota-label ${isLow || usingExtra ? 'low' : ''}`}>
+                                                    {limit === -1
+                                                        ? '∞ búsquedas ilimitadas'
+                                                        : usingExtra
+                                                            ? `${extra} créditos extra restantes`
+                                                            : `${monthlyRemaining} de ${limit} búsquedas disponibles este mes`}
+                                                    {extra > 0 && !usingExtra && (
+                                                        <span className="quota-extra-badge"> +{extra} extra</span>
+                                                    )}
+                                                    {limit !== -1 && userProfile?.subscription_status === 'active' && (
+                                                        <button
+                                                            className="quota-buy-btn"
+                                                            onClick={() => setQuotaModalOpen(true)}
+                                                        >
+                                                            + Comprar más
+                                                        </button>
+                                                    )}
+                                                </span>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {loading && (
+                                        <div className="loader-container loader-wrapper" aria-live="polite" aria-atomic="true">
+                                            <div className="loader-text-wrapper">
+                                                <Loader2 className="spin-animation text-amber-400" size={48} />
+                                                <p className="loader-status-text">
+                                                    {searchStatus}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {results && (
+                                        <div className="action-buttons">
+                                            <div className="copy-container">
+                                                <button
+                                                    className="btn-action"
+                                                    onClick={() => {
+                                                        // ... copy logic same ...
+                                                        const parts = [
+                                                            "🏦 ESTUDIO LEGAL - INVESTIGACIÓN DE IA (JUDIC-IA)",
+                                                            "",
+                                                            "📜 NORMATIVA APLICABLE:",
+                                                            results.laws,
+                                                            "",
+                                                            "⚖️ JURISPRUDENCIA & FALLOS:",
+                                                            results.cases.map(c => `🔹 ${c.title}\n   ${c.summary}\n   Fuente: ${c.source}`).join('\n\n'),
+                                                            "",
+                                                            results.calculation ? `💰 LIQUIDACIÓN ESTIMAD@:\n${results.calculation}\n` : null,
+                                                            results.evidence ? `🔍 PUNTOS DE PRUEBA:\n${results.evidence}\n` : null,
+                                                            "💡 ESTRATEGIA SUGERIDA:",
+                                                            results.strategy,
+                                                            "",
+                                                            "🔗 FUENTES & LINKS:",
+                                                            results.links?.map(l => `- ${l.title}: ${l.url}`).join('\n') || "No hay enlaces digitales directos."
+                                                        ].filter(Boolean).join('\n');
+
+                                                        navigator.clipboard.writeText(parts);
+                                                        setCopySuccess(true);
+                                                        setTimeout(() => setCopySuccess(false), 2000);
+                                                    }}
+                                                >
+                                                    <ClipboardCopy size={16} />
+                                                    <span>Copiar Texto</span>
+                                                </button>
+                                                {copySuccess && <span className="copy-toast">✨ ¡Copiado!</span>}
+                                            </div>
+                                            <button className="btn-action btn-pdf" onClick={handleDownloadPDF}>
+                                                <FileText size={16} />
+                                                <span>Exportar Informe de Estrategia</span>
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
+                            </div>
                         )} {/* end activeTab === 'jurisprudencia' */}
 
-                        {activeTab === 'jurisprudencia' && results && (
+                        {activeTab === 'jurisprudencia' && jurisprudenciaMode === 'ia' && results && (
                             <div className="results-area" aria-live="polite" aria-busy={loading}>
                                 {results.brave_used && (
                                     <div className="badge-brave">
@@ -1347,7 +1753,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
 
 
-                        {activeTab === 'jurisprudencia' && !results && !loading && (
+                        {activeTab === 'jurisprudencia' && jurisprudenciaMode === 'ia' && !results && !loading && (
                             <div className="empty-state">
                                 <p>✨ Escribí tu consulta legal y el sistema te ayudará a optimizarla automáticamente.</p>
                             </div>
@@ -1387,60 +1793,60 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         ) : null}
 
                         {(userProfile?.subscription_status === 'active' || userProfile?.plan_tier === 'enterprise') && (
-                        <div className="credit-packs-grid">
-                            {[
-                                { id: 'pack_10', credits: 10, price: '7.500', badge: null },
-                                { id: 'pack_25', credits: 25, price: '15.000', badge: 'Popular' },
-                                { id: 'pack_50', credits: 50, price: '25.000', badge: 'Mejor valor' },
-                            ].map(pack => (
-                                <button
-                                    key={pack.id}
-                                    className={`credit-pack-card ${buyingPack === pack.id ? 'loading' : ''}`}
-                                    disabled={!!buyingPack}
-                                    onClick={async () => {
-                                        setBuyingPack(pack.id);
-                                        try {
-                                            const { data: { session: creditsSession } } = await supabase.auth.getSession();
-                                            const creditsToken = creditsSession?.access_token;
-                                            const res = await fetch('/api/mp/credits/create', {
-                                                method: 'POST',
-                                                headers: {
-                                                    'Content-Type': 'application/json',
-                                                    ...(creditsToken && { 'Authorization': `Bearer ${creditsToken}` }),
-                                                },
-                                                body: JSON.stringify({ pack_id: pack.id }),
-                                            });
-                                            const data = await res.json();
-                                            if (data.init_point) {
-                                                window.open(data.init_point, '_blank', 'noopener,noreferrer');
-                                            } else {
-                                                alert('Error al iniciar el pago. Intentá de nuevo.');
+                            <div className="credit-packs-grid">
+                                {[
+                                    { id: 'pack_10', credits: 10, price: '7.500', badge: null },
+                                    { id: 'pack_25', credits: 25, price: '15.000', badge: 'Popular' },
+                                    { id: 'pack_50', credits: 50, price: '25.000', badge: 'Mejor valor' },
+                                ].map(pack => (
+                                    <button
+                                        key={pack.id}
+                                        className={`credit-pack-card ${buyingPack === pack.id ? 'loading' : ''}`}
+                                        disabled={!!buyingPack}
+                                        onClick={async () => {
+                                            setBuyingPack(pack.id);
+                                            try {
+                                                const { data: { session: creditsSession } } = await supabase.auth.getSession();
+                                                const creditsToken = creditsSession?.access_token;
+                                                const res = await fetch('/api/mp/credits/create', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        ...(creditsToken && { 'Authorization': `Bearer ${creditsToken}` }),
+                                                    },
+                                                    body: JSON.stringify({ pack_id: pack.id }),
+                                                });
+                                                const data = await res.json();
+                                                if (data.init_point) {
+                                                    window.open(data.init_point, '_blank', 'noopener,noreferrer');
+                                                } else {
+                                                    alert('Error al iniciar el pago. Intentá de nuevo.');
+                                                }
+                                            } catch {
+                                                alert('Error de conexión. Intentá de nuevo.');
+                                            } finally {
+                                                setBuyingPack(null);
                                             }
-                                        } catch {
-                                            alert('Error de conexión. Intentá de nuevo.');
-                                        } finally {
-                                            setBuyingPack(null);
-                                        }
-                                    }}
-                                >
-                                    {pack.badge && (
-                                        <span className="pack-badge">{pack.badge}</span>
-                                    )}
-                                    <span className="pack-credits">{pack.credits}</span>
-                                    <span className="pack-label">búsquedas</span>
-                                    <span className="pack-price">$ {pack.price} ARS</span>
-                                    {buyingPack === pack.id && (
-                                        <Loader2 size={16} className="spin-animation pack-spinner" />
-                                    )}
-                                </button>
-                            ))}
-                        </div>
+                                        }}
+                                    >
+                                        {pack.badge && (
+                                            <span className="pack-badge">{pack.badge}</span>
+                                        )}
+                                        <span className="pack-credits">{pack.credits}</span>
+                                        <span className="pack-label">búsquedas</span>
+                                        <span className="pack-price">$ {pack.price} ARS</span>
+                                        {buyingPack === pack.id && (
+                                            <Loader2 size={16} className="spin-animation pack-spinner" />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
                         )}
 
                         {(userProfile?.subscription_status === 'active' || userProfile?.plan_tier === 'enterprise') && (
-                        <p className="quota-reset-note">
-                            Los créditos extra no vencen. Se acumulan con tu cuota mensual.
-                        </p>
+                            <p className="quota-reset-note">
+                                Los créditos extra no vencen. Se acumulan con tu cuota mensual.
+                            </p>
                         )}
                         <div className="quota-actions">
                             <button
