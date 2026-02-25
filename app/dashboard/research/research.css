@@ -273,8 +273,15 @@
 }
 
 @keyframes mic-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
-    50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+    }
 }
 
 .mic-error-hint {
@@ -1453,8 +1460,15 @@ body.light-theme .province-select {
 }
 
 @keyframes slideDown {
-    from { transform: translateX(-50%) translateY(-12px); opacity: 0; }
-    to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+    from {
+        transform: translateX(-50%) translateY(-12px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
 }
 
 .quota-icon-circle {
@@ -2303,6 +2317,7 @@ body.light-theme .research-quota-label {
 body.light-theme .research-quota-label.low {
     color: #ef4444;
 }
+
 /* ─── RESEARCH TABS ─────────────────────────────────────────────────── */
 .research-tabs {
     display: flex;
@@ -2408,9 +2423,17 @@ body.light-theme .research-quota-label.low {
     gap: 0.4rem;
 }
 
-.empresa-field-main { grid-column: auto; }
-.empresa-field-cuit { grid-column: auto; }
-.empresa-field-jur  { grid-column: auto; }
+.empresa-field-main {
+    grid-column: auto;
+}
+
+.empresa-field-cuit {
+    grid-column: auto;
+}
+
+.empresa-field-jur {
+    grid-column: auto;
+}
 
 .empresa-field label {
     font-size: 0.75rem;
@@ -2517,11 +2540,30 @@ body.light-theme .research-quota-label.low {
     letter-spacing: 0.04em;
 }
 
-.empresa-tipo.tipo-laboral { background: rgba(16, 185, 129, 0.12); color: #6ee7b7; }
-.empresa-tipo.tipo-civil { background: rgba(59, 130, 246, 0.12); color: #93c5fd; }
-.empresa-tipo.tipo-comercial { background: rgba(245, 158, 11, 0.12); color: #fcd34d; }
-.empresa-tipo.tipo-penal { background: rgba(239, 68, 68, 0.12); color: #fca5a5; }
-.empresa-tipo.tipo-contencioso-administrativo { background: rgba(168, 85, 247, 0.12); color: #d8b4fe; }
+.empresa-tipo.tipo-laboral {
+    background: rgba(16, 185, 129, 0.12);
+    color: #6ee7b7;
+}
+
+.empresa-tipo.tipo-civil {
+    background: rgba(59, 130, 246, 0.12);
+    color: #93c5fd;
+}
+
+.empresa-tipo.tipo-comercial {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fcd34d;
+}
+
+.empresa-tipo.tipo-penal {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
+}
+
+.empresa-tipo.tipo-contencioso-administrativo {
+    background: rgba(168, 85, 247, 0.12);
+    color: #d8b4fe;
+}
 
 .empresa-estado {
     font-size: 0.72rem;
@@ -2532,8 +2574,15 @@ body.light-theme .research-quota-label.low {
     letter-spacing: 0.04em;
 }
 
-.empresa-estado.activo { background: rgba(16, 185, 129, 0.12); color: #6ee7b7; }
-.empresa-estado.archivado { background: rgba(100, 116, 139, 0.15); color: #94a3b8; }
+.empresa-estado.activo {
+    background: rgba(16, 185, 129, 0.12);
+    color: #6ee7b7;
+}
+
+.empresa-estado.archivado {
+    background: rgba(100, 116, 139, 0.15);
+    color: #94a3b8;
+}
 
 .empresa-caratula {
     font-size: 0.9rem;
@@ -2560,7 +2609,10 @@ body.light-theme .research-quota-label.low {
     font-style: italic;
 }
 
-.empresa-estado.sentencia { background: rgba(99, 102, 241, 0.12); color: #a5b4fc; }
+.empresa-estado.sentencia {
+    background: rgba(99, 102, 241, 0.12);
+    color: #a5b4fc;
+}
 
 .empresa-case-meta {
     display: flex;
@@ -2585,38 +2637,79 @@ body.light-theme .research-quota-label.low {
     transition: color 0.15s;
 }
 
-.empresa-link:hover { color: #fbbf24; }
+.empresa-link:hover {
+    color: #fbbf24;
+}
 
 /* Light theme overrides */
 body.light-theme .research-tab {
     color: rgba(15, 23, 42, 0.5);
     border-color: rgba(0, 0, 0, 0.08);
 }
+
 body.light-theme .research-tab:hover {
     background: rgba(0, 0, 0, 0.04);
     color: rgba(15, 23, 42, 0.8);
 }
+
 body.light-theme .research-tab.active {
     background: rgba(251, 191, 36, 0.1);
     color: #b45309;
 }
-body.light-theme .empresa-panel { border-top-color: rgba(180, 83, 9, 0.2) !important; }
-body.light-theme .empresa-panel-icon { background: rgba(251, 191, 36, 0.08); border-color: rgba(180, 83, 9, 0.2); color: #b45309; }
-body.light-theme .empresa-panel-title { color: #0f172a; }
-body.light-theme .empresa-panel-subtitle { color: rgba(15, 23, 42, 0.45); }
-body.light-theme .empresa-disclaimer { color: rgba(15, 23, 42, 0.35); }
-body.light-theme .empresa-field label { color: rgba(15, 23, 42, 0.55); }
+
+body.light-theme .empresa-panel {
+    border-top-color: rgba(180, 83, 9, 0.2) !important;
+}
+
+body.light-theme .empresa-panel-icon {
+    background: rgba(251, 191, 36, 0.08);
+    border-color: rgba(180, 83, 9, 0.2);
+    color: #b45309;
+}
+
+body.light-theme .empresa-panel-title {
+    color: #0f172a;
+}
+
+body.light-theme .empresa-panel-subtitle {
+    color: rgba(15, 23, 42, 0.45);
+}
+
+body.light-theme .empresa-disclaimer {
+    color: rgba(15, 23, 42, 0.35);
+}
+
+body.light-theme .empresa-field label {
+    color: rgba(15, 23, 42, 0.55);
+}
+
 body.light-theme .empresa-field input,
 body.light-theme .empresa-field select {
     background: rgba(0, 0, 0, 0.04);
     border-color: rgba(0, 0, 0, 0.12);
     color: #0f172a;
 }
-body.light-theme .empresa-case-card { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.08); }
-body.light-theme .empresa-caratula { color: #0f172a; }
-body.light-theme .empresa-resumen { color: rgba(15, 23, 42, 0.5); }
-body.light-theme .empresa-meta { color: rgba(15, 23, 42, 0.5); }
-body.light-theme .empresa-count { color: rgba(15, 23, 42, 0.45); }
+
+body.light-theme .empresa-case-card {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .empresa-caratula {
+    color: #0f172a;
+}
+
+body.light-theme .empresa-resumen {
+    color: rgba(15, 23, 42, 0.5);
+}
+
+body.light-theme .empresa-meta {
+    color: rgba(15, 23, 42, 0.5);
+}
+
+body.light-theme .empresa-count {
+    color: rgba(15, 23, 42, 0.45);
+}
 
 /* ── Light theme: Quota / Credits Modal ───────────────────────────── */
 body.light-theme .quota-modal-card {
@@ -2653,4 +2746,368 @@ body.light-theme .quota-buy-btn {
     color: #b45309;
     border-color: rgba(180, 83, 9, 0.4);
     background: rgba(251, 191, 36, 0.1);
+}
+
+
+/* Manual search mode inside Jurisprudencia */
+.juris-mode-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.juris-mode-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.02);
+    color: rgba(248, 250, 252, 0.7);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.juris-mode-tab:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: rgba(248, 250, 252, 0.95);
+}
+
+.juris-mode-tab.active {
+    background: rgba(56, 189, 248, 0.14);
+    border-color: rgba(56, 189, 248, 0.35);
+    color: #7dd3fc;
+}
+
+.manual-panel-inline {
+    margin-bottom: 1rem;
+    border: 1px solid rgba(56, 189, 248, 0.24);
+    background: rgba(14, 116, 144, 0.08);
+    border-radius: 10px;
+    padding: 0.95rem;
+}
+
+.manual-form-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.manual-grid-inline {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.manual-date-row-inline {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 220px));
+    gap: 0.65rem;
+}
+
+.manual-text-row-inline {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.manual-actions-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.manual-field-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.manual-field-inline label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: rgba(248, 250, 252, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.manual-field-inline input,
+.manual-field-inline select {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    padding: 0.62rem 0.85rem;
+    color: var(--foreground);
+    font-size: 0.9rem;
+}
+
+.manual-field-inline input:focus,
+.manual-field-inline select:focus {
+    outline: none;
+    border-color: rgba(56, 189, 248, 0.55);
+}
+
+.manual-inline-btn {
+    width: auto !important;
+    white-space: nowrap;
+    min-height: 42px;
+    padding: 0.62rem 1.2rem !important;
+}
+
+.manual-inline-clear {
+    min-height: 42px;
+    border-radius: 8px;
+    padding: 0.62rem 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(15, 23, 42, 0.08);
+    color: rgba(248, 250, 252, 0.85);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.manual-inline-clear:hover {
+    border-color: rgba(148, 163, 184, 0.5);
+    background: rgba(15, 23, 42, 0.15);
+}
+
+.manual-inline-hint {
+    margin: 0.25rem 0 0;
+    font-size: 0.74rem;
+    color: rgba(248, 250, 252, 0.62);
+}
+
+.manual-inline-meta {
+    margin: 0.2rem 0 0;
+    font-size: 0.75rem;
+    color: rgba(248, 250, 252, 0.65);
+}
+
+.manual-inline-error {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+    padding: 0.65rem 0.8rem;
+    border-radius: 8px;
+    background: rgba(248, 113, 113, 0.15);
+    border: 1px solid rgba(248, 113, 113, 0.25);
+    color: #fca5a5;
+    font-size: 0.82rem;
+}
+
+.manual-inline-results {
+    margin-top: 0.9rem;
+}
+
+.manual-inline-count {
+    font-size: 0.8rem;
+    color: rgba(248, 250, 252, 0.7);
+    margin-bottom: 0.55rem;
+}
+
+.manual-inline-empty {
+    font-size: 0.84rem;
+    color: rgba(248, 250, 252, 0.62);
+}
+
+.manual-inline-cases {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.manual-inline-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 9px;
+    padding: 0.85rem;
+}
+
+.manual-inline-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.manual-inline-tag,
+.manual-inline-score {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.manual-inline-tag {
+    background: rgba(99, 102, 241, 0.2);
+    color: #c7d2fe;
+}
+
+.manual-inline-score {
+    background: rgba(56, 189, 248, 0.2);
+    color: #bae6fd;
+}
+
+.manual-inline-title {
+    margin: 0 0 0.3rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--foreground);
+    line-height: 1.35;
+}
+
+.manual-inline-meta-row {
+    margin: 0 0 0.35rem;
+    font-size: 0.76rem;
+    color: rgba(248, 250, 252, 0.66);
+}
+
+.manual-inline-summary {
+    margin: 0 0 0.4rem;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: rgba(248, 250, 252, 0.72);
+}
+
+.manual-inline-links {
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+}
+
+.manual-inline-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.76rem;
+    color: #7dd3fc;
+    text-decoration: none;
+}
+
+.manual-inline-link:hover {
+    color: #38bdf8;
+}
+
+@media (max-width: 960px) {
+    .manual-grid-inline {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .manual-date-row-inline {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .manual-text-row-inline {
+        grid-template-columns: 1fr;
+    }
+
+    .manual-inline-btn {
+        width: 100% !important;
+    }
+
+    .manual-inline-clear {
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+
+    .manual-grid-inline,
+    .manual-date-row-inline {
+        grid-template-columns: 1fr;
+    }
+}
+
+body.light-theme .juris-mode-tab {
+    border-color: rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.02);
+    color: rgba(15, 23, 42, 0.75);
+}
+
+body.light-theme .juris-mode-tab:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgba(15, 23, 42, 0.95);
+}
+
+body.light-theme .juris-mode-tab.active {
+    background: rgba(56, 189, 248, 0.14);
+    border-color: rgba(2, 132, 199, 0.35);
+    color: #0369a1;
+}
+
+body.light-theme .manual-panel-inline {
+    border-color: rgba(2, 132, 199, 0.26);
+    background: rgba(56, 189, 248, 0.08);
+}
+
+body.light-theme .manual-field-inline label,
+body.light-theme .manual-inline-count,
+body.light-theme .manual-inline-empty,
+body.light-theme .manual-inline-hint,
+body.light-theme .manual-inline-meta,
+body.light-theme .manual-inline-meta-row {
+    color: rgba(15, 23, 42, 0.72);
+}
+
+body.light-theme .manual-field-inline input,
+body.light-theme .manual-field-inline select {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(15, 23, 42, 0.15);
+    color: #0f172a;
+}
+
+body.light-theme .manual-inline-card {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: rgba(15, 23, 42, 0.12);
+}
+
+body.light-theme .manual-inline-title {
+    color: #0f172a;
+}
+
+body.light-theme .manual-inline-summary {
+    color: rgba(15, 23, 42, 0.72);
+}
+
+body.light-theme .manual-inline-clear {
+    color: #0f172a;
+    border-color: rgba(15, 23, 42, 0.2);
+    background: rgba(255, 255, 255, 0.65);
+}
+
+/* ── Facet index badge (count next to Fuero label) ─────────────────── */
+.facet-index-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.4rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 99px;
+    background: rgba(56, 189, 248, 0.14);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    color: #7dd3fc;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    vertical-align: middle;
+}
+
+body.light-theme .facet-index-badge {
+    background: rgba(2, 132, 199, 0.1);
+    border-color: rgba(2, 132, 199, 0.25);
+    color: #0369a1;
+}
+
+/* Tribunal field wider so it's usable */
+.manual-field-tribunal input {
+    min-width: 0;
+    width: 100%;
 }

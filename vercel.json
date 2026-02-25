@@ -7,6 +7,22 @@
     {
       "path": "/api/cron/reset-quotas",
       "schedule": "0 3 1 * *"
+    },
+    {
+      "path": "/api/cron/index-scba",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/index-caba",
+      "schedule": "30 4 * * *"
+    },
+    {
+      "path": "/api/cron/index-juristeca",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/index-pjn-sentencias",
+      "schedule": "30 5 * * *"
     }
   ]
 }
