@@ -9,6 +9,7 @@ import { demoResearchHistory, demoFullResearchResult } from '../../lib/demoData'
 import dynamic from 'next/dynamic';
 const PJNSearchPanel = dynamic(() => import('./PJNSearchPanel'), { ssr: false });
 const AlertsPanel = dynamic(() => import('./AlertsPanel'), { ssr: false });
+const AntecedentesPanel = dynamic(() => import('./AntecedentesPanel'), { ssr: false });
 import SafeChatWidget from '../../components/SafeChatWidget';
 import TrialExpiredBlock from '../../components/TrialExpiredBlock';
 import { isTrialExpired } from '../../lib/subscription';
@@ -31,7 +32,8 @@ import {
     AlertCircle,
     TrendingUp,
     Mic,
-    MicOff
+    MicOff,
+    ShieldCheck
 } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
@@ -1008,6 +1010,13 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                             >
                                 <AlertCircle size={15} /> Alertas
                             </button>
+                            <button
+                                type="button"
+                                className={`research-tab ${activeTab === 'antecedentes' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('antecedentes')}
+                            >
+                                <ShieldCheck size={15} /> Antecedentes
+                            </button>
                         </div>
 
 
@@ -1021,6 +1030,12 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         {activeTab === 'alerts' && (
                             <div className="search-box-container glass-panel">
                                 <AlertsPanel />
+                            </div>
+                        )}
+
+                        {activeTab === 'antecedentes' && (
+                            <div className="search-box-container glass-panel">
+                                <AntecedentesPanel />
                             </div>
                         )}
 
