@@ -5,6 +5,29 @@ import { verifyAuth } from '@/lib/api-auth';
 const ALLOWED_PORTALS = new Set(['PJN', 'SCBA', 'CABA', 'CSJN_SORTEOS']);
 const ALLOWED_FREQUENCIES = new Set(['daily', 'weekly']);
 
+function isFutureDate(value) {
+    if (!value) return false;
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return false;
+    return parsed > new Date();
+}
+
+function hasActivePaidSubscription(profile) {
+    if (!profile) return false;
+    if (profile.plan_tier === 'enterprise') return true;
+    if (profile.plan_tier !== 'professional') return false;
+
+    if (profile.subscription_status === 'active') {
+        return isFutureDate(profile.subscription_expiry);
+    }
+
+    if (profile.subscription_status === 'past_due') {
+        return isFutureDate(profile.grace_period_ends_at);
+    }
+
+    return false;
+}
+
 function cleanText(value) {
     return String(value || '')
         .replace(/\u00a0/g, ' ')
@@ -63,7 +86,7 @@ export async function POST(request) {
 
     const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('subscription_status, plan_tier, alert_credits_extra')
+        .select('subscription_status, plan_tier, subscription_expiry, grace_period_ends_at, alert_credits_extra')
         .eq('id', auth.user.id)
         .maybeSingle();
 
@@ -72,10 +95,7 @@ export async function POST(request) {
         return NextResponse.json({ error: 'PROFILE_LOAD_FAILED' }, { status: 500 });
     }
 
-    const hasActiveSub =
-        profile?.subscription_status === 'active' ||
-        profile?.subscription_status === 'past_due' ||
-        profile?.plan_tier === 'enterprise';
+    const hasActiveSub = hasActivePaidSubscription(profile);
 
     if (!hasActiveSub) {
         return NextResponse.json({ error: 'SUBSCRIPTION_REQUIRED' }, { status: 403 });

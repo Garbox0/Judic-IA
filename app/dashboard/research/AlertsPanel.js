@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import {
   Activity,
@@ -72,7 +72,7 @@ function mapAlertOperationError(err) {
     return 'No tenes creditos de alerta disponibles. Compra un pack para continuar.';
   }
   if (up.includes('SUBSCRIPTION_REQUIRED')) {
-    return 'Necesitas una suscripcion activa para usar alertas.';
+    return 'Necesitas una suscripcion profesional activa para usar alertas.';
   }
   if (up.includes('QUERY_INVALIDA')) {
     return 'Debes ingresar un termino valido (minimo 3 caracteres).';
@@ -120,6 +120,29 @@ function formatArs(value) {
   return amount.toLocaleString('es-AR');
 }
 
+function isFutureDate(value) {
+  if (!value) return false;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return false;
+  return parsed > new Date();
+}
+
+function hasActivePaidSubscription(profile) {
+  if (!profile) return false;
+  if (profile.plan_tier === 'enterprise') return true;
+  if (profile.plan_tier !== 'professional') return false;
+
+  if (profile.subscription_status === 'active') {
+    return isFutureDate(profile.subscription_expiry);
+  }
+
+  if (profile.subscription_status === 'past_due') {
+    return isFutureDate(profile.grace_period_ends_at);
+  }
+
+  return false;
+}
+
 export default function AlertsPanel() {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -149,6 +172,8 @@ export default function AlertsPanel() {
   const [alertCredits, setAlertCredits] = useState(0);
   const [buyingAlertPack, setBuyingAlertPack] = useState('');
   const [isPackModalOpen, setIsPackModalOpen] = useState(false);
+  const [canManageAlerts, setCanManageAlerts] = useState(false);
+  const successTimeoutRef = useRef(null);
 
   const hasCsjnDraft = portal === 'CSJN_SORTEOS';
   const hasCsjnAlerts = useMemo(
@@ -173,6 +198,17 @@ export default function AlertsPanel() {
     setCsjnRoleDenunciado(true);
   }, []);
 
+  const setTransientSuccess = useCallback((message, timeoutMs = 7000) => {
+    setSuccess(message);
+    if (successTimeoutRef.current) {
+      clearTimeout(successTimeoutRef.current);
+    }
+    successTimeoutRef.current = setTimeout(() => {
+      setSuccess('');
+      successTimeoutRef.current = null;
+    }, timeoutMs);
+  }, []);
+
   const fetchAlerts = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -182,6 +218,7 @@ export default function AlertsPanel() {
       if (!session) {
         setAlerts([]);
         setAlertCredits(0);
+        setCanManageAlerts(false);
         return;
       }
 
@@ -196,7 +233,7 @@ export default function AlertsPanel() {
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('alert_credits_extra')
+        .select('alert_credits_extra, subscription_status, plan_tier, subscription_expiry, grace_period_ends_at')
         .eq('id', session.user.id)
         .maybeSingle();
 
@@ -206,12 +243,15 @@ export default function AlertsPanel() {
           throw profileError;
         }
         setAlertCredits(0);
+        setCanManageAlerts(false);
       } else {
         setAlertCredits(Number(profile?.alert_credits_extra || 0));
+        setCanManageAlerts(hasActivePaidSubscription(profile));
       }
     } catch (err) {
       console.error('[AlertsPanel] fetch error:', err);
       setError('No se pudieron cargar tus alertas.');
+      setCanManageAlerts(false);
     } finally {
       setLoading(false);
     }
@@ -222,6 +262,14 @@ export default function AlertsPanel() {
   }, [fetchAlerts]);
 
   useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const params = new URLSearchParams(window.location.search);
@@ -229,10 +277,10 @@ export default function AlertsPanel() {
     if (!status) return;
 
     if (status === 'ok') {
-      setSuccess('Creditos de alerta acreditados. Ya podes activar alertas por 30 dias.');
+      setTransientSuccess('Creditos de alerta acreditados. Ya podes activar alertas por 30 dias.', 9000);
       setError('');
     } else if (status === 'pending') {
-      setSuccess('Pago de alertas pendiente. Los creditos se acreditaran en breve.');
+      setTransientSuccess('Pago de alertas pendiente. Los creditos se acreditaran en breve.', 9000);
       setError('');
     } else {
       setError('El pago no se completo. Intenta nuevamente.');
@@ -245,11 +293,17 @@ export default function AlertsPanel() {
     const query = params.toString();
     const nextUrl = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash || ''}`;
     window.history.replaceState({}, '', nextUrl);
-  }, [fetchAlerts]);
+  }, [fetchAlerts, setTransientSuccess]);
 
   const handleBuyAlertPack = useCallback(async (packId) => {
     setError('');
     setSuccess('');
+
+    if (!canManageAlerts) {
+      setError('Necesitas una suscripcion profesional activa para comprar creditos de alerta.');
+      return;
+    }
+
     setBuyingAlertPack(packId);
 
     try {
@@ -273,13 +327,13 @@ export default function AlertsPanel() {
 
       window.open(payload.init_point, '_blank', 'noopener,noreferrer');
       setIsPackModalOpen(false);
-      setSuccess('Checkout de Mercado Pago abierto en una nueva pestana.');
+      setTransientSuccess('Checkout de Mercado Pago abierto en una nueva pestana. Si cerras esa ventana, la compra no se acredita.', 6500);
     } catch (err) {
       setError('No se pudo iniciar la compra: ' + readErrorMessage(err));
     } finally {
       setBuyingAlertPack('');
     }
-  }, []);
+  }, [canManageAlerts, setTransientSuccess]);
 
   const runImmediateSearch = useCallback(async ({
     targetPortal,
@@ -394,6 +448,11 @@ export default function AlertsPanel() {
     setError('');
     setSuccess('');
 
+    if (!canManageAlerts) {
+      setError('Necesitas una suscripcion profesional activa para crear alertas.');
+      return;
+    }
+
     const cleanQuery = searchQuery.trim();
     if (!cleanQuery || cleanQuery.length < 3) {
       setError('Debes ingresar un termino valido (minimo 3 caracteres).');
@@ -466,7 +525,8 @@ export default function AlertsPanel() {
     searchQuery,
     csjnIntervinienteName,
     csjnRoleDenunciante,
-    csjnRoleDenunciado
+    csjnRoleDenunciado,
+    canManageAlerts
   ]);
 
   const handleDelete = useCallback(async (id) => {
@@ -553,11 +613,18 @@ export default function AlertsPanel() {
           <p className="alerts-credits-note">
             Cada credito activa 1 alerta por 30 dias.
           </p>
+          {!canManageAlerts && (
+            <p className="alerts-subscription-note">
+              Necesitas suscripcion profesional activa para comprar creditos y crear alertas.
+            </p>
+          )}
           <div className="alerts-pack-list">
             <button
               type="button"
               className="alerts-pack-btn alerts-pack-open-btn"
               onClick={() => setIsPackModalOpen(true)}
+              disabled={!canManageAlerts}
+              title={!canManageAlerts ? 'Requiere suscripcion profesional activa' : undefined}
             >
               Comprar creditos de alerta
             </button>
@@ -568,6 +635,8 @@ export default function AlertsPanel() {
           type="button"
           className="pjn-submit-btn alerts-new-btn"
           onClick={() => setIsAdding((prev) => !prev)}
+          disabled={!canManageAlerts}
+          title={!canManageAlerts ? 'Requiere suscripcion profesional activa' : undefined}
         >
           <Plus size={16} aria-hidden="true" /> {isAdding ? 'Cerrar' : 'Nueva Alerta'}
         </button>
@@ -966,49 +1035,70 @@ export default function AlertsPanel() {
 
       {isPackModalOpen && (
         <div
-          className="alerts-pack-modal-overlay"
+          className="alerts-pack-modal-overlay quota-modal-overlay"
           onClick={() => setIsPackModalOpen(false)}
         >
           <div
-            className="alerts-pack-modal-card"
+            className="alerts-pack-modal-card quota-modal-card quota-modal-packs"
             role="dialog"
             aria-modal="true"
             aria-labelledby="alerts-pack-modal-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="alerts-pack-modal-icon" aria-hidden="true">+</div>
-            <h4 id="alerts-pack-modal-title" className="alerts-pack-modal-title">
+            <div className="alerts-pack-modal-icon quota-icon-circle" aria-hidden="true">
+              <span className="quota-icon-emoji">+</span>
+            </div>
+            <h4 id="alerts-pack-modal-title" className="alerts-pack-modal-title quota-title">
               Paquetes unicos de alertas
             </h4>
-            <p className="alerts-pack-modal-subtitle">
+            <p className="alerts-pack-modal-subtitle quota-desc">
               1 credito = 1 alerta activa por 30 dias. Los creditos extra no vencen.
             </p>
 
-            <div className="alerts-pack-grid">
-              {ALERT_PACKS.map((pack) => (
+            {!canManageAlerts ? (
+              <div className="credits-no-sub">
+                <p>Necesitas una suscripcion profesional activa para comprar creditos de alerta.</p>
                 <button
-                  key={pack.id}
                   type="button"
-                  className={`alerts-pack-card ${buyingAlertPack === pack.id ? 'loading' : ''}`}
-                  disabled={Boolean(buyingAlertPack)}
-                  onClick={() => handleBuyAlertPack(pack.id)}
+                  className="btn-quota-pro"
+                  onClick={() => {
+                    setIsPackModalOpen(false);
+                    window.location.href = '/dashboard/settings?tab=billing';
+                  }}
                 >
-                  {pack.badge && <span className="alerts-pack-badge">{pack.badge}</span>}
-                  <span className="alerts-pack-credits">{pack.credits}</span>
-                  <span className="alerts-pack-label">alertas / 30 dias</span>
-                  <span className="alerts-pack-price">$ {formatArs(pack.amount)} ARS</span>
-                  {buyingAlertPack === pack.id && <Loader2 size={15} className="animate-spin alerts-pack-spinner" aria-hidden="true" />}
+                  Ver plan profesional
                 </button>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <>
+                <div className="alerts-pack-grid credit-packs-grid">
+                  {ALERT_PACKS.map((pack) => (
+                    <button
+                      key={pack.id}
+                      type="button"
+                      className={`alerts-pack-card credit-pack-card ${buyingAlertPack === pack.id ? 'loading' : ''}`}
+                      disabled={Boolean(buyingAlertPack)}
+                      onClick={() => handleBuyAlertPack(pack.id)}
+                    >
+                      {pack.badge && <span className="alerts-pack-badge pack-badge">{pack.badge}</span>}
+                      <span className="alerts-pack-credits pack-credits">{pack.credits}</span>
+                      <span className="alerts-pack-label pack-label">alertas / 30 dias</span>
+                      <span className="alerts-pack-price pack-price">$ {formatArs(pack.amount)} ARS</span>
+                      {buyingAlertPack === pack.id && <Loader2 size={15} className="animate-spin alerts-pack-spinner pack-spinner" aria-hidden="true" />}
+                    </button>
+                  ))}
+                </div>
 
-            <p className="alerts-pack-modal-note">
-              Ideal para sumar sujetos monitoreados sin cambiar tu suscripcion mensual.
-            </p>
-            <div className="alerts-pack-modal-actions">
+                <p className="alerts-pack-modal-note quota-reset-note">
+                  Ideal para sumar sujetos monitoreados sin cambiar tu suscripcion mensual.
+                </p>
+              </>
+            )}
+
+            <div className="alerts-pack-modal-actions quota-actions">
               <button
                 type="button"
-                className="pjn-reset-btn"
+                className="btn-quota-cancel"
                 onClick={() => setIsPackModalOpen(false)}
               >
                 Ahora no

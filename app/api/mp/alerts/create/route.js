@@ -8,6 +8,29 @@ const ALERT_PACKS = {
   alert_pack_100: { credits: 100, amount: 429000, label: "Pack 100 alertas (30 dias c/u)" },
 };
 
+function isFutureDate(value) {
+  if (!value) return false;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return false;
+  return parsed > new Date();
+}
+
+function hasActivePaidSubscription(profile) {
+  if (!profile) return false;
+  if (profile.plan_tier === "enterprise") return true;
+  if (profile.plan_tier !== "professional") return false;
+
+  if (profile.subscription_status === "active") {
+    return isFutureDate(profile.subscription_expiry);
+  }
+
+  if (profile.subscription_status === "past_due") {
+    return isFutureDate(profile.grace_period_ends_at);
+  }
+
+  return false;
+}
+
 export async function POST(request) {
   const auth = await verifyAuth(request);
   if (auth.error) return auth.response;
@@ -33,20 +56,17 @@ export async function POST(request) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("subscription_status, plan_tier")
+    .select("subscription_status, plan_tier, subscription_expiry, grace_period_ends_at")
     .eq("id", userId)
     .single();
 
-  const hasActiveSub =
-    profile?.subscription_status === "active" ||
-    profile?.subscription_status === "past_due" ||
-    profile?.plan_tier === "enterprise";
+  const hasActiveSub = hasActivePaidSubscription(profile);
 
   if (!hasActiveSub) {
     return NextResponse.json(
       {
         error: "SUBSCRIPTION_REQUIRED",
-        message: "Necesitás una suscripción activa para comprar créditos de alerta."
+        message: "Necesitas una suscripcion profesional activa para comprar creditos de alerta."
       },
       { status: 403 }
     );
@@ -114,3 +134,4 @@ export async function POST(request) {
     purchase_id: purchase.id,
   });
 }
+

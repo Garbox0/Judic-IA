@@ -3,27 +3,47 @@ import { createClient } from "@supabase/supabase-js";
 import { verifyAuth } from "@/lib/api-auth";
 
 const CREDIT_PACKS = {
-  pack_10: { credits: 10, amount: 7500,  label: "Pack 10 búsquedas" },
-  pack_25: { credits: 25, amount: 15000, label: "Pack 25 búsquedas" },
-  pack_50: { credits: 50, amount: 25000, label: "Pack 50 búsquedas" },
+  pack_10: { credits: 10, amount: 7500, label: "Pack 10 busquedas" },
+  pack_25: { credits: 25, amount: 15000, label: "Pack 25 busquedas" },
+  pack_50: { credits: 50, amount: 25000, label: "Pack 50 busquedas" },
 };
 
+function isFutureDate(value) {
+  if (!value) return false;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return false;
+  return parsed > new Date();
+}
+
+function hasActivePaidSubscription(profile) {
+  if (!profile) return false;
+  if (profile.plan_tier === "enterprise") return true;
+  if (profile.plan_tier !== "professional") return false;
+
+  if (profile.subscription_status === "active") {
+    return isFutureDate(profile.subscription_expiry);
+  }
+
+  if (profile.subscription_status === "past_due") {
+    return isFutureDate(profile.grace_period_ends_at);
+  }
+
+  return false;
+}
+
 export async function POST(request) {
-  // 1. Autenticar
   const auth = await verifyAuth(request);
   if (auth.error) return auth.response;
-  const userId = auth.user.id;
 
+  const userId = auth.user.id;
   const body = await request.json().catch(() => ({}));
   const { pack_id } = body;
 
-  // 2. Validar pack
   const pack = CREDIT_PACKS[pack_id];
   if (!pack) {
-    return NextResponse.json({ error: "Pack inválido" }, { status: 400 });
+    return NextResponse.json({ error: "Pack invalido" }, { status: 400 });
   }
 
-  // 3. Crear preferencia de pago en MercadoPago (pago único, no suscripción)
   const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
   if (!accessToken) {
     return NextResponse.json({ error: "MP no configurado" }, { status: 500 });
@@ -34,36 +54,32 @@ export async function POST(request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
 
-  const isSuperUser = auth.user?.email === 'gbrlescalada@gmail.com' && userId === '365cd259-4f1e-4004-a677-1eda06a5147e';
+  const isSuperUser =
+    auth.user?.email === "gbrlescalada@gmail.com" &&
+    userId === "365cd259-4f1e-4004-a677-1eda06a5147e";
 
   if (!isSuperUser) {
-    // 3b. Verificar suscripción activa — los credits son complemento, no reemplazo
     const { data: profile } = await supabase
       .from("profiles")
-      .select("subscription_status, plan_tier")
+      .select("subscription_status, plan_tier, subscription_expiry, grace_period_ends_at")
       .eq("id", userId)
       .single();
 
-    // active = suscripción paga vigente o trial activo
-    // past_due = pago fallido con 7 días de gracia — aún puede comprar
-    const hasActiveSub =
-      profile?.subscription_status === "active" ||
-      profile?.subscription_status === "past_due" ||
-      profile?.plan_tier === "enterprise";
-
+    const hasActiveSub = hasActivePaidSubscription(profile);
     if (!hasActiveSub) {
       return NextResponse.json(
-        { error: "SUBSCRIPTION_REQUIRED", message: "Necesitás una suscripción activa para comprar créditos extra." },
+        {
+          error: "SUBSCRIPTION_REQUIRED",
+          message: "Necesitas una suscripcion profesional activa para comprar creditos extra.",
+        },
         { status: 403 }
       );
     }
   }
 
-  // 4. Obtener email del usuario para prellenar MP
   const { data: authUser } = await supabase.auth.admin.getUserById(userId);
   const userEmail = authUser?.user?.email;
 
-  // 5. Crear registro pendiente en credit_purchases
   const { data: purchase, error: dbError } = await supabase
     .from("credit_purchases")
     .insert({
@@ -77,24 +93,21 @@ export async function POST(request) {
     .single();
 
   if (dbError) {
-    console.error("❌ Error creating purchase record:", dbError);
+    console.error("[mp/credits/create] Error creating purchase record:", dbError);
     return NextResponse.json({ error: "Error al iniciar compra" }, { status: 500 });
   }
 
-  // 6. Crear preferencia MP (pago único)
   const preference = {
     items: [
       {
         id: pack_id,
-        title: `Judic-IA – ${pack.label}`,
+        title: `Judic-IA - ${pack.label}`,
         quantity: 1,
         unit_price: pack.amount,
         currency_id: "ARS",
       },
     ],
     payer: userEmail ? { email: userEmail } : undefined,
-    // external_reference: purchase.id (UUID de credit_purchases)
-    // El webhook lo usa para identificar qué compra aprobar
     external_reference: `credits:${purchase.id}:${userId}`,
     back_urls: {
       success: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/research?credits=ok`,
@@ -115,16 +128,14 @@ export async function POST(request) {
   });
 
   const mpData = await mpRes.json();
-
   if (!mpRes.ok) {
-    console.error("❌ MP preference error:", mpData);
-    // Limpiar registro pendiente
+    console.error("[mp/credits/create] MP preference error:", mpData);
     await supabase.from("credit_purchases").delete().eq("id", purchase.id);
     return NextResponse.json({ error: "Error al crear preferencia MP" }, { status: 500 });
   }
 
   return NextResponse.json({
-    init_point: mpData.init_point,         // URL para redirigir al usuario
+    init_point: mpData.init_point,
     purchase_id: purchase.id,
   });
 }

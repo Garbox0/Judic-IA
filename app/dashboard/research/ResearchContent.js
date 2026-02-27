@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
 import { generateResearchPDF } from '../../lib/pdfGenerator';
@@ -109,6 +109,25 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const [analyzingQuery, setAnalyzingQuery] = useState(false);
     const [reformulationModal, setReformulationModal] = useState(null); // { alternatives }
     const [queryQuality, setQueryQuality] = useState(null); // Current query quality analysis
+
+    const canBuyExtraResearchCredits = useMemo(() => {
+        if (!userProfile) return false;
+        if (userProfile.plan_tier === 'enterprise') return true;
+        if (userProfile.plan_tier !== 'professional') return false;
+
+        const now = new Date();
+        if (userProfile.subscription_status === 'active') {
+            if (!userProfile.subscription_expiry) return false;
+            return new Date(userProfile.subscription_expiry) > now;
+        }
+
+        if (userProfile.subscription_status === 'past_due') {
+            if (!userProfile.grace_period_ends_at) return false;
+            return new Date(userProfile.grace_period_ends_at) > now;
+        }
+
+        return false;
+    }, [userProfile]);
 
     // Click tracking: fire-and-forget feedback for re-ranking
     const trackClick = (caseUrl, action) => {
@@ -987,7 +1006,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                 className={`research-tab ${activeTab === 'alerts' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('alerts')}
                             >
-                                <AlertCircle size={15} /> Monitoreo
+                                <AlertCircle size={15} /> Alertas
                             </button>
                         </div>
 
@@ -1678,7 +1697,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                             }
                         </p>
 
-                        {userProfile?.subscription_status !== 'active' && userProfile?.plan_tier !== 'enterprise' ? (
+                        {!canBuyExtraResearchCredits ? (
                             <div className="credits-no-sub">
                                 <p>Los créditos extra son exclusivos para suscriptores del Plan Profesional.</p>
                                 <button
@@ -1691,7 +1710,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                             </div>
                         ) : null}
 
-                        {(userProfile?.subscription_status === 'active' || userProfile?.plan_tier === 'enterprise') && (
+                        {canBuyExtraResearchCredits && (
                             <div className="credit-packs-grid">
                                 {[
                                     { id: 'pack_10', credits: 10, price: '7.500', badge: null },
@@ -1743,7 +1762,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                             </div>
                         )}
 
-                        {(userProfile?.subscription_status === 'active' || userProfile?.plan_tier === 'enterprise') && (
+                        {canBuyExtraResearchCredits && (
                             <p className="quota-reset-note">
                                 Los créditos extra no vencen. Se acumulan con tu cuota mensual.
                             </p>
