@@ -170,11 +170,79 @@ export async function POST(req) {
                 }
 
                 console.log(`✅ Credits ${creditLabel} acreditados: ${purchase.credits} para user ${userId}`);
+
+                // Email de confirmación al abogado
+                try {
+                    const { data: userData } = await supabase.auth.admin.getUserById(userId);
+                    const userEmail = userData?.user?.email;
+                    if (userEmail) {
+                        const creditNoun = isAlertCredits ? 'créditos de alerta' : 'créditos de estrategia';
+                        const creditPlural = purchase.credits === 1 ? `1 ${isAlertCredits ? 'crédito de alerta' : 'crédito de estrategia'}` : `${purchase.credits} ${creditNoun}`;
+                        await sendEmail({
+                            resendClient: resend,
+                            to: userEmail,
+                            from: 'billing@judic-ia.com',
+                            subject: `Judic-IA — Pago confirmado ✅`,
+                            html: `
+                                <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#020617;color:#f8fafc;padding:40px;border-radius:12px;border:1px solid #1e293b;">
+                                    <h1 style="color:#fbbf24;margin:0 0 4px;font-size:28px;">Judic-IA</h1>
+                                    <p style="color:#94a3b8;font-size:13px;text-transform:uppercase;letter-spacing:2px;margin:0 0 32px;">Confirmación de pago</p>
+                                    <div style="background:rgba(255,255,255,0.03);padding:28px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
+                                        <p style="font-size:36px;margin:0 0 16px;">✅</p>
+                                        <p style="color:#cbd5e1;line-height:1.6;margin:0;">
+                                            Se acreditaron <strong style="color:#f8fafc;">${creditPlural}</strong> en tu cuenta.<br>
+                                            Podés usarlos de inmediato desde el módulo de Investigación.
+                                        </p>
+                                        <a href="https://judic-ia.com/dashboard/research" style="display:inline-block;margin-top:24px;background:#fbbf24;color:#020617;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Ir a Investigación</a>
+                                    </div>
+                                    <p style="margin-top:32px;font-size:12px;color:#475569;text-align:center;">© ${new Date().getFullYear()} Judic-IA. Todos los derechos reservados.</p>
+                                </div>
+                            `
+                        });
+                        console.log(`📧 Email de créditos acreditados enviado a: ${userEmail}`);
+                    }
+                } catch (emailErr) {
+                    console.error('Error enviando email de créditos acreditados:', emailErr?.message);
+                }
+
             } else if (payment.status === 'rejected' || payment.status === 'cancelled') {
                 await supabase
                     .from(purchasesTable)
                     .update({ status: 'rejected', mp_payment_id: String(mpId) })
                     .eq('id', purchaseId);
+
+                // Email de pago fallido al abogado
+                try {
+                    const { data: userData } = await supabase.auth.admin.getUserById(userId);
+                    const userEmail = userData?.user?.email;
+                    if (userEmail) {
+                        const creditNoun = isAlertCredits ? 'créditos de alerta' : 'créditos de estrategia';
+                        await sendEmail({
+                            resendClient: resend,
+                            to: userEmail,
+                            from: 'billing@judic-ia.com',
+                            subject: `Judic-IA — El pago no pudo procesarse`,
+                            html: `
+                                <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#020617;color:#f8fafc;padding:40px;border-radius:12px;border:1px solid #1e293b;">
+                                    <h1 style="color:#fbbf24;margin:0 0 4px;font-size:28px;">Judic-IA</h1>
+                                    <p style="color:#94a3b8;font-size:13px;text-transform:uppercase;letter-spacing:2px;margin:0 0 32px;">Aviso de pago</p>
+                                    <div style="background:rgba(255,255,255,0.03);padding:28px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
+                                        <p style="font-size:36px;margin:0 0 16px;">❌</p>
+                                        <p style="color:#cbd5e1;line-height:1.6;margin:0;">
+                                            El pago para adquirir <strong style="color:#f8fafc;">${creditNoun}</strong> no pudo procesarse.<br>
+                                            Podés intentarlo nuevamente desde el módulo de Investigación.
+                                        </p>
+                                        <a href="https://judic-ia.com/dashboard/research" style="display:inline-block;margin-top:24px;background:#fbbf24;color:#020617;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Reintentar</a>
+                                    </div>
+                                    <p style="margin-top:32px;font-size:12px;color:#475569;text-align:center;">© ${new Date().getFullYear()} Judic-IA. Todos los derechos reservados.</p>
+                                </div>
+                            `
+                        });
+                        console.log(`📧 Email de pago fallido enviado a: ${userEmail}`);
+                    }
+                } catch (emailErr) {
+                    console.error('Error enviando email de pago fallido:', emailErr?.message);
+                }
             }
 
             return NextResponse.json({ ok: true });
