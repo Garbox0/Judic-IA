@@ -2,6 +2,7 @@
 const nextConfig = {
   poweredByHeader: false, // Hide "X-Powered-By: Next.js"
   skipTrailingSlashRedirect: true, // Prevent 307 redirects on API routes (webhooks) - Forced Update
+  serverExternalPackages: ['puppeteer-extra', 'puppeteer-extra-plugin-stealth', 'puppeteer', 'puppeteer-core'],
   async rewrites() {
     return [];
   },

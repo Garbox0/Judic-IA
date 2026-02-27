@@ -37,9 +37,9 @@ const FREQUENCY_OPTIONS = [
 ];
 
 const ALERT_PACKS = [
-  { id: 'alert_pack_3', label: 'Comprar 3 alertas' },
-  { id: 'alert_pack_10', label: 'Comprar 10 alertas' },
-  { id: 'alert_pack_25', label: 'Comprar 25 alertas' }
+  { id: 'alert_pack_1', credits: 1, amount: 8900, badge: null },
+  { id: 'alert_pack_10', credits: 10, amount: 59000, badge: 'Popular' },
+  { id: 'alert_pack_100', credits: 100, amount: 429000, badge: 'Mejor valor' }
 ];
 
 function readErrorMessage(err, fallback = 'Error inesperado') {
@@ -57,13 +57,9 @@ function readErrorMessage(err, fallback = 'Error inesperado') {
   return fallback;
 }
 
-function normalizeRpcAlertId(raw) {
+function normalizeApiAlertId(raw) {
   if (!raw) return '';
   if (typeof raw === 'string') return raw;
-  if (Array.isArray(raw) && raw[0]) {
-    if (typeof raw[0] === 'string') return raw[0];
-    if (typeof raw[0] === 'object') return raw[0].id || raw[0].alert_id || '';
-  }
   if (typeof raw === 'object') return raw.id || raw.alert_id || '';
   return '';
 }
@@ -90,6 +86,18 @@ function mapAlertOperationError(err) {
   if (up.includes('CREATE_CASE_ALERT')) {
     return 'Falta aplicar la migracion de funciones de alerta en base de datos.';
   }
+  if (up.includes('CREATE_CASE_ALERT_FAILED')) {
+    return 'No se pudo crear la alerta. Intenta nuevamente.';
+  }
+  if (up.includes('ALERT_CREDIT_DEBIT_FAILED')) {
+    return 'No se pudo descontar el credito de alerta. Intenta nuevamente.';
+  }
+  if (up.includes('FREQUENCY_INVALIDA')) {
+    return 'Frecuencia invalida para la alerta.';
+  }
+  if (up.includes('PROFILE_LOAD_FAILED')) {
+    return 'No se pudo validar tu perfil para crear la alerta.';
+  }
   if (up.includes('SET_CASE_ALERT_STATUS')) {
     return 'No se pudo actualizar el estado de la alerta.';
   }
@@ -104,6 +112,12 @@ function formatDate(value) {
   } catch {
     return String(value);
   }
+}
+
+function formatArs(value) {
+  const amount = Number(value || 0);
+  if (!Number.isFinite(amount)) return '0';
+  return amount.toLocaleString('es-AR');
 }
 
 export default function AlertsPanel() {
@@ -134,6 +148,7 @@ export default function AlertsPanel() {
 
   const [alertCredits, setAlertCredits] = useState(0);
   const [buyingAlertPack, setBuyingAlertPack] = useState('');
+  const [isPackModalOpen, setIsPackModalOpen] = useState(false);
 
   const hasCsjnDraft = portal === 'CSJN_SORTEOS';
   const hasCsjnAlerts = useMemo(
@@ -206,6 +221,32 @@ export default function AlertsPanel() {
     fetchAlerts();
   }, [fetchAlerts]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('alert_credits');
+    if (!status) return;
+
+    if (status === 'ok') {
+      setSuccess('Creditos de alerta acreditados. Ya podes activar alertas por 30 dias.');
+      setError('');
+    } else if (status === 'pending') {
+      setSuccess('Pago de alertas pendiente. Los creditos se acreditaran en breve.');
+      setError('');
+    } else {
+      setError('El pago no se completo. Intenta nuevamente.');
+      setSuccess('');
+    }
+
+    fetchAlerts();
+
+    params.delete('alert_credits');
+    const query = params.toString();
+    const nextUrl = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash || ''}`;
+    window.history.replaceState({}, '', nextUrl);
+  }, [fetchAlerts]);
+
   const handleBuyAlertPack = useCallback(async (packId) => {
     setError('');
     setSuccess('');
@@ -231,6 +272,8 @@ export default function AlertsPanel() {
       }
 
       window.open(payload.init_point, '_blank', 'noopener,noreferrer');
+      setIsPackModalOpen(false);
+      setSuccess('Checkout de Mercado Pago abierto en una nueva pestana.');
     } catch (err) {
       setError('No se pudo iniciar la compra: ' + readErrorMessage(err));
     } finally {
@@ -367,32 +410,40 @@ export default function AlertsPanel() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No hay sesion activa.');
 
-      const { data: createdAlertRaw, error: createError } = await supabase.rpc('create_case_alert', {
-        p_portal: portal,
-        p_search_query: cleanQuery,
-        p_frequency: frequency,
-        p_jurisdiction: hasCsjnDraft ? null : (jurisdiction || null)
+      const encodedFilters = hasCsjnDraft
+        ? encodeCsjnAlertFilters(buildDraftCsjnFilters())
+        : null;
+
+      const response = await fetch('/api/research/alerts/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          portal,
+          search_query: cleanQuery,
+          frequency,
+          jurisdiction: hasCsjnDraft ? null : (jurisdiction || null),
+          fuero_id: encodedFilters || null
+        })
       });
 
-      if (createError) throw createError;
-
-      const createdAlertId = normalizeRpcAlertId(createdAlertRaw);
-      if (createdAlertId && hasCsjnDraft) {
-        const encodedFilters = encodeCsjnAlertFilters(buildDraftCsjnFilters());
-        if (encodedFilters) {
-          const { error: updateError } = await supabase
-            .from('case_alerts')
-            .update({ fuero_id: encodedFilters })
-            .eq('id', createdAlertId)
-            .eq('user_id', session.user.id);
-
-          if (updateError) {
-            console.error('[AlertsPanel] No se pudieron guardar filtros CSJN:', updateError);
-          }
-        }
+      const payload = await response.json();
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.error || 'CREATE_CASE_ALERT_FAILED');
       }
 
-      setSuccess('Alerta creada y activada.');
+      const createdAlertId = normalizeApiAlertId(payload?.alert);
+      if (!createdAlertId) {
+        throw new Error('CREATE_CASE_ALERT_FAILED');
+      }
+
+      if (typeof payload?.credits_left === 'number') {
+        setAlertCredits(Number(payload.credits_left));
+      }
+
+      setSuccess('Alerta creada y activada por 30 dias.');
       setIsAdding(false);
       setSearchQuery('');
       setJurisdiction('');
@@ -499,18 +550,17 @@ export default function AlertsPanel() {
           <p className="alerts-credits" aria-live="polite">
             Creditos de alerta disponibles: <strong>{alertCredits}</strong>
           </p>
+          <p className="alerts-credits-note">
+            Cada credito activa 1 alerta por 30 dias.
+          </p>
           <div className="alerts-pack-list">
-            {ALERT_PACKS.map((pack) => (
-              <button
-                key={pack.id}
-                type="button"
-                className="alerts-pack-btn"
-                onClick={() => handleBuyAlertPack(pack.id)}
-                disabled={buyingAlertPack === pack.id}
-              >
-                {buyingAlertPack === pack.id ? 'Procesando...' : pack.label}
-              </button>
-            ))}
+            <button
+              type="button"
+              className="alerts-pack-btn alerts-pack-open-btn"
+              onClick={() => setIsPackModalOpen(true)}
+            >
+              Comprar creditos de alerta
+            </button>
           </div>
         </div>
 
@@ -913,6 +963,60 @@ export default function AlertsPanel() {
           </div>
         )}
       </div>
+
+      {isPackModalOpen && (
+        <div
+          className="alerts-pack-modal-overlay"
+          onClick={() => setIsPackModalOpen(false)}
+        >
+          <div
+            className="alerts-pack-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="alerts-pack-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="alerts-pack-modal-icon" aria-hidden="true">+</div>
+            <h4 id="alerts-pack-modal-title" className="alerts-pack-modal-title">
+              Paquetes unicos de alertas
+            </h4>
+            <p className="alerts-pack-modal-subtitle">
+              1 credito = 1 alerta activa por 30 dias. Los creditos extra no vencen.
+            </p>
+
+            <div className="alerts-pack-grid">
+              {ALERT_PACKS.map((pack) => (
+                <button
+                  key={pack.id}
+                  type="button"
+                  className={`alerts-pack-card ${buyingAlertPack === pack.id ? 'loading' : ''}`}
+                  disabled={Boolean(buyingAlertPack)}
+                  onClick={() => handleBuyAlertPack(pack.id)}
+                >
+                  {pack.badge && <span className="alerts-pack-badge">{pack.badge}</span>}
+                  <span className="alerts-pack-credits">{pack.credits}</span>
+                  <span className="alerts-pack-label">alertas / 30 dias</span>
+                  <span className="alerts-pack-price">$ {formatArs(pack.amount)} ARS</span>
+                  {buyingAlertPack === pack.id && <Loader2 size={15} className="animate-spin alerts-pack-spinner" aria-hidden="true" />}
+                </button>
+              ))}
+            </div>
+
+            <p className="alerts-pack-modal-note">
+              Ideal para sumar sujetos monitoreados sin cambiar tu suscripcion mensual.
+            </p>
+            <div className="alerts-pack-modal-actions">
+              <button
+                type="button"
+                className="pjn-reset-btn"
+                onClick={() => setIsPackModalOpen(false)}
+              >
+                Ahora no
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

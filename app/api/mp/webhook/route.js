@@ -115,7 +115,6 @@ export async function POST(req) {
             );
 
             const purchasesTable = isAlertCredits ? 'alert_credit_purchases' : 'credit_purchases';
-            const addCreditsRpc = isAlertCredits ? 'add_alert_credits' : 'add_research_credits';
             const creditLabel = isAlertCredits ? 'alerta' : 'research';
 
             if (payment.status === 'approved') {
@@ -132,16 +131,43 @@ export async function POST(req) {
                 }
 
                 // 2. Acreditar credits + registrar payment ID
-                await Promise.all([
-                    supabase.rpc(addCreditsRpc, {
+                if (isAlertCredits) {
+                    const addAlertCreditsResult = await supabase.rpc('add_alert_credits', {
                         p_user_id: userId,
                         p_credits: purchase.credits
-                    }),
-                    supabase
+                    });
+
+                    if (addAlertCreditsResult.error) {
+                        throw new Error(`ALERT_CREDITS_UPDATE_FAILED: ${addAlertCreditsResult.error.message}`);
+                    }
+
+                    const { error: purchaseStatusError } = await supabase
                         .from(purchasesTable)
                         .update({ status: 'approved', mp_payment_id: String(mpId) })
-                        .eq('id', purchaseId),
-                ]);
+                        .eq('id', purchaseId);
+
+                    if (purchaseStatusError) {
+                        throw new Error(`ALERT_PURCHASE_STATUS_FAILED: ${purchaseStatusError.message}`);
+                    }
+                } else {
+                    const addResearchCreditsResult = await supabase.rpc('add_research_credits', {
+                        p_user_id: userId,
+                        p_credits: purchase.credits
+                    });
+
+                    if (addResearchCreditsResult.error) {
+                        throw new Error(`RESEARCH_CREDITS_UPDATE_FAILED: ${addResearchCreditsResult.error.message}`);
+                    }
+
+                    const { error: purchaseStatusError } = await supabase
+                        .from(purchasesTable)
+                        .update({ status: 'approved', mp_payment_id: String(mpId) })
+                        .eq('id', purchaseId);
+
+                    if (purchaseStatusError) {
+                        throw new Error(`RESEARCH_PURCHASE_STATUS_FAILED: ${purchaseStatusError.message}`);
+                    }
+                }
 
                 console.log(`✅ Credits ${creditLabel} acreditados: ${purchase.credits} para user ${userId}`);
             } else if (payment.status === 'rejected' || payment.status === 'cancelled') {

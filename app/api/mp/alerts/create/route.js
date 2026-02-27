@@ -3,9 +3,9 @@ import { createClient } from "@supabase/supabase-js";
 import { verifyAuth } from "@/lib/api-auth";
 
 const ALERT_PACKS = {
-  alert_pack_3: { credits: 3, amount: 4500, label: "Pack 3 alertas" },
-  alert_pack_10: { credits: 10, amount: 12000, label: "Pack 10 alertas" },
-  alert_pack_25: { credits: 25, amount: 25000, label: "Pack 25 alertas" },
+  alert_pack_1: { credits: 1, amount: 8900, label: "Pack 1 alerta (30 dias)" },
+  alert_pack_10: { credits: 10, amount: 59000, label: "Pack 10 alertas (30 dias c/u)" },
+  alert_pack_100: { credits: 100, amount: 429000, label: "Pack 100 alertas (30 dias c/u)" },
 };
 
 export async function POST(request) {

@@ -34,6 +34,29 @@
 
 export const CHANGELOG = [
     {
+        id: 10,
+        date: "27 Feb 2026",
+        badge: "Mejora",
+        items: [
+            "Separacion total de creditos entre Estrategia y Monitoreo (alertas), sin cruces",
+            "Nuevas validaciones de base de datos para saldos y estados de compra",
+            "Flujos de compra y consumo de creditos reforzados con operaciones atomicas",
+            "Mejor consistencia en el alta de alertas y en la acreditacion de creditos",
+        ],
+    },
+    {
+        id: 9,
+        date: "27 Feb 2026",
+        badge: "Mejora",
+        items: [
+            "Terminal de Estrategia renovada: mejor navegacion entre Estrategia, Consulta Verificable y Monitoreo",
+            "Consulta Verificable mas robusta para expedientes por numero o por parte, con mejor visualizacion de resultados y detalle",
+            "Monitoreo de alertas mejorado: configuracion mas clara, prueba manual y feedback mas preciso de estado",
+            "Mejoras de accesibilidad y lectura en Research (modo claro, foco de teclado y etiquetas para asistencia)",
+            "Correcciones de estabilidad y rendimiento general en busquedas y paneles de Research",
+        ],
+    },
+    {
         id: 8,
         date: "23 Feb 2026",
         badge: "Nuevo",
