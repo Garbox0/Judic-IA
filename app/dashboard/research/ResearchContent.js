@@ -1467,6 +1467,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                 <button
                                                     type="button"
                                                     className="btn-action"
+                                                    aria-label="Copiar texto de la respuesta al portapapeles"
                                                     onClick={() => {
                                                         // ... copy logic same ...
                                                         const parts = [

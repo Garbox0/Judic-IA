@@ -1003,6 +1003,7 @@ export default function AlertsPanel() {
                       className="alerts-action-btn alerts-action-run"
                       onClick={() => handleRunAlert(alertItem)}
                       disabled={runningAlertId === alertItem.id}
+                      aria-label={`Probar alerta: ${alertItem.search_query || alertItem.query_value}`}
                     >
                       {runningAlertId === alertItem.id ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : <Play size={14} aria-hidden="true" />}
                       Probar
@@ -1012,6 +1013,7 @@ export default function AlertsPanel() {
                       type="button"
                       className="alerts-action-btn alerts-action-toggle"
                       onClick={() => handleToggle(alertItem)}
+                      aria-label={`${alertItem.is_active ? 'Pausar' : 'Activar'} alerta: ${alertItem.search_query || alertItem.query_value}`}
                     >
                       {alertItem.is_active ? <PowerOff size={14} aria-hidden="true" /> : <Power size={14} aria-hidden="true" />}
                       {alertItem.is_active ? 'Pausar' : 'Activar'}
@@ -1021,7 +1023,7 @@ export default function AlertsPanel() {
                       type="button"
                       className="alerts-action-delete"
                       onClick={() => handleDelete(alertItem.id)}
-                      aria-label="Eliminar alerta"
+                      aria-label={`Eliminar alerta: ${alertItem.search_query || alertItem.query_value}`}
                     >
                       <Trash2 size={16} aria-hidden="true" />
                     </button>
