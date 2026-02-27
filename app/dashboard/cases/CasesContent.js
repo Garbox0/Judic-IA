@@ -17,7 +17,8 @@ import {
     Bot,
     Shield,
     X,
-    CheckCircle2
+    CheckCircle2,
+    ShieldCheck
 } from 'lucide-react';
 import UsageGuide from '@/app/components/UsageGuide';
 import { dashboardManuals } from '@/app/lib/dashboardManuals';
@@ -239,14 +240,19 @@ export default function CasesPage() {
                                         <td>
                                             <div className="case-title-cell">
                                                 <div className="title-with-icon">
-                                                    {item.inquiry?.source === 'manual' ? (
+                                                    {item.source === 'pjn_import' ? (
+                                                        <ShieldCheck size={14} className="source-icon manual" title="Importado desde PJN/SCBA" />
+                                                    ) : item.inquiry?.source === 'manual' ? (
                                                         <Shield size={14} className="source-icon manual" title="Caso Manual" />
                                                     ) : (
                                                         <Bot size={14} className="source-icon ia" title="Caso IA" />
                                                     )}
                                                     <strong>{item.title}</strong>
                                                 </div>
-                                                <small>{item.inquiry?.contact_email || 'Sin email'}</small>
+                                                <small>{item.source === 'pjn_import'
+                                                    ? (item.pjn_data?.fuero || 'Antecedentes PJN')
+                                                    : (item.inquiry?.contact_email || 'Sin email')}
+                                                </small>
                                             </div>
                                         </td>
                                         <td>
@@ -267,10 +273,10 @@ export default function CasesPage() {
                                             <div className="action-cell">
                                                 <Link href={`/dashboard/cases/${item.id}`} className="btn-view" title="Abrir Carpeta" aria-label="Abrir carpeta del expediente"><FolderOpen size={16} /></Link>
                                                 <button onClick={() => handleArchiveCase(item.id, true)} className="btn-archive" title="Archivar" aria-label="Archivar expediente"><Archive size={16} /></button>
-                                                {item.inquiry?.source !== 'manual' ? (
-                                                    <Link href={`/dashboard/clients?id=${item.inquiry_id}`} className="btn-chat" title="Ver Chat Original" aria-label="Ver chat original"><MessageSquare size={16} /></Link>
+                                                {item.source === 'pjn_import' || !item.inquiry_id || item.inquiry?.source === 'manual' ? (
+                                                    <button className="btn-chat disabled" title="Chat no disponible" aria-label="Chat no disponible" disabled><MessageSquare size={16} /></button>
                                                 ) : (
-                                                    <button className="btn-chat disabled" title="Chat no disponible (Manual)" aria-label="Chat no disponible" disabled><MessageSquare size={16} /></button>
+                                                    <Link href={`/dashboard/clients?id=${item.inquiry_id}`} className="btn-chat" title="Ver Chat Original" aria-label="Ver chat original"><MessageSquare size={16} /></Link>
                                                 )}
                                                 <button onClick={() => setCaseToDelete(item)} className="btn-delete" title="Eliminar Expediente" aria-label="Eliminar expediente"><Trash2 size={16} /></button>
                                             </div>

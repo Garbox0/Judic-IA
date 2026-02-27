@@ -122,14 +122,16 @@ export async function POST(req) {
             }
 
             // external_reference format:
-            // - "credits:<purchase_id>:<user_id>"       (research credits)
-            // - "alert_credits:<purchase_id>:<user_id>" (alert credits)
+            // - "credits:<purchase_id>:<user_id>"              (research credits)
+            // - "alert_credits:<purchase_id>:<user_id>"        (alert credits)
+            // - "antecedentes_credits:<purchase_id>:<user_id>" (antecedentes credits)
             const extRef = payment.external_reference || '';
             const [purchaseType, purchaseId, userId] = extRef.split(':');
             const isResearchCredits = purchaseType === 'credits';
             const isAlertCredits = purchaseType === 'alert_credits';
+            const isAntecedentesCredits = purchaseType === 'antecedentes_credits';
 
-            if (!isResearchCredits && !isAlertCredits) {
+            if (!isResearchCredits && !isAlertCredits && !isAntecedentesCredits) {
                 // No es un credit pack, ignorar aquí (continuará al flujo de suscripción)
                 console.log('Payment is not a known credit pack, skipping.');
                 return NextResponse.json({ ok: true });
@@ -145,8 +147,12 @@ export async function POST(req) {
                 process.env.SUPABASE_SERVICE_ROLE_KEY
             );
 
-            const purchasesTable = isAlertCredits ? 'alert_credit_purchases' : 'credit_purchases';
-            const creditLabel = isAlertCredits ? 'alerta' : 'research';
+            const purchasesTable = isAlertCredits
+                ? 'alert_credit_purchases'
+                : isAntecedentesCredits
+                    ? 'antecedentes_credit_purchases'
+                    : 'credit_purchases';
+            const creditLabel = isAlertCredits ? 'alerta' : isAntecedentesCredits ? 'antecedentes' : 'research';
 
             if (payment.status === 'approved') {
                 // 1. Obtener el pack para saber cuántos credits
@@ -180,6 +186,24 @@ export async function POST(req) {
                     if (purchaseStatusError) {
                         throw new Error(`ALERT_PURCHASE_STATUS_FAILED: ${purchaseStatusError.message}`);
                     }
+                } else if (isAntecedentesCredits) {
+                    const addResult = await supabase.rpc('add_antecedentes_credits', {
+                        p_user_id: userId,
+                        p_credits: purchase.credits
+                    });
+
+                    if (addResult.error) {
+                        throw new Error(`ANTECEDENTES_CREDITS_UPDATE_FAILED: ${addResult.error.message}`);
+                    }
+
+                    const { error: purchaseStatusError } = await supabase
+                        .from(purchasesTable)
+                        .update({ status: 'approved', mp_payment_id: String(mpId) })
+                        .eq('id', purchaseId);
+
+                    if (purchaseStatusError) {
+                        throw new Error(`ANTECEDENTES_PURCHASE_STATUS_FAILED: ${purchaseStatusError.message}`);
+                    }
                 } else {
                     const addResearchCreditsResult = await supabase.rpc('add_research_credits', {
                         p_user_id: userId,
@@ -210,11 +234,19 @@ export async function POST(req) {
                     ]);
                     const userEmail = userData?.user?.email;
                     const userName = profileData?.full_name || 'Sin nombre';
-                    const creditNoun = isAlertCredits ? 'créditos de alerta' : 'créditos de estrategia';
+                    const creditNoun = isAlertCredits
+                        ? 'créditos de alerta'
+                        : isAntecedentesCredits
+                            ? 'créditos de antecedentes'
+                            : 'créditos de estrategia';
                     const creditPlural = purchase.credits === 1
                         ? `1 ${creditNoun.slice(0, -1)}`
                         : `${purchase.credits} ${creditNoun}`;
-                    const opType = isAlertCredits ? 'Pack de créditos de alerta' : 'Pack de créditos de estrategia';
+                    const opType = isAlertCredits
+                        ? 'Pack de créditos de alerta'
+                        : isAntecedentesCredits
+                            ? 'Pack de créditos de antecedentes'
+                            : 'Pack de créditos de estrategia';
 
                     if (userEmail) {
                         await sendEmail({
@@ -276,8 +308,16 @@ export async function POST(req) {
                     ]);
                     const userEmail = userData?.user?.email;
                     const userName = profileData?.full_name || 'Sin nombre';
-                    const creditNoun = isAlertCredits ? 'créditos de alerta' : 'créditos de estrategia';
-                    const opType = isAlertCredits ? 'Pack de créditos de alerta' : 'Pack de créditos de estrategia';
+                    const creditNoun = isAlertCredits
+                        ? 'créditos de alerta'
+                        : isAntecedentesCredits
+                            ? 'créditos de antecedentes'
+                            : 'créditos de estrategia';
+                    const opType = isAlertCredits
+                        ? 'Pack de créditos de alerta'
+                        : isAntecedentesCredits
+                            ? 'Pack de créditos de antecedentes'
+                            : 'Pack de créditos de estrategia';
 
                     if (userEmail) {
                         await sendEmail({

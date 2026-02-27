@@ -186,6 +186,74 @@
     align-items: center;
 }
 
+/* Botón principal de búsqueda */
+.pjn-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.75rem;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f5a623 0%, #e6930b 100%);
+    color: #000;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    box-shadow: 0 2px 10px rgba(245, 166, 35, 0.25);
+    letter-spacing: 0.01em;
+}
+
+.pjn-btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(245, 166, 35, 0.4);
+}
+
+.pjn-btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(245, 166, 35, 0.2);
+}
+
+.pjn-btn-primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Botón secundario (Detener) */
+.pjn-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.7rem 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.pjn-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-primary, #e2e8f0);
+}
+
+body.light-theme .pjn-btn-secondary {
+    border-color: #e2e8f0;
+    background: #f8fafc;
+    color: #64748b;
+}
+body.light-theme .pjn-btn-secondary:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
 .pjn-submit-btn {
     display: flex;
     align-items: center;
@@ -1971,5 +2039,340 @@ body.light-theme .ant-source-btn.active .ant-source-sub {
 .pjn-tab.active .ant-tab-sub {
     color: rgba(245, 166, 35, 0.65);
 }
+
+/* ── Expediente Detail Panel ── */
+.exp-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0.25rem 0;
+}
+
+/* Secciones */
+.exp-section {
+    background: var(--bg-card, #1e293b);
+    border: 1px solid var(--border-subtle, rgba(255,255,255,0.07));
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.exp-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--border-subtle, rgba(255,255,255,0.07));
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary, #94a3b8);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.exp-section-header svg {
+    color: var(--accent-gold, #f5a623);
+    flex-shrink: 0;
+}
+
+/* Datos generales: grid de pares clave/valor */
+.exp-datos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem 1.2rem;
+    padding: 0.75rem 0.85rem;
+}
+
+.exp-dato-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.exp-dato-key {
+    font-size: 0.7rem;
+    color: var(--text-muted, #64748b);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.exp-dato-val {
+    font-size: 0.82rem;
+    color: var(--text-primary, #e2e8f0);
+    font-weight: 500;
+    word-break: break-word;
+}
+
+/* Intervinientes */
+.exp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.exp-table th {
+    padding: 0.4rem 0.75rem;
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-subtle, rgba(255,255,255,0.07));
+    background: rgba(255,255,255,0.02);
+}
+
+.exp-table td {
+    padding: 0.45rem 0.75rem;
+    color: var(--text-primary, #e2e8f0);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: top;
+}
+
+.exp-table tr:last-child td {
+    border-bottom: none;
+}
+
+.exp-table tbody tr:hover td {
+    background: rgba(255,255,255,0.025);
+}
+
+/* Badge de tipo de parte */
+.exp-parte-badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: rgba(245, 166, 35, 0.1);
+    color: var(--accent-gold, #f5a623);
+    border: 1px solid rgba(245, 166, 35, 0.2);
+    white-space: nowrap;
+}
+
+/* Actuaciones */
+.exp-act-row td {
+    font-size: 0.79rem;
+}
+
+.exp-act-fecha {
+    white-space: nowrap;
+    color: var(--text-secondary, #94a3b8);
+    min-width: 90px;
+}
+
+.exp-act-tipo {
+    min-width: 110px;
+}
+
+.exp-act-desc {
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.76rem;
+}
+
+.exp-act-fojas {
+    white-space: nowrap;
+    text-align: center;
+    color: var(--text-muted, #64748b);
+    font-size: 0.73rem;
+}
+
+/* Botones de documento */
+.exp-doc-btns {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: nowrap;
+}
+
+.exp-doc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 5px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid;
+    background: transparent;
+    transition: background 0.15s;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.exp-doc-btn-ver {
+    color: #60a5fa;
+    border-color: rgba(96, 165, 250, 0.3);
+}
+.exp-doc-btn-ver:hover {
+    background: rgba(96, 165, 250, 0.1);
+}
+
+.exp-doc-btn-dl {
+    color: #34d399;
+    border-color: rgba(52, 211, 153, 0.3);
+}
+.exp-doc-btn-dl:hover {
+    background: rgba(52, 211, 153, 0.1);
+}
+
+/* Resumen en header de detalle */
+.exp-summary-chips {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.15rem;
+}
+
+.exp-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-secondary, #94a3b8);
+    border: 1px solid rgba(255,255,255,0.07);
+}
+
+.exp-chip svg {
+    color: var(--accent-gold, #f5a623);
+}
+
+/* Light theme */
+body.light-theme .exp-section {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+body.light-theme .exp-section-header {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #64748b;
+}
+body.light-theme .exp-datos-grid { background: transparent; }
+body.light-theme .exp-dato-key { color: #94a3b8; }
+body.light-theme .exp-dato-val { color: #1e293b; }
+body.light-theme .exp-table th {
+    background: #f8fafc;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+}
+body.light-theme .exp-table td {
+    color: #1e293b;
+    border-color: #f1f5f9;
+}
+body.light-theme .exp-table tbody tr:hover td { background: #f8fafc; }
+body.light-theme .exp-act-fecha { color: #64748b; }
+body.light-theme .exp-act-desc { color: #475569; }
+body.light-theme .exp-act-fojas { color: #94a3b8; }
+body.light-theme .exp-chip { background: #f1f5f9; color: #64748b; border-color: #e2e8f0; }
+
+/* ── Importar al Dashboard ── */
+.exp-import-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.22rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid rgba(245, 166, 35, 0.5);
+    background: rgba(245, 166, 35, 0.12);
+    color: #f5a623;
+    transition: background 0.15s, border-color 0.15s;
+    text-decoration: none;
+}
+.exp-import-btn:hover:not(:disabled) {
+    background: rgba(245, 166, 35, 0.22);
+    border-color: #f5a623;
+}
+.exp-import-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.exp-import-btn--done {
+    border-color: rgba(52, 211, 153, 0.5);
+    background: rgba(52, 211, 153, 0.1);
+    color: #34d399;
+}
+.exp-import-btn--no-credits {
+    border-color: rgba(248, 113, 113, 0.4);
+    background: rgba(248, 113, 113, 0.08);
+    color: #f87171;
+    cursor: default;
+}
+.exp-import-btn--error {
+    border-color: rgba(248, 113, 113, 0.4);
+    background: rgba(248, 113, 113, 0.08);
+    color: #f87171;
+}
+
+/* ── Widget de créditos en header ── */
+.ant-credits-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    background: rgba(245, 166, 35, 0.06);
+    border: 1px solid rgba(245, 166, 35, 0.15);
+}
+.ant-credits-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    color: var(--text-secondary, #94a3b8);
+}
+.ant-credits-count {
+    color: #f5a623;
+    font-weight: 700;
+    margin-left: 0.2rem;
+}
+.ant-credits-zero {
+    color: #f87171;
+    font-weight: 700;
+    margin-left: 0.2rem;
+}
+.ant-credits-packs {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+.ant-buy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 16px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid rgba(245, 166, 35, 0.35);
+    background: rgba(245, 166, 35, 0.08);
+    color: var(--text-secondary, #94a3b8);
+    transition: background 0.15s, color 0.15s;
+}
+.ant-buy-btn:hover:not(:disabled) {
+    background: rgba(245, 166, 35, 0.18);
+    color: #f5a623;
+}
+.ant-buy-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+body.light-theme .ant-credits-bar {
+    background: rgba(245, 166, 35, 0.05);
+    border-color: rgba(245, 166, 35, 0.2);
+}
+body.light-theme .ant-credits-label { color: #64748b; }
+body.light-theme .exp-import-btn { color: #b45309; background: rgba(245,166,35,0.08); border-color: rgba(245,166,35,0.3); }
+body.light-theme .exp-import-btn--done { color: #059669; background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.3); }
 
 /* Remove old ant-source-* rules that are no longer used */

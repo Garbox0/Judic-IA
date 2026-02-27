@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import {
   Search,
@@ -22,7 +22,18 @@ import {
   Building2,
   Map,
   Globe,
-  Gavel
+  Gavel,
+  Eye,
+  ChevronUp,
+  ChevronDown,
+  Info,
+  Users,
+  List,
+  Download,
+  BookOpen,
+  FolderPlus,
+  ShoppingCart,
+  Coins
 } from 'lucide-react';
 import './pjn-search.css';
 
@@ -166,6 +177,22 @@ const SCBA_PRESETS = [
 ];
 
 // ──────────────────────────────────────────────────────────────────────────
+// Helpers
+// ──────────────────────────────────────────────────────────────────────────
+const DETAIL_PAGE_SIZE = 20;
+
+function parseExpediente(expedienteRaw = '') {
+  const text = String(expedienteRaw || '').replace(/\s+/g, ' ').trim();
+  const match = text.match(/^([A-Z]{2,6})?\s*([0-9]{1,7})\/(\d{4})/i);
+  if (!match) return null;
+  return {
+    prefix: (match[1] || '').toUpperCase(),
+    numero: match[2],
+    anio:   match[3],
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
 // Componente
 // ──────────────────────────────────────────────────────────────────────────
 export default function AntecedentesPanel() {
@@ -188,13 +215,51 @@ export default function AntecedentesPanel() {
   const [scbaCustomJurs, setScbaCustomJurs] = useState([]);
   const [scbaUseCustom, setScbaUseCustom] = useState(false);
 
+  // PJN expandable detail rows
+  const [expandedRowKey,  setExpandedRowKey]  = useState('');
+  const [detailLoadingKey, setDetailLoadingKey] = useState('');
+  const [detailErrorByKey, setDetailErrorByKey] = useState({});
+  const [detailByKey,      setDetailByKey]      = useState({});
+  const [detailPageByKey,  setDetailPageByKey]  = useState({});
+
+  // Créditos de antecedentes
+  const [antecedentesCredits, setAntecedentesCredits] = useState(null);
+  const [buyingCredits, setBuyingCredits] = useState(false);
+
+  // Estado de importación por expediente: rowKey → 'idle' | 'loading' | 'done' | 'error'
+  const [importStateByKey, setImportStateByKey] = useState({});
+  const [importedCaseIdByKey, setImportedCaseIdByKey] = useState({});
+
   const abortRef = useRef(false);
+
+  // Cargar balance de créditos al montar
+  useEffect(() => {
+    async function loadCredits() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('antecedentes_credits')
+        .eq('id', user.id)
+        .single();
+      setAntecedentesCredits(data?.antecedentes_credits ?? 0);
+    }
+    loadCredits();
+  }, []);
 
   const activePjnPreset   = PJN_PRESETS.find(p => p.id === pjnPreset) || PJN_PRESETS[0];
   const pjnJursToSearch   = pjnUseCustom ? pjnCustomJurs : activePjnPreset.jurisdictions;
   const activeScbaPreset  = SCBA_PRESETS.find(p => p.id === scbaPreset) || SCBA_PRESETS[0];
   const scbaJursToSearch  = scbaUseCustom ? scbaCustomJurs : activeScbaPreset.jurisdictions;
   const jurisdictionsToSearch = source === 'pjn' ? pjnJursToSearch : scbaJursToSearch;
+
+  const resetDetailState = () => {
+    setExpandedRowKey('');
+    setDetailLoadingKey('');
+    setDetailErrorByKey({});
+    setDetailByKey({});
+    setDetailPageByKey({});
+  };
 
   const handleSourceChange = (newSource) => {
     setSource(newSource);
@@ -203,6 +268,7 @@ export default function AntecedentesPanel() {
     setSearched(false);
     setError('');
     setProgress(null);
+    resetDetailState();
   };
 
   const handlePjnPreset = (id) => {
@@ -211,6 +277,110 @@ export default function AntecedentesPanel() {
     if (p) setParteTipo(p.parteTipo);
     setPjnUseCustom(false);
   };
+
+  const handleLoadDetail = useCallback(async (row, rowKey) => {
+    if (expandedRowKey === rowKey) {
+      setExpandedRowKey('');
+      return;
+    }
+    setExpandedRowKey(rowKey);
+    if (detailByKey[rowKey]) return;
+
+    const parsed = parseExpediente(row.expediente);
+    if (!parsed) {
+      setDetailErrorByKey(prev => ({ ...prev, [rowKey]: 'No se pudo interpretar el número de expediente.' }));
+      return;
+    }
+
+    setDetailLoadingKey(rowKey);
+    setDetailErrorByKey(prev => ({ ...prev, [rowKey]: '' }));
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch('/api/pjn/detalle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ jurisdiccion: row._jur_id, numero: parsed.numero, anio: parsed.anio }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || 'No se pudo cargar el detalle.');
+      setDetailByKey(prev => ({ ...prev, [rowKey]: payload }));
+      setDetailPageByKey(prev => ({ ...prev, [rowKey]: 1 }));
+    } catch (err) {
+      setDetailErrorByKey(prev => ({
+        ...prev,
+        [rowKey]: err.message || 'No se pudo cargar el detalle del expediente.',
+      }));
+    } finally {
+      setDetailLoadingKey('');
+    }
+  }, [detailByKey, expandedRowKey]);
+
+  const handleImport = useCallback(async (row, rowKey, detail) => {
+    setImportStateByKey(prev => ({ ...prev, [rowKey]: 'loading' }));
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch('/api/pjn/importar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          expediente: row.expediente || row.nroCausa || row.nroExpediente,
+          caratula: row.caratula,
+          fuero: row._jur_label,
+          jurisdiccion: row._jur_id,
+          source: row._source === 'SCBA' ? 'scba' : 'pjn',
+          detail: detail || null,
+          link: row.link || null,
+        }),
+      });
+      const payload = await res.json();
+      if (!res.ok) {
+        if (payload?.error === 'CREDITS_EXHAUSTED') {
+          setImportStateByKey(prev => ({ ...prev, [rowKey]: 'no_credits' }));
+          return;
+        }
+        throw new Error(payload?.error || 'Error al importar.');
+      }
+      setImportStateByKey(prev => ({ ...prev, [rowKey]: 'done' }));
+      setImportedCaseIdByKey(prev => ({ ...prev, [rowKey]: payload.caseId }));
+      // Refrescar balance de créditos
+      setAntecedentesCredits(prev => (prev !== null ? Math.max(0, prev - 1) : null));
+    } catch (err) {
+      setImportStateByKey(prev => ({ ...prev, [rowKey]: 'error' }));
+      console.error('[Importar]', err.message);
+    }
+  }, []);
+
+  const handleBuyCredits = useCallback(async (packId) => {
+    setBuyingCredits(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch('/api/mp/antecedentes/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ pack_id: packId }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || 'Error al iniciar pago.');
+      if (payload.init_point) window.location.href = payload.init_point;
+    } catch (err) {
+      console.error('[BuyCredits]', err.message);
+    } finally {
+      setBuyingCredits(false);
+    }
+  }, []);
 
   const handleSearch = useCallback(async (e) => {
     e?.preventDefault();
@@ -224,6 +394,7 @@ export default function AntecedentesPanel() {
     setResults([]);
     setJurisdictionResults([]);
     setProgress({ current: 0, total: jurisdictionsToSearch.length, label: '' });
+    resetDetailState();
     abortRef.current = false;
 
     try {
@@ -251,7 +422,7 @@ export default function AntecedentesPanel() {
             if (!res.ok) {
               accJurResults.push({ id: jurId, label: jurShort, count: 0, error: payload?.error || 'Error' });
             } else {
-              const cases = (payload.results || []).map(r => ({ ...r, _source: 'PJN', _jur_label: jurShort }));
+              const cases = (payload.results || []).map(r => ({ ...r, _source: 'PJN', _jur_label: jurShort, _jur_id: jurId }));
               accResults.push(...cases);
               accJurResults.push({ id: jurId, label: jurShort, count: cases.length, error: null });
             }
@@ -303,6 +474,36 @@ export default function AntecedentesPanel() {
         <p className="pjn-search-subtitle">
           Verificá si una persona o empresa tiene causas activas o archivadas en el sistema judicial oficial.
         </p>
+
+        {/* Balance de créditos */}
+        <div className="ant-credits-bar" aria-label="Créditos de antecedentes">
+          <span className="ant-credits-label">
+            <Coins size={13} aria-hidden="true" />
+            Créditos de importación:
+            <strong className={antecedentesCredits === 0 ? 'ant-credits-zero' : 'ant-credits-count'}>
+              {antecedentesCredits === null ? '…' : antecedentesCredits}
+            </strong>
+          </span>
+          <div className="ant-credits-packs">
+            {[
+              { id: 'pack_5',  label: '5 créditos', price: '$5.000' },
+              { id: 'pack_15', label: '15 créditos', price: '$12.000' },
+              { id: 'pack_30', label: '30 créditos', price: '$20.000' },
+            ].map(p => (
+              <button
+                key={p.id}
+                type="button"
+                className="ant-buy-btn"
+                onClick={() => handleBuyCredits(p.id)}
+                disabled={buyingCredits}
+                title={`Comprar ${p.label} — ${p.price} ARS`}
+              >
+                <ShoppingCart size={11} aria-hidden="true" />
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Source toggle — usa el mismo pjn-tabs del sistema */}
@@ -594,24 +795,258 @@ export default function AntecedentesPanel() {
                   </tr>
                 </thead>
                 <tbody>
-                  {results.map((row, i) => (
-                    <tr key={`pjn-${row.expediente}-${i}`}>
-                      <td className="pjn-cell-mono">{row.expediente || '-'}</td>
-                      <td className="pjn-cell-caratula">{row.caratula || '-'}</td>
-                      <td><span className="ant-fuero-badge">{row._jur_label}</span></td>
-                      <td className="pjn-cell-sm">{row.dependencia || '-'}</td>
-                      <td className="pjn-cell-sm">{row.situacion || '-'}</td>
-                      <td className="pjn-cell-sm">{row.ultimaActuacion || '-'}</td>
-                      <td>
-                        {row.link && (
-                          <a href={row.link} target="_blank" rel="noopener noreferrer"
-                            className="pjn-link-btn" title="Ver en PJN SCW">
-                            <ExternalLink size={14} />
-                          </a>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {results.map((row, i) => {
+                    const rowKey = `pjn-${row.expediente}-${i}`;
+                    const expanded      = expandedRowKey === rowKey;
+                    const detail        = detailByKey[rowKey];
+                    const detailError   = detailErrorByKey[rowKey];
+                    const detailLoading = detailLoadingKey === rowKey;
+                    const acts          = Array.isArray(detail?.actuaciones) ? detail.actuaciones : [];
+                    const detailPage    = detailPageByKey[rowKey] || 1;
+                    const detailTotal   = Math.max(1, Math.ceil(acts.length / DETAIL_PAGE_SIZE));
+                    const detailSlice   = acts.slice((detailPage - 1) * DETAIL_PAGE_SIZE, detailPage * DETAIL_PAGE_SIZE);
+
+                    return [
+                      <tr key={`${rowKey}-main`}>
+                        <td className="pjn-cell-mono">{row.expediente || '-'}</td>
+                        <td className="pjn-cell-caratula">{row.caratula || '-'}</td>
+                        <td><span className="ant-fuero-badge">{row._jur_label}</span></td>
+                        <td className="pjn-cell-sm">{row.dependencia || '-'}</td>
+                        <td className="pjn-cell-sm">{row.situacion || '-'}</td>
+                        <td className="pjn-cell-sm">{row.ultimaActuacion || '-'}</td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '0.35rem' }}>
+                            {row.link && (
+                              <a href={row.link} target="_blank" rel="noopener noreferrer"
+                                className="pjn-link-btn" title="Ver en PJN SCW">
+                                <ExternalLink size={14} />
+                              </a>
+                            )}
+                            <button
+                              type="button"
+                              className="pjn-link-btn"
+                              onClick={() => handleLoadDetail(row, rowKey)}
+                              title={expanded ? 'Ocultar detalle' : 'Ver actuaciones'}
+                              aria-label={`Ver detalle de ${row.expediente}`}
+                            >
+                              {expanded
+                                ? <ChevronUp size={14} aria-hidden="true" />
+                                : <Eye size={14} aria-hidden="true" />}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>,
+
+                      expanded ? (
+                        <tr key={`${rowKey}-detail`}>
+                          <td colSpan={7} style={{ padding: '1rem 0.75rem', background: 'var(--pjn-row-alt, #f9fafb)' }}>
+                            {detailLoading && (
+                              <div className="pjn-loading-hint">
+                                <Loader2 size={15} className="spin" aria-hidden="true" />
+                                Cargando expediente completo...
+                              </div>
+                            )}
+                            {!detailLoading && detailError && (
+                              <div className="pjn-error-msg" role="alert">
+                                <AlertCircle size={15} /> {detailError}
+                              </div>
+                            )}
+                            {!detailLoading && detail && (() => {
+                              const intervinientes = Array.isArray(detail.intervinientes) ? detail.intervinientes : [];
+                              const datosKeys = detail.datosGenerales ? Object.entries(detail.datosGenerales) : [];
+                              const sessionToken = detail.sessionToken || '';
+
+                              const docUrl = (link) => {
+                                if (!link || !sessionToken) return null;
+                                return `/api/pjn/doc?token=${sessionToken}&url=${encodeURIComponent(link)}`;
+                              };
+
+                              return (
+                                <div className="exp-detail">
+                                  {/* Chips resumen + botón importar */}
+                                  <div className="exp-summary-chips">
+                                    <span className="exp-chip"><List size={11} /> {acts.length} actuaciones</span>
+                                    <span className="exp-chip"><Users size={11} /> {intervinientes.length} intervinientes</span>
+                                    {datosKeys.length > 0 && <span className="exp-chip"><Info size={11} /> Datos generales</span>}
+                                    {sessionToken && <span className="exp-chip" style={{ color: '#34d399', borderColor: 'rgba(52,211,153,0.3)' }}><ShieldCheck size={11} /> Documentos disponibles</span>}
+
+                                    {/* Botón Importar al Dashboard */}
+                                    {(() => {
+                                      const importState = importStateByKey[rowKey] || 'idle';
+                                      const caseId = importedCaseIdByKey[rowKey];
+                                      if (importState === 'done' && caseId) {
+                                        return (
+                                          <a
+                                            href={`/dashboard/cases/${caseId}`}
+                                            className="exp-import-btn exp-import-btn--done"
+                                            aria-label="Ver expediente importado en el dashboard"
+                                          >
+                                            <CheckCircle2 size={12} /> Ver en Expedientes
+                                          </a>
+                                        );
+                                      }
+                                      if (importState === 'no_credits') {
+                                        return (
+                                          <span className="exp-import-btn exp-import-btn--no-credits">
+                                            <AlertCircle size={12} /> Sin créditos — comprá más arriba
+                                          </span>
+                                        );
+                                      }
+                                      if (importState === 'error') {
+                                        return (
+                                          <button
+                                            type="button"
+                                            className="exp-import-btn exp-import-btn--error"
+                                            onClick={() => handleImport(row, rowKey, detail)}
+                                          >
+                                            <AlertCircle size={12} /> Error — reintentar
+                                          </button>
+                                        );
+                                      }
+                                      return (
+                                        <button
+                                          type="button"
+                                          className="exp-import-btn"
+                                          onClick={() => handleImport(row, rowKey, detail)}
+                                          disabled={importState === 'loading' || antecedentesCredits === 0}
+                                          aria-label={`Importar ${row.expediente} al dashboard de expedientes`}
+                                          title={antecedentesCredits === 0 ? 'Sin créditos disponibles' : 'Importar a mis Expedientes (consume 1 crédito)'}
+                                        >
+                                          {importState === 'loading'
+                                            ? <><Loader2 size={12} className="spin" /> Importando...</>
+                                            : <><FolderPlus size={12} /> Importar al Dashboard</>
+                                          }
+                                        </button>
+                                      );
+                                    })()}
+                                  </div>
+
+                                  {/* Datos generales */}
+                                  {datosKeys.length > 0 && (
+                                    <div className="exp-section">
+                                      <div className="exp-section-header">
+                                        <Info size={13} /> Datos del expediente
+                                      </div>
+                                      <div className="exp-datos-grid">
+                                        {datosKeys.map(([k, v]) => (
+                                          <div key={k} className="exp-dato-item">
+                                            <span className="exp-dato-key">{k}</span>
+                                            <span className="exp-dato-val">{v}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Intervinientes */}
+                                  {intervinientes.length > 0 && (
+                                    <div className="exp-section">
+                                      <div className="exp-section-header">
+                                        <Users size={13} /> Intervinientes
+                                      </div>
+                                      <div className="pjn-results-table-wrap">
+                                        <table className="exp-table">
+                                          <thead>
+                                            <tr>
+                                              <th>Rol</th>
+                                              <th>Nombre</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {intervinientes.map((p, pIdx) => (
+                                              <tr key={`${rowKey}-int-${pIdx}`}>
+                                                <td><span className="exp-parte-badge">{p.tipo || '-'}</span></td>
+                                                <td>{p.nombre || '-'}</td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Actuaciones */}
+                                  {acts.length > 0 ? (
+                                    <div className="exp-section">
+                                      <div className="exp-section-header">
+                                        <BookOpen size={13} /> Actuaciones ({acts.length})
+                                      </div>
+                                      <div className="pjn-results-table-wrap">
+                                        <table className="exp-table">
+                                          <thead>
+                                            <tr>
+                                              <th>Fecha</th>
+                                              <th>Tipo</th>
+                                              <th>Descripción</th>
+                                              <th>Oficina</th>
+                                              <th style={{ textAlign: 'center' }}>Fojas</th>
+                                              <th>Docs</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {detailSlice.map((act, aIdx) => (
+                                              <tr key={`${rowKey}-act-${aIdx}`} className="exp-act-row">
+                                                <td className="exp-act-fecha">{act.fecha || '-'}</td>
+                                                <td className="exp-act-tipo">{act.tipo || '-'}</td>
+                                                <td className="exp-act-desc">{act.descripcion || '-'}</td>
+                                                <td className="pjn-cell-sm">{act.oficina || '-'}</td>
+                                                <td className="exp-act-fojas">{act.fojas || '-'}</td>
+                                                <td>
+                                                  <div className="exp-doc-btns">
+                                                    {act.linkVer && docUrl(act.linkVer) && (
+                                                      <a
+                                                        href={docUrl(act.linkVer)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="exp-doc-btn exp-doc-btn-ver"
+                                                        title="Ver documento"
+                                                      >
+                                                        <Eye size={11} /> Ver
+                                                      </a>
+                                                    )}
+                                                    {act.linkDescargar && docUrl(act.linkDescargar) && (
+                                                      <a
+                                                        href={docUrl(act.linkDescargar)}
+                                                        download
+                                                        className="exp-doc-btn exp-doc-btn-dl"
+                                                        title="Descargar documento"
+                                                      >
+                                                        <Download size={11} /> PDF
+                                                      </a>
+                                                    )}
+                                                  </div>
+                                                </td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                      {detailTotal > 1 && (
+                                        <div className="pjn-inline-pagination">
+                                          <button type="button" className="pjn-page-btn"
+                                            onClick={() => setDetailPageByKey(prev => ({ ...prev, [rowKey]: Math.max(1, detailPage - 1) }))}
+                                            disabled={detailPage <= 1}>Anterior</button>
+                                          <span className="pjn-page-label">Pág. {detailPage} de {detailTotal}</span>
+                                          <button type="button" className="pjn-page-btn"
+                                            onClick={() => setDetailPageByKey(prev => ({ ...prev, [rowKey]: Math.min(detailTotal, detailPage + 1) }))}
+                                            disabled={detailPage >= detailTotal}>Siguiente</button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="pjn-no-results" style={{ marginTop: 0 }}>
+                                      <ChevronDown size={20} aria-hidden="true" />
+                                      <p>No hay actuaciones registradas.</p>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </td>
+                        </tr>
+                      ) : null
+                    ];
+                  })}
                 </tbody>
               </table>
             ) : (
