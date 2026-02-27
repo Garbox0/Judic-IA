@@ -354,7 +354,7 @@ export async function POST(req) {
                 user_id: userId,
                 status: 'pending',
                 description: 'Suscripción Mensual - Judic-IA Suite Pro',
-                amount: 25000,
+                amount: Math.round(sub.auto_recurring?.transaction_amount || 25000),
                 payment_date: new Date().toISOString(),
                 client_name: profileData?.full_name || 'Consumidor Final',
                 invoice_type: 'C' // Factura C (monotributista)

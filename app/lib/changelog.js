@@ -38,10 +38,9 @@ export const CHANGELOG = [
         date: "27 Feb 2026",
         badge: "Mejora",
         items: [
-            "Separacion total de creditos entre Estrategia y Monitoreo (alertas), sin cruces",
-            "Nuevas validaciones de base de datos para saldos y estados de compra",
-            "Flujos de compra y consumo de creditos reforzados con operaciones atomicas",
-            "Mejor consistencia en el alta de alertas y en la acreditacion de creditos",
+            "Mayor confiabilidad en compras y acreditaciones de creditos",
+            "Uso de creditos mas predecible al crear y gestionar alertas",
+            "Mejor estabilidad general en el modulo de Alertas",
         ],
     },
     {
