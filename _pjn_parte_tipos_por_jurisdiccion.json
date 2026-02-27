@@ -1,0 +1,4739 @@
+{
+  "extracted_at": "2026-02-26T21:31:40.370Z",
+  "source_url": "https://scw.pjn.gov.ar/scw/home.seam",
+  "total_jurisdicciones": 28,
+  "jurisdicciones": [
+    {
+      "id": "0",
+      "label": "CSJ - Corte Suprema de Justicia de la Nación",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "label": "CIV - Cámara Nacional de Apelaciones en lo Civil",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "label": "CAF - Cámara Nacional de Apelaciones en lo Contencioso Administrativo Federal",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "label": "CCF - Cámara Nacional de Apelaciones en lo Civil y Comercial Federal",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "label": "CNE - Cámara Nacional Electoral",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "label": "CSS - Camara Federal de la Seguridad Social",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "label": "CPE - Cámara Nacional de Apelaciones en lo Penal Económico",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "label": "CNT - Cámara Nacional de Apelaciones del Trabajo",
+      "tipo_disabled": true,
+      "tipo_selected_value": "DEMANDADO",
+      "leyenda": "Sólo puede consultar por tipo de parte DEMANDADO",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "label": "CFP - Camara Criminal y Correccional Federal",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "label": "CCC - Camara Nacional de Apelaciones en lo Criminal y Correccional",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "label": "COM - Camara Nacional de Apelaciones en lo Comercial",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "label": "CPF - Camara Federal de Casación Penal",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "label": "CPN - Camara Nacional Casacion Penal",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "label": "FBB - Justicia Federal de Bahia Blanca",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "label": "FCR - Justicia Federal de Comodoro Rivadavia",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "label": "FCB - Justicia Federal de Córdoba",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "label": "FCT - Justicia Federal de Corrientes",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "17",
+      "label": "FGR - Justicia Federal de General Roca",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "label": "FLP - Justicia Federal de La Plata",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "19",
+      "label": "FMP - Justicia Federal de Mar del Plata",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "20",
+      "label": "FMZ - Justicia Federal de Mendoza",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "21",
+      "label": "FPO - Justicia Federal de Posadas",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "22",
+      "label": "FPA - Justicia Federal de Paraná",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "23",
+      "label": "FRE - Justicia Federal de Resistencia",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "24",
+      "label": "FSA - Justicia Federal de Salta",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "25",
+      "label": "FRO - Justicia Federal de Rosario",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "26",
+      "label": "FSM - Justicia Federal de San Martin",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    },
+    {
+      "id": "27",
+      "label": "FTU - Justicia Federal de Tucuman",
+      "tipo_disabled": false,
+      "tipo_selected_value": "",
+      "leyenda": "",
+      "tipos": [
+        {
+          "value": "ACTOR",
+          "label": "ACTOR"
+        },
+        {
+          "value": "AFILIADO",
+          "label": "AFILIADO"
+        },
+        {
+          "value": "AGRUPACION POLITICA",
+          "label": "AGRUPACION POLITICA"
+        },
+        {
+          "value": "AMICUS CURIAE",
+          "label": "AMICUS CURIAE"
+        },
+        {
+          "value": "AUTORIDAD DE MESA",
+          "label": "AUTORIDAD DE MESA"
+        },
+        {
+          "value": "AUTORIDAD PARTIDARIA",
+          "label": "AUTORIDAD PARTIDARIA"
+        },
+        {
+          "value": "CANDIDATO",
+          "label": "CANDIDATO"
+        },
+        {
+          "value": "CAUSANTE",
+          "label": "CAUSANTE"
+        },
+        {
+          "value": "CIUDADANO",
+          "label": "CIUDADANO"
+        },
+        {
+          "value": "CONCURSADO",
+          "label": "CONCURSADO"
+        },
+        {
+          "value": "CUERPO COLEGIADO",
+          "label": "CUERPO COLEGIADO"
+        },
+        {
+          "value": "DAMNIFICADO",
+          "label": "DAMNIFICADO"
+        },
+        {
+          "value": "DEMANDADO",
+          "label": "DEMANDADO"
+        },
+        {
+          "value": "DENUNCIADO",
+          "label": "DENUNCIADO"
+        },
+        {
+          "value": "DENUNCIANTE",
+          "label": "DENUNCIANTE"
+        },
+        {
+          "value": "EJECUTADO/S",
+          "label": "EJECUTADO/S"
+        },
+        {
+          "value": "EJECUTANTE/S",
+          "label": "EJECUTANTE/S"
+        },
+        {
+          "value": "EMPLEADO PUBLICO",
+          "label": "EMPLEADO PUBLICO"
+        },
+        {
+          "value": "FALLIDO",
+          "label": "FALLIDO"
+        },
+        {
+          "value": "FUNCIONARIO PUBLICO",
+          "label": "FUNCIONARIO PUBLICO"
+        },
+        {
+          "value": "HEREDERO/S",
+          "label": "HEREDERO/S"
+        },
+        {
+          "value": "IMPUTADO",
+          "label": "IMPUTADO"
+        },
+        {
+          "value": "INCIDENTISTA",
+          "label": "INCIDENTISTA"
+        },
+        {
+          "value": "INTERVENTOR JUDICIAL",
+          "label": "INTERVENTOR JUDICIAL"
+        },
+        {
+          "value": "INTERVENTOR PARTIDARIO",
+          "label": "INTERVENTOR PARTIDARIO"
+        },
+        {
+          "value": "JUNTA ELECTORAL PARTIDARIA",
+          "label": "JUNTA ELECTORAL PARTIDARIA"
+        },
+        {
+          "value": "LISTA DE CANDIDATOS PARTIDARIOS",
+          "label": "LISTA DE CANDIDATOS PARTIDARIOS"
+        },
+        {
+          "value": "LISTA DE PRECANDIDATOS O CANDIDATOS",
+          "label": "LISTA DE PRECANDIDATOS O CANDIDATOS"
+        },
+        {
+          "value": "ONG",
+          "label": "ONG"
+        },
+        {
+          "value": "ORGANISMO PUBLICO",
+          "label": "ORGANISMO PUBLICO"
+        },
+        {
+          "value": "PETICIONANTE",
+          "label": "PETICIONANTE"
+        },
+        {
+          "value": "PRECANDIDATO",
+          "label": "PRECANDIDATO"
+        },
+        {
+          "value": "PRESUNTO FALLIDO",
+          "label": "PRESUNTO FALLIDO"
+        },
+        {
+          "value": "QUERELLANTE",
+          "label": "QUERELLANTE"
+        },
+        {
+          "value": "REQUERIDO",
+          "label": "REQUERIDO"
+        },
+        {
+          "value": "REQUIRENTE",
+          "label": "REQUIRENTE"
+        },
+        {
+          "value": "SINDICO",
+          "label": "SINDICO"
+        },
+        {
+          "value": "SOLICITANTE",
+          "label": "SOLICITANTE"
+        },
+        {
+          "value": "TERCERO AUTONOMO/PRINCIPAL",
+          "label": "TERCERO AUTONOMO/PRINCIPAL"
+        },
+        {
+          "value": "VOLUNTARIO",
+          "label": "VOLUNTARIO"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "url": "https://mev.scba.gov.ar/AvisoERRORUsrINEX.asp?s1=Usuario%20o%20clave%20inv%E1lida",
+  "title": "Mesa de Entradas Virtual",
+  "links": [
+    {
+      "text": "Haga click aquí para volver.",
+      "href": "https://mev.scba.gov.ar/default.asp"
+    }
+  ],
+  "forms": [],
+  "bodyText": " \n\n- ATENCIÓN -\n\n\nUsuario o clave inválida.\n\n\n\n.- Si Ud. se registró antes del 1º de febrero del 2008 debe seleccionar correctamente el Dto. Judicial donde se dió de alta como Usuario de la MEV.\n\n\n.- Si se registró después de esa fecha (1/2/2008), Ud. quedó automáticamente registrado en *Todos los Deptos. Judiciales*.\n\n\n.- Si olvidó el Depto. donde se registró, utilice la opción Recuperar Clave.\n\n\n\nHaga click aquí para volver.\n\n"
+}

@@ -1,0 +1,311 @@
+{
+  "url": "https://mev.scba.gov.ar/ConsultasXMailAJuzgados.asp",
+  "title": "Mesa de Entradas Virtual",
+  "forms": [
+    {
+      "action": "https://mev.scba.gov.ar/ConsultasXMailAJuzgados.asp",
+      "method": "post",
+      "fields": [
+        {
+          "tag": "SELECT",
+          "name": "DtoJudElegido",
+          "id": "Select2",
+          "type": "select-one",
+          "options": [
+            {
+              "value": "80",
+              "text": "Avellaneda-Lanus"
+            },
+            {
+              "value": "81",
+              "text": "Avellaneda-Lanus Familia"
+            },
+            {
+              "value": "83",
+              "text": "Avellaneda-Lanus Penal"
+            },
+            {
+              "value": "10",
+              "text": "Azul"
+            },
+            {
+              "value": "44",
+              "text": "Azul - Familia"
+            },
+            {
+              "value": "60",
+              "text": "Azul - Penal"
+            },
+            {
+              "value": "11",
+              "text": "Bahía Blanca"
+            },
+            {
+              "value": "35",
+              "text": "Bahia Blanca - Familia"
+            },
+            {
+              "value": "57",
+              "text": "Bahia Blanca - Penal"
+            },
+            {
+              "value": "12",
+              "text": "Dolores"
+            },
+            {
+              "value": "42",
+              "text": "Dolores - Familia"
+            },
+            {
+              "value": "61",
+              "text": "Dolores - Penal"
+            },
+            {
+              "value": "13",
+              "text": "Junín"
+            },
+            {
+              "value": "32",
+              "text": "Junín - Familia"
+            },
+            {
+              "value": "62",
+              "text": "Junin - Penal"
+            },
+            {
+              "value": "14",
+              "text": "La Matanza"
+            },
+            {
+              "value": "34",
+              "text": "La Matanza - Familia"
+            },
+            {
+              "value": "59",
+              "text": "La Matanza - Penal"
+            },
+            {
+              "value": "6",
+              "text": "La Plata"
+            },
+            {
+              "value": "30",
+              "text": "La Plata - Familia"
+            },
+            {
+              "value": "77",
+              "text": "La Plata - Penal"
+            },
+            {
+              "value": "16",
+              "text": "Lomas de Zamora"
+            },
+            {
+              "value": "36",
+              "text": "Lomas de Zamora - Familia"
+            },
+            {
+              "value": "63",
+              "text": "Lomas de Zamora - Penal"
+            },
+            {
+              "value": "17",
+              "text": "Mar del Plata"
+            },
+            {
+              "value": "38",
+              "text": "Mar del Plata - Familia"
+            },
+            {
+              "value": "64",
+              "text": "Mar del Plata - Penal"
+            },
+            {
+              "value": "18",
+              "text": "Mercedes"
+            },
+            {
+              "value": "41",
+              "text": "Mercedes - Familia"
+            },
+            {
+              "value": "58",
+              "text": "Mercedes - Penal"
+            },
+            {
+              "value": "52",
+              "text": "Moreno - Gral. Rodriguez"
+            },
+            {
+              "value": "54",
+              "text": "Moreno - Gral. Rodriguez Flia"
+            },
+            {
+              "value": "75",
+              "text": "Moreno Gral. Rodriguez - Penal"
+            },
+            {
+              "value": "19",
+              "text": "Moron"
+            },
+            {
+              "value": "45",
+              "text": "Moron - Familia"
+            },
+            {
+              "value": "65",
+              "text": "Moron - Penal"
+            },
+            {
+              "value": "20",
+              "text": "Necochea"
+            },
+            {
+              "value": "46",
+              "text": "Necochea - Familia"
+            },
+            {
+              "value": "66",
+              "text": "Necochea - Penal"
+            },
+            {
+              "value": "21",
+              "text": "Olavarría"
+            },
+            {
+              "value": "47",
+              "text": "Olavarria - Familia"
+            },
+            {
+              "value": "67",
+              "text": "Olavarria - Penal"
+            },
+            {
+              "value": "22",
+              "text": "Pergamino"
+            },
+            {
+              "value": "33",
+              "text": "Pergamino - Familia"
+            },
+            {
+              "value": "68",
+              "text": "Pergamino - Penal"
+            },
+            {
+              "value": "23",
+              "text": "Quilmes"
+            },
+            {
+              "value": "39",
+              "text": "Quilmes - FAMILIA"
+            },
+            {
+              "value": "78",
+              "text": "Quilmes - Penal"
+            },
+            {
+              "value": "24",
+              "text": "San Isidro"
+            },
+            {
+              "value": "51",
+              "text": "San Isidro - Familia"
+            },
+            {
+              "value": "69",
+              "text": "San Isidro - Penal"
+            },
+            {
+              "value": "25",
+              "text": "San Martín"
+            },
+            {
+              "value": "31",
+              "text": "San Martín - Familia"
+            },
+            {
+              "value": "70",
+              "text": "San Martin - Penal"
+            },
+            {
+              "value": "26",
+              "text": "San Nicolas"
+            },
+            {
+              "value": "40",
+              "text": "San Nicolas - FAMILIA"
+            },
+            {
+              "value": "71",
+              "text": "San Nicolas - Penal"
+            },
+            {
+              "value": "27",
+              "text": "Tandil"
+            },
+            {
+              "value": "37",
+              "text": "Tandil - Familia"
+            },
+            {
+              "value": "72",
+              "text": "Tandil - Penal"
+            },
+            {
+              "value": "28",
+              "text": "Trenque Lauquen"
+            },
+            {
+              "value": "48",
+              "text": "Trenque Lauquen - Familia"
+            },
+            {
+              "value": "73",
+              "text": "Trenque Lauquen - Penal"
+            },
+            {
+              "value": "49",
+              "text": "Tres Arroyos"
+            },
+            {
+              "value": "50",
+              "text": "Tres Arroyos - Familia"
+            },
+            {
+              "value": "76",
+              "text": "Tres Arroyos - Penal"
+            },
+            {
+              "value": "29",
+              "text": "Zarate/Campana"
+            },
+            {
+              "value": "43",
+              "text": "Zarate/Campana - Familia"
+            },
+            {
+              "value": "74",
+              "text": "Zarate/Campana - Penal"
+            },
+            {
+              "value": "4",
+              "text": "Justicia de PAZ"
+            },
+            {
+              "value": "53",
+              "text": "Tribunal de Casacion Penal"
+            }
+          ]
+        },
+        {
+          "tag": "INPUT",
+          "name": "Aceptar",
+          "id": "Aceptar",
+          "type": "submit"
+        }
+      ]
+    }
+  ],
+  "bodyText": " \n\nUsuarioMEV: Garbox0  \nUsuario apto para solicitar autorizaciones de causas\nNombre: Gabriel\n\n\t\n\n\t\n\nCambiar Jurisdicción    << Volver   Desconectarse\n\nConsultas a un Organismo\n\nCompletando el formulario se enviará su consulta al Organismo seleccionado.\nEl Organismo le responderá por mail a la brevedad posible.\n\nSeleccione Jurisdicción:   \nAvellaneda-Lanus\nAvellaneda-Lanus Familia\nAvellaneda-Lanus Penal\nAzul\nAzul - Familia\nAzul - Penal\nBahía Blanca\nBahia Blanca - Familia\nBahia Blanca - Penal\nDolores\nDolores - Familia\nDolores - Penal\nJunín\nJunín - Familia\nJunin - Penal\nLa Matanza\nLa Matanza - Familia\nLa Matanza - Penal\nLa Plata\nLa Plata - Familia\nLa Plata - Penal\nLomas de Zamora\nLomas de Zamora - Familia\nLomas de Zamora - Penal\nMar del Plata\nMar del Plata - Familia\nMar del Plata - Penal\nMercedes\nMercedes - Familia\nMercedes - Penal\nMoreno - Gral. Rodriguez\nMoreno - Gral. Rodriguez Flia\nMoreno Gral. Rodriguez - Penal\nMoron\nMoron - Familia\nMoron - Penal\nNecochea\nNecochea - Familia\nNecochea - Penal\nOlavarría\nOlavarria - Familia\nOlavarria - Penal\nPergamino\nPergamino - Familia\nPergamino - Penal\nQuilmes\nQuilmes - FAMILIA\nQuilmes - Penal\nSan Isidro\nSan Isidro - Familia\nSan Isidro - Penal\nSan Martín\nSan Martín - Familia\nSan Martin - Penal\nSan Nicolas\nSan Nicolas - FAMILIA\nSan Nicolas - Penal\nTandil\nTandil - Familia\nTandil - Penal\nTrenque Lauquen\nTrenque Lauquen - Familia\nTrenque Lauquen - Penal\nTres Arroyos\nTres Arroyos - Familia\nTres Arroyos - Penal\nZarate/Campana\nZarate/Campana - Familia\nZarate/Campana - Penal\nJusticia de PAZ\nTribunal de Casacion Penal"
+}

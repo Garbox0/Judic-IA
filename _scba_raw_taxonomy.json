@@ -1,0 +1,220 @@
+{
+  "selects": {
+    "DeptoRegistrado": [
+      {
+        "value": "aa",
+        "text": "- TODOS los Deptos"
+      },
+      {
+        "value": "AZ",
+        "text": "Azul"
+      },
+      {
+        "value": "AZF",
+        "text": "Azul - Familia"
+      },
+      {
+        "value": "BB",
+        "text": "Bahía Blanca"
+      },
+      {
+        "value": "BBF",
+        "text": "Bahia Blanca - Familia"
+      },
+      {
+        "value": "DO",
+        "text": "Dolores"
+      },
+      {
+        "value": "DOF",
+        "text": "Dolores - Familia"
+      },
+      {
+        "value": "JU",
+        "text": "Junín"
+      },
+      {
+        "value": "JUF",
+        "text": "Junín - Familia"
+      },
+      {
+        "value": "LM",
+        "text": "La Matanza"
+      },
+      {
+        "value": "LMF",
+        "text": "La Matanza - Familia"
+      },
+      {
+        "value": "LP",
+        "text": "La Plata"
+      },
+      {
+        "value": "LPF",
+        "text": "La Plata -  Familia"
+      },
+      {
+        "value": "LZ",
+        "text": "Lomas de Zamora"
+      },
+      {
+        "value": "LZF",
+        "text": "Lomas de Zamora - Familia"
+      },
+      {
+        "value": "MP",
+        "text": "Mar del Plata"
+      },
+      {
+        "value": "MPF",
+        "text": "Mar del Plata - Familia"
+      },
+      {
+        "value": "ME",
+        "text": "Mercedes"
+      },
+      {
+        "value": "MEF",
+        "text": "Mercedes - Familia"
+      },
+      {
+        "value": "MR",
+        "text": "Moreno - Gral. Rodriguez"
+      },
+      {
+        "value": "MRF",
+        "text": "Moreno - Gral. Rodriguez Flia"
+      },
+      {
+        "value": "MO",
+        "text": "Moron"
+      },
+      {
+        "value": "MOF",
+        "text": "Moron  - Familia"
+      },
+      {
+        "value": "NE",
+        "text": "Necochea"
+      },
+      {
+        "value": "NEF",
+        "text": "Necochea  - Familia"
+      },
+      {
+        "value": "OL",
+        "text": "Olavarría"
+      },
+      {
+        "value": "OLF",
+        "text": "Olavarria  - Familia"
+      },
+      {
+        "value": "PE",
+        "text": "Pergamino"
+      },
+      {
+        "value": "PEF",
+        "text": "Pergamino - Familia"
+      },
+      {
+        "value": "QU",
+        "text": "Quilmes"
+      },
+      {
+        "value": "QUF",
+        "text": "Quilmes - FAMILIA"
+      },
+      {
+        "value": "SI",
+        "text": "San Isidro"
+      },
+      {
+        "value": "SIF",
+        "text": "San Isidro  - Familia"
+      },
+      {
+        "value": "SM",
+        "text": "San Martín"
+      },
+      {
+        "value": "SMF",
+        "text": "San Martín -  Familia"
+      },
+      {
+        "value": "SN",
+        "text": "San Nicolas"
+      },
+      {
+        "value": "SNF",
+        "text": "San Nicolas - FAMILIA"
+      },
+      {
+        "value": "TN",
+        "text": "Tandil"
+      },
+      {
+        "value": "TNF",
+        "text": "Tandil - Familia"
+      },
+      {
+        "value": "TL",
+        "text": "Trenque Lauquen"
+      },
+      {
+        "value": "TLF",
+        "text": "Trenque Lauquen  - Familia"
+      },
+      {
+        "value": "TY",
+        "text": "Tres Arroyos"
+      },
+      {
+        "value": "TYF",
+        "text": "Tres Arroyos - Familia"
+      },
+      {
+        "value": "ZC",
+        "text": "Zarate/Campana"
+      },
+      {
+        "value": "ZCF",
+        "text": "Zarate/Campana - Familia"
+      },
+      {
+        "value": "PAZ",
+        "text": "Justicia de PAZ"
+      }
+    ]
+  },
+  "potential_links": [
+    {
+      "text": "Usuario Nuevo",
+      "href": "https://mev.scba.gov.ar/registro.asp"
+    },
+    {
+      "text": "Recuperar clave",
+      "href": "https://mev.scba.gov.ar/SolicitarRecuperar.asp"
+    },
+    {
+      "text": "Preguntas Frecuentes",
+      "href": "https://mev.scba.gov.ar/Tips.asp"
+    },
+    {
+      "text": "Ayuda",
+      "href": "https://mev.scba.gov.ar/ayuda.asp"
+    },
+    {
+      "text": "(Resolución SPL Nº 28/20)",
+      "href": "https://mev.scba.gov.ar/images/VerresolucionSPL28-20.pdf"
+    },
+    {
+      "text": "Usuario Nuevo",
+      "href": "https://mev.scba.gov.ar/registro.asp"
+    },
+    {
+      "text": "ingrese aquí",
+      "href": "https://mev.scba.gov.ar/unificaciondeusuarios.asp"
+    }
+  ]
+}

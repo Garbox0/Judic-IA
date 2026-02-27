@@ -38,9 +38,8 @@ export const CHANGELOG = [
         date: "27 Feb 2026",
         badge: "Nuevo",
         items: [
-            "Antecedentes Judiciales: ahora podés importar cualquier expediente encontrado directamente a tu sección de Expedientes del dashboard, con un solo clic",
+            "Antecedentes Judiciales: Se agregó funcionalidad para realizar búsquedas de antecedentes. Ahora podés importar cualquier expediente encontrado directamente a tu sección de Expedientes del dashboard, con un solo clic",
             "Los expedientes importados incluyen todos los datos del caso: carátula, partes, historial de actuaciones y materia legal asignada automáticamente",
-            "Sistema de créditos para importar expedientes: comprá un paquete y usá cada crédito para guardar un expediente de forma permanente en tu cuenta",
             "Al importar, el expediente queda en tu dashboard con acceso ilimitado, sin necesidad de volver a buscarlo",
         ],
     },

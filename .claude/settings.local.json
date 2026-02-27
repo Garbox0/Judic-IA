@@ -37,7 +37,10 @@
       "Bash(\"d:/Antigravity/Judic-IA/app/dashboard/clients/clients.css\":*)",
       "Bash(\"d:/Antigravity/Judic-IA/app/components/chat.css\":*)",
       "Bash(codecs=opus\" → \"audio/webm\".:*)",
-      "Bash(head -20 grep -rn \"matricula\\\\|colegio\" /d/Antigravity/Judic-IA/supabase/migrations/20260215_marketplace_schema.sql)"
+      "Bash(head -20 grep -rn \"matricula\\\\|colegio\" /d/Antigravity/Judic-IA/supabase/migrations/20260215_marketplace_schema.sql)",
+      "Bash(SCBA_MEV_USER=Garbox0 SCBA_MEV_PASS='GbrlArq2025!' node _mev_explore.mjs)",
+      "WebFetch(domain:mev.scba.gov.ar)",
+      "Bash(wait bq0cascoi)"
     ]
   }
 }

@@ -1,0 +1,116 @@
+{
+  "formPublica:camaraNumAni": [
+    {
+      "value": "0",
+      "text": "CSJ - Corte Suprema de Justicia de la Nación"
+    },
+    {
+      "value": "1",
+      "text": "CIV - Cámara Nacional de Apelaciones en lo Civil"
+    },
+    {
+      "value": "2",
+      "text": "CAF - Cámara Nacional de Apelaciones en lo Contencioso Administrativo Federal"
+    },
+    {
+      "value": "3",
+      "text": "CCF - Cámara Nacional de Apelaciones en lo Civil y Comercial Federal"
+    },
+    {
+      "value": "4",
+      "text": "CNE - Cámara Nacional Electoral"
+    },
+    {
+      "value": "5",
+      "text": "CSS - Camara Federal de la Seguridad Social"
+    },
+    {
+      "value": "6",
+      "text": "CPE - Cámara Nacional de Apelaciones en lo Penal Económico"
+    },
+    {
+      "value": "7",
+      "text": "CNT - Cámara Nacional de Apelaciones del Trabajo"
+    },
+    {
+      "value": "8",
+      "text": "CFP - Camara Criminal y Correccional Federal"
+    },
+    {
+      "value": "9",
+      "text": "CCC - Camara Nacional de Apelaciones en lo Criminal y Correccional"
+    },
+    {
+      "value": "10",
+      "text": "COM - Camara Nacional de Apelaciones en lo Comercial"
+    },
+    {
+      "value": "11",
+      "text": "CPF - Camara Federal de Casación Penal"
+    },
+    {
+      "value": "12",
+      "text": "CPN - Camara Nacional Casacion Penal"
+    },
+    {
+      "value": "13",
+      "text": "FBB - Justicia Federal de Bahia Blanca"
+    },
+    {
+      "value": "14",
+      "text": "FCR - Justicia Federal de Comodoro Rivadavia"
+    },
+    {
+      "value": "15",
+      "text": "FCB - Justicia Federal de Córdoba"
+    },
+    {
+      "value": "16",
+      "text": "FCT - Justicia Federal de Corrientes"
+    },
+    {
+      "value": "17",
+      "text": "FGR - Justicia Federal de General Roca"
+    },
+    {
+      "value": "18",
+      "text": "FLP - Justicia Federal de La Plata"
+    },
+    {
+      "value": "19",
+      "text": "FMP - Justicia Federal de Mar del Plata"
+    },
+    {
+      "value": "20",
+      "text": "FMZ - Justicia Federal de Mendoza"
+    },
+    {
+      "value": "21",
+      "text": "FPO - Justicia Federal de Posadas"
+    },
+    {
+      "value": "22",
+      "text": "FPA - Justicia Federal de Paraná"
+    },
+    {
+      "value": "23",
+      "text": "FRE - Justicia Federal de Resistencia"
+    },
+    {
+      "value": "24",
+      "text": "FSA - Justicia Federal de Salta"
+    },
+    {
+      "value": "25",
+      "text": "FRO - Justicia Federal de Rosario"
+    },
+    {
+      "value": "26",
+      "text": "FSM - Justicia Federal de San Martin"
+    },
+    {
+      "value": "27",
+      "text": "FTU - Justicia Federal de Tucuman"
+    }
+  ]
+}
