@@ -32,7 +32,8 @@ import {
     Zap,
     HardDrive,
     ShieldOff,
-    Trash2
+    Trash2,
+    Building2,
 } from 'lucide-react';
 import {
     BarChart,
@@ -77,6 +78,9 @@ export default function AdminPage() {
     const [auditReport, setAuditReport] = useState(null);
     const [auditLoading, setAuditLoading] = useState(false);
     const [rejectModal, setRejectModal] = useState({ open: false, userId: null, matriculaId: null, reason: '' });
+    const [estudios, setEstudios] = useState([]);
+    const [estudiosLoading, setEstudiosLoading] = useState(false);
+    const [rejectOrgModal, setRejectOrgModal] = useState({ open: false, orgId: null, reason: '' });
     const router = useRouter();
 
     useEffect(() => {
@@ -164,10 +168,44 @@ export default function AdminPage() {
             setLoading(false);
         }
 
-        // Also fetch invoices, audit and bans
+        // Also fetch invoices, audit, bans and estudios
         fetchAdminInvoices();
         fetchAuditReport();
         fetchBans();
+        fetchEstudios();
+    };
+
+    const fetchEstudios = async () => {
+        setEstudiosLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from('organizations')
+                .select('*, owner:owner_id(id, full_name, email, matriculas, verification_status)')
+                .eq('type', 'estudio')
+                .order('created_at', { ascending: false });
+            if (!error) setEstudios(data || []);
+        } catch (err) {
+            console.error('Error fetching estudios:', err);
+        } finally {
+            setEstudiosLoading(false);
+        }
+    };
+
+    const handleEstudioAction = async (orgId, action, rejectionReason) => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error('Sesión expirada');
+            const res = await fetch('/api/admin/update-org', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                body: JSON.stringify({ action, orgId, rejection_reason: rejectionReason }),
+            });
+            if (!res.ok) throw new Error('Error al procesar acción');
+            showNotification('success', action === 'verify' ? 'Estudio verificado.' : 'Estudio rechazado.');
+            fetchEstudios();
+        } catch (err) {
+            showNotification('error', err.message);
+        }
     };
 
     const fetchBans = async () => {
@@ -655,6 +693,18 @@ export default function AdminPage() {
                             {bans.length > 0 && (
                                 <span className="bg-rose text-white text-[9px] font-black px-2 py-0.5 rounded-full ml-1">
                                     {bans.length}
+                                </span>
+                            )}
+                        </button>
+                        <button
+                            onClick={() => { setActiveTab('estudios'); fetchEstudios(); }}
+                            className={`tab-trigger ${activeTab === 'estudios' ? 'active gold' : ''}`}
+                        >
+                            <Building2 size={14} />
+                            Estudios
+                            {estudios.filter(e => e.verification_status === 'pending').length > 0 && (
+                                <span className="bg-gold text-white text-[9px] font-black px-2 py-0.5 rounded-full ml-1 animate-pulse">
+                                    {estudios.filter(e => e.verification_status === 'pending').length}
                                 </span>
                             )}
                         </button>
@@ -1435,9 +1485,180 @@ export default function AdminPage() {
                                     </div>
                                 </div>
                             )}
+
+                            {/* TAB: ESTUDIOS */}
+                            {activeTab === 'estudios' && (
+                                <div className="glass-card overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-6 py-10 px-10 border-b border-admin-stroke">
+                                        <div className="space-y-1">
+                                            <h3 className="text-2xl font-black text-admin-primary tracking-tighter">Estudios Jurídicos</h3>
+                                            <p className="text-admin-muted text-[10px] font-black uppercase tracking-[0.3em] opacity-60">
+                                                Verificación de estudios — {estudios.filter(e => e.verification_status === 'pending').length} pendientes
+                                            </p>
+                                        </div>
+                                        <button onClick={fetchEstudios} className="action-btn" title="Actualizar">
+                                            <RefreshCw size={14} className={estudiosLoading ? 'animate-spin' : ''} />
+                                        </button>
+                                    </div>
+
+                                    <div className="mx-10 mt-8 mb-10 space-y-4">
+                                        {estudiosLoading ? (
+                                            <div className="flex justify-center py-20">
+                                                <RefreshCw size={28} className="animate-spin text-admin-muted opacity-40" />
+                                            </div>
+                                        ) : estudios.length === 0 ? (
+                                            <div className="flex flex-col items-center justify-center py-20">
+                                                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/5">
+                                                    <Building2 size={36} className="text-admin-muted opacity-20" />
+                                                </div>
+                                                <p className="text-admin-muted text-[10px] font-black uppercase tracking-widest opacity-60">Sin estudios registrados</p>
+                                            </div>
+                                        ) : (
+                                            estudios.map(estudio => {
+                                                const isPending  = estudio.verification_status === 'pending';
+                                                const isVerified = estudio.verification_status === 'verified';
+                                                const isRejected = estudio.verification_status === 'rejected';
+                                                const badgeClass = isVerified ? 'text-emerald bg-emerald/10 border-emerald/20'
+                                                    : isRejected ? 'text-rose bg-rose/10 border-rose/20'
+                                                    : 'text-gold bg-gold/10 border-gold/20 animate-pulse';
+                                                const badgeLabel = isVerified ? 'Verificado' : isRejected ? 'Rechazado' : 'Pendiente';
+
+                                                return (
+                                                    <div key={estudio.id} className="table-row p-6 rounded-2xl flex flex-col gap-4">
+                                                        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                                                            <div className="flex items-start gap-4 flex-1 min-w-0">
+                                                                <div className="w-12 h-12 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+                                                                    <Building2 size={20} className="text-gold" />
+                                                                </div>
+                                                                <div className="flex flex-col min-w-0 flex-1">
+                                                                    <div className="flex items-center gap-3 flex-wrap">
+                                                                        <span className="font-black text-admin-primary text-base tracking-tight">{estudio.razon_social || estudio.name}</span>
+                                                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${badgeClass}`}>{badgeLabel}</span>
+                                                                        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full border border-admin-stroke text-admin-muted">{estudio.plan_tier?.replace('_', ' ').toUpperCase()}</span>
+                                                                    </div>
+                                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 mt-2 text-[11px] text-admin-muted">
+                                                                        <span><strong>CUIT:</strong> {estudio.cuit || '-'}</span>
+                                                                        <span><strong>Tel:</strong> {estudio.phone || '-'}</span>
+                                                                        <span className="col-span-2"><strong>Domicilio:</strong> {estudio.domicilio || '-'}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Acciones */}
+                                                            {isPending && (
+                                                                <div className="flex gap-2 shrink-0">
+                                                                    <button
+                                                                        onClick={() => handleEstudioAction(estudio.id, 'verify')}
+                                                                        className="premium-btn emerald text-xs px-4 py-2 flex items-center gap-2"
+                                                                        aria-label={`Verificar ${estudio.razon_social}`}
+                                                                    >
+                                                                        <CheckCircle2 size={13} /> Verificar
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => setRejectOrgModal({ open: true, orgId: estudio.id, reason: '' })}
+                                                                        className="premium-btn rose text-xs px-4 py-2 flex items-center gap-2"
+                                                                        aria-label={`Rechazar ${estudio.razon_social}`}
+                                                                    >
+                                                                        <XCircle size={13} /> Rechazar
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Titular */}
+                                                        {estudio.owner && (
+                                                            <div className="bg-admin-surface/50 rounded-xl p-4 border border-admin-stroke">
+                                                                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-admin-muted mb-2">Titular</p>
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-8 h-8 rounded-lg bg-admin-surface border border-admin-stroke flex items-center justify-center text-[10px] font-black text-admin-muted">
+                                                                        {(estudio.owner.full_name || '?').slice(0,2).toUpperCase()}
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-sm font-bold text-admin-primary">{estudio.owner.full_name}</p>
+                                                                        <p className="text-[10px] text-admin-muted font-mono">{estudio.owner.email}</p>
+                                                                    </div>
+                                                                    <span className={`ml-auto text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full border ${
+                                                                        estudio.owner.verification_status === 'verified' ? 'text-emerald bg-emerald/10 border-emerald/20' : 'text-gold bg-gold/10 border-gold/20'
+                                                                    }`}>
+                                                                        Matrícula {estudio.owner.verification_status === 'verified' ? 'verificada' : 'pendiente'}
+                                                                    </span>
+                                                                </div>
+
+                                                                {/* Matrículas del titular */}
+                                                                {Array.isArray(estudio.owner.matriculas) && estudio.owner.matriculas.length > 0 && (
+                                                                    <div className="mt-3 flex flex-wrap gap-2">
+                                                                        {estudio.owner.matriculas.map((m, i) => (
+                                                                            <span key={i} className="text-[9px] font-mono bg-admin-surface border border-admin-stroke rounded-lg px-2 py-1 text-admin-muted">
+                                                                                {m.colegio} · T°{m.tomo} F°{m.folio}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+
+                                                        {isRejected && estudio.rejection_reason && (
+                                                            <div className="bg-rose/5 border border-rose/20 rounded-xl px-4 py-3 text-xs text-rose">
+                                                                <strong>Motivo:</strong> {estudio.rejection_reason}
+                                                            </div>
+                                                        )}
+
+                                                        <p className="text-[9px] text-admin-muted opacity-40 font-mono">
+                                                            Registrado: {new Date(estudio.created_at).toLocaleDateString('es-AR')} · ID: {estudio.id}
+                                                        </p>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
+
+                {/* --- MODAL: RECHAZAR ESTUDIO --- */}
+                {rejectOrgModal.open && (
+                    <div className="modal-overlay" onClick={() => setRejectOrgModal({ open: false, orgId: null, reason: '' })}>
+                        <div className="premium-modal" onClick={e => e.stopPropagation()}>
+                            <div className="modal-header-strip" />
+                            <div className="p-10 space-y-6">
+                                <div className="flex items-center gap-4 text-rose">
+                                    <XCircle size={28} />
+                                    <h3 className="text-xl font-black tracking-tighter">Rechazar Estudio</h3>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-admin-muted">Motivo de rechazo</label>
+                                    <textarea
+                                        value={rejectOrgModal.reason}
+                                        onChange={e => setRejectOrgModal(prev => ({ ...prev, reason: e.target.value }))}
+                                        placeholder="Ej: CUIT no encontrado en ARCA, matrícula no válida..."
+                                        rows={3}
+                                        className="bg-admin-surface border border-admin-stroke rounded-2xl py-4 px-6 text-sm text-admin-primary focus:outline-none focus:border-rose/40 font-bold placeholder:text-admin-text-muted/50 transition-all resize-none"
+                                    />
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setRejectOrgModal({ open: false, orgId: null, reason: '' })}
+                                        className="premium-btn flex-1"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            handleEstudioAction(rejectOrgModal.orgId, 'reject', rejectOrgModal.reason);
+                                            setRejectOrgModal({ open: false, orgId: null, reason: '' });
+                                        }}
+                                        disabled={!rejectOrgModal.reason.trim()}
+                                        className="premium-btn rose flex-1 disabled:opacity-50"
+                                    >
+                                        Confirmar Rechazo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* --- MODALS & NOTIFICATIONS --- */}
                 {activeModal && (

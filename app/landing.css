@@ -2635,3 +2635,115 @@ body::before {
         padding: 4rem 1.5rem 2rem;
     }
 }
+
+/* =============================================
+   ENTERPRISE BANNER (landing)
+   ============================================= */
+.enterprise-banner {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.enterprise-banner-content {
+    background: linear-gradient(135deg, rgba(201,162,39,0.08) 0%, rgba(232,197,71,0.04) 100%);
+    border: 1.5px solid rgba(201,162,39,0.2);
+    border-radius: 24px;
+    padding: 48px 48px 40px;
+    text-align: center;
+}
+
+.enterprise-banner-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    color: var(--accent, #fbbf24);
+    background: rgba(251,191,36,0.12);
+    border: 1px solid rgba(251,191,36,0.25);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 18px;
+}
+
+.enterprise-banner-title {
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 800;
+    color: #f8f7f4;
+    margin: 0 0 12px;
+    line-height: 1.25;
+}
+
+.enterprise-banner-sub {
+    font-size: 15px;
+    color: rgba(248,247,244,0.6);
+    max-width: 520px;
+    margin: 0 auto 28px;
+    line-height: 1.65;
+}
+
+.enterprise-banner-plans {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.enterprise-plan-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,162,39,0.18);
+    border-radius: 14px;
+    padding: 12px 18px;
+    min-width: 120px;
+}
+
+.enterprise-plan-name {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--accent, #fbbf24);
+    letter-spacing: 0.04em;
+}
+
+.enterprise-plan-members {
+    font-size: 10px;
+    color: rgba(248,247,244,0.5);
+}
+
+.enterprise-plan-price {
+    font-size: 15px;
+    font-weight: 800;
+    color: #f8f7f4;
+}
+
+.enterprise-plan-price small {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(248,247,244,0.5);
+    margin-left: 2px;
+}
+
+.enterprise-banner-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+@media (max-width: 600px) {
+    .enterprise-banner-content {
+        padding: 32px 20px 28px;
+    }
+
+    .enterprise-banner-plans {
+        gap: 8px;
+    }
+
+    .enterprise-plan-pill {
+        min-width: 90px;
+        padding: 10px 12px;
+    }
+}

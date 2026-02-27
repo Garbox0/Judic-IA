@@ -308,6 +308,38 @@ export default function Home() {
       <VideoGuides />
       <div className="section-spacer"></div>
 
+      {/* 🏛️ ENTERPRISE SECTION */}
+      <section className="reveal">
+        <div className="enterprise-banner">
+          <div className="enterprise-banner-content">
+            <span className="enterprise-banner-tag">PLAN ENTERPRISE</span>
+            <h2 className="enterprise-banner-title">
+              ¿Tenés un equipo? Llevá tu estudio al <span className="gradient-text italic-serif">siguiente nivel.</span>
+            </h2>
+            <p className="enterprise-banner-sub">
+              Gestión multi-abogado, bandeja compartida de expedientes, supervisión de equipo y créditos compartidos. Todo en un solo lugar.
+            </p>
+            <div className="enterprise-banner-plans">
+              {[
+                { label: 'Enterprise S', members: 'Hasta 5', price: '$89.000' },
+                { label: 'Enterprise M', members: 'Hasta 10', price: '$149.000' },
+                { label: 'Enterprise L', members: 'Hasta 20', price: '$249.000' },
+                { label: 'Enterprise XL', members: 'Ilimitado', price: '$449.000' },
+              ].map(p => (
+                <div key={p.label} className="enterprise-plan-pill">
+                  <span className="enterprise-plan-name">{p.label}</span>
+                  <span className="enterprise-plan-members">{p.members} miembros</span>
+                  <span className="enterprise-plan-price">{p.price}<small>/mes</small></span>
+                </div>
+              ))}
+            </div>
+            <Link href="/registro-estudio" className="btn-primary-v3 enterprise-banner-cta">
+              Registrar mi Estudio →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* 📞 CTA SECTION 3.0 */}
       <section className="reveal">
         <div className="cta-v3">
