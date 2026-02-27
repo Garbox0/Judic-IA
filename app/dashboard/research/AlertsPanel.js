@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
 import {
   Activity,
@@ -173,6 +174,7 @@ export default function AlertsPanel() {
   const [buyingAlertPack, setBuyingAlertPack] = useState('');
   const [isPackModalOpen, setIsPackModalOpen] = useState(false);
   const [canManageAlerts, setCanManageAlerts] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState('');
   const successTimeoutRef = useRef(null);
 
   const hasCsjnDraft = portal === 'CSJN_SORTEOS';
@@ -449,7 +451,7 @@ export default function AlertsPanel() {
     setSuccess('');
 
     if (!canManageAlerts) {
-      setError('Necesitas una suscripcion profesional activa para crear alertas.');
+      setIsPackModalOpen(true);
       return;
     }
 
@@ -530,10 +532,9 @@ export default function AlertsPanel() {
   ]);
 
   const handleDelete = useCallback(async (id) => {
-    if (!window.confirm('Seguro que deseas eliminar esta alerta?')) return;
-
     setError('');
     setSuccess('');
+    setConfirmDeleteId('');
 
     try {
       const { error: deleteError } = await supabase
@@ -613,18 +614,11 @@ export default function AlertsPanel() {
           <p className="alerts-credits-note">
             Cada credito activa 1 alerta por 30 dias.
           </p>
-          {!canManageAlerts && (
-            <p className="alerts-subscription-note">
-              Necesitas suscripcion profesional activa para comprar creditos y crear alertas.
-            </p>
-          )}
           <div className="alerts-pack-list">
             <button
               type="button"
               className="alerts-pack-btn alerts-pack-open-btn"
               onClick={() => setIsPackModalOpen(true)}
-              disabled={!canManageAlerts}
-              title={!canManageAlerts ? 'Requiere suscripcion profesional activa' : undefined}
             >
               Comprar creditos de alerta
             </button>
@@ -634,9 +628,7 @@ export default function AlertsPanel() {
         <button
           type="button"
           className="pjn-submit-btn alerts-new-btn"
-          onClick={() => setIsAdding((prev) => !prev)}
-          disabled={!canManageAlerts}
-          title={!canManageAlerts ? 'Requiere suscripcion profesional activa' : undefined}
+          onClick={() => canManageAlerts ? setIsAdding((prev) => !prev) : setIsPackModalOpen(true)}
         >
           <Plus size={16} aria-hidden="true" /> {isAdding ? 'Cerrar' : 'Nueva Alerta'}
         </button>
@@ -893,7 +885,7 @@ export default function AlertsPanel() {
 
       <div className="alerts-list-container">
         <div className="alerts-list-header">
-          <h4 className="alerts-list-title">Tus alertas activas</h4>
+          <h4 className="alerts-list-title">Tus alertas</h4>
 
           {hasCsjnAlerts && (
             <fieldset className="alerts-manual-run">
@@ -956,7 +948,11 @@ export default function AlertsPanel() {
           <div className="pjn-empty alerts-empty">
             <CalendarClock size={34} aria-hidden="true" />
             <p>No tenes alertas configuradas por ahora.</p>
-            <button type="button" className="alerts-empty-action" onClick={() => setIsAdding(true)}>
+            <button
+              type="button"
+              className="alerts-empty-action"
+              onClick={() => canManageAlerts ? setIsAdding(true) : setIsPackModalOpen(true)}
+            >
               Crear tu primera alerta
             </button>
           </div>
@@ -1019,14 +1015,34 @@ export default function AlertsPanel() {
                       {alertItem.is_active ? 'Pausar' : 'Activar'}
                     </button>
 
-                    <button
-                      type="button"
-                      className="alerts-action-delete"
-                      onClick={() => handleDelete(alertItem.id)}
-                      aria-label={`Eliminar alerta: ${alertItem.search_query || alertItem.query_value}`}
-                    >
-                      <Trash2 size={16} aria-hidden="true" />
-                    </button>
+                    {confirmDeleteId === alertItem.id ? (
+                      <div className="alerts-confirm-delete" role="group" aria-label="Confirmar eliminacion">
+                        <span className="alerts-confirm-label">¿Eliminar?</span>
+                        <button
+                          type="button"
+                          className="alerts-confirm-yes"
+                          onClick={() => handleDelete(alertItem.id)}
+                        >
+                          Sí
+                        </button>
+                        <button
+                          type="button"
+                          className="alerts-confirm-no"
+                          onClick={() => setConfirmDeleteId('')}
+                        >
+                          No
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="alerts-action-delete"
+                        onClick={() => setConfirmDeleteId(alertItem.id)}
+                        aria-label={`Eliminar alerta: ${alertItem.search_query || alertItem.query_value}`}
+                      >
+                        <Trash2 size={16} aria-hidden="true" />
+                      </button>
+                    )}
                   </div>
                 </article>
               );
@@ -1035,7 +1051,7 @@ export default function AlertsPanel() {
         )}
       </div>
 
-      {isPackModalOpen && (
+      {isPackModalOpen && typeof document !== 'undefined' && createPortal(
         <div
           className="alerts-pack-modal-overlay quota-modal-overlay"
           onClick={() => setIsPackModalOpen(false)}
@@ -1107,7 +1123,8 @@ export default function AlertsPanel() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   );

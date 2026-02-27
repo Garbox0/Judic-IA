@@ -34,13 +34,21 @@
 
 export const CHANGELOG = [
     {
+        id: 11,
+        date: "27 Feb 2026",
+        badge: "Mejora",
+        items: [
+            "El aviso de suscripción en Alertas aparece solo cuando lo necesitás (al comprar o crear), sin ocupar espacio en la pantalla principal",
+            "Eliminar una alerta ahora pide confirmación directamente en pantalla, de forma más clara y sin ventanas emergentes del navegador",
+        ],
+    },
+    {
         id: 10,
         date: "27 Feb 2026",
         badge: "Mejora",
         items: [
-            "Mayor confiabilidad en compras y acreditaciones de creditos",
-            "Uso de creditos mas predecible al crear y gestionar alertas",
-            "Mejor estabilidad general en el modulo de Alertas",
+            "Cuando comprás créditos, la acreditación se refleja de inmediato en tu cuenta y recibís confirmación por email",
+            "Pausar o reactivar una alerta no descuenta créditos: el crédito se usa solo al crear una alerta nueva",
         ],
     },
     {
@@ -48,11 +56,10 @@ export const CHANGELOG = [
         date: "27 Feb 2026",
         badge: "Mejora",
         items: [
-            "Terminal de Estrategia renovada: mejor navegacion entre Estrategia, Consulta Verificable y Monitoreo",
-            "Consulta Verificable mas robusta para expedientes por numero o por parte, con mejor visualizacion de resultados y detalle",
-            "Monitoreo de alertas mejorado: configuracion mas clara, prueba manual y feedback mas preciso de estado",
-            "Mejoras de accesibilidad y lectura en Research (modo claro, foco de teclado y etiquetas para asistencia)",
-            "Correcciones de estabilidad y rendimiento general en busquedas y paneles de Research",
+            "Herramienta de investigación con navegación más clara entre Estrategia, Consulta Verificable y Motor de Vigilancia",
+            "Consultá expedientes por número o por parte con resultados más detallados y mejor presentación",
+            "Configurá y probá tus alertas de vigilancia antes de activarlas, con un diseño más ordenado",
+            "Mejor experiencia de lectura y navegación en general",
         ],
     },
     {

@@ -1170,6 +1170,50 @@
     opacity: 0.9;
 }
 
+.alerts-confirm-delete {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    animation: zoomIn 0.15s ease-out;
+}
+
+.alerts-confirm-label {
+    font-size: 0.78rem;
+    color: #f87171;
+    white-space: nowrap;
+}
+
+.alerts-confirm-yes,
+.alerts-confirm-no {
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    line-height: 1.4;
+}
+
+.alerts-confirm-yes {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.45);
+    color: #f87171;
+}
+
+.alerts-confirm-yes:hover {
+    background: rgba(239, 68, 68, 0.28);
+}
+
+.alerts-confirm-no {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.alerts-confirm-no:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
 .alerts-panel button:focus-visible,
 .alerts-panel input:focus-visible,
 .alerts-panel select:focus-visible {
@@ -1290,6 +1334,16 @@ body.light-theme .alerts-feedback-success {
 body.light-theme .alerts-run-mode-fieldset {
     background: rgba(15, 23, 42, 0.03);
     border-color: rgba(15, 23, 42, 0.14);
+}
+
+body.light-theme .alerts-confirm-no {
+    background: rgba(15, 23, 42, 0.06);
+    border-color: rgba(15, 23, 42, 0.2);
+    color: #475569;
+}
+
+body.light-theme .alerts-confirm-no:hover {
+    background: rgba(15, 23, 42, 0.1);
 }
 
 body.light-theme .alerts-test-run {
