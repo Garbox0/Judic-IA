@@ -486,9 +486,9 @@ export default function AntecedentesPanel() {
           </span>
           <div className="ant-credits-packs">
             {[
-              { id: 'pack_5',  label: '5 créditos', price: '$5.000' },
-              { id: 'pack_15', label: '15 créditos', price: '$12.000' },
-              { id: 'pack_30', label: '30 créditos', price: '$20.000' },
+              { id: 'pack_5',  label: '5 créditos', price: '$25.000' },
+              { id: 'pack_15', label: '15 créditos', price: '$60.000' },
+              { id: 'pack_30', label: '30 créditos', price: '$99.000' },
             ].map(p => (
               <button
                 key={p.id}

@@ -10,9 +10,9 @@ import { createClient } from '@supabase/supabase-js';
 import { verifyAuth } from '@/lib/api-auth';
 
 const ANTECEDENTES_PACKS = {
-    pack_5:  { credits: 5,  amount: 5000,  label: 'Pack 5 importaciones' },
-    pack_15: { credits: 15, amount: 12000, label: 'Pack 15 importaciones' },
-    pack_30: { credits: 30, amount: 20000, label: 'Pack 30 importaciones' },
+    pack_5:  { credits: 5,  amount: 25000, label: 'Pack 5 importaciones' },
+    pack_15: { credits: 15, amount: 60000, label: 'Pack 15 importaciones' },
+    pack_30: { credits: 30, amount: 99000, label: 'Pack 30 importaciones' },
 };
 
 export async function POST(request) {
