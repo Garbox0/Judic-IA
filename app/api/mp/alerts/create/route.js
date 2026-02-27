@@ -54,22 +54,28 @@ export async function POST(request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("subscription_status, plan_tier, subscription_expiry, grace_period_ends_at")
-    .eq("id", userId)
-    .single();
+  const isSuperUser =
+    auth.user?.email === "gbrlescalada@gmail.com" &&
+    userId === "365cd259-4f1e-4004-a677-1eda06a5147e";
 
-  const hasActiveSub = hasActivePaidSubscription(profile);
+  if (!isSuperUser) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("subscription_status, plan_tier, subscription_expiry, grace_period_ends_at")
+      .eq("id", userId)
+      .single();
 
-  if (!hasActiveSub) {
-    return NextResponse.json(
-      {
-        error: "SUBSCRIPTION_REQUIRED",
-        message: "Necesitas una suscripcion profesional activa para comprar creditos de alerta."
-      },
-      { status: 403 }
-    );
+    const hasActiveSub = hasActivePaidSubscription(profile);
+
+    if (!hasActiveSub) {
+      return NextResponse.json(
+        {
+          error: "SUBSCRIPTION_REQUIRED",
+          message: "Necesitas una suscripcion profesional activa para comprar creditos de alerta."
+        },
+        { status: 403 }
+      );
+    }
   }
 
   const { data: authUser } = await supabase.auth.admin.getUserById(userId);
