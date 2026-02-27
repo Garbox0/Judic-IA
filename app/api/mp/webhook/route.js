@@ -4,6 +4,37 @@ import { Resend } from 'resend';
 import { sendEmail } from "../../../lib/resend";
 import crypto from 'crypto';
 
+// ─── INTERNAL BILLING AUDIT NOTIFICATION ──────────────────────────────────
+// Sends a structured audit email to billing@judic-ia.com on every
+// successful payment event. Fire-and-forget: never throws.
+async function notifyBilling(resend, { subject, rows }) {
+    const BILLING = 'billing@judic-ia.com';
+    const rowsHtml = rows.map(({ label, value }) => `
+        <tr>
+            <td style="padding:8px 12px;border-bottom:1px solid #1e293b;color:#94a3b8;white-space:nowrap;font-size:13px;">${label}</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #1e293b;color:#f1f5f9;font-size:13px;word-break:break-all;">${value ?? '—'}</td>
+        </tr>`).join('');
+    const html = `
+        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:680px;margin:0 auto;background:#020617;color:#f8fafc;padding:32px;border-radius:10px;border:1px solid #1e293b;">
+            <p style="margin:0 0 6px;font-size:18px;font-weight:bold;color:#fbbf24;">Judic-IA · Audit Trail</p>
+            <p style="margin:0 0 24px;font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">${subject}</p>
+            <table style="width:100%;border-collapse:collapse;background:rgba(255,255,255,0.03);border-radius:6px;overflow:hidden;border:1px solid #1e293b;">
+                ${rowsHtml}
+            </table>
+            <p style="margin-top:20px;font-size:11px;color:#475569;">Este mail es generado automáticamente. No responder.</p>
+        </div>`;
+    try {
+        await resend.emails.send({
+            from: 'billing@judic-ia.com',
+            to: BILLING,
+            subject: `[Judic-IA Billing] ${subject}`,
+            html,
+        });
+    } catch (err) {
+        console.error('[notifyBilling] error:', err?.message);
+    }
+}
+
 // 🔐 HMAC Signature Validation for MercadoPago Webhooks
 function validateMPSignature(req, body) {
     const xSignature = req.headers.get('x-signature');
@@ -171,13 +202,21 @@ export async function POST(req) {
 
                 console.log(`✅ Credits ${creditLabel} acreditados: ${purchase.credits} para user ${userId}`);
 
-                // Email de confirmación al abogado
+                // Emails: confirmación al abogado + auditoría interna
                 try {
-                    const { data: userData } = await supabase.auth.admin.getUserById(userId);
+                    const [{ data: userData }, { data: profileData }] = await Promise.all([
+                        supabase.auth.admin.getUserById(userId),
+                        supabase.from('profiles').select('full_name').eq('id', userId).maybeSingle(),
+                    ]);
                     const userEmail = userData?.user?.email;
+                    const userName = profileData?.full_name || 'Sin nombre';
+                    const creditNoun = isAlertCredits ? 'créditos de alerta' : 'créditos de estrategia';
+                    const creditPlural = purchase.credits === 1
+                        ? `1 ${creditNoun.slice(0, -1)}`
+                        : `${purchase.credits} ${creditNoun}`;
+                    const opType = isAlertCredits ? 'Pack de créditos de alerta' : 'Pack de créditos de estrategia';
+
                     if (userEmail) {
-                        const creditNoun = isAlertCredits ? 'créditos de alerta' : 'créditos de estrategia';
-                        const creditPlural = purchase.credits === 1 ? `1 ${isAlertCredits ? 'crédito de alerta' : 'crédito de estrategia'}` : `${purchase.credits} ${creditNoun}`;
                         await sendEmail({
                             resendClient: resend,
                             to: userEmail,
@@ -201,8 +240,26 @@ export async function POST(req) {
                         });
                         console.log(`📧 Email de créditos acreditados enviado a: ${userEmail}`);
                     }
+
+                    // Auditoría interna
+                    await notifyBilling(resend, {
+                        subject: `✅ Pago aprobado — ${opType}`,
+                        rows: [
+                            { label: 'Operación',       value: opType },
+                            { label: 'Estado',          value: '✅ Aprobado' },
+                            { label: 'Abogado',         value: userName },
+                            { label: 'Email',           value: userEmail },
+                            { label: 'User ID',         value: userId },
+                            { label: 'Créditos',        value: String(purchase.credits) },
+                            { label: 'Pack ID',         value: purchase.pack_id },
+                            { label: 'Monto',           value: `ARS ${payment.transaction_amount ?? '—'}` },
+                            { label: 'MP Payment ID',   value: String(mpId) },
+                            { label: 'Purchase ID (DB)',value: purchaseId },
+                            { label: 'Fecha/hora',      value: new Date().toISOString() },
+                        ],
+                    });
                 } catch (emailErr) {
-                    console.error('Error enviando email de créditos acreditados:', emailErr?.message);
+                    console.error('Error enviando emails de créditos acreditados:', emailErr?.message);
                 }
 
             } else if (payment.status === 'rejected' || payment.status === 'cancelled') {
@@ -211,12 +268,18 @@ export async function POST(req) {
                     .update({ status: 'rejected', mp_payment_id: String(mpId) })
                     .eq('id', purchaseId);
 
-                // Email de pago fallido al abogado
+                // Emails: aviso al abogado + auditoría interna
                 try {
-                    const { data: userData } = await supabase.auth.admin.getUserById(userId);
+                    const [{ data: userData }, { data: profileData }] = await Promise.all([
+                        supabase.auth.admin.getUserById(userId),
+                        supabase.from('profiles').select('full_name').eq('id', userId).maybeSingle(),
+                    ]);
                     const userEmail = userData?.user?.email;
+                    const userName = profileData?.full_name || 'Sin nombre';
+                    const creditNoun = isAlertCredits ? 'créditos de alerta' : 'créditos de estrategia';
+                    const opType = isAlertCredits ? 'Pack de créditos de alerta' : 'Pack de créditos de estrategia';
+
                     if (userEmail) {
-                        const creditNoun = isAlertCredits ? 'créditos de alerta' : 'créditos de estrategia';
                         await sendEmail({
                             resendClient: resend,
                             to: userEmail,
@@ -240,8 +303,23 @@ export async function POST(req) {
                         });
                         console.log(`📧 Email de pago fallido enviado a: ${userEmail}`);
                     }
+
+                    // Auditoría interna
+                    await notifyBilling(resend, {
+                        subject: `❌ Pago rechazado — ${opType}`,
+                        rows: [
+                            { label: 'Operación',       value: opType },
+                            { label: 'Estado',          value: `❌ ${payment.status} / ${payment.status_detail ?? '—'}` },
+                            { label: 'Abogado',         value: userName },
+                            { label: 'Email',           value: userEmail },
+                            { label: 'User ID',         value: userId },
+                            { label: 'MP Payment ID',   value: String(mpId) },
+                            { label: 'Purchase ID (DB)',value: purchaseId },
+                            { label: 'Fecha/hora',      value: new Date().toISOString() },
+                        ],
+                    });
                 } catch (emailErr) {
-                    console.error('Error enviando email de pago fallido:', emailErr?.message);
+                    console.error('Error enviando emails de pago fallido:', emailErr?.message);
                 }
             }
 
@@ -372,12 +450,18 @@ export async function POST(req) {
 
         console.log("Database updated for user:", userId);
 
-        // 6) Enviar Email SOLO si es authorized y el usuario NO era pro antes
-        if (sub.status === "authorized" && isFreshUpgrade) {
-            const { data: userData } = await supabase.auth.admin.getUserById(userId);
+        // 6) Emails y factura en cada pago autorizado de suscripción
+        if (sub.status === "authorized") {
+            const [{ data: userData }, { data: profileData }] = await Promise.all([
+                supabase.auth.admin.getUserById(userId),
+                supabase.from('profiles').select('full_name').eq('id', userId).maybeSingle(),
+            ]);
             const userEmail = userData?.user?.email;
+            const userName = profileData?.full_name || 'Consumidor Final';
+            const amount = Math.round(sub.auto_recurring?.transaction_amount || 25000);
 
-            if (userEmail) {
+            // Email de bienvenida solo si es primer upgrade
+            if (userEmail && isFreshUpgrade) {
                 await sendEmail({
                     resendClient: resend,
                     to: userEmail,
@@ -389,7 +473,6 @@ export async function POST(req) {
                                 <h1 style="color: #fbbf24; margin: 0; font-family: 'Playfair Display', serif; font-size: 32px;">Judic-IA</h1>
                                 <p style="color: #94a3b8; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px;">Confirmación de Suscripción</p>
                             </div>
-                            
                             <div style="background-color: rgba(255,255,255,0.03); padding: 30px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
                                 <div style="font-size: 48px; margin-bottom: 20px;">🎉</div>
                                 <h2 style="color: #f8fafc; margin-top: 0;">¡Tu cuenta ha sido mejorada!</h2>
@@ -399,7 +482,6 @@ export async function POST(req) {
                                 </p>
                                 <a href="https://judic-ia.com/dashboard" style="display: inline-block; background-color: #fbbf24; color: #020617; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; margin-top: 20px;">Ir a mi Panel</a>
                             </div>
-
                             <div style="margin-top: 40px; border-top: 1px solid #1e293b; padding-top: 20px; font-size: 12px; color: #64748b; text-align: center;">
                                 <p>Tu factura estará disponible en tu panel en las próximas horas.</p>
                                 <p>© ${new Date().getFullYear()} Judic-IA. Todos los derechos reservados.</p>
@@ -410,29 +492,40 @@ export async function POST(req) {
                 console.log("📧 Welcome Email sent to:", userEmail);
             }
 
-            // 7) Crear factura pendiente para el usuario
-            // Obtener nombre del perfil para la factura
-            const { data: profileData } = await supabase
-                .from('profiles')
-                .select('full_name')
-                .eq('id', userId)
-                .single();
-
-            const { error: invoiceError } = await supabase.from("invoices").insert({
-                user_id: userId,
-                status: 'pending',
-                description: 'Suscripción Mensual - Judic-IA Suite Pro',
-                amount: Math.round(sub.auto_recurring?.transaction_amount || 25000),
-                payment_date: new Date().toISOString(),
-                client_name: profileData?.full_name || 'Consumidor Final',
-                invoice_type: 'C' // Factura C (monotributista)
-            });
-
-            if (invoiceError) {
-                console.error("Error creating invoice:", invoiceError);
-            } else {
-                console.log("📄 Pending invoice created for user:", userId);
+            // Factura (solo si es primer upgrade)
+            if (isFreshUpgrade) {
+                const { error: invoiceError } = await supabase.from("invoices").insert({
+                    user_id: userId,
+                    status: 'pending',
+                    description: 'Suscripción Mensual - Judic-IA Suite Pro',
+                    amount,
+                    payment_date: new Date().toISOString(),
+                    client_name: userName,
+                    invoice_type: 'C'
+                });
+                if (invoiceError) {
+                    console.error("Error creating invoice:", invoiceError);
+                } else {
+                    console.log("📄 Pending invoice created for user:", userId);
+                }
             }
+
+            // Auditoría interna — SIEMPRE (primer pago o renovación mensual)
+            await notifyBilling(resend, {
+                subject: `✅ Suscripción autorizada — ${isFreshUpgrade ? 'Nuevo alta' : 'Renovación mensual'}`,
+                rows: [
+                    { label: 'Operación',           value: isFreshUpgrade ? 'Nueva suscripción Profesional' : 'Renovación mensual Profesional' },
+                    { label: 'Estado',              value: '✅ Autorizado' },
+                    { label: 'Abogado',             value: userName },
+                    { label: 'Email',               value: userEmail },
+                    { label: 'User ID',             value: userId },
+                    { label: 'Monto',               value: `ARS ${amount}` },
+                    { label: 'MP Preapproval ID',   value: sub.id },
+                    { label: 'MP Status',           value: sub.status },
+                    { label: 'Próximo cobro',       value: sub.next_payment_date ?? '—' },
+                    { label: 'Fecha/hora',          value: new Date().toISOString() },
+                ],
+            });
         }
 
         return NextResponse.json({ ok: true });
