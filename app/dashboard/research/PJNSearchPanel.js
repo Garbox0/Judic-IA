@@ -1,467 +1,679 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from 'react';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import {
-    Search,
-    Loader2,
-    FileText,
-    ExternalLink,
-    ShieldCheck,
-    RefreshCw,
-    AlertCircle,
-    CheckCircle2,
-    Building2,
-    Hash,
-    Calendar,
-    User
+  Search,
+  Loader2,
+  FileText,
+  ExternalLink,
+  ShieldCheck,
+  RefreshCw,
+  AlertCircle,
+  Building2,
+  Hash,
+  Calendar,
+  User,
+  Eye,
+  ChevronDown,
+  ChevronUp,
+  Clock3
 } from 'lucide-react';
+import { getPjnParteTypeRule, resolvePjnParteType } from '@/lib/pjnParteRules';
 import './pjn-search.css';
 
-// PJN Jurisdiction options (value → label)
 const JURISDICTIONS = [
-    { value: '', label: 'Seleccionar cámara...' },
-    { value: '0', label: 'CSJ - Corte Suprema de Justicia de la Nación' },
-    { value: '1', label: 'CIV - Cámara Nacional de Apelaciones en lo Civil' },
-    { value: '2', label: 'CAF - Cámara Nac. Apel. Contencioso Administrativo Federal' },
-    { value: '3', label: 'COM - Cámara Nacional de Apelaciones en lo Comercial' },
-    { value: '4', label: 'CNE - Cámara Nacional Electoral' },
-    { value: '5', label: 'CSS - Cámara Federal de la Seguridad Social' },
-    { value: '6', label: 'CCC - Cámara Nac. Apel. en lo Criminal y Correccional' },
-    { value: '7', label: 'CPE - Cámara Nac. de Casación en lo Criminal y Correccional' },
-    { value: '8', label: 'CFP - Cámara Criminal y Correccional Federal' },
-    { value: '9', label: 'TRA - Cámara Nacional de Apelaciones del Trabajo' },
-    { value: '25', label: 'FRO - Justicia Federal de Rosario' },
-    { value: '26', label: 'FLP - Justicia Federal de La Plata' },
-    { value: '27', label: 'FBB - Justicia Federal de Bahía Blanca' },
-    { value: '28', label: 'FPO - Justicia Federal de Posadas' },
-    { value: '29', label: 'FPA - Justicia Federal de Paraná' },
-    { value: '30', label: 'FCO - Justicia Federal de Córdoba' },
-    { value: '31', label: 'FMZ - Justicia Federal de Mendoza' },
-    { value: '32', label: 'FTU - Justicia Federal de Tucumán' },
-    { value: '33', label: 'FRE - Justicia Federal de Resistencia' },
-    { value: '34', label: 'FGR - Justicia Federal de General Roca' },
-    { value: '35', label: 'FSM - Justicia Federal de San Martín' },
-    { value: '36', label: 'FMA - Justicia Federal de Mar del Plata' },
-    { value: '37', label: 'FSA - Justicia Federal de Salta' },
-    { value: '38', label: 'FCR - Justicia Federal de Comodoro Rivadavia' },
-    { value: '39', label: 'FCA - Justicia Federal de Corrientes' },
-    { value: '40', label: 'FCT - Justicia Federal de Catamarca' },
-    { value: '41', label: 'FSJ - Justicia Federal de San Juan' },
-    { value: '42', label: 'FSL - Justicia Federal de San Luis' },
-    { value: '43', label: 'FSE - Justicia Federal de Santiago del Estero' },
-    { value: '44', label: 'FJU - Justicia Federal de Jujuy' },
-    { value: '45', label: 'FRF - Justicia Federal de Rawson' },
-    { value: '46', label: 'FLR - Justicia Federal de La Rioja' },
-    { value: '47', label: 'FFO - Justicia Federal de Formosa' },
-    { value: '48', label: 'FRG - Justicia Federal de Río Gallegos' },
-    { value: '49', label: 'FUS - Justicia Federal de Ushuaia' },
-    { value: '50', label: 'FZA - Justicia Federal de Zárate-Campana' },
-    { value: '51', label: 'FMO - Justicia Federal de Morón' },
-    { value: '52', label: 'FAZ - Justicia Federal de Azul' },
-    { value: '53', label: 'FLO - Justicia Federal de Lomas de Zamora' },
+  { value: '', label: 'Seleccionar camara...' },
+  { value: '0', label: 'CSJ - Corte Suprema de Justicia de la Nacion' },
+  { value: '1', label: 'CIV - Camara Nacional de Apelaciones en lo Civil' },
+  { value: '2', label: 'CAF - Camara Nacional de Apelaciones en lo Contencioso Administrativo Federal' },
+  { value: '3', label: 'CCF - Camara Nacional de Apelaciones en lo Civil y Comercial Federal' },
+  { value: '4', label: 'CNE - Camara Nacional Electoral' },
+  { value: '5', label: 'CSS - Camara Federal de la Seguridad Social' },
+  { value: '6', label: 'CPE - Camara Nacional de Apelaciones en lo Penal Economico' },
+  { value: '7', label: 'CNT - Camara Nacional de Apelaciones del Trabajo' },
+  { value: '8', label: 'CFP - Camara Criminal y Correccional Federal' },
+  { value: '9', label: 'CCC - Camara Nacional de Apelaciones en lo Criminal y Correccional' },
+  { value: '10', label: 'COM - Camara Nacional de Apelaciones en lo Comercial' },
+  { value: '11', label: 'CPF - Camara Federal de Casacion Penal' },
+  { value: '12', label: 'CPN - Camara Nacional Casacion Penal' },
+  { value: '13', label: 'FBB - Justicia Federal de Bahia Blanca' },
+  { value: '14', label: 'FCR - Justicia Federal de Comodoro Rivadavia' },
+  { value: '15', label: 'FCB - Justicia Federal de Cordoba' },
+  { value: '16', label: 'FCT - Justicia Federal de Corrientes' },
+  { value: '17', label: 'FGR - Justicia Federal de General Roca' },
+  { value: '18', label: 'FLP - Justicia Federal de La Plata' },
+  { value: '19', label: 'FMP - Justicia Federal de Mar del Plata' },
+  { value: '20', label: 'FMZ - Justicia Federal de Mendoza' },
+  { value: '21', label: 'FPO - Justicia Federal de Posadas' },
+  { value: '22', label: 'FPA - Justicia Federal de Parana' },
+  { value: '23', label: 'FRE - Justicia Federal de Resistencia' },
+  { value: '24', label: 'FSA - Justicia Federal de Salta' },
+  { value: '25', label: 'FRO - Justicia Federal de Rosario' },
+  { value: '26', label: 'FSM - Justicia Federal de San Martin' },
+  { value: '27', label: 'FTU - Justicia Federal de Tucuman' }
 ];
 
+const PARTE_TYPES = [
+  { value: '', label: 'Todos' },
+  { value: 'ACTOR', label: 'ACTOR' },
+  { value: 'AFILIADO', label: 'AFILIADO' },
+  { value: 'AGRUPACION POLITICA', label: 'AGRUPACION POLITICA' },
+  { value: 'AMICUS CURIAE', label: 'AMICUS CURIAE' },
+  { value: 'AUTORIDAD DE MESA', label: 'AUTORIDAD DE MESA' },
+  { value: 'AUTORIDAD PARTIDARIA', label: 'AUTORIDAD PARTIDARIA' },
+  { value: 'CANDIDATO', label: 'CANDIDATO' },
+  { value: 'CAUSANTE', label: 'CAUSANTE' },
+  { value: 'CIUDADANO', label: 'CIUDADANO' },
+  { value: 'CONCURSADO', label: 'CONCURSADO' },
+  { value: 'CUERPO COLEGIADO', label: 'CUERPO COLEGIADO' },
+  { value: 'DAMNIFICADO', label: 'DAMNIFICADO' },
+  { value: 'DEMANDADO', label: 'DEMANDADO' },
+  { value: 'DENUNCIADO', label: 'DENUNCIADO' },
+  { value: 'DENUNCIANTE', label: 'DENUNCIANTE' },
+  { value: 'EJECUTADO/S', label: 'EJECUTADO/S' },
+  { value: 'EJECUTANTE/S', label: 'EJECUTANTE/S' },
+  { value: 'EMPLEADO PUBLICO', label: 'EMPLEADO PUBLICO' },
+  { value: 'FALLIDO', label: 'FALLIDO' },
+  { value: 'FUNCIONARIO PUBLICO', label: 'FUNCIONARIO PUBLICO' },
+  { value: 'HEREDERO/S', label: 'HEREDERO/S' },
+  { value: 'IMPUTADO', label: 'IMPUTADO' },
+  { value: 'INCIDENTISTA', label: 'INCIDENTISTA' },
+  { value: 'INTERVENTOR JUDICIAL', label: 'INTERVENTOR JUDICIAL' },
+  { value: 'INTERVENTOR PARTIDARIO', label: 'INTERVENTOR PARTIDARIO' },
+  { value: 'JUNTA ELECTORAL PARTIDARIA', label: 'JUNTA ELECTORAL PARTIDARIA' },
+  { value: 'LISTA DE CANDIDATOS PARTIDARIOS', label: 'LISTA DE CANDIDATOS PARTIDARIOS' },
+  { value: 'LISTA DE PRECANDIDATOS O CANDIDATOS', label: 'LISTA DE PRECANDIDATOS O CANDIDATOS' },
+  { value: 'ONG', label: 'ONG' },
+  { value: 'ORGANISMO PUBLICO', label: 'ORGANISMO PUBLICO' },
+  { value: 'PETICIONANTE', label: 'PETICIONANTE' },
+  { value: 'PRECANDIDATO', label: 'PRECANDIDATO' },
+  { value: 'PRESUNTO FALLIDO', label: 'PRESUNTO FALLIDO' },
+  { value: 'QUERELLANTE', label: 'QUERELLANTE' },
+  { value: 'REQUERIDO', label: 'REQUERIDO' },
+  { value: 'REQUIRENTE', label: 'REQUIRENTE' },
+  { value: 'SINDICO', label: 'SINDICO' },
+  { value: 'SOLICITANTE', label: 'SOLICITANTE' },
+  { value: 'TERCERO AUTONOMO/PRINCIPAL', label: 'TERCERO AUTONOMO/PRINCIPAL' },
+  { value: 'VOLUNTARIO', label: 'VOLUNTARIO' }
+];
+
+const PAGE_SIZE = 20;
+const DETAIL_PAGE_SIZE = 20;
+
+function readErrorMessage(err, fallback = 'Error inesperado') {
+  if (!err) return fallback;
+  if (typeof err === 'string' && err.trim()) return err;
+  if (typeof err.message === 'string' && err.message.trim()) return err.message;
+  return fallback;
+}
+
+function parseExpediente(expedienteRaw = '') {
+  const text = String(expedienteRaw || '').replace(/\s+/g, ' ').trim();
+  const match = text.match(/^([A-Z]{2,6})?\s*([0-9]{1,7})\/(\d{4})/i);
+  if (!match) return null;
+  return {
+    prefix: (match[1] || '').toUpperCase(),
+    numero: match[2],
+    anio: match[3]
+  };
+}
+
+function formatDateTime(value) {
+  if (!value) return '';
+  try {
+    return new Date(value).toLocaleString('es-AR');
+  } catch {
+    return String(value);
+  }
+}
+
 export default function PJNSearchPanel() {
-    // ── State ──
-    const [searchType, setSearchType] = useState('expediente'); // 'expediente' | 'parte'
-    const [jurisdiction, setJurisdiction] = useState('');
-    const [numero, setNumero] = useState('');
-    const [anio, setAnio] = useState('');
-    const [nombre, setNombre] = useState('');
+  const [searchType, setSearchType] = useState('parte');
+  const [jurisdiction, setJurisdiction] = useState('');
+  const [numero, setNumero] = useState('');
+  const [anio, setAnio] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [parteTipo, setParteTipo] = useState('');
 
-    const [captchaToken, setCaptchaToken] = useState('');
-    const [captchaStatus, setCaptchaStatus] = useState('idle'); // 'idle' | 'loading' | 'ready' | 'error'
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [searched, setSearched] = useState(false);
+  const [results, setResults] = useState(null);
+  const [page, setPage] = useState(1);
 
-    const [loading, setLoading] = useState(false);
-    const [results, setResults] = useState(null);
-    const [error, setError] = useState('');
-    const [searched, setSearched] = useState(false);
+  const [expandedRowKey, setExpandedRowKey] = useState('');
+  const [detailLoadingKey, setDetailLoadingKey] = useState('');
+  const [detailErrorByKey, setDetailErrorByKey] = useState({});
+  const [detailByKey, setDetailByKey] = useState({});
+  const [detailPageByKey, setDetailPageByKey] = useState({});
 
-    const captchaContainerRef = useRef(null);
-    const iframeLoadedRef = useRef(false);
+  const currentRule = useMemo(() => getPjnParteTypeRule(jurisdiction), [jurisdiction]);
 
-    // ── Captcha Widget Init ──
-    useEffect(() => {
-        // Load the PJN captcha init.js script which creates the iframe
-        if (iframeLoadedRef.current) return;
-        iframeLoadedRef.current = true;
+  useEffect(() => {
+    if (searchType !== 'parte') return;
+    if (currentRule?.forced_type) {
+      setParteTipo(currentRule.forced_type);
+      return;
+    }
+    setParteTipo((prev) => prev || '');
+  }, [currentRule, searchType]);
 
-        const container = captchaContainerRef.current;
-        if (!container) return;
+  const currentJurisdictionLabel = useMemo(
+    () => JURISDICTIONS.find((item) => item.value === jurisdiction)?.label || '',
+    [jurisdiction]
+  );
 
-        // Ensure the container has the class the init.js expects
-        container.classList.add('pjn-captcha');
+  const rows = results?.results || [];
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const pagedRows = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return rows.slice(start, start + PAGE_SIZE);
+  }, [rows, page]);
 
-        // Create the hidden input the widget writes the token to
-        let responseInput = document.getElementById('captcha-response');
-        if (!responseInput) {
-            responseInput = document.createElement('input');
-            responseInput.type = 'hidden';
-            responseInput.id = 'captcha-response';
-            responseInput.name = 'captcha-response';
-            container.parentElement.appendChild(responseInput);
-        }
+  useEffect(() => {
+    if (page > totalPages) setPage(1);
+  }, [page, totalPages]);
 
-        setCaptchaStatus('loading');
+  const resetSearch = useCallback(() => {
+    setResults(null);
+    setSearched(false);
+    setError('');
+    setPage(1);
+    setExpandedRowKey('');
+    setDetailLoadingKey('');
+    setDetailErrorByKey({});
+    setDetailByKey({});
+    setDetailPageByKey({});
+  }, []);
 
-        // Load init.js — it will find .pjn-captcha and inject the iframe
-        const script = document.createElement('script');
-        script.src = 'https://captcha.pjn.gov.ar/api/init.js?sitekey=SCW';
-        script.async = true;
-        script.onload = () => {
-            setCaptchaStatus('ready');
-        };
-        script.onerror = () => {
-            setCaptchaStatus('error');
-        };
-        document.head.appendChild(script);
+  const handleSearch = useCallback(async (e) => {
+    e?.preventDefault();
+    setError('');
 
-        // Listen for postMessage from the captcha widget
-        const handleMessage = (event) => {
-            if (event.origin !== 'https://captcha.pjn.gov.ar') return;
+    if (!jurisdiction) {
+      setError('Selecciona una camara o jurisdiccion.');
+      return;
+    }
 
-            // The widget sends the token via postMessage
-            if (event.data && typeof event.data === 'string' && event.data.length > 10) {
-                setCaptchaToken(event.data);
-                setCaptchaStatus('ready');
-            }
-        };
+    if (searchType === 'expediente') {
+      if (!numero.trim() || !anio.trim()) {
+        setError('Completa numero y anio para buscar por expediente.');
+        return;
+      }
+      if (!/^\d{4}$/.test(anio.trim())) {
+        setError('El anio debe tener 4 digitos.');
+        return;
+      }
+    }
 
-        window.addEventListener('message', handleMessage);
+    if (searchType === 'parte') {
+      if (!nombre.trim()) {
+        setError('Completa el nombre de la parte.');
+        return;
+      }
+    }
 
-        // Also poll the hidden input for changes (fallback)
-        const pollInterval = setInterval(() => {
-            const input = document.getElementById('captcha-response');
-            if (input && input.value && input.value.length > 10) {
-                setCaptchaToken(input.value);
-                clearInterval(pollInterval);
-            }
-        }, 500);
+    setLoading(true);
+    setSearched(true);
+    setResults(null);
+    setPage(1);
+    setExpandedRowKey('');
 
-        return () => {
-            window.removeEventListener('message', handleMessage);
-            clearInterval(pollInterval);
-        };
-    }, []);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
 
-    // ── Search Handler ──
-    const handleSearch = useCallback(async (e) => {
-        if (e) e.preventDefault();
+      const effectiveParteTipo = searchType === 'parte'
+        ? resolvePjnParteType({ jurisdictionId: jurisdiction, requestedType: parteTipo })
+        : null;
 
-        if (!captchaToken) {
-            setError('⚠️ Resolvé el captcha antes de buscar.');
-            return;
-        }
+      const res = await fetch('/api/pjn/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
+        },
+        body: JSON.stringify({
+          searchType,
+          jurisdiction,
+          jurisdictionName: currentJurisdictionLabel,
+          numero: numero.trim(),
+          anio: anio.trim(),
+          nombre: nombre.trim(),
+          parteTipo: effectiveParteTipo,
+          maxPages: searchType === 'parte' ? 40 : 10
+        })
+      });
 
-        if (searchType === 'expediente' && (!numero || !anio)) {
-            setError('Completá el número y año del expediente.');
-            return;
-        }
+      const payload = await res.json();
 
-        if (searchType === 'parte' && !nombre.trim()) {
-            setError('Completá el nombre de la parte.');
-            return;
-        }
+      if (!res.ok) {
+        throw new Error(payload?.error || 'No se pudo completar la consulta.');
+      }
 
-        setLoading(true);
-        setError('');
-        setResults(null);
-        setSearched(true);
+      setResults(payload);
+    } catch (err) {
+      setError(readErrorMessage(err, 'No se pudo completar la consulta.'));
+    } finally {
+      setLoading(false);
+    }
+  }, [anio, currentJurisdictionLabel, jurisdiction, nombre, numero, parteTipo, searchType]);
 
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const accessToken = session?.access_token;
+  const handleLoadDetail = useCallback(async (row, absoluteIndex) => {
+    const rowKey = `${row.expediente || 'row'}-${absoluteIndex}`;
 
-            const res = await fetch('/api/pjn/search', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
-                },
-                body: JSON.stringify({
-                    searchType,
-                    captchaToken,
-                    jurisdiction,
-                    numero,
-                    anio,
-                    nombre: nombre.trim(),
-                }),
-            });
+    if (expandedRowKey === rowKey) {
+      setExpandedRowKey('');
+      return;
+    }
 
-            const data = await res.json();
+    setExpandedRowKey(rowKey);
 
-            if (!res.ok) {
-                setError(data.error || 'Error al consultar el PJN.');
-                return;
-            }
+    if (detailByKey[rowKey]) {
+      return;
+    }
 
-            setResults(data);
+    const parsed = parseExpediente(row.expediente);
+    if (!parsed) {
+      setDetailErrorByKey((prev) => ({
+        ...prev,
+        [rowKey]: 'No se pudo interpretar el numero de expediente para consultar detalle.'
+      }));
+      return;
+    }
 
-            if (data.error) {
-                setError(data.error);
-            }
+    setDetailLoadingKey(rowKey);
+    setDetailErrorByKey((prev) => ({ ...prev, [rowKey]: '' }));
 
-        } catch (err) {
-            setError('Error de conexión. Verificá tu internet.');
-        } finally {
-            setLoading(false);
-        }
-    }, [captchaToken, searchType, jurisdiction, numero, anio, nombre]);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
 
-    // ── Reset captcha for new search ──
-    const resetCaptcha = useCallback(() => {
-        setCaptchaToken('');
-        setCaptchaStatus('loading');
-        setResults(null);
-        setSearched(false);
-        setError('');
+      const res = await fetch('/api/pjn/detalle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
+        },
+        body: JSON.stringify({
+          jurisdiccion: jurisdiction,
+          numero: parsed.numero,
+          anio: parsed.anio
+        })
+      });
 
-        // Remove old iframe and reload  
-        const container = captchaContainerRef.current;
-        if (container) {
-            container.innerHTML = '';
-        }
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || 'No se pudo cargar el detalle.');
 
-        const responseInput = document.getElementById('captcha-response');
-        if (responseInput) responseInput.value = '';
+      setDetailByKey((prev) => ({ ...prev, [rowKey]: payload }));
+      setDetailPageByKey((prev) => ({ ...prev, [rowKey]: 1 }));
+    } catch (err) {
+      setDetailErrorByKey((prev) => ({
+        ...prev,
+        [rowKey]: readErrorMessage(err, 'No se pudo cargar el detalle del expediente.')
+      }));
+    } finally {
+      setDetailLoadingKey('');
+    }
+  }, [detailByKey, expandedRowKey, jurisdiction]);
 
-        // Re-load init.js
-        iframeLoadedRef.current = false;
-
-        const oldScript = document.querySelector('script[src*="captcha.pjn.gov.ar"]');
-        if (oldScript) oldScript.remove();
-
-        setTimeout(() => {
-            const script = document.createElement('script');
-            script.src = `https://captcha.pjn.gov.ar/api/init.js?sitekey=SCW&t=${Date.now()}`;
-            script.async = true;
-            script.onload = () => setCaptchaStatus('ready');
-            script.onerror = () => setCaptchaStatus('error');
-            document.head.appendChild(script);
-            iframeLoadedRef.current = true;
-
-            // Re-poll
-            const pollInterval = setInterval(() => {
-                const input = document.getElementById('captcha-response');
-                if (input && input.value && input.value.length > 10) {
-                    setCaptchaToken(input.value);
-                    clearInterval(pollInterval);
-                }
-            }, 500);
-
-            // Cleanup after 60s
-            setTimeout(() => clearInterval(pollInterval), 60000);
-        }, 300);
-    }, []);
-
-    // ── Render ──
-    return (
-        <div className="pjn-search-container">
-            {/* HEADER */}
-            <div className="pjn-search-header">
-                <div className="pjn-search-title">
-                    <Building2 size={22} />
-                    <h3>Consulta SCW — Poder Judicial de la Nación</h3>
-                </div>
-                <p className="pjn-search-subtitle">
-                    Buscá expedientes directamente en el Sistema de Consultas Web del PJN.
-                    Resolvé el captcha y consultá por expediente o por parte.
-                </p>
-            </div>
-
-            <form onSubmit={handleSearch} className="pjn-search-form">
-                {/* SEARCH TYPE TABS */}
-                <div className="pjn-tabs">
-                    <button
-                        type="button"
-                        className={`pjn-tab ${searchType === 'expediente' ? 'active' : ''}`}
-                        onClick={() => setSearchType('expediente')}
-                    >
-                        <Hash size={16} />
-                        Por Expediente
-                    </button>
-                    <button
-                        type="button"
-                        className={`pjn-tab ${searchType === 'parte' ? 'active' : ''}`}
-                        onClick={() => setSearchType('parte')}
-                    >
-                        <User size={16} />
-                        Por Parte
-                    </button>
-                </div>
-
-                {/* FORM FIELDS */}
-                <div className="pjn-fields">
-                    <div className="pjn-field pjn-field-full">
-                        <label>Cámara / Jurisdicción</label>
-                        <select
-                            value={jurisdiction}
-                            onChange={(e) => setJurisdiction(e.target.value)}
-                        >
-                            {JURISDICTIONS.map(j => (
-                                <option key={j.value} value={j.value}>{j.label}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {searchType === 'expediente' ? (
-                        <>
-                            <div className="pjn-field">
-                                <label><Hash size={14} /> Número</label>
-                                <input
-                                    type="text"
-                                    value={numero}
-                                    onChange={(e) => setNumero(e.target.value)}
-                                    placeholder="Ej: 12345"
-                                />
-                            </div>
-                            <div className="pjn-field">
-                                <label><Calendar size={14} /> Año</label>
-                                <input
-                                    type="text"
-                                    value={anio}
-                                    onChange={(e) => setAnio(e.target.value)}
-                                    placeholder="Ej: 2025"
-                                    maxLength={4}
-                                />
-                            </div>
-                        </>
-                    ) : (
-                        <div className="pjn-field pjn-field-full">
-                            <label><User size={14} /> Nombre de la parte</label>
-                            <input
-                                type="text"
-                                value={nombre}
-                                onChange={(e) => setNombre(e.target.value)}
-                                placeholder="Ej: González, Juan Carlos"
-                            />
-                        </div>
-                    )}
-                </div>
-
-                {/* CAPTCHA WIDGET */}
-                <div className="pjn-captcha-section">
-                    <div className="pjn-captcha-label">
-                        <ShieldCheck size={16} />
-                        <span>Verificación de seguridad</span>
-                        {captchaToken && (
-                            <span className="pjn-captcha-badge">
-                                <CheckCircle2 size={14} />
-                                Verificado
-                            </span>
-                        )}
-                    </div>
-
-                    <div
-                        ref={captchaContainerRef}
-                        className="pjn-captcha pjn-captcha-widget"
-                        id="pjn-captcha-container"
-                    />
-
-                    {captchaStatus === 'loading' && !captchaToken && (
-                        <div className="pjn-captcha-loading">
-                            <Loader2 size={16} className="animate-spin" />
-                            <span>Cargando captcha del PJN...</span>
-                        </div>
-                    )}
-
-                    {captchaStatus === 'error' && (
-                        <div className="pjn-captcha-error">
-                            <AlertCircle size={16} />
-                            <span>No se pudo cargar el captcha. <button type="button" onClick={resetCaptcha}>Reintentar</button></span>
-                        </div>
-                    )}
-                </div>
-
-                {/* SUBMIT */}
-                <div className="pjn-actions">
-                    <button
-                        type="submit"
-                        className="pjn-submit-btn"
-                        disabled={loading || !captchaToken}
-                    >
-                        {loading ? (
-                            <><Loader2 size={18} className="animate-spin" /> Consultando PJN...</>
-                        ) : (
-                            <><Search size={18} /> Consultar SCW</>
-                        )}
-                    </button>
-
-                    {searched && (
-                        <button
-                            type="button"
-                            className="pjn-reset-btn"
-                            onClick={resetCaptcha}
-                        >
-                            <RefreshCw size={16} /> Nueva búsqueda
-                        </button>
-                    )}
-                </div>
-            </form>
-
-            {/* ERROR */}
-            {error && (
-                <div className="pjn-error">
-                    <AlertCircle size={18} />
-                    <span>{error}</span>
-                </div>
-            )}
-
-            {/* RESULTS */}
-            {results && results.results && results.results.length > 0 && (
-                <div className="pjn-results">
-                    <div className="pjn-results-header">
-                        <h4>
-                            <FileText size={18} />
-                            {results.total} resultado{results.total !== 1 ? 's' : ''} encontrado{results.total !== 1 ? 's' : ''}
-                        </h4>
-                        <span className="pjn-results-query">
-                            {results.searchType === 'expediente' ? `Exp. ${results.query}` : results.query}
-                        </span>
-                    </div>
-
-                    <div className="pjn-results-table-wrap">
-                        <table className="pjn-results-table">
-                            <thead>
-                                <tr>
-                                    <th>Expediente</th>
-                                    <th>Carátula</th>
-                                    <th>Jurisdicción</th>
-                                    <th>Dependencia</th>
-                                    <th>Situación</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {results.results.map((r, i) => (
-                                    <tr key={i}>
-                                        <td className="pjn-cell-exp">{r.expediente}</td>
-                                        <td className="pjn-cell-caratula">{r.caratula}</td>
-                                        <td>{r.jurisdiccion}</td>
-                                        <td>{r.dependencia}</td>
-                                        <td>{r.situacion}</td>
-                                        <td>
-                                            {r.link && (
-                                                <a href={r.link} target="_blank" rel="noopener noreferrer" className="pjn-link-btn">
-                                                    <ExternalLink size={14} />
-                                                </a>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-
-            {/* EMPTY STATE */}
-            {searched && !loading && results && results.results?.length === 0 && !error && (
-                <div className="pjn-empty">
-                    <Search size={40} />
-                    <p>{results.message || 'No se encontraron expedientes con esos parámetros.'}</p>
-                </div>
-            )}
+  return (
+    <section className="pjn-search-container" aria-labelledby="pjn-search-title">
+      <div className="pjn-search-header">
+        <div className="pjn-search-title">
+          <Building2 size={22} aria-hidden="true" />
+          <h3 id="pjn-search-title">Consulta verificable de expedientes</h3>
         </div>
-    );
+        <p className="pjn-search-subtitle">
+          Consulta oficial con validacion automatica en segundo plano.
+        </p>
+        <div className="pjn-auto-badge" aria-live="polite">
+          <ShieldCheck size={14} aria-hidden="true" />
+          Resolucion automatica de captcha
+        </div>
+      </div>
+
+      <form onSubmit={handleSearch} className="pjn-search-form">
+        <div className="pjn-tabs" role="tablist" aria-label="Tipo de consulta">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={searchType === 'expediente'}
+            className={`pjn-tab ${searchType === 'expediente' ? 'active' : ''}`}
+            onClick={() => setSearchType('expediente')}
+          >
+            <Hash size={16} aria-hidden="true" /> Por Expediente
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={searchType === 'parte'}
+            className={`pjn-tab ${searchType === 'parte' ? 'active' : ''}`}
+            onClick={() => setSearchType('parte')}
+          >
+            <User size={16} aria-hidden="true" /> Por Parte
+          </button>
+        </div>
+
+        <div className="pjn-fields">
+          <div className="pjn-field pjn-field-full">
+            <label htmlFor="pjn_jurisdiction">Camara / Jurisdiccion</label>
+            <select
+              id="pjn_jurisdiction"
+              value={jurisdiction}
+              onChange={(e) => setJurisdiction(e.target.value)}
+              required
+            >
+              {JURISDICTIONS.map((item) => (
+                <option key={item.value || 'empty'} value={item.value}>{item.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {searchType === 'expediente' ? (
+            <>
+              <div className="pjn-field">
+                <label htmlFor="pjn_numero"><Hash size={14} aria-hidden="true" /> Numero</label>
+                <input
+                  id="pjn_numero"
+                  type="text"
+                  value={numero}
+                  onChange={(e) => setNumero(e.target.value.replace(/[^0-9]/g, ''))}
+                  placeholder="Ej: 12345"
+                  inputMode="numeric"
+                />
+              </div>
+              <div className="pjn-field">
+                <label htmlFor="pjn_anio"><Calendar size={14} aria-hidden="true" /> Anio</label>
+                <input
+                  id="pjn_anio"
+                  type="text"
+                  value={anio}
+                  onChange={(e) => setAnio(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
+                  placeholder="Ej: 2026"
+                  inputMode="numeric"
+                  maxLength={4}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="pjn-field">
+                <label htmlFor="pjn_parte_tipo">Tipo de parte (opcional)</label>
+                <select
+                  id="pjn_parte_tipo"
+                  value={currentRule?.forced_type || parteTipo}
+                  onChange={(e) => setParteTipo(e.target.value)}
+                  disabled={Boolean(currentRule?.forced_type)}
+                >
+                  {PARTE_TYPES.map((item) => (
+                    <option key={item.value || 'all'} value={item.value}>{item.label}</option>
+                  ))}
+                </select>
+                {currentRule?.note && (
+                  <small className="pjn-field-hint">{currentRule.note}</small>
+                )}
+              </div>
+              <div className="pjn-field pjn-field-full">
+                <label htmlFor="pjn_nombre"><User size={14} aria-hidden="true" /> Nombre de la parte</label>
+                <input
+                  id="pjn_nombre"
+                  type="text"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  placeholder="Ej: Carrefour"
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        {loading && (
+          <div className="pjn-loading-hint" aria-live="polite">
+            <Loader2 size={15} className="animate-spin" aria-hidden="true" />
+            Ejecutando consulta completa. Puede tardar entre 10 y 60 segundos.
+          </div>
+        )}
+
+        <div className="pjn-actions">
+          <button type="submit" className="pjn-submit-btn" disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 size={18} className="animate-spin" aria-hidden="true" /> Consultando...
+              </>
+            ) : (
+              <>
+                <Search size={18} aria-hidden="true" /> Consultar expedientes
+              </>
+            )}
+          </button>
+          {searched && (
+            <button type="button" className="pjn-reset-btn" onClick={resetSearch}>
+              <RefreshCw size={15} aria-hidden="true" /> Nueva busqueda
+            </button>
+          )}
+        </div>
+      </form>
+
+      {error && (
+        <div className="pjn-error" role="alert">
+          <AlertCircle size={18} aria-hidden="true" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {results && rows.length > 0 && (
+        <div className="pjn-results" aria-live="polite">
+          <div className="pjn-results-header">
+            <h4><FileText size={18} aria-hidden="true" /> {rows.length} resultado{rows.length !== 1 ? 's' : ''}</h4>
+            <span className="pjn-results-query">
+              {searchType === 'expediente' ? `Expediente ${numero}/${anio}` : nombre}
+            </span>
+          </div>
+
+          <div className="pjn-results-meta">
+            <span>
+              <Clock3 size={12} aria-hidden="true" /> {results?.duration_ms ? `${Math.round(results.duration_ms / 1000)}s` : '--'}
+            </span>
+            <span>
+              Paginas recorridas: {results?.pagination?.pages_fetched || 1}
+              {results?.pagination?.truncated ? ' (corte por limite)' : ''}
+            </span>
+            {searchType === 'parte' && results?.effective_parte_tipo && (
+              <span>Tipo aplicado: {results.effective_parte_tipo}</span>
+            )}
+          </div>
+
+          <div className="pjn-results-table-wrap">
+            <table className="pjn-results-table">
+              <thead>
+                <tr>
+                  <th>Expediente</th>
+                  <th>Caratula</th>
+                  <th>Dependencia</th>
+                  <th>Situacion</th>
+                  <th>Ult. Act.</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pagedRows.map((row, idx) => {
+                  const absoluteIndex = (page - 1) * PAGE_SIZE + idx;
+                  const rowKey = `${row.expediente || 'row'}-${absoluteIndex}`;
+                  const expanded = expandedRowKey === rowKey;
+                  const detail = detailByKey[rowKey];
+                  const detailError = detailErrorByKey[rowKey];
+                  const detailLoading = detailLoadingKey === rowKey;
+                  const acts = Array.isArray(detail?.actuaciones) ? detail.actuaciones : [];
+                  const detailPage = detailPageByKey[rowKey] || 1;
+                  const detailTotalPages = Math.max(1, Math.ceil(acts.length / DETAIL_PAGE_SIZE));
+                  const detailSliceStart = (detailPage - 1) * DETAIL_PAGE_SIZE;
+                  const detailSlice = acts.slice(detailSliceStart, detailSliceStart + DETAIL_PAGE_SIZE);
+
+                  return [
+                      <tr key={`${rowKey}-main`}>
+                        <td className="pjn-cell-exp">{row.expediente || '-'}</td>
+                        <td className="pjn-cell-caratula">{row.caratula || '-'}</td>
+                        <td>{row.dependencia || '-'}</td>
+                        <td>{row.situacion || '-'}</td>
+                        <td>{row.ultimaActuacion || '-'}</td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '0.35rem' }}>
+                            {row.link && (
+                              <a
+                                href={row.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="pjn-link-btn"
+                                aria-label={`Abrir expediente ${row.expediente} en nueva pestana`}
+                              >
+                                <ExternalLink size={14} aria-hidden="true" />
+                              </a>
+                            )}
+                            <button
+                              type="button"
+                              className="pjn-link-btn"
+                              onClick={() => handleLoadDetail(row, absoluteIndex)}
+                              aria-label={`Ver detalle de ${row.expediente}`}
+                              title="Ver detalle interno"
+                            >
+                              {expanded ? <ChevronUp size={14} aria-hidden="true" /> : <Eye size={14} aria-hidden="true" />}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>,
+
+                      expanded ? (
+                        <tr key={`${rowKey}-detail`}>
+                          <td colSpan={6} style={{ padding: '0.8rem' }}>
+                            {detailLoading && (
+                              <div className="pjn-loading-hint">
+                                <Loader2 size={15} className="animate-spin" aria-hidden="true" />
+                                Cargando detalle completo...
+                              </div>
+                            )}
+
+                            {!detailLoading && detailError && (
+                              <div className="pjn-error" role="alert">
+                                <AlertCircle size={16} aria-hidden="true" />
+                                <span>{detailError}</span>
+                              </div>
+                            )}
+
+                            {!detailLoading && detail && (
+                              <div>
+                                <div className="pjn-results-meta" style={{ marginBottom: '0.55rem' }}>
+                                  <span>Actuaciones: {acts.length}</span>
+                                  <span>Intervinientes: {Array.isArray(detail.intervinientes) ? detail.intervinientes.length : 0}</span>
+                                </div>
+
+                                {acts.length > 0 ? (
+                                  <>
+                                    <div className="pjn-results-table-wrap">
+                                      <table className="pjn-results-table">
+                                        <thead>
+                                          <tr>
+                                            <th>Fecha</th>
+                                            <th>Tipo</th>
+                                            <th>Descripcion</th>
+                                            <th>Oficina</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {detailSlice.map((act, aIdx) => (
+                                            <tr key={`${rowKey}-act-${aIdx}`}>
+                                              <td>{act.fecha || '-'}</td>
+                                              <td>{act.tipo || '-'}</td>
+                                              <td>{act.descripcion || '-'}</td>
+                                              <td>{act.oficina || '-'}</td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+
+                                    {detailTotalPages > 1 && (
+                                      <div className="pjn-inline-pagination">
+                                        <button
+                                          type="button"
+                                          className="pjn-page-btn"
+                                          onClick={() => setDetailPageByKey((prev) => ({
+                                            ...prev,
+                                            [rowKey]: Math.max(1, detailPage - 1)
+                                          }))}
+                                          disabled={detailPage <= 1}
+                                        >
+                                          Anterior
+                                        </button>
+                                        <span className="pjn-page-label">Pagina {detailPage} de {detailTotalPages}</span>
+                                        <button
+                                          type="button"
+                                          className="pjn-page-btn"
+                                          onClick={() => setDetailPageByKey((prev) => ({
+                                            ...prev,
+                                            [rowKey]: Math.min(detailTotalPages, detailPage + 1)
+                                          }))}
+                                          disabled={detailPage >= detailTotalPages}
+                                        >
+                                          Siguiente
+                                        </button>
+                                      </div>
+                                    )}
+                                  </>
+                                ) : (
+                                  <div className="pjn-empty" style={{ marginTop: 0 }}>
+                                    <ChevronDown size={20} aria-hidden="true" />
+                                    <p>No hay actuaciones para mostrar.</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ) : null
+                  ];
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="pjn-inline-pagination">
+              <button
+                type="button"
+                className="pjn-page-btn"
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                disabled={page <= 1}
+              >
+                Anterior
+              </button>
+              <span className="pjn-page-label">Pagina {page} de {totalPages}</span>
+              <button
+                type="button"
+                className="pjn-page-btn"
+                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={page >= totalPages}
+              >
+                Siguiente
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {searched && !loading && results && rows.length === 0 && !error && (
+        <div className="pjn-empty">
+          <Search size={36} aria-hidden="true" />
+          <p>{results?.noResults || 'No se encontraron expedientes con esos parametros.'}</p>
+        </div>
+      )}
+
+      {results?.run_at && (
+        <p className="pjn-field-hint" style={{ marginTop: '0.6rem' }}>
+          Ultima consulta: {formatDateTime(results.run_at)}
+        </p>
+      )}
+    </section>
+  );
 }

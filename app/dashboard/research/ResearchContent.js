@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { demoResearchHistory, demoFullResearchResult } from '../../lib/demoData'; // [NEW] Mock Data
 import dynamic from 'next/dynamic';
 const PJNSearchPanel = dynamic(() => import('./PJNSearchPanel'), { ssr: false });
+const AlertsPanel = dynamic(() => import('./AlertsPanel'), { ssr: false });
 import SafeChatWidget from '../../components/SafeChatWidget';
 import TrialExpiredBlock from '../../components/TrialExpiredBlock';
 import { isTrialExpired } from '../../lib/subscription';
@@ -67,13 +68,13 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const [quotaExhausted, setQuotaExhausted] = useState(false); // true = llegó a 0, false = compra proactiva
     const [trialExpired, setTrialExpired] = useState(false); // [NEW] Trial Expiration Check
 
-    // 🎤 VOICE INPUT
+    // Voice input
     const [isListening, setIsListening] = useState(false);
     const [hasSpeechSupport, setHasSpeechSupport] = useState(false);
     const [micError, setMicError] = useState('');
     const recognitionRef = useRef(null);
 
-    // 🏢 EMPRESA TAB
+    // Empresa tab
     const [activeTab, setActiveTab] = useState('jurisprudencia');
     const [empresaName, setEmpresaName] = useState('');
     const [empresaCuit, setEmpresaCuit] = useState('');
@@ -102,14 +103,14 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const [facetsLoaded, setFacetsLoaded] = useState(false);
     const [tribunalSearch, setTribunalSearch] = useState('');
 
-    // 🎯 QUERY ENHANCEMENT STATES
+    // Query enhancement states
     const [assistedMode, setAssistedMode] = useState(true); // Default to assisted for better UX
     const [enhancementModal, setEnhancementModal] = useState(null); // { original, enhanced, quality }
     const [analyzingQuery, setAnalyzingQuery] = useState(false);
     const [reformulationModal, setReformulationModal] = useState(null); // { alternatives }
     const [queryQuality, setQueryQuality] = useState(null); // Current query quality analysis
 
-    // 📊 CLICK TRACKING: Fire-and-forget feedback for re-ranking
+    // Click tracking: fire-and-forget feedback for re-ranking
     const trackClick = (caseUrl, action) => {
         if (!caseUrl || isDemoProp) return;
         fetch('/api/research/track-click', {
@@ -131,7 +132,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         fetch('/api/research/catalog')
             .then(r => r.ok ? r.json() : null)
             .then(data => { if (data?.camaras?.length) setManualCatalog(data); })
-            .catch(() => { /* silent fail — tribunal field stays as datalist */ });
+            .catch(() => { /* silent fail: tribunal field stays as datalist */ });
     }, [jurisprudenciaMode, manualCatalogLoaded]);
 
     // Load facets (fuero counts + tribunal list) from local index
@@ -248,7 +249,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                 const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
                 setUserProfile(profile);
 
-                // 🔒 Check Trial Expiration (Frontend UX - Backend is the real security)
+                // Check trial expiration (frontend UX; backend enforces this)
                 if (profile && isTrialExpired(profile)) {
                     setTrialExpired(true);
                 }
@@ -296,10 +297,10 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const handleRefreshCase = async (index) => {
         if (!query || refreshingCases[index]) return;
 
-        // 🔒 REFRESH GOVERNANCE: Front-end blocks
+        // Refresh governance: front-end blocks
         const isDemo = isDemoProp || !currentUser || userProfile?.subscription_status === 'demo';
         if (isDemo) {
-            alert("🔒 Función disponible solo para usuarios Profesionales.");
+            alert("Funcion disponible solo para usuarios Profesionales.");
             return;
         }
 
@@ -351,7 +352,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         }
     };
 
-    // 📸 NEW: Handle PDF Capture via Puppeteer
+    // Handle PDF capture via Puppeteer
     const handleCapture = async (index, url, title) => {
         if (capturingCases[index]) return;
 
@@ -455,7 +456,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         });
     };
 
-    // 🏢 EMPRESA SEARCH HANDLER
+    // Empresa search handler
     const handleEmpresaSearch = async (e) => {
         e.preventDefault();
         if (!empresaName && !empresaCuit) return;
@@ -507,7 +508,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         }
     };
 
-    // 🎯 PRE-FLIGHT CHECK: Analyze query quality before searching
+    // Pre-flight check: analyze query quality before searching
     const resetManualFilters = () => {
         setManualQuery('');
         setManualProvince('Buenos Aires');
@@ -604,14 +605,14 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         const finalQuery = forceQuery || query || (placeholder.startsWith("Ej:") ? "" : placeholder);
         if (!finalQuery) return;
 
-        // 🔍 ASSISTED MODE: Check query quality first
+        // Assisted mode: check query quality first
         if (assistedMode && !forceQuery) {
             setAnalyzingQuery(true);
             const quality = analyzeQueryQuality(finalQuery);
             setQueryQuality(quality);
             setAnalyzingQuery(false);
 
-            console.log('🎯 Query Quality Analysis:', {
+            console.log('[QueryQuality] Analysis:', {
                 query: finalQuery,
                 score: quality.score,
                 level: quality.level,
@@ -622,7 +623,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
             // If query is poor, offer enhancement
             if (quality.shouldEnhance && quality.score < 60) {
-                console.log('✨ Attempting to enhance query...');
+                console.log('[Enhancer] Attempting to enhance query...');
                 try {
                     const jurisdiction = scope === 'nacional' ? 'Nacional' : province;
                     const { data: { session: enhanceSession } } = await supabase.auth.getSession();
@@ -637,14 +638,14 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         body: JSON.stringify({ query: finalQuery, jurisdiction })
                     });
 
-                    console.log('📡 Enhancement API response:', enhanceRes.status);
+                    console.log('[Enhancer] API response:', enhanceRes.status);
 
                     if (enhanceRes.ok) {
                         const enhancement = await enhanceRes.json();
-                        console.log('✅ Enhancement received:', enhancement);
+                        console.log('[Enhancer] Enhancement received:', enhancement);
 
                         if (enhancement.enhanced && enhancement.enhanced !== finalQuery && enhancement.confidence >= 50) {
-                            console.log('💡 Showing enhancement modal');
+                            console.log('[Enhancer] Showing enhancement modal');
                             // Show enhancement modal
                             setEnhancementModal({
                                 original: finalQuery,
@@ -655,24 +656,24 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                             });
                             return; // Stop here, wait for user decision
                         } else {
-                            console.log('⚠️ Enhancement not shown:', {
+                            console.log('[Enhancer] Enhancement not shown:', {
                                 same: enhancement.enhanced === finalQuery,
                                 lowConfidence: enhancement.confidence < 50
                             });
                         }
                     } else {
                         const errorText = await enhanceRes.text();
-                        console.error('❌ Enhancement API failed:', errorText);
+                        console.error('[Enhancer] API failed:', errorText);
                     }
                 } catch (err) {
-                    console.error('❌ Enhancement error:', err);
+                    console.error('[Enhancer] Error:', err);
                 }
             } else {
-                console.log('⏭️ Skipping enhancement (score too high or not needed)');
+                console.log('[Enhancer] Skipping enhancement (score too high or not needed)');
             }
         }
 
-        // 🚀 EXECUTE SEARCH
+        // Execute search
         await executeSearch(finalQuery);
     };
 
@@ -686,11 +687,11 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         if (isDemoProp) {
             // SIMULATE SEARCH IN DEMO
             const analysisSteps = [
-                'Iniciando ráfaga masiva de búsqueda (Brave Pro)...',
-                'Escaneando depósitos de la CSJN y PJN...',
-                'Filtrando resultados por relevancia jurídica "Surgical"...',
-                'Detectando parámetros de liquidación técnica...',
-                'Finalizando síntesis de inteligencia legal...'
+                'Iniciando busqueda avanzada...',
+                'Revisando bases documentales...',
+                'Filtrando resultados por relevancia juridica...',
+                'Detectando parametros de calculo...',
+                'Finalizando analisis legal...'
             ];
             let stepIndex = 0;
             setSearchStatus(analysisSteps[0]);
@@ -712,15 +713,15 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         }
 
         const analysisSteps = [
-            'Iniciando ráfaga masiva de búsqueda (Brave Pro)...',
-            'Escaneando depósitos de la CSJN y PJN...',
-            'Consultando nodos de jurisprudencia provincial...',
-            'Filtrando resultados por relevancia jurídica "Surgical"...',
-            'Analizando doctrina y fallos de fuentes oficiales...',
-            'Extrayendo Ratio Decidendi de 20+ fuentes...',
-            'Detectando parámetros de liquidación técnica...',
-            'Blindando estrategia procesal (Ofensiva/Defensiva)...',
-            'Finalizando síntesis de inteligencia legal...'
+            'Iniciando busqueda avanzada...',
+            'Revisando bases documentales...',
+            'Consultando nodos documentales provinciales...',
+            'Filtrando resultados por relevancia juridica...',
+            'Analizando doctrina y antecedentes relevantes...',
+            'Extrayendo fundamentos clave...',
+            'Detectando parametros de calculo...',
+            'Preparando recomendacion estrategica...',
+            'Finalizando analisis legal...'
         ];
 
         let stepIndex = 0;
@@ -772,7 +773,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                 setHistory(prev => [newHistoryItem, ...prev]);
             }
 
-            // 🔍 POST-SEARCH: Check results quality and offer reformulation if needed
+            // Post-search: check results quality and offer reformulation if needed
             if (assistedMode && data.cases && data.cases.length > 0) {
                 const avgScore = data._debug?.avg_score
                     ?? Math.round(data.cases.reduce((sum, c) => sum + (c.score || 0), 0) / data.cases.length);
@@ -838,14 +839,21 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
             {/* CREDITS PURCHASE TOAST */}
             {creditsToast && (
                 <div className={`credits-toast ${creditsToast === 'ok' ? 'success' : creditsToast === 'pending' ? 'pending' : 'error'}`}>
-                    {creditsToast === 'ok' && '✅ ¡Créditos acreditados! Ya podés seguir buscando.'}
+                    {creditsToast === 'ok' && 'Creditos acreditados. Ya podes seguir buscando.'}
                     {creditsToast === 'pending' && '⏳ Pago en proceso. Los créditos se acreditarán en breve.'}
-                    {creditsToast === 'error' && '❌ El pago no se completó. Intentá de nuevo.'}
-                    <button className="credits-toast-close" onClick={() => setCreditsToast(null)}>✕</button>
+                    {creditsToast === 'error' && 'El pago no se completo. Intenta de nuevo.'}
+                    <button
+                        type="button"
+                        className="credits-toast-close"
+                        onClick={() => setCreditsToast(null)}
+                        aria-label="Cerrar aviso de creditos"
+                    >
+                        x
+                    </button>
                 </div>
             )}
 
-            {/* 🔒 TRIAL EXPIRED BLOCK - UX only, backend is real security */}
+            {/* Trial expired block: UX only, backend is real security */}
             {trialExpired && !isDemoProp && (
                 <TrialExpiredBlock featureName="Jurisprudencia" />
             )}
@@ -858,61 +866,75 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                     <>
                         {/* Mobile Toggle Button (Visible only on small screens via CSS) */}
                         <button
+                            type="button"
                             className="mobile-history-toggle"
                             onClick={() => setSidebarOpen(true)}
+                            aria-controls="research-history-sidebar"
+                            aria-expanded={sidebarOpen}
+                            aria-label="Abrir historial"
                         >
-                            <span>🕒 Historial</span>
+                            <span>Historial</span>
                         </button>
 
                         {/* Overlay Backdrop (only visible when sidebar is open on mobile) */}
                         <div
                             className={`sidebar-backdrop ${sidebarOpen ? 'open' : ''}`}
                             onClick={() => setSidebarOpen(false)}
+                            aria-hidden="true"
                         />
 
-                        <aside className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`}>
+                        <aside
+                            id="research-history-sidebar"
+                            className={`research-sidebar glass-panel ${sidebarOpen ? 'open' : 'closed'}`}
+                        >
                             {/* Always show header with Close button on Mobile/Expand */}
                             {(sidebarOpen || true) && (
                                 <div className="sidebar-header-row">
                                     <h4 className="sidebar-title">Historial</h4>
                                     <button
+                                        type="button"
                                         onClick={(e) => { e.stopPropagation(); setSidebarOpen(!sidebarOpen); }}
                                         className="sidebar-close-btn"
+                                        aria-label={sidebarOpen ? 'Cerrar historial' : 'Abrir historial'}
                                     >
-                                        {sidebarOpen ? '✕' : '▶'}
+                                        {sidebarOpen ? 'x' : '>'}
                                     </button>
                                 </div>
                             )}
 
                             {/* Collapsed State Icon (Desktop Only) */}
                             {!sidebarOpen && (
-                                <div
+                                <button
+                                    type="button"
                                     className="collapsed-icon-area"
                                     onClick={() => setSidebarOpen(true)}
+                                    aria-label="Abrir historial"
                                 >
                                     <div className="vertical-trigger">
-                                        <span className="v-icon">🕒</span>
+                                        <span className="v-icon">H</span>
                                         <span className="v-label">HISTORIAL</span>
                                     </div>
-                                </div>
+                                </button>
                             )}
 
                             {sidebarOpen && (
                                 <div className="history-list history-list-container">
                                     {history.length === 0 && <p className="history-empty-text">Sin investigaciones recientes.</p>}
                                     {history.map(item => (
-                                        <div
+                                        <button
+                                            type="button"
                                             key={item.id}
                                             className="history-item history-item-box"
                                             onClick={() => { setQuery(item.query); setResults(item.result_json); }}
+                                            aria-label={`Abrir historial: ${item.query}`}
                                         >
                                             <div className="history-item-query">
                                                 {item.query}
                                             </div>
                                             <div className="history-item-meta">
-                                                {new Date(item.created_at).toLocaleDateString()} • {item.jurisdiction}
+                                                {new Date(item.created_at).toLocaleDateString()} - {item.jurisdiction}
                                             </div>
-                                        </div>
+                                        </button>
                                     ))}
                                 </div>
                             )}
@@ -947,173 +969,43 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         {/* TAB SWITCHER */}
                         <div className="research-tabs">
                             <button
+                                type="button"
                                 className={`research-tab ${activeTab === 'jurisprudencia' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('jurisprudencia')}
                             >
-                                <Search size={15} /> Jurisprudencia
+                                <Search size={15} /> Estrategia
                             </button>
                             <button
-                                className={`research-tab ${activeTab === 'empresa' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('empresa')}
-                            >
-                                <Building2 size={15} /> Antecedentes Judiciales
-                            </button>
-                            <button
+                                type="button"
                                 className={`research-tab ${activeTab === 'pjn' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('pjn')}
                             >
-                                <Gavel size={15} /> PJN Federal
+                                <Gavel size={15} /> Consulta Verificable
+                            </button>
+                            <button
+                                type="button"
+                                className={`research-tab ${activeTab === 'alerts' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('alerts')}
+                            >
+                                <AlertCircle size={15} /> Monitoreo
                             </button>
                         </div>
 
-                        {/* ── EMPRESA TAB ── */}
-                        {activeTab === 'empresa' && (
-                            <div className="search-box-container glass-panel empresa-panel">
-                                <div className="empresa-panel-header">
-                                    <div className="empresa-panel-icon"><Building2 size={20} /></div>
-                                    <div>
-                                        <h3 className="empresa-panel-title">Antecedentes Judiciales de Empresa</h3>
-                                        <p className="empresa-panel-subtitle">Investigá causas, demandas y sentencias públicas antes de aceptar un caso.</p>
-                                    </div>
-                                </div>
 
-                                <form onSubmit={handleEmpresaSearch} className="empresa-form">
-                                    <div className="empresa-row">
-                                        <div className="empresa-field empresa-field-main">
-                                            <label htmlFor="empresa_name">Razón social</label>
-                                            <input
-                                                id="empresa_name"
-                                                type="text"
-                                                placeholder="Ej: YPF SA, Carrefour, Techint..."
-                                                value={empresaName}
-                                                onChange={e => setEmpresaName(e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="empresa-field empresa-field-cuit">
-                                            <label htmlFor="empresa_cuit">CUIT <span className="empresa-optional">(opcional)</span></label>
-                                            <input
-                                                id="empresa_cuit"
-                                                type="text"
-                                                placeholder="30-54668997-9"
-                                                value={empresaCuit}
-                                                onChange={e => setEmpresaCuit(e.target.value)}
-                                                maxLength={13}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="empresa-row empresa-row-bottom">
-                                        <div className="empresa-field empresa-field-jur">
-                                            <label htmlFor="empresa_jur">Jurisdicción</label>
-                                            <select
-                                                id="empresa_jur"
-                                                value={empresaJurisdiction}
-                                                onChange={e => setEmpresaJurisdiction(e.target.value)}
-                                            >
-                                                <option value="federal">🇦🇷 Federal / Nacional</option>
-                                                <option value="buenosaires">📍 Buenos Aires (SCBA)</option>
-                                                <option value="caba">🏙️ CABA</option>
-                                                <option value="todas">🔍 Todas las disponibles</option>
-                                            </select>
-                                        </div>
-                                        <button type="submit" disabled={empresaLoading || (!empresaName && !empresaCuit)} className="btn-search-submit empresa-btn">
-                                            {empresaLoading ? <Loader2 size={18} className="spin-animation" /> : <Search size={18} />}
-                                            {empresaLoading ? 'Buscando...' : 'Buscar expedientes'}
-                                        </button>
-                                    </div>
-                                    <p className="empresa-disclaimer">
-                                        Los resultados provienen de fuentes públicas y pueden ser incompletos. No reemplaza una consulta al sistema oficial.
-                                    </p>
-                                </form>
-
-                                {!isDemoProp && userProfile && (() => {
-                                    const limit = getPlanLimit(userProfile.plan_tier, 'research_reports');
-                                    const used = userProfile.research_reports_used || 0;
-                                    const extra = userProfile.research_reports_extra || 0;
-                                    const monthlyRemaining = limit === -1 ? null : Math.max(0, limit - used);
-                                    const usingExtra = limit !== -1 && monthlyRemaining === 0 && extra > 0;
-                                    const pct = limit === -1 ? 0 : Math.min(100, Math.round((used / limit) * 100));
-                                    const isLow = limit !== -1 && !usingExtra && monthlyRemaining <= Math.ceil(limit * 0.2);
-                                    return (
-                                        <div className="research-quota-bar">
-                                            <div className="research-quota-track">
-                                                <div
-                                                    className={`research-quota-fill ${isLow || usingExtra ? 'low' : ''}`}
-                                                    style={{ width: usingExtra ? '100%' : `${pct}%` }}
-                                                />
-                                            </div>
-                                            <span className={`research-quota-label ${isLow || usingExtra ? 'low' : ''}`}>
-                                                {limit === -1
-                                                    ? '∞ búsquedas ilimitadas'
-                                                    : usingExtra
-                                                        ? `${extra} créditos extra restantes`
-                                                        : `${monthlyRemaining} de ${limit} búsquedas disponibles este mes`}
-                                                {extra > 0 && !usingExtra && (
-                                                    <span className="quota-extra-badge"> +{extra} extra</span>
-                                                )}
-                                                {limit !== -1 && userProfile?.subscription_status === 'active' && (
-                                                    <button
-                                                        className="quota-buy-btn"
-                                                        onClick={() => setQuotaModalOpen(true)}
-                                                    >
-                                                        + Comprar más
-                                                    </button>
-                                                )}
-                                            </span>
-                                        </div>
-                                    );
-                                })()}
-
-                                {empresaError && (
-                                    <div className="empresa-error">
-                                        <AlertCircle size={16} /> {empresaError}
-                                    </div>
-                                )}
-
-                                {empresaResults && (
-                                    <div className="empresa-results">
-                                        {empresaResults.message && empresaResults.cases?.length === 0 && (
-                                            <p className="empresa-empty">{empresaResults.message}</p>
-                                        )}
-                                        {empresaResults.cases?.length > 0 && (
-                                            <>
-                                                <p className="empresa-count">{empresaResults.cases.length} causa{empresaResults.cases.length !== 1 ? 's' : ''} encontrada{empresaResults.cases.length !== 1 ? 's' : ''}</p>
-                                                <div className="empresa-cases">
-                                                    {empresaResults.cases.map((c, i) => (
-                                                        <div key={i} className="empresa-case-card">
-                                                            <div className="empresa-case-header">
-                                                                <span className={`empresa-tipo tipo-${c.tipo?.toLowerCase().replace(/\s/g, '-')}`}>{c.tipo || 'Otro'}</span>
-                                                                {c.año && <span className="empresa-year">{c.año}</span>}
-                                                                {c.estado && <span className={`empresa-estado ${c.estado === 'Activo' ? 'activo' : c.estado === 'Con sentencia' ? 'sentencia' : 'archivado'}`}>{c.estado}</span>}
-                                                            </div>
-                                                            <p className="empresa-caratula">{c.caratula}</p>
-                                                            {c.resumen && <p className="empresa-resumen">{c.resumen}</p>}
-                                                            <div className="empresa-case-meta">
-                                                                {c.expediente && <span className="empresa-meta">Expte: {c.expediente}</span>}
-                                                                {c.tribunal && <span className="empresa-meta">{c.tribunal}</span>}
-                                                            </div>
-                                                            {c.url && (
-                                                                <a href={c.url} target="_blank" rel="noopener noreferrer" className="empresa-link">
-                                                                    <ExternalLink size={13} /> Ver fuente
-                                                                </a>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* ── PJN FEDERAL TAB ── */}
+                        {/* Consulta verificable tab */}
                         {activeTab === 'pjn' && (
                             <div className="search-box-container glass-panel">
                                 <PJNSearchPanel />
                             </div>
                         )}
 
-                        {/* ── JURISPRUDENCIA TAB ── */}
+                        {activeTab === 'alerts' && (
+                            <div className="search-box-container glass-panel">
+                                <AlertsPanel />
+                            </div>
+                        )}
+
+                        {/* Jurisprudencia tab */}
                         {activeTab === 'jurisprudencia' && (
                             <div className="search-box-container glass-panel">
                                 <div className="juris-mode-tabs">
@@ -1285,7 +1177,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                             <div className="manual-actions-inline">
                                                 <button type="submit" disabled={manualLoading} className="btn-search-submit manual-inline-btn">
                                                     {manualLoading ? <Loader2 size={18} className="spin-animation" /> : <Search size={18} />}
-                                                    {manualLoading ? 'Buscando...' : 'Buscar en BA'}
+                                                    {manualLoading ? 'Buscando...' : 'Buscar registros'}
                                                 </button>
                                                 <button type="button" className="manual-inline-clear" onClick={resetManualFilters}>
                                                     Limpiar filtros
@@ -1294,11 +1186,11 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                         </form>
 
                                         <p className="manual-inline-hint">
-                                            Fuente publica de Buenos Aires (SCBA). Sin consumo de estrategia IA.
+                                            Consulta documental estructurada. Sin consumo de estrategia IA.
                                         </p>
                                         {manualMeta?.sourceLabel && (
                                             <p className="manual-inline-meta">
-                                                Fuente: {manualMeta.sourceLabel}
+                                                Referencia: {manualMeta.sourceLabel}
                                                 {manualMeta.sourceUrl && (
                                                     <>
                                                         {' '}|{' '}
@@ -1324,12 +1216,12 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                 <p className="manual-inline-count">
                                                     {manualResults.length} resultado{manualResults.length !== 1 ? 's' : ''} visible{manualResults.length !== 1 ? 's' : ''}
                                                     {manualMeta?.totalMatched ? ` | ${manualMeta.totalMatched} coincidentes` : ''}
-                                                    {manualMeta?.totalAvailable ? ` | ${manualMeta.totalAvailable} en fuente` : ''}
+                                                    {manualMeta?.totalAvailable ? ` | ${manualMeta.totalAvailable} totales` : ''}
                                                     {manualMeta?.scannedPages ? ` | ${manualMeta.scannedPages} pagina${manualMeta.scannedPages !== 1 ? 's' : ''} escaneada${manualMeta.scannedPages !== 1 ? 's' : ''}` : ''}
                                                 </p>
 
                                                 {manualResults.length === 0 ? (
-                                                    <p className="manual-inline-empty">No se encontraron coincidencias en la fuente publica de Buenos Aires.</p>
+                                                    <p className="manual-inline-empty">No se encontraron coincidencias con los filtros actuales.</p>
                                                 ) : (
                                                     <div className="manual-inline-cases">
                                                         {manualResults.map((item, idx) => {
@@ -1355,7 +1247,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                                     <div className="manual-inline-links">
                                                                         {sourceUrl && (
                                                                             <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="manual-inline-link">
-                                                                                <ExternalLink size={13} /> Ver fuente
+                                                                                <ExternalLink size={13} /> Ver registro
                                                                             </a>
                                                                         )}
                                                                         {pdfUrl && (
@@ -1380,6 +1272,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                         <span className="mode-selector-label">¿Cómo querés buscar?</span>
                                         <div className="mode-cards">
                                             <button
+                                                type="button"
                                                 onClick={() => setAssistedMode(true)}
                                                 className={`mode-card ${assistedMode ? 'selected' : ''}`}
                                             >
@@ -1388,9 +1281,10 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                 </div>
                                                 <span className="mode-card-title">Asistido por IA</span>
                                                 <span className="mode-card-desc">La IA analiza y mejora tu búsqueda antes de ejecutarla para obtener mejores resultados.</span>
-                                                {assistedMode && <span className="mode-card-badge">✓ Activo</span>}
+                                                {assistedMode && <span className="mode-card-badge">Activo</span>}
                                             </button>
                                             <button
+                                                type="button"
                                                 onClick={() => setAssistedMode(false)}
                                                 className={`mode-card ${!assistedMode ? 'selected' : ''}`}
                                             >
@@ -1399,7 +1293,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                 </div>
                                                 <span className="mode-card-title">Búsqueda Directa</span>
                                                 <span className="mode-card-desc">Tu consulta se ejecuta tal cual la escribís, sin modificaciones. Ideal para búsquedas precisas.</span>
-                                                {!assistedMode && <span className="mode-card-badge">✓ Activo</span>}
+                                                {!assistedMode && <span className="mode-card-badge">Activo</span>}
                                             </button>
                                         </div>
                                     </div>
@@ -1414,7 +1308,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                 checked={scope === 'nacional'}
                                                 onChange={() => setScope('nacional')}
                                             />
-                                            🇦🇷 Justicia Nacional / Federal
+                                            Justicia Nacional / Federal
                                         </label>
                                         <label htmlFor="res_scope_provincial" className={`radio-btn ${scope === 'provincial' ? 'active' : ''}`}>
                                             <input
@@ -1425,7 +1319,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                 checked={scope === 'provincial'}
                                                 onChange={() => setScope('provincial')}
                                             />
-                                            📍 Justicia Provincial
+                                            Justicia Provincial
                                         </label>
 
                                         {scope === 'provincial' && (
@@ -1443,7 +1337,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                         )}
                                     </div>
 
-                                    {/* 💡 SEARCH TIPS */}
+                                    {/* Search tips */}
                                     <details className="search-tips-details tips-details">
                                         <summary className="tips-summary">
                                             <Zap size={14} fill="#fbbf24" />
@@ -1516,7 +1410,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                 </div>
                                                 <span className={`research-quota-label ${isLow || usingExtra ? 'low' : ''}`}>
                                                     {limit === -1
-                                                        ? '∞ búsquedas ilimitadas'
+                                                        ? 'busquedas ilimitadas'
                                                         : usingExtra
                                                             ? `${extra} créditos extra restantes`
                                                             : `${monthlyRemaining} de ${limit} búsquedas disponibles este mes`}
@@ -1525,6 +1419,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                     )}
                                                     {limit !== -1 && userProfile?.subscription_status === 'active' && (
                                                         <button
+                                                            type="button"
                                                             className="quota-buy-btn"
                                                             onClick={() => setQuotaModalOpen(true)}
                                                         >
@@ -1551,24 +1446,25 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                         <div className="action-buttons">
                                             <div className="copy-container">
                                                 <button
+                                                    type="button"
                                                     className="btn-action"
                                                     onClick={() => {
                                                         // ... copy logic same ...
                                                         const parts = [
-                                                            "🏦 ESTUDIO LEGAL - INVESTIGACIÓN DE IA (JUDIC-IA)",
+                                                            "ESTUDIO LEGAL - INVESTIGACION DE IA (JUDIC-IA)",
                                                             "",
-                                                            "📜 NORMATIVA APLICABLE:",
+                                                            "NORMATIVA APLICABLE:",
                                                             results.laws,
                                                             "",
-                                                            "⚖️ JURISPRUDENCIA & FALLOS:",
-                                                            results.cases.map(c => `🔹 ${c.title}\n   ${c.summary}\n   Fuente: ${c.source}`).join('\n\n'),
+                                                            "JURISPRUDENCIA Y FALLOS:",
+                                                            results.cases.map(c => `- ${c.title}\n   ${c.summary}\n   Referencia: ${c.source || 'N/D'}`).join('\n\n'),
                                                             "",
-                                                            results.calculation ? `💰 LIQUIDACIÓN ESTIMAD@:\n${results.calculation}\n` : null,
-                                                            results.evidence ? `🔍 PUNTOS DE PRUEBA:\n${results.evidence}\n` : null,
-                                                            "💡 ESTRATEGIA SUGERIDA:",
+                                                            results.calculation ? `LIQUIDACION ESTIMADA:\n${results.calculation}\n` : null,
+                                                            results.evidence ? `PUNTOS DE PRUEBA:\n${results.evidence}\n` : null,
+                                                            "ESTRATEGIA SUGERIDA:",
                                                             results.strategy,
                                                             "",
-                                                            "🔗 FUENTES & LINKS:",
+                                                            "ENLACES:",
                                                             results.links?.map(l => `- ${l.title}: ${l.url}`).join('\n') || "No hay enlaces digitales directos."
                                                         ].filter(Boolean).join('\n');
 
@@ -1580,9 +1476,9 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                     <ClipboardCopy size={16} />
                                                     <span>Copiar Texto</span>
                                                 </button>
-                                                {copySuccess && <span className="copy-toast">✨ ¡Copiado!</span>}
+                                                {copySuccess && <span className="copy-toast">Copiado</span>}
                                             </div>
-                                            <button className="btn-action btn-pdf" onClick={handleDownloadPDF}>
+                                            <button type="button" className="btn-action btn-pdf" onClick={handleDownloadPDF}>
                                                 <FileText size={16} />
                                                 <span>Exportar Informe de Estrategia</span>
                                             </button>
@@ -1596,19 +1492,19 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                             <div className="results-area" aria-live="polite" aria-busy={loading}>
                                 {results.brave_used && (
                                     <div className="badge-brave">
-                                        <span>🦁 Brave Search Pro Activo</span>
-                                        <span className="opacity-60">•</span>
-                                        <span>Resultados en Tiempo Real</span>
+                                        <span>Motor inteligente activo</span>
+                                        <span className="opacity-60">|</span>
+                                        <span>Resultados en tiempo real</span>
                                         {/* DEBUG LOGIC */}
                                         {/* STATUS BADGE LOGIC */}
                                         {isDemoProp || (userProfile && userProfile.subscription_status === 'demo') ? (
                                             <>
-                                                <span className="quota-status-badge">•</span>
+                                                <span className="quota-status-badge">|</span>
                                                 <span className="demo-quota-text">Refrescos Desactivados (Demo)</span>
                                             </>
                                         ) : (
                                             <>
-                                                <span className="quota-status-badge">•</span>
+                                                <span className="quota-status-badge">|</span>
                                                 <span>Refrescos Restantes: {refreshQuota}/5</span>
                                             </>
                                         )}
@@ -1616,13 +1512,13 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                 )}
                                 {results.laws && results.laws.length > 5 && (
                                     <section className="result-card glass-card">
-                                        <h3>📚 Normativa Aplicable</h3>
+                                        <h3>Normativa Aplicable</h3>
                                         <div className="content">{renderContent(results.laws)}</div>
                                     </section>
                                 )}
 
                                 <section className="result-card glass-card">
-                                    <h3>⚖️ Jurisprudencia Similares</h3>
+                                    <h3>Jurisprudencia Similares</h3>
                                     <div className="content">
                                         {Array.isArray(results.cases) ? (
                                             <div className="cases-grid">
@@ -1656,11 +1552,12 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                                             {c.summary}
                                                                         </p>
                                                                     </div>
-                                                                    <span className="case-source">Fuente: {c.source || 'Referencia Legal'}</span>
+                                                                    <span className="case-source">Referencia: {c.source || 'Registro legal'}</span>
                                                                 </div>
                                                                 {safeUrl && (
                                                                     <div className="case-actions">
                                                                         <button
+                                                                            type="button"
                                                                             className="btn-preview-icon"
                                                                             title="Buscar nueva alternativa (Refresh)"
                                                                             aria-label="Buscar nueva alternativa"
@@ -1674,13 +1571,14 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                                             target="_blank"
                                                                             rel="noopener noreferrer"
                                                                             className="btn-link-icon"
-                                                                            title="Abrir Fuente"
-                                                                            aria-label="Abrir fuente de jurisprudencia"
+                                                                            title="Abrir registro"
+                                                                            aria-label="Abrir registro"
                                                                             onClick={() => trackClick(safeUrl, 'open_link')}
                                                                         >
                                                                             <ExternalLink size={16} />
                                                                         </a>
                                                                         <button
+                                                                            type="button"
                                                                             className="btn-preview-icon"
                                                                             title={capturingCases[i] ? "Generando PDF limpio..." : "Visualizar (PDF Limpio)"}
                                                                             aria-label={capturingCases[i] ? "Generando PDF limpio..." : "Ver fallo en PDF limpio"}
@@ -1705,28 +1603,28 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
                                 {results.calculation && results.calculation.length > 5 && (
                                     <section className="result-card glass-card calculation">
-                                        <h3>💰 Liquidación Estimada</h3>
+                                        <h3>Liquidacion Estimada</h3>
                                         <div className="content">{renderContent(results.calculation)}</div>
                                     </section>
                                 )}
 
                                 {results.evidence && results.evidence.length > 5 && (
                                     <section className="result-card glass-card evidence">
-                                        <h3>🔍 Puntos de Prueba (Sugeridos)</h3>
+                                        <h3>Puntos de Prueba (Sugeridos)</h3>
                                         <div className="content">{renderContent(results.evidence)}</div>
                                     </section>
                                 )}
 
                                 {results.strategy && results.strategy.length > 5 && (
                                     <section className="result-card glass-card strategy">
-                                        <h3>💡 Sugerencia de Estrategia</h3>
+                                        <h3>Sugerencia de Estrategia</h3>
                                         <div className="content">{renderContent(results.strategy)}</div>
                                     </section>
                                 )}
 
                                 {results.links && results.links.length > 0 && (
                                     <section className="result-card links">
-                                        <h3>🔗 Recursos y Enlaces Útiles</h3>
+                                        <h3>Recursos y Enlaces Utiles</h3>
                                         <div className="links-grid">
                                             {results.links.map((link, idx) => {
                                                 // Fix malformed URLs
@@ -1739,7 +1637,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                 return (
                                                     <div key={idx} className="link-wrapper">
                                                         <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="link-item">
-                                                            {link.title} ↗
+                                                            {link.title} {'->'}
                                                         </a>
 
                                                     </div>
@@ -1755,7 +1653,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
                         {activeTab === 'jurisprudencia' && jurisprudenciaMode === 'ia' && !results && !loading && (
                             <div className="empty-state">
-                                <p>✨ Escribí tu consulta legal y el sistema te ayudará a optimizarla automáticamente.</p>
+                                <p>Escribi tu consulta legal y el sistema te ayudara a optimizarla automaticamente.</p>
                             </div>
                         )}
 
@@ -1763,12 +1661,12 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                 </div>
             )}
 
-            {/* QUOTA LIMIT MODAL — CREDIT PACKS */}
+            {/* Quota limit modal - credit packs */}
             {quotaModalOpen && (
                 <div className="quota-modal-overlay" onClick={() => { setQuotaModalOpen(false); setQuotaExhausted(false); }}>
                     <div className="quota-modal-card quota-modal-packs" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="quota-modal-title">
                         <div className="quota-icon-circle">
-                            <span className="quota-icon-emoji">{quotaExhausted ? '⚠️' : '🔍'}</span>
+                            <span className="quota-icon-emoji">{quotaExhausted ? '!' : '+'}</span>
                         </div>
                         <h3 className="quota-title" id="quota-modal-title">
                             {quotaExhausted ? 'Búsquedas Agotadas' : 'Comprar Búsquedas Extra'}
@@ -1784,6 +1682,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                             <div className="credits-no-sub">
                                 <p>Los créditos extra son exclusivos para suscriptores del Plan Profesional.</p>
                                 <button
+                                    type="button"
                                     className="btn-quota-pro"
                                     onClick={() => window.location.href = '/dashboard/settings?tab=billing'}
                                 >
@@ -1800,6 +1699,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                     { id: 'pack_50', credits: 50, price: '25.000', badge: 'Mejor valor' },
                                 ].map(pack => (
                                     <button
+                                        type="button"
                                         key={pack.id}
                                         className={`credit-pack-card ${buyingPack === pack.id ? 'loading' : ''}`}
                                         disabled={!!buyingPack}
@@ -1850,6 +1750,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         )}
                         <div className="quota-actions">
                             <button
+                                type="button"
                                 onClick={() => setQuotaModalOpen(false)}
                                 className="btn-quota-cancel"
                             >
@@ -1865,11 +1766,12 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                 <div className="quota-modal-overlay" onClick={() => setEnhancementModal(null)}>
                     <div className="enhancement-modal-card" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="enhancement-modal-title">
                         <button
+                            type="button"
                             className="modal-close-btn"
                             onClick={() => setEnhancementModal(null)}
                             aria-label="Cerrar modal"
                         >
-                            ✕
+                            x
                         </button>
                         <div className="enhancement-icon-circle">
                             <Sparkles size={32} className="text-amber-400" />
@@ -1897,7 +1799,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                 <label>Tu búsqueda:</label>
                                 <div className="query-text">{enhancementModal.original}</div>
                             </div>
-                            <div className="enhancement-arrow">→</div>
+                            <div className="enhancement-arrow">-&gt;</div>
                             <div className="enhancement-query enhanced">
                                 <label>Búsqueda mejorada:</label>
                                 <div className="query-text">{enhancementModal.enhanced}</div>
@@ -1909,7 +1811,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                 <p className="enhancement-section-title">Mejoras aplicadas:</p>
                                 <ul>
                                     {enhancementModal.changes.map((change, i) => (
-                                        <li key={i}>✓ {change}</li>
+                                        <li key={i}>- {change}</li>
                                     ))}
                                 </ul>
                             </div>
@@ -1917,6 +1819,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
                         <div className="enhancement-actions">
                             <button
+                                type="button"
                                 className="btn-enhancement-accept"
                                 onClick={() => {
                                     setQuery(enhancementModal.enhanced);
@@ -1928,6 +1831,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                 Usar búsqueda mejorada
                             </button>
                             <button
+                                type="button"
                                 onClick={() => {
                                     setEnhancementModal(null);
                                     handleSearch(null, enhancementModal.original);
@@ -1946,11 +1850,12 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                 <div className="quota-modal-overlay" onClick={() => setReformulationModal(null)}>
                     <div className="enhancement-modal-card" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="reformulation-modal-title">
                         <button
+                            type="button"
                             className="modal-close-btn"
                             onClick={() => setReformulationModal(null)}
                             aria-label="Cerrar modal"
                         >
-                            ✕
+                            x
                         </button>
                         <div className="enhancement-icon-circle">
                             <AlertCircle size={32} className="text-orange-400" />
@@ -1968,6 +1873,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         <div className="reformulation-alternatives">
                             {reformulationModal.alternatives.map((alt, i) => (
                                 <button
+                                    type="button"
                                     key={i}
                                     className="reformulation-option"
                                     onClick={() => {
@@ -1984,6 +1890,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
                         <div className="enhancement-actions">
                             <button
+                                type="button"
                                 onClick={() => setReformulationModal(null)}
                                 className="btn-enhancement-original"
                             >
@@ -1996,3 +1903,5 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         </div>
     );
 }
+
+

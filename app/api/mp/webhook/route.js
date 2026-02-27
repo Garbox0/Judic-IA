@@ -90,15 +90,20 @@ export async function POST(req) {
                 return NextResponse.json({ error: payment }, { status: 500 });
             }
 
-            // external_reference format: "credits:<purchase_id>:<user_id>"
+            // external_reference format:
+            // - "credits:<purchase_id>:<user_id>"       (research credits)
+            // - "alert_credits:<purchase_id>:<user_id>" (alert credits)
             const extRef = payment.external_reference || '';
-            if (!extRef.startsWith('credits:')) {
+            const [purchaseType, purchaseId, userId] = extRef.split(':');
+            const isResearchCredits = purchaseType === 'credits';
+            const isAlertCredits = purchaseType === 'alert_credits';
+
+            if (!isResearchCredits && !isAlertCredits) {
                 // No es un credit pack, ignorar aquí (continuará al flujo de suscripción)
-                console.log('Payment is not a credit pack, skipping.');
+                console.log('Payment is not a known credit pack, skipping.');
                 return NextResponse.json({ ok: true });
             }
 
-            const [, purchaseId, userId] = extRef.split(':');
             if (!purchaseId || !userId) {
                 console.warn('❌ Invalid external_reference for credit payment:', extRef);
                 return NextResponse.json({ ok: true });
@@ -109,10 +114,14 @@ export async function POST(req) {
                 process.env.SUPABASE_SERVICE_ROLE_KEY
             );
 
+            const purchasesTable = isAlertCredits ? 'alert_credit_purchases' : 'credit_purchases';
+            const addCreditsRpc = isAlertCredits ? 'add_alert_credits' : 'add_research_credits';
+            const creditLabel = isAlertCredits ? 'alerta' : 'research';
+
             if (payment.status === 'approved') {
                 // 1. Obtener el pack para saber cuántos credits
                 const { data: purchase } = await supabase
-                    .from('credit_purchases')
+                    .from(purchasesTable)
                     .select('credits, status, pack_id')
                     .eq('id', purchaseId)
                     .single();
@@ -124,20 +133,20 @@ export async function POST(req) {
 
                 // 2. Acreditar credits + registrar payment ID
                 await Promise.all([
-                    supabase.rpc('add_research_credits', {
+                    supabase.rpc(addCreditsRpc, {
                         p_user_id: userId,
                         p_credits: purchase.credits
                     }),
                     supabase
-                        .from('credit_purchases')
+                        .from(purchasesTable)
                         .update({ status: 'approved', mp_payment_id: String(mpId) })
                         .eq('id', purchaseId),
                 ]);
 
-                console.log(`✅ Credits acreditados: ${purchase.credits} para user ${userId}`);
+                console.log(`✅ Credits ${creditLabel} acreditados: ${purchase.credits} para user ${userId}`);
             } else if (payment.status === 'rejected' || payment.status === 'cancelled') {
                 await supabase
-                    .from('credit_purchases')
+                    .from(purchasesTable)
                     .update({ status: 'rejected', mp_payment_id: String(mpId) })
                     .eq('id', purchaseId);
             }

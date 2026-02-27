@@ -1682,6 +1682,10 @@ body.light-theme .province-select {
 }
 
 .history-item-box {
+    appearance: none;
+    display: block;
+    width: 100%;
+    text-align: left;
     padding: 0.8rem;
     background: rgba(255, 255, 255, 0.03);
     border-radius: 8px;
@@ -1689,10 +1693,18 @@ body.light-theme .province-select {
     border: 1px solid rgba(255, 255, 255, 0.05);
     transition: 0.2s;
     font-size: 0.85rem;
+    font-family: inherit;
 }
 
 .history-item-box:hover {
     background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.history-item-box:focus-visible,
+.sidebar-close-btn:focus-visible,
+.credits-toast-close:focus-visible {
+    outline: 2px solid #fbbf24;
+    outline-offset: 2px;
 }
 
 .history-item-query {
@@ -2351,6 +2363,14 @@ body.light-theme .research-quota-label.low {
     color: #fbbf24;
 }
 
+.research-tab:focus-visible,
+.juris-mode-tab:focus-visible,
+.mode-card:focus-visible,
+.mobile-history-toggle:focus-visible {
+    outline: 2px solid rgba(251, 191, 36, 0.75);
+    outline-offset: 2px;
+}
+
 /* ─── EMPRESA SEARCH ────────────────────────────────────────────────── */
 .empresa-panel {
     border-top: 2px solid rgba(251, 191, 36, 0.2) !important;
@@ -2403,8 +2423,16 @@ body.light-theme .research-quota-label.low {
     gap: 1rem;
 }
 
+.empresa-row-top {
+    grid-template-columns: 0.9fr 1.6fr 1fr;
+}
+
+.empresa-row-filters {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .empresa-row-bottom {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto auto;
     gap: 0.75rem;
     align-items: flex-end;
 }
@@ -2415,6 +2443,28 @@ body.light-theme .research-quota-label.low {
     justify-content: center;
     padding: 0.65rem 1.5rem !important;
     min-height: 44px;
+}
+
+.empresa-btn-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 44px;
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    border-radius: 9px;
+    background: rgba(251, 191, 36, 0.08);
+    color: #fbbf24;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.65rem 1rem;
+    cursor: pointer;
+    transition: all 0.16s ease;
+}
+
+.empresa-btn-link:hover {
+    background: rgba(251, 191, 36, 0.16);
+    border-color: rgba(251, 191, 36, 0.55);
 }
 
 .empresa-field {
@@ -2506,9 +2556,53 @@ body.light-theme .research-quota-label.low {
     padding: 1rem 0;
 }
 
+.empresa-empty-block {
+    padding: 0.6rem 0 1rem;
+}
+
+.empresa-empty-hint {
+    font-size: 0.78rem;
+    color: rgba(248, 250, 252, 0.45);
+    margin: -0.4rem 0 0.8rem;
+}
+
+.empresa-empty-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 9px;
+    background: rgba(56, 189, 248, 0.08);
+    color: #7dd3fc;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.56rem 0.95rem;
+    cursor: pointer;
+    transition: all 0.16s ease;
+}
+
+.empresa-empty-cta:hover {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: rgba(56, 189, 248, 0.55);
+}
+
 .empresa-cases {
     display: grid;
     gap: 0.75rem;
+}
+
+.empresa-low-volume-note {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 0.85rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 9px;
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    color: rgba(224, 242, 254, 0.95);
+    font-size: 0.8rem;
 }
 
 .empresa-case-card {
@@ -2601,6 +2695,26 @@ body.light-theme .research-quota-label.low {
     color: #a5b4fc;
 }
 
+.empresa-source {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.empresa-source.official {
+    background: rgba(34, 197, 94, 0.12);
+    color: #86efac;
+}
+
+.empresa-source.external {
+    background: rgba(148, 163, 184, 0.16);
+    color: #cbd5e1;
+}
+
 .empresa-resumen {
     font-size: 0.8rem;
     color: rgba(248, 250, 252, 0.55);
@@ -2639,6 +2753,42 @@ body.light-theme .research-quota-label.low {
 
 .empresa-link:hover {
     color: #fbbf24;
+}
+
+@media (max-width: 1120px) {
+    .empresa-row-top {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .empresa-field-main {
+        grid-column: 1 / -1;
+    }
+
+    .empresa-row-filters {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .empresa-row-bottom {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .empresa-row,
+    .empresa-row-top,
+    .empresa-row-filters,
+    .empresa-row-bottom {
+        grid-template-columns: 1fr;
+    }
+
+    .empresa-field-main {
+        grid-column: auto;
+    }
+
+    .empresa-btn,
+    .empresa-btn-link {
+        width: 100% !important;
+    }
 }
 
 /* Light theme overrides */
@@ -2690,9 +2840,25 @@ body.light-theme .empresa-field select {
     color: #0f172a;
 }
 
+body.light-theme .empresa-btn-link {
+    background: rgba(251, 191, 36, 0.12);
+    border-color: rgba(180, 83, 9, 0.35);
+    color: #b45309;
+}
+
+body.light-theme .empresa-btn-link:hover {
+    background: rgba(251, 191, 36, 0.2);
+}
+
 body.light-theme .empresa-case-card {
     background: rgba(0, 0, 0, 0.02);
     border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .empresa-low-volume-note {
+    background: rgba(14, 165, 233, 0.12);
+    border-color: rgba(3, 105, 161, 0.3);
+    color: #0c4a6e;
 }
 
 body.light-theme .empresa-caratula {
@@ -2707,8 +2873,36 @@ body.light-theme .empresa-meta {
     color: rgba(15, 23, 42, 0.5);
 }
 
+body.light-theme .empresa-source.official {
+    background: rgba(22, 163, 74, 0.14);
+    color: #166534;
+}
+
+body.light-theme .empresa-source.external {
+    background: rgba(100, 116, 139, 0.15);
+    color: #334155;
+}
+
 body.light-theme .empresa-count {
     color: rgba(15, 23, 42, 0.45);
+}
+
+body.light-theme .empresa-empty {
+    color: rgba(15, 23, 42, 0.5);
+}
+
+body.light-theme .empresa-empty-hint {
+    color: rgba(15, 23, 42, 0.48);
+}
+
+body.light-theme .empresa-empty-cta {
+    background: rgba(14, 165, 233, 0.12);
+    border-color: rgba(3, 105, 161, 0.3);
+    color: #0369a1;
+}
+
+body.light-theme .empresa-empty-cta:hover {
+    background: rgba(14, 165, 233, 0.2);
 }
 
 /* ── Light theme: Quota / Credits Modal ───────────────────────────── */

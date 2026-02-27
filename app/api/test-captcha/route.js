@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
-import { solvePJNCaptcha, getChallenge, solveImage, submitResponse } from '@/lib/captchaSolver';
+import { searchByExpediente } from '@/lib/captchaSolver';
 
 /**
- * Test endpoint para el captcha solver del PJN.
- * GET /api/test-captcha?secret=...
- *
- * Ejecuta el flujo completo: challenge → OCR → verify → token
+ * Test endpoint: prueba el scraper Puppeteer completo en una búsqueda de ejemplo.
+ * GET /api/test-captcha?secret=...&numero=12345&anio=2024&jurisdiccion=1
  */
 export async function GET(request) {
     const url = new URL(request.url);
@@ -14,48 +12,30 @@ export async function GET(request) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const retries = parseInt(url.searchParams.get('retries') || '3');
+    const numero = url.searchParams.get('numero') || '12345';
+    const anio = url.searchParams.get('anio') || '2024';
+    const jurisdiccion = url.searchParams.get('jurisdiccion') || '1';
+
     const startMs = Date.now();
+    console.log(`[test-captcha] Starting test search: ${numero}/${anio} — camara ${jurisdiccion}`);
 
     try {
-        // Option 1: Full solver with retries
-        const result = await solvePJNCaptcha(retries);
+        const result = await searchByExpediente({ jurisdiccion, numero, anio });
 
         return NextResponse.json({
             status: 'ok',
-            solved: true,
-            token: result.token,
-            ocr: {
-                raw: result.ocrResult.rawText,
-                cleaned: result.ocrResult.solved,
-                confidence: result.ocrResult.confidence,
-            },
-            attempt: result.attempt,
             duration_ms: Date.now() - startMs,
+            results: result.results ?? [],
+            total: result.results?.length ?? 0,
+            headers: result.headers ?? [],
+            noResults: result.noResults ?? null,
+            error: result.error ?? null,
         });
 
     } catch (err) {
-        // If full solver failed, show last attempt details
-        let lastAttempt = null;
-        try {
-            const challenge = await getChallenge();
-            const ocr = await solveImage(challenge.imageBase64);
-            const submit = await submitResponse(ocr.solved);
-            lastAttempt = {
-                ocr_raw: ocr.rawText,
-                ocr_cleaned: ocr.solved,
-                ocr_confidence: ocr.confidence,
-                submit_status: submit.status,
-                submit_success: submit.success,
-                submit_raw: submit.raw,
-                image_preview: challenge.imageBase64.substring(0, 100) + '...',
-            };
-        } catch { /* ignore */ }
-
         return NextResponse.json({
             status: 'error',
             error: err.message,
-            last_attempt: lastAttempt,
             duration_ms: Date.now() - startMs,
         }, { status: 500 });
     }
