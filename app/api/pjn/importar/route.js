@@ -70,22 +70,28 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Faltan datos del expediente.' }, { status: 400 });
         }
 
+        const isSuperUser =
+            auth.user?.email === 'gbrlescalada@gmail.com' &&
+            userId === '365cd259-4f1e-4004-a677-1eda06a5147e';
+
         // 1. Consumir 1 crédito de antecedentes (atómico, evita race conditions)
-        const { data: creditResult, error: creditErr } = await supabase.rpc(
-            'consume_antecedentes_credit',
-            { p_user_id: userId }
-        );
-
-        if (creditErr) throw creditErr;
-
-        if (creditResult === 'exhausted') {
-            return NextResponse.json(
-                { error: 'CREDITS_EXHAUSTED', message: 'No tenés créditos de antecedentes disponibles.' },
-                { status: 402 }
+        if (!isSuperUser) {
+            const { data: creditResult, error: creditErr } = await supabase.rpc(
+                'consume_antecedentes_credit',
+                { p_user_id: userId }
             );
-        }
-        if (creditResult === 'profile_missing') {
-            return NextResponse.json({ error: 'Perfil no encontrado.' }, { status: 404 });
+
+            if (creditErr) throw creditErr;
+
+            if (creditResult === 'exhausted') {
+                return NextResponse.json(
+                    { error: 'CREDITS_EXHAUSTED', message: 'No tenés créditos de antecedentes disponibles.' },
+                    { status: 402 }
+                );
+            }
+            if (creditResult === 'profile_missing') {
+                return NextResponse.json({ error: 'Perfil no encontrado.' }, { status: 404 });
+            }
         }
 
         // 2. Obtener (o crear) org del usuario
