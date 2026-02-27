@@ -1859,3 +1859,89 @@ body.light-theme .ant-fuero-badge {
     border-color: rgba(180, 110, 0, 0.2);
     color: #b46000;
 }
+
+/* ── Source toggle (PJN Federal / SCBA Provincia) ── */
+.ant-source-toggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.ant-source-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    color: #94a3b8;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.ant-source-btn:hover:not(:disabled) {
+    background: rgba(255,255,255,0.07);
+    color: #e2e8f0;
+}
+
+.ant-source-btn.active {
+    background: rgba(212, 163, 58, 0.12);
+    border-color: rgba(212, 163, 58, 0.35);
+    color: #d4a33a;
+}
+
+.ant-source-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ant-source-sub {
+    font-size: 0.72rem;
+    color: #64748b;
+    font-weight: 400;
+}
+
+.ant-source-btn.active .ant-source-sub {
+    color: rgba(212, 163, 58, 0.7);
+}
+
+/* SCBA note */
+.ant-scba-note {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.5rem;
+}
+
+/* Light theme overrides */
+body.light-theme .ant-source-btn {
+    background: rgba(15, 23, 42, 0.03);
+    border-color: rgba(15, 23, 42, 0.08);
+    color: #475569;
+}
+
+body.light-theme .ant-source-btn:hover:not(:disabled) {
+    background: rgba(15, 23, 42, 0.06);
+    color: #1e293b;
+}
+
+body.light-theme .ant-source-btn.active {
+    background: rgba(180, 110, 0, 0.06);
+    border-color: rgba(180, 110, 0, 0.25);
+    color: #b46000;
+}
+
+body.light-theme .ant-source-sub {
+    color: #94a3b8;
+}
+
+body.light-theme .ant-source-btn.active .ant-source-sub {
+    color: rgba(180, 110, 0, 0.6);
+}

@@ -10,15 +10,16 @@ import {
   ShieldCheck,
   AlertCircle,
   User,
-  Building2,
   CheckCircle2,
   XCircle,
   Clock
 } from 'lucide-react';
 import './pjn-search.css';
 
-// 28 jurisdicciones del PJN SCW
-const ALL_JURISDICTIONS = [
+// ──────────────────────────────────────────────────────────────────────────
+// PJN — 28 jurisdicciones del SCW Federal
+// ──────────────────────────────────────────────────────────────────────────
+const PJN_JURISDICTIONS = [
   { value: '0',  label: 'CSJ - Corte Suprema de Justicia de la Nación' },
   { value: '1',  label: 'CIV - Cámara Nacional Civil' },
   { value: '2',  label: 'CAF - Cámara Contencioso Administrativo Federal' },
@@ -49,15 +50,14 @@ const ALL_JURISDICTIONS = [
   { value: '27', label: 'FTU - Federal Tucumán' },
 ];
 
-// Presets de búsqueda
-const PRESETS = [
+const PJN_PRESETS = [
   {
     id: 'laboral',
     label: 'Laboral',
     icon: '⚖️',
     jurisdictions: ['7'],
     parteTipo: 'DEMANDADO',
-    description: 'Causas en la Cámara Nacional del Trabajo'
+    description: 'Cámara Nacional del Trabajo (CNT)'
   },
   {
     id: 'civil_comercial',
@@ -73,7 +73,7 @@ const PRESETS = [
     icon: '🔍',
     jurisdictions: ['8', '9'],
     parteTipo: 'IMPUTADO',
-    description: 'Cámaras Criminal y Correccional'
+    description: 'Cámaras Criminal y Correccional Federal y Nacional'
   },
   {
     id: 'general',
@@ -94,56 +94,135 @@ const PARTE_TIPOS_OPTIONS = [
   { value: 'EJECUTADO/S', label: 'Ejecutado' },
 ];
 
-function getJurLabel(id) {
-  return ALL_JURISDICTIONS.find(j => j.value === id)?.label?.split(' - ')[0] || `Jur. ${id}`;
-}
+// ──────────────────────────────────────────────────────────────────────────
+// SCBA MEV — departamentos judiciales de Provincia de Buenos Aires
+// ──────────────────────────────────────────────────────────────────────────
+const SCBA_JURISDICTIONS = [
+  { id: 'SCJ', label: 'Suprema Corte SCBA' },
+  { id: 'LP',  label: 'La Plata' },
+  { id: 'LZ',  label: 'Lomas de Zamora' },
+  { id: 'SI',  label: 'San Isidro' },
+  { id: 'SM',  label: 'San Martín' },
+  { id: 'LM',  label: 'La Matanza' },
+  { id: 'QU',  label: 'Quilmes' },
+  { id: 'MO',  label: 'Morón' },
+  { id: 'AL',  label: 'Avellaneda-Lanús' },
+  { id: 'MR',  label: 'Moreno-Gral. Rodríguez' },
+  { id: 'MP',  label: 'Mar del Plata' },
+  { id: 'BB',  label: 'Bahía Blanca' },
+  { id: 'ME',  label: 'Mercedes' },
+  { id: 'AZ',  label: 'Azul' },
+  { id: 'DO',  label: 'Dolores' },
+  { id: 'JU',  label: 'Junín' },
+  { id: 'NE',  label: 'Necochea' },
+  { id: 'OL',  label: 'Olavarría' },
+  { id: 'PE',  label: 'Pergamino' },
+  { id: 'SN',  label: 'San Nicolás' },
+  { id: 'TA',  label: 'Tandil' },
+  { id: 'TL',  label: 'Trenque Lauquen' },
+  { id: 'ZC',  label: 'Zárate/Campana' },
+  { id: 'TCP', label: 'Tribunal de Casación Penal' },
+];
 
+const SCBA_PRESETS = [
+  {
+    id: 'scba_amba',
+    label: 'AMBA',
+    icon: '🏙️',
+    jurisdictions: ['LP', 'LZ', 'SI', 'SM', 'LM', 'QU', 'MO', 'AL'],
+    description: 'Departamentos del área metropolitana de Buenos Aires'
+  },
+  {
+    id: 'scba_suprema',
+    label: 'Suprema Corte',
+    icon: '⚖️',
+    jurisdictions: ['SCJ'],
+    description: 'Causas ante la Suprema Corte de Justicia PBA'
+  },
+  {
+    id: 'scba_interior',
+    label: 'Interior PBA',
+    icon: '🗺️',
+    jurisdictions: ['MP', 'BB', 'ME', 'AZ', 'DO', 'JU', 'NE', 'OL', 'PE', 'SN', 'TA', 'TL', 'ZC'],
+    description: 'Departamentos del interior de la Provincia'
+  },
+  {
+    id: 'scba_completo',
+    label: 'Todos PBA',
+    icon: '🗂️',
+    jurisdictions: ['SCJ', 'LP', 'LZ', 'SI', 'SM', 'LM', 'QU', 'MO', 'AL', 'MR', 'MP', 'BB'],
+    description: 'Suprema Corte + principales departamentos'
+  },
+];
+
+// ──────────────────────────────────────────────────────────────────────────
+// Componente
+// ──────────────────────────────────────────────────────────────────────────
 export default function AntecedentesPanel() {
-  const [nombre, setNombre] = useState('');
-  const [selectedPreset, setSelectedPreset] = useState('laboral');
-  const [customJurisdictions, setCustomJurisdictions] = useState([]);
-  const [parteTipo, setParteTipo] = useState('DEMANDADO');
-  const [useCustom, setUseCustom] = useState(false);
+  // Source toggle
+  const [source, setSource] = useState('pjn'); // 'pjn' | 'scba'
 
+  // Shared
+  const [nombre, setNombre] = useState('');
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(null); // { current, total, label }
-  const [results, setResults] = useState([]); // array acumulado de todos los casos
-  const [jurisdictionResults, setJurisdictionResults] = useState([]); // [{ id, label, count, error }]
+  const [progress, setProgress] = useState(null);
+  const [results, setResults] = useState([]);
+  const [jurisdictionResults, setJurisdictionResults] = useState([]);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState('');
 
+  // PJN state
+  const [pjnPreset, setPjnPreset] = useState('laboral');
+  const [pjnCustomJurs, setPjnCustomJurs] = useState([]);
+  const [pjnUseCustom, setPjnUseCustom] = useState(false);
+  const [parteTipo, setParteTipo] = useState('DEMANDADO');
+
+  // SCBA state
+  const [scbaPreset, setScbaPreset] = useState('scba_amba');
+  const [scbaCustomJurs, setScbaCustomJurs] = useState([]);
+  const [scbaUseCustom, setScbaUseCustom] = useState(false);
+
   const abortRef = useRef(false);
 
-  const activePreset = PRESETS.find(p => p.id === selectedPreset) || PRESETS[0];
-  const jurisdictionsToSearch = useCustom
-    ? customJurisdictions
-    : activePreset.jurisdictions;
+  // ── Derived ──
+  const activePjnPreset = PJN_PRESETS.find(p => p.id === pjnPreset) || PJN_PRESETS[0];
+  const pjnJursToSearch = pjnUseCustom ? pjnCustomJurs : activePjnPreset.jurisdictions;
 
-  const handlePresetChange = (presetId) => {
-    const preset = PRESETS.find(p => p.id === presetId);
-    setSelectedPreset(presetId);
-    if (preset) setParteTipo(preset.parteTipo);
-    setUseCustom(false);
+  const activeScbaPreset = SCBA_PRESETS.find(p => p.id === scbaPreset) || SCBA_PRESETS[0];
+  const scbaJursToSearch = scbaUseCustom ? scbaCustomJurs : activeScbaPreset.jurisdictions;
+
+  const jurisdictionsToSearch = source === 'pjn' ? pjnJursToSearch : scbaJursToSearch;
+
+  // ── Handlers ──
+  const handleSourceChange = (newSource) => {
+    setSource(newSource);
+    setResults([]);
+    setJurisdictionResults([]);
+    setSearched(false);
+    setError('');
+    setProgress(null);
   };
 
-  const toggleCustomJurisdiction = (value) => {
-    setCustomJurisdictions(prev =>
-      prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
-    );
+  const handlePjnPreset = (id) => {
+    const p = PJN_PRESETS.find(x => x.id === id);
+    setPjnPreset(id);
+    if (p) setParteTipo(p.parteTipo);
+    setPjnUseCustom(false);
+  };
+
+  const togglePjnJur = (v) => {
+    setPjnCustomJurs(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  };
+
+  const toggleScbaJur = (v) => {
+    setScbaCustomJurs(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
   };
 
   const handleSearch = useCallback(async (e) => {
     e?.preventDefault();
-
     const nameTrimmed = nombre.trim();
-    if (!nameTrimmed) {
-      setError('Ingresá el nombre o razón social a buscar.');
-      return;
-    }
-    if (jurisdictionsToSearch.length === 0) {
-      setError('Seleccioná al menos una jurisdicción.');
-      return;
-    }
+    if (!nameTrimmed) { setError('Ingresá el nombre o razón social a buscar.'); return; }
+    if (jurisdictionsToSearch.length === 0) { setError('Seleccioná al menos una jurisdicción.'); return; }
 
     setLoading(true);
     setSearched(true);
@@ -155,7 +234,7 @@ export default function AntecedentesPanel() {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
+      const token = session?.access_token;
 
       const accResults = [];
       const accJurResults = [];
@@ -163,48 +242,81 @@ export default function AntecedentesPanel() {
       for (let i = 0; i < jurisdictionsToSearch.length; i++) {
         if (abortRef.current) break;
 
-        const jurId = jurisdictionsToSearch[i];
-        const jurObj = ALL_JURISDICTIONS.find(j => j.value === jurId);
-        const jurLabel = jurObj?.label || `Jurisdicción ${jurId}`;
-        const jurShort = jurLabel.split(' - ')[0];
+        if (source === 'pjn') {
+          // ── PJN Federal ──
+          const jurId  = jurisdictionsToSearch[i];
+          const jurObj = PJN_JURISDICTIONS.find(j => j.value === jurId);
+          const jurLabel = jurObj?.label || `Jur. ${jurId}`;
+          const jurShort = jurLabel.split(' - ')[0];
 
-        setProgress({ current: i + 1, total: jurisdictionsToSearch.length, label: jurShort });
+          setProgress({ current: i + 1, total: jurisdictionsToSearch.length, label: jurShort });
 
-        try {
-          const res = await fetch('/api/pjn/search', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
-            },
-            body: JSON.stringify({
-              searchType: 'parte',
-              jurisdiction: jurId,
-              jurisdictionName: jurLabel,
-              nombre: nameTrimmed,
-              parteTipo: parteTipo || null,
-              maxPages: 20
-            })
-          });
-
-          const payload = await res.json();
-
-          if (!res.ok) {
-            accJurResults.push({ id: jurId, label: jurShort, count: 0, error: payload?.error || 'Error al consultar' });
-          } else {
-            const cases = (payload.results || []).map(r => ({
-              ...r,
-              _jurisdiccion_id: jurId,
-              _jurisdiccion_label: jurShort
-            }));
-            accResults.push(...cases);
-            accJurResults.push({ id: jurId, label: jurShort, count: cases.length, error: null });
+          try {
+            const res = await fetch('/api/pjn/search', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
+              },
+              body: JSON.stringify({
+                searchType: 'parte',
+                jurisdiction: jurId,
+                jurisdictionName: jurLabel,
+                nombre: nameTrimmed,
+                parteTipo: parteTipo || null,
+                maxPages: 20
+              })
+            });
+            const payload = await res.json();
+            if (!res.ok) {
+              accJurResults.push({ id: jurId, label: jurShort, count: 0, error: payload?.error || 'Error' });
+            } else {
+              const cases = (payload.results || []).map(r => ({
+                ...r,
+                _source: 'PJN',
+                _jur_label: jurShort
+              }));
+              accResults.push(...cases);
+              accJurResults.push({ id: jurId, label: jurShort, count: cases.length, error: null });
+            }
+          } catch {
+            accJurResults.push({ id: jurId, label: jurShort, count: 0, error: 'Error de conexión' });
           }
-        } catch (fetchErr) {
-          accJurResults.push({ id: jurId, label: jurShort, count: 0, error: 'Error de conexión' });
+
+        } else {
+          // ── SCBA Provincia ──
+          const jurId  = jurisdictionsToSearch[i];
+          const jurObj = SCBA_JURISDICTIONS.find(j => j.id === jurId);
+          const jurLabel = jurObj?.label || jurId;
+
+          setProgress({ current: i + 1, total: jurisdictionsToSearch.length, label: jurLabel });
+
+          try {
+            const res = await fetch('/api/scba/search', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
+              },
+              body: JSON.stringify({ nombre: nameTrimmed, jurisdiccionId: jurId })
+            });
+            const payload = await res.json();
+            if (!res.ok) {
+              accJurResults.push({ id: jurId, label: jurLabel, count: 0, error: payload?.error || 'Error' });
+            } else {
+              const cases = (payload.results || []).map(r => ({
+                ...r,
+                _source: 'SCBA',
+                _jur_label: jurLabel
+              }));
+              accResults.push(...cases);
+              accJurResults.push({ id: jurId, label: jurLabel, count: cases.length, error: null });
+            }
+          } catch {
+            accJurResults.push({ id: jurId, label: jurLabel, count: 0, error: 'Error de conexión' });
+          }
         }
 
-        // Update UI incrementally
         setResults([...accResults]);
         setJurisdictionResults([...accJurResults]);
       }
@@ -212,15 +324,13 @@ export default function AntecedentesPanel() {
       setLoading(false);
       setProgress(null);
     }
-  }, [nombre, jurisdictionsToSearch, parteTipo]);
+  }, [nombre, jurisdictionsToSearch, parteTipo, source]);
 
-  const handleStop = () => {
-    abortRef.current = true;
-  };
+  const handleStop = () => { abortRef.current = true; };
 
-  const totalFound = results.length;
+  const totalFound   = results.length;
   const jurWithResults = jurisdictionResults.filter(j => j.count > 0);
-  const jurWithErrors = jurisdictionResults.filter(j => j.error);
+  const jurWithErrors  = jurisdictionResults.filter(j => j.error);
 
   return (
     <div className="pjn-search-container">
@@ -231,12 +341,30 @@ export default function AntecedentesPanel() {
           <h3>Antecedentes Judiciales</h3>
         </div>
         <p className="pjn-search-subtitle">
-          Verificá si una persona o empresa tiene causas activas en el fuero federal.
-          Los resultados provienen directamente del Sistema de Consulta Web (SCW) del PJN.
+          Verificá si una persona o empresa tiene causas judiciales activas o archivadas.
         </p>
-        <span className="pjn-auto-badge">
-          <ShieldCheck size={13} /> Datos verificados · Fuente oficial PJN
-        </span>
+      </div>
+
+      {/* Source toggle */}
+      <div className="ant-source-toggle">
+        <button
+          type="button"
+          className={`ant-source-btn ${source === 'pjn' ? 'active' : ''}`}
+          onClick={() => handleSourceChange('pjn')}
+          disabled={loading}
+        >
+          🏛️ Fuero Federal
+          <span className="ant-source-sub">PJN · 28 jurisdicciones</span>
+        </button>
+        <button
+          type="button"
+          className={`ant-source-btn ${source === 'scba' ? 'active' : ''}`}
+          onClick={() => handleSourceChange('scba')}
+          disabled={loading}
+        >
+          📋 Provincia Bs. As.
+          <span className="ant-source-sub">SCBA MEV · 24 departamentos</span>
+        </button>
       </div>
 
       {/* Form */}
@@ -258,72 +386,133 @@ export default function AntecedentesPanel() {
           />
         </div>
 
-        {/* Presets */}
-        <div className="pjn-field-group">
-          <label className="pjn-label">Tipo de antecedentes</label>
-          <div className="ant-presets">
-            {PRESETS.map(preset => (
-              <button
-                key={preset.id}
-                type="button"
-                className={`ant-preset-btn ${selectedPreset === preset.id && !useCustom ? 'active' : ''}`}
-                onClick={() => handlePresetChange(preset.id)}
-                disabled={loading}
-                title={preset.description}
-              >
-                <span className="ant-preset-icon">{preset.icon}</span>
-                {preset.label}
-              </button>
-            ))}
-            <button
-              type="button"
-              className={`ant-preset-btn ${useCustom ? 'active' : ''}`}
-              onClick={() => setUseCustom(true)}
-              disabled={loading}
-            >
-              ✏️ Personalizar
-            </button>
-          </div>
-          {!useCustom && (
-            <p className="ant-preset-desc">{activePreset.description}</p>
-          )}
-        </div>
-
-        {/* Custom jurisdiction selector */}
-        {useCustom && (
-          <div className="pjn-field-group">
-            <label className="pjn-label">Jurisdicciones a consultar</label>
-            <div className="ant-jurisdiction-grid">
-              {ALL_JURISDICTIONS.map(jur => (
-                <label key={jur.value} className="ant-jur-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={customJurisdictions.includes(jur.value)}
-                    onChange={() => toggleCustomJurisdiction(jur.value)}
+        {/* PJN form */}
+        {source === 'pjn' && (
+          <>
+            <div className="pjn-field-group">
+              <label className="pjn-label">Tipo de antecedentes</label>
+              <div className="ant-presets">
+                {PJN_PRESETS.map(preset => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    className={`ant-preset-btn ${pjnPreset === preset.id && !pjnUseCustom ? 'active' : ''}`}
+                    onClick={() => handlePjnPreset(preset.id)}
                     disabled={loading}
-                  />
-                  <span>{jur.label.split(' - ')[0]}</span>
-                </label>
-              ))}
+                    title={preset.description}
+                  >
+                    <span className="ant-preset-icon">{preset.icon}</span>
+                    {preset.label}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className={`ant-preset-btn ${pjnUseCustom ? 'active' : ''}`}
+                  onClick={() => setPjnUseCustom(true)}
+                  disabled={loading}
+                >
+                  ✏️ Personalizar
+                </button>
+              </div>
+              {!pjnUseCustom && (
+                <p className="ant-preset-desc">{activePjnPreset.description}</p>
+              )}
             </div>
-          </div>
+
+            {pjnUseCustom && (
+              <div className="pjn-field-group">
+                <label className="pjn-label">Jurisdicciones a consultar</label>
+                <div className="ant-jurisdiction-grid">
+                  {PJN_JURISDICTIONS.map(jur => (
+                    <label key={jur.value} className="ant-jur-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={pjnCustomJurs.includes(jur.value)}
+                        onChange={() => togglePjnJur(jur.value)}
+                        disabled={loading}
+                      />
+                      <span>{jur.label.split(' - ')[0]}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="pjn-field-group">
+              <label className="pjn-label" htmlFor="ant-parte-tipo">Rol en la causa</label>
+              <select
+                id="ant-parte-tipo"
+                className="pjn-select"
+                value={parteTipo}
+                onChange={e => setParteTipo(e.target.value)}
+                disabled={loading}
+              >
+                {PARTE_TIPOS_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          </>
         )}
 
-        {/* Parte tipo */}
-        <div className="pjn-field-group">
-          <label className="pjn-label" htmlFor="ant-parte-tipo">Rol en la causa</label>
-          <select
-            id="ant-parte-tipo"
-            className="pjn-select"
-            value={parteTipo}
-            onChange={e => setParteTipo(e.target.value)}
-            disabled={loading}
-          >
-            {PARTE_TIPOS_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-        </div>
+        {/* SCBA form */}
+        {source === 'scba' && (
+          <>
+            <div className="pjn-field-group">
+              <label className="pjn-label">Departamento judicial</label>
+              <div className="ant-presets">
+                {SCBA_PRESETS.map(preset => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    className={`ant-preset-btn ${scbaPreset === preset.id && !scbaUseCustom ? 'active' : ''}`}
+                    onClick={() => { setScbaPreset(preset.id); setScbaUseCustom(false); }}
+                    disabled={loading}
+                    title={preset.description}
+                  >
+                    <span className="ant-preset-icon">{preset.icon}</span>
+                    {preset.label}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className={`ant-preset-btn ${scbaUseCustom ? 'active' : ''}`}
+                  onClick={() => setScbaUseCustom(true)}
+                  disabled={loading}
+                >
+                  ✏️ Personalizar
+                </button>
+              </div>
+              {!scbaUseCustom && (
+                <p className="ant-preset-desc">{activeScbaPreset.description}</p>
+              )}
+            </div>
+
+            {scbaUseCustom && (
+              <div className="pjn-field-group">
+                <label className="pjn-label">Departamentos a consultar</label>
+                <div className="ant-jurisdiction-grid">
+                  {SCBA_JURISDICTIONS.map(jur => (
+                    <label key={jur.id} className="ant-jur-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={scbaCustomJurs.includes(jur.id)}
+                        onChange={() => toggleScbaJur(jur.id)}
+                        disabled={loading}
+                      />
+                      <span>{jur.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <p className="ant-scba-note">
+              <ShieldCheck size={13} />
+              Datos directos de MEV · Suprema Corte de Justicia PBA
+            </p>
+          </>
+        )}
 
         {/* Actions */}
         <div className="pjn-actions">
@@ -333,7 +522,10 @@ export default function AntecedentesPanel() {
             disabled={loading || !nombre.trim() || jurisdictionsToSearch.length === 0}
           >
             {loading ? <Loader2 size={16} className="spin" /> : <Search size={16} />}
-            {loading ? 'Consultando PJN...' : 'Buscar antecedentes'}
+            {loading
+              ? `Consultando ${source === 'pjn' ? 'PJN' : 'SCBA MEV'}...`
+              : 'Buscar antecedentes'
+            }
           </button>
           {loading && (
             <button type="button" className="pjn-btn-secondary" onClick={handleStop}>
@@ -375,24 +567,29 @@ export default function AntecedentesPanel() {
               className={`ant-jur-tag ${jur.error ? 'error' : jur.count > 0 ? 'has-results' : 'empty'}`}
               title={jur.error || `${jur.count} causas encontradas`}
             >
-              {jur.error ? <XCircle size={12} /> : jur.count > 0 ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+              {jur.error
+                ? <XCircle size={12} />
+                : jur.count > 0
+                  ? <CheckCircle2 size={12} />
+                  : <Clock size={12} />}
               {jur.label} {jur.error ? '⚠' : `(${jur.count})`}
             </span>
           ))}
         </div>
       )}
 
-      {/* Results */}
+      {/* No results */}
       {searched && !loading && results.length === 0 && jurisdictionResults.length > 0 && jurWithErrors.length === 0 && (
         <div className="pjn-no-results">
           <FileText size={36} />
           <p>Sin causas encontradas para <strong>&quot;{nombre}&quot;</strong></p>
           <p className="pjn-no-results-sub">
-            No se registran antecedentes en las jurisdicciones consultadas con el rol seleccionado.
+            No se registran antecedentes en las jurisdicciones consultadas.
           </p>
         </div>
       )}
 
+      {/* Results */}
       {results.length > 0 && (
         <div className="pjn-results-section">
           <div className="pjn-results-header">
@@ -401,60 +598,88 @@ export default function AntecedentesPanel() {
               {totalFound} causa{totalFound !== 1 ? 's' : ''} encontrada{totalFound !== 1 ? 's' : ''}
               {jurisdictionResults.length > 1 && (
                 <span className="pjn-results-sub">
-                  en {jurWithResults.length} jurisdicción{jurWithResults.length !== 1 ? 'es' : ''}
+                  en {jurWithResults.length} {source === 'pjn' ? 'jurisdicción' : 'departamento'}{jurWithResults.length !== 1 ? 'es' : ''}
                 </span>
               )}
             </h4>
           </div>
 
           <div className="pjn-results-table-wrap">
-            <table className="pjn-results-table">
-              <thead>
-                <tr>
-                  <th>Expediente</th>
-                  <th>Carátula</th>
-                  <th>Fuero</th>
-                  <th>Dependencia</th>
-                  <th>Situación</th>
-                  <th>Última actuación</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((row, i) => (
-                  <tr key={`${row.expediente}-${row._jurisdiccion_id}-${i}`}>
-                    <td className="pjn-cell-mono">{row.expediente || '-'}</td>
-                    <td className="pjn-cell-caratula">{row.caratula || '-'}</td>
-                    <td>
-                      <span className="ant-fuero-badge">{row._jurisdiccion_label}</span>
-                    </td>
-                    <td className="pjn-cell-sm">{row.dependencia || '-'}</td>
-                    <td className="pjn-cell-sm">{row.situacion || '-'}</td>
-                    <td className="pjn-cell-sm">{row.ultimaActuacion || '-'}</td>
-                    <td>
-                      {row.link ? (
-                        <a
-                          href={row.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="pjn-link-btn"
-                          title="Ver en SCW"
-                        >
-                          <ExternalLink size={14} />
-                        </a>
-                      ) : null}
-                    </td>
+            {source === 'pjn' ? (
+              <table className="pjn-results-table">
+                <thead>
+                  <tr>
+                    <th>Expediente</th>
+                    <th>Carátula</th>
+                    <th>Fuero</th>
+                    <th>Dependencia</th>
+                    <th>Situación</th>
+                    <th>Última actuación</th>
+                    <th></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {results.map((row, i) => (
+                    <tr key={`pjn-${row.expediente}-${i}`}>
+                      <td className="pjn-cell-mono">{row.expediente || '-'}</td>
+                      <td className="pjn-cell-caratula">{row.caratula || '-'}</td>
+                      <td><span className="ant-fuero-badge">{row._jur_label}</span></td>
+                      <td className="pjn-cell-sm">{row.dependencia || '-'}</td>
+                      <td className="pjn-cell-sm">{row.situacion || '-'}</td>
+                      <td className="pjn-cell-sm">{row.ultimaActuacion || '-'}</td>
+                      <td>
+                        {row.link && (
+                          <a href={row.link} target="_blank" rel="noopener noreferrer"
+                            className="pjn-link-btn" title="Ver en SCW">
+                            <ExternalLink size={14} />
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <table className="pjn-results-table">
+                <thead>
+                  <tr>
+                    <th>Nro. Causa</th>
+                    <th>Carátula</th>
+                    <th>Departamento</th>
+                    <th>Organismo</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.map((row, i) => (
+                    <tr key={`scba-${row.nroCausa}-${i}`}>
+                      <td className="pjn-cell-mono">{row.nroCausa || row.nroExpediente || '-'}</td>
+                      <td className="pjn-cell-caratula">{row.caratula || '-'}</td>
+                      <td><span className="ant-fuero-badge">{row._jur_label}</span></td>
+                      <td className="pjn-cell-sm">{row.organismo || '-'}</td>
+                      <td className="pjn-cell-sm">{row.estado || '-'}</td>
+                      <td className="pjn-cell-sm">{row.fecha || '-'}</td>
+                      <td>
+                        {row.link && (
+                          <a href={row.link} target="_blank" rel="noopener noreferrer"
+                            className="pjn-link-btn" title="Ver en MEV SCBA">
+                            <ExternalLink size={14} />
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {jurWithErrors.length > 0 && (
             <p className="ant-errors-note">
               <AlertCircle size={13} />
               No se pudo consultar: {jurWithErrors.map(j => j.label).join(', ')}.
-              Podés volver a intentarlo individualmente desde &quot;Consulta Verificable&quot;.
             </p>
           )}
         </div>
