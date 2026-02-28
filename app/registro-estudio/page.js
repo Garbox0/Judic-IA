@@ -261,7 +261,7 @@ export default function RegistroEstudioPage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <main className="re-main" id="main-content">
+    <main className={`re-main${theme === 'dark' ? ' re-dark' : ''}`} id="main-content">
       {/* Skip navigation */}
       <a href="#re-form-content" className="re-skip-link">Ir al formulario</a>
 
