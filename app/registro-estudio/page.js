@@ -245,7 +245,8 @@ export default function RegistroEstudioPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Error al enviar la solicitud. Intentá nuevamente.');
+        const msg = data._debug ? `${data.error} (${data._debug})` : (data.error || 'Error al enviar la solicitud. Intentá nuevamente.');
+        setError(msg);
         setLoading(false);
         return;
       }

@@ -97,20 +97,22 @@ export async function POST(request) {
 
     try {
         // 1.5. Bloquear acceso hasta aprobación manual del admin
-        await supabase.auth.admin.updateUser(userId, { ban_duration: '876000h' });
+        const { error: banErr } = await supabase.auth.admin.updateUser(userId, { ban_duration: '876000h' });
+        if (banErr) console.error('[estudio/registrar] Ban error (non-fatal):', banErr.message);
 
         // 2. Actualizar perfil con datos del titular
-        await supabase
+        // Nota: no tocamos plan_tier (protegido por trigger) — el plan vive en organizations
+        const { error: profileErr } = await supabase
             .from('profiles')
             .update({
                 full_name: fullName,
-                plan_tier: 'pending_enterprise',
                 matricula: finalMatricula,
                 jurisdiccion: finalJurisdiccion,
                 matriculas,
                 verification_status: 'pending',
             })
             .eq('id', userId);
+        if (profileErr) console.error('[estudio/registrar] Profile update error (non-fatal):', profileErr.message);
 
         // 3. Crear la organización
         const { data: org, error: orgErr } = await supabase
@@ -192,9 +194,13 @@ export async function POST(request) {
         return NextResponse.json({ success: true });
 
     } catch (err) {
-        console.error('[estudio/registrar] Error:', err.message);
+        console.error('[estudio/registrar] FATAL:', err.message, err.code, err.details);
         // Intentar limpiar el usuario creado si algo falló
         await supabase.auth.admin.deleteUser(userId).catch(() => {});
-        return NextResponse.json({ error: 'Error al registrar el estudio. Intentá nuevamente.' }, { status: 500 });
+        // Devolver el error real para diagnóstico (se puede opacar en producción una vez resuelto)
+        return NextResponse.json({
+            error: 'Error al registrar el estudio. Intentá nuevamente.',
+            _debug: err.message,
+        }, { status: 500 });
     }
 }
