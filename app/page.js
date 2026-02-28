@@ -1,19 +1,18 @@
 "use client";
-import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import styles from "./page.module.css";
+import { useEffect, useState } from 'react';
 import Link from "next/link";
 import Image from "next/image";
-import { Clock, Shield, Zap, Scale, BookOpen, Users, FolderOpen, Calculator, Calendar, FileText, BarChart2, PlayCircle, Lock, Sun, Moon, CheckCircle, ShieldCheck } from 'lucide-react';
+import { Shield, Zap, Scale, BookOpen, Users, FolderOpen, FileText, PlayCircle, Sun, Moon, CheckCircle, Building2, X as XIcon, LogIn, Search, Bell, Lightbulb, FileDown, ChevronRight } from 'lucide-react';
 import SecurityBadges from './components/SecurityBadges';
 import "./landing.css"; // Version 3.0 Styles
 import VideoGuides from './components/VideoGuides';
 
 export default function Home() {
-  const router = useRouter();
   const [authError, setAuthError] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [theme, setTheme] = useState('light');
+  const [showAccessModal, setShowAccessModal] = useState(false);
+  const [pricingTab, setPricingTab] = useState('individual');
 
   // Load theme from localStorage
   useEffect(() => {
@@ -36,14 +35,14 @@ export default function Home() {
   };
 
   const services = [
-    { title: "IA Jurídica Avanzada", desc: "Consultas analizadas con modelos entrenados en normativa legal actualizada.", icon: <Scale size={42} /> },
-    { title: "Digesto Jurídico", desc: "Acceso instantáneo y offline a toda la normativa nacional y provincial.", icon: <BookOpen size={42} /> },
-    { title: "Gestión de Clientes", desc: "Base de datos completa con historial de interacciones y vinculación de causas.", icon: <Users size={42} /> },
-    { title: "Gestión de Expedientes", desc: "Organiza casos, plazos y documentos en un entorno centralizado y seguro.", icon: <FolderOpen size={42} /> },
-    { title: "Calculadoras Legales", desc: "Cálculo automático de intereses, indemnizaciones y actualizaciones monetarias.", icon: <Calculator size={42} /> },
-    { title: "Agenda Inteligente", desc: "Programación de citas y recordatorios automáticos vía WhatsApp y email.", icon: <Calendar size={42} /> },
-    { title: "Biblioteca de Modelos", desc: "Repositorio de escritos, contratos y documentos jurídicos listos para usar.", icon: <FileText size={42} /> },
-    { title: "Panel de Análisis", desc: "Métricas de rendimiento de tu estudio y comportamiento de tus clientes.", icon: <BarChart2 size={42} /> }
+    { title: "Investigación Judicial", desc: "Buscá expedientes en PJN, SCBA y fueros federales con búsqueda inteligente por número, carátula o parte.", icon: <Search size={42} /> },
+    { title: "Alertas Automáticas", desc: "Seguimiento en tiempo real. Recibí notificaciones por email ante cualquier movimiento en tus causas.", icon: <Bell size={42} /> },
+    { title: "Estrategia Judicial", desc: "Análisis estratégico de causas para anticipar movimientos, identificar precedentes y tomar mejores decisiones.", icon: <Lightbulb size={42} /> },
+    { title: "Antecedentes Completos", desc: "Importá el historial completo de un expediente con un solo crédito. Datos estructurados y listos para trabajar.", icon: <FileDown size={42} /> },
+    { title: "Gestión de Expedientes", desc: "Organizá todos tus casos, plazos y documentos en un entorno centralizado, seguro y de acceso inmediato.", icon: <FolderOpen size={42} /> },
+    { title: "Hub Federal", desc: "Acceso unificado a todos los fueros federales desde un solo panel. PJN, SCBA, SCW y más.", icon: <Scale size={42} /> },
+    { title: "Gestión de Clientes", desc: "CRM jurídico completo con historial de causas, interacciones y vinculación de expedientes por cliente.", icon: <Users size={42} /> },
+    { title: "Biblioteca de Modelos", desc: "Escritos, contratos y modelos procesales listos para adaptar y usar. Ahorrá horas de redacción.", icon: <BookOpen size={42} /> },
   ];
 
   // 🛡️ REVEAL ANIMATION (Intersection Observer)
@@ -103,7 +102,7 @@ export default function Home() {
               <Link href="#pricing" className="link-item">Precios</Link>
               <Link href="#guias" className="link-item">Guías</Link>
               <Link href="/abogados" className="btn-login-premium">Acceso Clientes</Link>
-              <Link href="/login" className="btn-login-premium">Acceso Abogados</Link>
+              <button type="button" className="btn-nav-cta" onClick={() => setShowAccessModal(true)}>Ingresar →</button>
             </div>
 
             <button
@@ -135,9 +134,13 @@ export default function Home() {
           <Link href="#guias" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>Guías</Link>
 
           <div className="mobile-access-row">
-            <Link href="/login" className="btn-login-mobile primary" onClick={() => setMobileMenuOpen(false)}>
-              Acceso Abogados
-            </Link>
+            <button
+              type="button"
+              className="btn-login-mobile primary"
+              onClick={() => { setMobileMenuOpen(false); setShowAccessModal(true); }}
+            >
+              Ingresar →
+            </button>
             <Link href="/abogados" className="btn-login-mobile" onClick={() => setMobileMenuOpen(false)}>
               Acceso Clientes
             </Link>
@@ -149,13 +152,12 @@ export default function Home() {
       <section className="hero-section" id="main-content">
         <div className="hero-grid">
           <div className="hero-content reveal">
-            <div className="badge-new">✨ Judic-IA v3.0 • Elite Intelligence</div>
+            <div className="badge-new">✨ Judic-IA · Plataforma Jurídica de Alto Rendimiento</div>
             <h1 className="hero-title">
-              La Evolución <br />
-              <span className="gradient-text italic-serif">de tu Estudio.</span>
+              La plataforma que <span className="gradient-text italic-serif">usan los mejores estudios.</span>
             </h1>
             <p className="hero-subtitle">
-              Automatiza la atención de consultas, investiga jurisprudencia en segundos y gestiona tu consultoría legal con tecnología de élite diseñada para abogados de alto rendimiento.
+              Investigá expedientes en PJN y SCBA, configurá alertas automáticas y gestioná tu estudio con tecnología de élite diseñada para abogados de alto rendimiento.
             </p>
             <div className="hero-actions">
               <Link
@@ -179,32 +181,51 @@ export default function Home() {
           </div>
 
           <div className="hero-mockup-wrapper reveal">
-            <div className="hero-card-v3">
-              <div className="mock-window">
-                <div className="mock-header">
-                  <div className="mock-header-flex">
-                    <div className="mock-avatar"></div>
-                    <div className="mock-user-info">
-                      <div className="mock-user-name">Dr. Martínez</div>
-                      <div className="mock-user-status">En línea</div>
+            <div className="hero-research-card">
+              <div className="hrc-header">
+                <span className="hrc-title">Investigación Judicial</span>
+                <span className="hrc-source-badge">PJN ▾</span>
+              </div>
+              <div className="hrc-search">
+                <Search size={15} className="hrc-search-icon" />
+                <span className="hrc-search-placeholder">Buscar expediente o número de causa...</span>
+                <div className="hrc-search-btn">→</div>
+              </div>
+              <div className="hrc-results">
+                <div className="hrc-result">
+                  <div className="hrc-result-left">
+                    <FileText size={14} className="hrc-result-fileicon" />
+                    <div>
+                      <div className="hrc-result-name">Martínez c/ García s/ Daños y Perjuicios</div>
+                      <div className="hrc-result-meta">Civil · CABA · Juzgado Nº 5</div>
                     </div>
                   </div>
-                  <div className="mock-dots-opacity">•••</div>
+                  <span className="hrc-badge hrc-badge--alert"><Bell size={11} /> Alerta</span>
                 </div>
-                <div className="mock-content">
-                  <div className="mock-bubble">
-                    Hola, soy el asistente virtual del estudio. ¿Cómo puedo ayudarte hoy con tu consulta legal?
-                  </div>
-                  <div className="mock-options">
-                    <span className="mock-chip">Accidentes Tránsito</span>
-                    <span className="mock-chip">Derecho Laboral</span>
-                    <span className="mock-chip">Sucesiones</span>
-                  </div>
-                  <div className="mock-input">
-                    <span>Escribí tu consulta...</span>
-                    <div className="mock-send"></div>
+                <div className="hrc-result">
+                  <div className="hrc-result-left">
+                    <FileText size={14} className="hrc-result-fileicon" />
+                    <div>
+                      <div className="hrc-result-name">Rodríguez, Ana María s/ Divorcio Vincular</div>
+                      <div className="hrc-result-meta">Familia · CABA · Juzgado 12</div>
+                    </div>
                   </div>
                 </div>
+                <div className="hrc-result">
+                  <div className="hrc-result-left">
+                    <FileText size={14} className="hrc-result-fileicon" />
+                    <div>
+                      <div className="hrc-result-name">Transportes del Sur SA c/ AFIP s/ Imp.</div>
+                      <div className="hrc-result-meta">Cont. Admin. Federal · CABA</div>
+                    </div>
+                  </div>
+                  <span className="hrc-badge hrc-badge--imported">✓ Importado</span>
+                </div>
+              </div>
+              <div className="hrc-footer">
+                <span className="hrc-footer-item"><Bell size={12} /> 3 alertas activas</span>
+                <span className="hrc-footer-sep">·</span>
+                <span className="hrc-footer-item"><Zap size={12} /> 15 créditos</span>
               </div>
             </div>
           </div>
@@ -213,24 +234,24 @@ export default function Home() {
         {/* 📊 STATS SECTION (Moved for Full Width Centering) */}
         <div className="stats-grid">
           <div className="stat-item">
-            <div className="stat-icon-wrapper"><Clock size={24} /></div>
+            <div className="stat-icon-wrapper"><Search size={24} /></div>
             <div>
-              <span className="stat-value">24/7</span>
-              <span className="stat-label">Atención Permanente</span>
+              <span className="stat-value">+50k</span>
+              <span className="stat-label">Expedientes buscados</span>
             </div>
           </div>
           <div className="stat-item">
             <div className="stat-icon-wrapper"><Zap size={24} /></div>
             <div>
-              <span className="stat-value">+10h</span>
-              <span className="stat-label">Ahorro Semanal</span>
+              <span className="stat-value">&lt; 3s</span>
+              <span className="stat-label">Por búsqueda PJN</span>
             </div>
           </div>
           <div className="stat-item">
             <div className="stat-icon-wrapper"><Shield size={24} /></div>
             <div>
-              <span className="stat-value">100%</span>
-              <span className="stat-label">Seguridad Cifrada</span>
+              <span className="stat-value">98%</span>
+              <span className="stat-label">Uptime garantizado</span>
             </div>
           </div>
         </div>
@@ -239,8 +260,8 @@ export default function Home() {
       {/* 🛠️ FEATURES SECTION 3.0 */}
       <section id="features" className="section-container">
         <div className="section-header reveal">
-          <h2 className="section-title">Tecnología de <span className="gradient-text italic-serif">Nueva Generación</span></h2>
-          <p className="section-subtitle">Diseñamos herramientas que no solo ahorran tiempo, sino que elevan el estándar de profesionalismo de tu práctica legal.</p>
+          <h2 className="section-title">Todo lo que necesita <span className="gradient-text italic-serif">tu estudio.</span></h2>
+          <p className="section-subtitle">Desde la búsqueda hasta el cierre de cada causa: herramientas reales para abogados que exigen resultados.</p>
         </div>
 
         <div className="grid4">
@@ -260,85 +281,168 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 🏷️ PRICING SECTION 3.0 */}
+      {/* 🏷️ PRICING SECTION — Unificado con toggle */}
       <section id="pricing" className="section-container pricing-section-bg">
         <div className="section-header reveal">
           <h2 className="section-title">Planes a <span className="gradient-text italic-serif">tu Medida</span></h2>
-          <p className="section-subtitle">Elige el motor que impulsará el crecimiento de tu estudio jurídico.</p>
+          <p className="section-subtitle">Elegí el plan que mejor se adapta a tu forma de trabajar.</p>
         </div>
 
-        <div className="grid2">
-          {/* PLAN STARTER */}
-          <div className="price-card-v3 reveal">
-            <h3 className="price-card-tag">Starter</h3>
-            <div className="price-amount">
-              Gratis<small className="price-period price-period-item">/ 14 días</small>
-            </div>
-            <ul className="price-features">
-              <li>Asistente IA básico</li>
-              <li>Hasta 5 consultas diarias</li>
-              <li>Búsqueda de jurisprudencia (2/día)</li>
-              <li>Soporte limitado</li>
-            </ul>
-            <Link href="/register" className="btn-secondary-v3 price-btn-wrap">
-              Comenzar Gratis
-            </Link>
-          </div>
-
-          {/* PLAN PROFESIONAL */}
-          <div className="price-card-v3 featured reveal delay-2">
-            <span className="price-badge">MÁS ELEGIDO</span>
-            <h3 className="price-card-tag-featured">Profesional</h3>
-            <div className="price-amount">
-              <span className="price-currency">$</span>25.000<small className="price-period price-period-item">/ mes</small>
-            </div>
-            <ul className="price-features">
-              <li className="premium-check">Asistente IA ilimitado</li>
-              <li className="premium-check">Gestión completa de clientes</li>
-              <li className="premium-check">Alertas de plazos y vencimientos</li>
-              <li className="premium-check">Soporte VIP 24/7</li>
-            </ul>
-            <Link href="/register" className="btn-primary-v3 price-btn-featured">
-              Suscribirse Ahora
-            </Link>
+        {/* Toggle tablist */}
+        <div className="pricing-toggle-wrapper reveal">
+          <div className="pricing-toggle" role="tablist" aria-label="Tipo de plan">
+            <button
+              role="tab"
+              id="tab-individual"
+              aria-selected={pricingTab === 'individual'}
+              aria-controls="tabpanel-individual"
+              className={`pricing-tab${pricingTab === 'individual' ? ' active' : ''}`}
+              onClick={() => setPricingTab('individual')}
+            >
+              Independiente
+            </button>
+            <button
+              role="tab"
+              id="tab-estudio"
+              aria-selected={pricingTab === 'estudio'}
+              aria-controls="tabpanel-estudio"
+              className={`pricing-tab${pricingTab === 'estudio' ? ' active' : ''}`}
+              onClick={() => setPricingTab('estudio')}
+            >
+              Estudio jurídico
+            </button>
           </div>
         </div>
+
+        {/* Tab: Independiente */}
+        {pricingTab === 'individual' && (
+          <div
+            id="tabpanel-individual"
+            role="tabpanel"
+            aria-labelledby="tab-individual"
+            className="grid2"
+          >
+            {/* PLAN STARTER */}
+            <div className="price-card-v3">
+              <h3 className="price-card-tag">Starter</h3>
+              <div className="price-amount">
+                Gratis<small className="price-period price-period-item">/ 14 días</small>
+              </div>
+              <ul className="price-features">
+                <li>Jurisprudencia PJN básica</li>
+                <li>Hasta 3 búsquedas diarias</li>
+                <li>Sin acceso a créditos extra</li>
+                <li>Soporte limitado</li>
+              </ul>
+              <Link href="/register" className="btn-secondary-v3 price-btn-wrap">
+                Comenzar Gratis
+              </Link>
+            </div>
+
+            {/* PLAN PROFESIONAL */}
+            <div className="price-card-v3 featured">
+              <span className="price-badge">MÁS ELEGIDO</span>
+              <h3 className="price-card-tag-featured">Profesional</h3>
+              <div className="price-amount">
+                <span className="price-currency">$</span>25.000<small className="price-period price-period-item">/ mes</small>
+              </div>
+              <ul className="price-features">
+                <li className="premium-check">Jurisprudencia PJN + SCBA + Hub Federal</li>
+                <li className="premium-check">Créditos de alertas y antecedentes disponibles</li>
+                <li className="premium-check">Gestión de expedientes, clientes y biblioteca</li>
+                <li className="premium-check">Calculadoras y legislación integradas</li>
+                <li className="premium-check">Soporte prioritario</li>
+              </ul>
+              <Link href="/register" className="btn-primary-v3 price-btn-featured">
+                Suscribirse Ahora
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Tab: Estudio */}
+        {pricingTab === 'estudio' && (
+          <div
+            id="tabpanel-estudio"
+            role="tabpanel"
+            aria-labelledby="tab-estudio"
+            className="pricing-grid-estudio"
+          >
+            {[
+              {
+                label: 'Enterprise S', members: 'Hasta 5 miembros', price: '89.000',
+                features: [
+                  'Hasta 5 abogados en simultáneo',
+                  'Bandeja compartida de causas',
+                  'Pool de créditos del estudio',
+                  'Supervisión de causas del equipo',
+                  'Roles Titular / Supervisor / Abogado',
+                ],
+                cta: 'Registrar Estudio', href: '/registro-estudio',
+              },
+              {
+                label: 'Enterprise M', members: 'Hasta 10 miembros', price: '149.000', featured: true,
+                features: [
+                  'Hasta 10 abogados en simultáneo',
+                  'Bandeja compartida de causas',
+                  'Pool de créditos del estudio',
+                  'Supervisión de causas del equipo',
+                  'Historial de uso de créditos por miembro',
+                  'Soporte prioritario',
+                ],
+                cta: 'Registrar Estudio', href: '/registro-estudio',
+              },
+              {
+                label: 'Enterprise L', members: 'Hasta 20 miembros', price: '249.000',
+                features: [
+                  'Hasta 20 abogados en simultáneo',
+                  'Bandeja compartida de causas',
+                  'Pool de créditos del estudio',
+                  'Supervisión de causas del equipo',
+                  'Historial de uso de créditos por miembro',
+                  'Soporte VIP dedicado',
+                ],
+                cta: 'Registrar Estudio', href: '/registro-estudio',
+              },
+              {
+                label: 'Enterprise XL', members: 'Miembros ilimitados', price: '449.000',
+                features: [
+                  'Sin límite de miembros',
+                  'Todas las funciones incluidas',
+                  'Onboarding y configuración inicial',
+                  'Soporte técnico prioritario',
+                  'Pool de créditos ampliado',
+                ],
+                cta: 'Contactar ventas', href: '/registro-estudio',
+              },
+            ].map(p => (
+              <div key={p.label} className={`ec${p.featured ? ' ec--featured' : ''}`}>
+                {p.featured && <span className="ec-badge">MÁS ELEGIDO</span>}
+                <div className="ec-top">
+                  <span className="ec-name">{p.label}</span>
+                  <span className="ec-members">{p.members}</span>
+                </div>
+                <div className="ec-price">
+                  <span className="ec-currency">$</span>
+                  <span className="ec-amount">{p.price}</span>
+                  <span className="ec-period">/ mes</span>
+                </div>
+                <ul className="ec-features">
+                  {p.features.map(f => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+                <Link href={p.href} className={`ec-btn${p.featured ? ' ec-btn--primary' : ''}`}>
+                  {p.cta}
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <VideoGuides />
       <div className="section-spacer"></div>
-
-      {/* 🏛️ ENTERPRISE SECTION */}
-      <section className="reveal">
-        <div className="enterprise-banner">
-          <div className="enterprise-banner-content">
-            <span className="enterprise-banner-tag">PLAN ENTERPRISE</span>
-            <h2 className="enterprise-banner-title">
-              ¿Tenés un equipo? Llevá tu estudio al <span className="gradient-text italic-serif">siguiente nivel.</span>
-            </h2>
-            <p className="enterprise-banner-sub">
-              Gestión multi-abogado, bandeja compartida de expedientes, supervisión de equipo y créditos compartidos. Todo en un solo lugar.
-            </p>
-            <div className="enterprise-banner-plans">
-              {[
-                { label: 'Enterprise S', members: 'Hasta 5', price: '$89.000' },
-                { label: 'Enterprise M', members: 'Hasta 10', price: '$149.000' },
-                { label: 'Enterprise L', members: 'Hasta 20', price: '$249.000' },
-                { label: 'Enterprise XL', members: 'Ilimitado', price: '$449.000' },
-              ].map(p => (
-                <div key={p.label} className="enterprise-plan-pill">
-                  <span className="enterprise-plan-name">{p.label}</span>
-                  <span className="enterprise-plan-members">{p.members} miembros</span>
-                  <span className="enterprise-plan-price">{p.price}<small>/mes</small></span>
-                </div>
-              ))}
-            </div>
-            <Link href="/registro-estudio" className="btn-primary-v3 enterprise-banner-cta">
-              Registrar mi Estudio →
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* 📞 CTA SECTION 3.0 */}
       <section className="reveal">
@@ -467,6 +571,72 @@ export default function Home() {
       )}
 
 
+
+      {/* 🔐 ACCESO ABOGADOS MODAL v4 */}
+      {showAccessModal && (
+        <div
+          className="access-modal-overlay"
+          onClick={() => setShowAccessModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="access-modal-title"
+          onKeyDown={e => e.key === 'Escape' && setShowAccessModal(false)}
+        >
+          <div className="access-modal-v4" onClick={e => e.stopPropagation()}>
+            <div className="access-modal-v4-header">
+              <h2 id="access-modal-title" className="access-modal-v4-title">Acceso Profesional</h2>
+              <button
+                type="button"
+                className="access-modal-v4-close"
+                onClick={() => setShowAccessModal(false)}
+                aria-label="Cerrar modal de acceso"
+              >
+                <XIcon size={18} />
+              </button>
+            </div>
+            <p className="access-modal-v4-sub">¿Cómo querés ingresar?</p>
+
+            <div className="access-modal-v4-options">
+              <Link
+                href="/login"
+                className="access-option-row"
+                onClick={() => setShowAccessModal(false)}
+              >
+                <div className="access-option-icon" aria-hidden="true">
+                  <LogIn size={22} />
+                </div>
+                <div className="access-option-body">
+                  <span className="access-option-label">Abogado independiente</span>
+                  <span className="access-option-desc">Tu panel personal de Judic-IA</span>
+                </div>
+                <ChevronRight size={18} className="access-option-arrow" aria-hidden="true" />
+              </Link>
+
+              <Link
+                href="/login"
+                className="access-option-row"
+                onClick={() => setShowAccessModal(false)}
+              >
+                <div className="access-option-icon" aria-hidden="true">
+                  <Building2 size={22} />
+                </div>
+                <div className="access-option-body">
+                  <span className="access-option-label">Mi estudio jurídico</span>
+                  <span className="access-option-desc">Panel compartido del estudio</span>
+                </div>
+                <ChevronRight size={18} className="access-option-arrow" aria-hidden="true" />
+              </Link>
+            </div>
+
+            <div className="access-modal-v4-register">
+              <span>¿Todavía no tenés estudio?</span>
+              <Link href="/registro-estudio" onClick={() => setShowAccessModal(false)}>
+                Registrar mi estudio →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 🏛️ FOOTER 3.0 PREMIUM */}
       <footer className="footer-premium-v3">

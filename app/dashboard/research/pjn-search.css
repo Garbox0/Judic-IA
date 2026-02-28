@@ -2304,7 +2304,11 @@ body.light-theme .exp-chip { background: #f1f5f9; color: #64748b; border-color: 
     border-color: rgba(248, 113, 113, 0.4);
     background: rgba(248, 113, 113, 0.08);
     color: #f87171;
-    cursor: default;
+    cursor: pointer;
+}
+.exp-import-btn--no-credits:hover {
+    background: rgba(248, 113, 113, 0.15);
+    border-color: rgba(248, 113, 113, 0.6);
 }
 .exp-import-btn--error {
     border-color: rgba(248, 113, 113, 0.4);
@@ -2376,3 +2380,155 @@ body.light-theme .exp-import-btn { color: #b45309; background: rgba(245,166,35,0
 body.light-theme .exp-import-btn--done { color: #059669; background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.3); }
 
 /* Remove old ant-source-* rules that are no longer used */
+
+/* ── Modal de créditos ── */
+.ant-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+.ant-modal {
+    background: var(--bg-secondary, #1e293b);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    position: relative;
+}
+.ant-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+.ant-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary, #f1f5f9);
+}
+.ant-modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted, #64748b);
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+}
+.ant-modal-close:hover {
+    color: #f87171;
+    background: rgba(248,113,113,0.1);
+}
+.ant-modal-desc {
+    font-size: 0.82rem;
+    color: var(--text-secondary, #94a3b8);
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+}
+.ant-modal-packs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+.ant-modal-pack {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.75rem;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, background 0.15s;
+}
+.ant-modal-pack:hover:not(:disabled) {
+    background: rgba(201,162,39,0.08);
+    border-color: rgba(201,162,39,0.4);
+}
+.ant-modal-pack:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.ant-modal-pack--featured {
+    border-color: rgba(201,162,39,0.5);
+    background: rgba(201,162,39,0.07);
+}
+.ant-modal-pack--featured:hover:not(:disabled) {
+    background: rgba(201,162,39,0.14);
+    border-color: rgba(201,162,39,0.7);
+}
+.ant-modal-pack-label {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-primary, #f1f5f9);
+    flex: 1;
+}
+.ant-modal-pack-price {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #c9a227;
+}
+.ant-modal-pack-sub {
+    font-size: 0.72rem;
+    color: var(--text-muted, #64748b);
+    width: 100%;
+}
+.ant-modal-pack-badge {
+    position: absolute;
+    top: -8px;
+    right: 10px;
+    background: linear-gradient(135deg, #c9a227, #e8c547);
+    color: #000;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* ── Botón de documento bloqueado ── */
+.exp-doc-locked {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    opacity: 0.5;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: opacity 0.15s;
+}
+.exp-doc-locked:hover {
+    opacity: 1;
+}
+
+/* ── Light theme overrides for modal ── */
+body.light-theme .ant-modal {
+    background: #fff;
+    border-color: rgba(0,0,0,0.08);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+}
+body.light-theme .ant-modal-title { color: #1e293b; }
+body.light-theme .ant-modal-desc { color: #64748b; }
+body.light-theme .ant-modal-pack {
+    background: rgba(0,0,0,0.02);
+    border-color: rgba(0,0,0,0.08);
+}
+body.light-theme .ant-modal-pack-label { color: #1e293b; }

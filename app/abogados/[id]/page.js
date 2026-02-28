@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Star, MapPin, Award, MessageCircle, ArrowLeft, Loader, Moon, Sun, Send, CheckCircle, X, AlertCircle } from 'lucide-react';
+import { Star, MapPin, Award, MessageCircle, ArrowLeft, Loader, Moon, Sun, Send, CheckCircle, X, AlertCircle, Building2 } from 'lucide-react';
 import '../abogados.css';
 import './profile.css';
 
@@ -202,6 +202,13 @@ export default function LawyerProfilePage() {
                                     <Star size={16} fill="#fbbf24" stroke="#fbbf24" aria-hidden="true" />
                                     <span className="rating-value">{lawyer.avg_rating}</span>
                                     <span className="rating-count">({lawyer.review_count} {lawyer.review_count === 1 ? 'reseña' : 'reseñas'})</span>
+                                </div>
+                            )}
+
+                            {lawyer.estudio && (
+                                <div className="profile-estudio-badge" aria-label={`Miembro de ${lawyer.estudio.name}`}>
+                                    <Building2 size={13} aria-hidden="true" />
+                                    <span>Miembro de <strong>{lawyer.estudio.name}</strong></span>
                                 </div>
                             )}
                         </div>

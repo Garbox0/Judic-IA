@@ -1,8 +1,476 @@
-<!DOCTYPE html><html><head>
-    <link rel="stylesheet" href="chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_embedder.css">
-  </head>
-  <body>
-    
-  
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html lang="es" xmlns="http://www.w3.org/1999/xhtml"><head><link type="text/css" rel="stylesheet" href="/scw/javax.faces.resource/theme.css.seam?ln=primefaces-aristo"><link type="text/css" rel="stylesheet" href="/scw/javax.faces.resource/bootstrap.css.seam?ln=css/bootstrap"><link type="text/css" rel="stylesheet" href="/scw/javax.faces.resource/font-awesome.css.seam?ln=css/font-awesome-4.2.0/css"><script type="text/javascript" async="" src="https://www.googletagmanager.com/gtag/js?id=G-5R55LTBDXK&amp;cx=c&amp;_slc=1"></script><script async="" src="//www.google-analytics.com/analytics.js"></script><script type="text/javascript" src="/scw/javax.faces.resource/jquery/jquery.js.seam?ln=primefaces"></script><script type="text/javascript">
+    $ = jQuery;
+</script><link type="text/css" rel="stylesheet" href="/scw/javax.faces.resource/style.css.seam?ln=css/template"><script type="text/javascript" src="/scw/javax.faces.resource/ga.js.seam?ln=js/analytics"></script><script type="text/javascript" src="/scw/javax.faces.resource/footer.js.seam?ln=js/template"></script><link type="text/css" rel="stylesheet" href="/scw/javax.faces.resource/style.css.seam?ln=css/expediente"><link type="text/css" rel="stylesheet" href="/scw/javax.faces.resource/primefaces.css.seam?ln=primefaces"><script type="text/javascript" src="/scw/javax.faces.resource/jsf.js.seam?ln=javax.faces"></script><script type="text/javascript" src="/scw/javax.faces.resource/jquery.js.seam"></script><script type="text/javascript" src="/scw/javax.faces.resource/richfaces.js.seam"></script><script type="text/javascript" src="/scw/javax.faces.resource/richfaces-base-component.js.seam"></script><script type="text/javascript" src="/scw/javax.faces.resource/richfaces-event.js.seam"></script><script type="text/javascript" src="/scw/javax.faces.resource/popupPanel.js.seam?ln=org.richfaces"></script><script type="text/javascript" src="/scw/javax.faces.resource/popupPanelBorders.js.seam?ln=org.richfaces"></script><script type="text/javascript" src="/scw/javax.faces.resource/popupPanelSizer.js.seam?ln=org.richfaces"></script><link type="text/css" rel="stylesheet" href="/scw/rfRes/popupPanel.ecss.seam?db=eAG7ELb5HwAGqgLY&amp;ln=org.richfaces"><script type="text/javascript" src="/scw/javax.faces.resource/richfaces-queue.js.seam"></script><script type="text/javascript" src="/scw/javax.faces.resource/primefaces.js.seam?ln=primefaces"></script><link type="text/css" rel="stylesheet" href="/scw/javax.faces.resource/favorite.css.seam?ln=css/favorite"><script type="text/javascript" src="/scw/javax.faces.resource/togglePanel.js.seam?ln=org.richfaces"></script><script type="text/javascript" src="/scw/javax.faces.resource/tabPanel.js.seam?ln=org.richfaces"></script><link type="text/css" rel="stylesheet" href="/scw/rfRes/tabPanel.ecss.seam?db=eAG7ELb5HwAGqgLY&amp;ln=org.richfaces"><script type="text/javascript" src="/scw/javax.faces.resource/togglePanelItem.js.seam?ln=org.richfaces"></script><script type="text/javascript" src="/scw/javax.faces.resource/tab.js.seam?ln=org.richfaces"></script><script type="text/javascript" src="/scw/javax.faces.resource/jquery/jquery-plugins.js.seam?ln=primefaces"></script><script type="text/javascript" src="/scw/javax.faces.resource/datatable.js.seam?ln=org.richfaces"></script><link type="text/css" rel="stylesheet" href="/scw/rfRes/datatable.ecss.seam?db=eAG7ELb5HwAGqgLY&amp;ln=org.richfaces"><script type="text/javascript" src="/scw/javax.faces.resource/collapsible-subtable.js.seam?ln=org.richfaces"></script><link type="text/css" rel="stylesheet" href="/scw/rfRes/collapsible-subtable.ecss.seam?db=eAG7ELb5HwAGqgLY&amp;ln=org.richfaces"><link type="text/css" rel="stylesheet" href="/scw/javax.faces.resource/style.css.seam?ln=css/menu"><script type="text/javascript" src="/scw/javax.faces.resource/favorite.js.seam?ln=js/favorite"></script><script type="text/javascript" src="/scw/javax.faces.resource/spin.min.js.seam?ln=js/spin"></script><style type="text/css"></style><script type="text/javascript" src="/scw/javax.faces.resource/jquery.spin.js.seam?ln=js/spin"></script><link type="text/css" rel="stylesheet" href="/scw/javax.faces.resource/style.css.seam?ln=css/pagination">
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
 
-</body></html>
+<title>Sistema de Consultas Web</title>
+
+<link href="https://static.pjn.gov.ar/apps/pjn-scw/icon_fav.ico" rel="shortcut icon" type="image/x-icon"><script type="text/javascript" src="/scw/javax.faces.resource/bootstrap.min.js.seam?ln=js/bootstrap"></script><link type="text/css" rel="stylesheet" href="/scw/javax.faces.resource/theme.css.seam?ln=primefaces-aristo"><script type="text/javascript">
+    $ = jQuery;
+</script><script type="text/javascript">
+			scw = window.scw = window.scw || {};
+			scw.analytics = scw.analytics || {};
+			scw.analytics.config = {siteId: 'UA-48831272-1' };
+		</script><script type="text/javascript">
+			scw.analytics.init();
+			scw.analytics.trackUser('anonimo');
+		</script><style>
+			.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default {
+				font-weight: normal !important;
+				letter-spacing: 2px;
+			}
+			
+			.rf-tab-hdr-inact.rf-tab-hdr-top:hover {
+				border-top: 1px solid rgb(80,132,206);
+			}
+			
+			.rf-tab-hdr-inact.rf-tab-hdr-top {
+				height: 40px;
+				padding: 5px 15px 3px;
+				letter-spacing: 1px;
+				border: 0px;
+				font-size: 15px;
+				box-shadow: 1px -5px 2px -7px rgba(0, 0, 0, 0.4) inset, 0px -2px 4px -2px rgba(0, 0, 0, 0.4);
+			}
+			.rf-tab-hdr-act {
+				height: 40px;
+				padding: 5px 15px 3px !important;
+				letter-spacing: 1px;
+				background: rgb(80,132,206);
+				color: #FFFFFF;
+				border: 0px;
+				font-size: 16px;
+				box-shadow: 0px -8px 7px -9px rgba(130, 176, 216, 0.4) inset, -2px -2px 5px -2px rgba(130, 176, 216, 0.4);
+			}
+			.rf-tab-hdr-tabline-vis.rf-tab-hdr-tabline-top	{
+				border-bottom: 1px solid #CCCCCC;
+				border-top: 0;
+				border-left: 0;
+				border-right: 0;
+				height: 40px;
+				padding: 5px 0px 3px !important;
+			}
+			.rf-tab-cnt {
+				padding: 0px;
+				border: 0px;
+			}
+			.rf-tab-hdr-spcr {
+				border-bottom: 0px;
+				padding: 0 !important;
+			}
+			.rf-tab-hdr-brd {
+				border: 0px;
+			}
+			.back {
+				padding-top: 16px;
+				padding-left: 16px;
+			}
+		</style></head>
+		
+		
+		
+		<body style="">
+	<div id="content">
+
+
+		<div class="no-margin no-padding">
+
+			<div class="blueGradient">
+			<a href="https://scw.pjn.gov.ar/scw" style="text-decoration: none"><table>
+<tbody>
+<tr>
+<td>
+					
+					<h2 style="color: #FFFFFF; font-size: 22pt;">&nbsp;Sistema de Consulta Web <small style="color: #B1B1B1">Poder Judicial de la Nación</small></h2></td>
+</tr>
+</tbody>
+</table>
+
+			</a>
+			</div>
+		</div>
+<form id="j_idt23:menuNavigation" name="j_idt23:menuNavigation" method="post" action="/scw/expediente.seam" enctype="application/x-www-form-urlencoded">
+<input type="hidden" name="j_idt23:menuNavigation" value="j_idt23:menuNavigation">
+
+		<div class="navbar navbar-default navbar-static-top no-margin-bottom no-padding-bottom" role="navigation" style="min-height:0px;">
+			<div class="navbar-header">
+         		<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#nav-header">
+           			<span class="sr-only">Menu</span>
+           			<i aria-hidden="true" class="fa fa-bars"></i>
+         		</button>
+	       	</div>
+	       	<hr class="font-color-white no-padding no-margin">
+	       		<ul class="nav navbar-nav">	
+	
+    	<li>
+		</li>
+	       		</ul>	
+	       	<hr class="font-color-white no-padding no-margin">
+	       		<ul class="nav navbar-nav">	
+	
+    	<li><a href="/scw/expediente.seam?actionOutcome=%2Fhome.xhtml" id="j_idt23:menuNavigation:j_idt35:menuNuevaConsulta" type="submit" class="menu-btn-border-right menu-btn-focus"><i aria-hidden="true" class="fa fa-search fa-4"></i>
+				Nueva Consulta Pública
+			</a>
+		</li>
+	       		</ul>      		
+	        
+	   	    <div class="collapse navbar-collapse navbar-blue" id="nav-header">
+	       		
+			
+       			<ul class="nav navbar-nav navbar-right">
+    		<li><a href="https://sau.pjn.gov.ar/ruw/gwtInit.gwt#_" target="_blank" class="menu-btn-border">
+    				<i aria-hidden="true" class="fa fa-user"></i>
+    				Registrarse
+				</a>
+			</li>
+    		<li>
+    			
+    			<a href="https://portalpjn.pjn.gov.ar" class="menu-btn-border-right">
+    				<i aria-hidden="true" class="fa fa-lock"></i> Iniciar sesión
+				</a>
+        		
+			</li>
+
+			    	<li><a href="/scw/expediente.seam?actionOutcome=%2Fayuda.xhtml" id="j_idt23:menuNavigation:j_idt65" type="submit" title="Ayuda" class="help"><i aria-hidden="true" class="fa fa-question-circle fa-lg"></i></a>
+					</li>
+			    </ul>
+
+	       	</div>
+		</div><input type="hidden" name="javax.faces.ViewState" id="javax.faces.ViewState" value="-2746762134009480713:-2262906929622258924" autocomplete="off">
+</form>
+		<div class="container"><div id="fcMsg"></div>
+			<style>
+				table > tbody > tr > td > div > a.btn {
+					width: inherit !important;
+					padding: 6px 12px !important;
+					height: inherit !important;
+				}
+			</style><div id="j_idt72:dejarNotaPopup" style="visibility: hidden;"><div class="rf-pp-shade" id="j_idt72:dejarNotaPopup_shade" style="z-index:100;"><button class="rf-pp-btn" id="j_idt72:dejarNotaPopupFirstHref" name="j_idt72:dejarNotaPopupfirstHref"></button></div><div class="rf-pp-cntr no-padding no-margin background-gradient-grey col-lg-5 col-sm-5 col-sm-11 col-xs-11" id="j_idt72:dejarNotaPopup_container" style="position: fixed; z-index:100; "><div class="rf-pp-shdw" id="j_idt72:dejarNotaPopup_shadow" style="opacity: 0.1;"></div><div class="rf-pp-cnt-scrlr" id="j_idt72:dejarNotaPopup_content_scroller"><div class="rf-pp-cnt" id="j_idt72:dejarNotaPopup_content">
+<form id="j_idt72:dejarNotaForm" name="j_idt72:dejarNotaForm" method="post" action="/scw/expediente.seam" class="editForm" enctype="application/x-www-form-urlencoded">
+<input type="hidden" name="j_idt72:dejarNotaForm" value="j_idt72:dejarNotaForm">
+
+				        <div div="panelDejarNota" class="panel panel-default no-margin" role="alert">
+							<div id="libroNotas" class="panel-heading"><strong>Libro de Notas Electrónicas</strong></div>
+							<div id="panelBody" class="panel-body">
+								<h4 role="presentation">¿Confirma <strong>dejar nota</strong> en el expediente seleccionado?</h4><div id="divPresentation" class="margin-top-sm" role="presentation"><input id="j_idt72:dejarNotaForm:botonAceptar" name="j_idt72:dejarNotaForm:botonAceptar" onclick="jsf.util.chain(this,event,&quot;PF('dialog').show();&quot;,&quot;RichFaces.ajax(\&quot;j_idt72:dejarNotaForm:botonAceptar\&quot;,event,{\&quot;incId\&quot;:\&quot;1\&quot;} )&quot;);return false;" value="Confirmar" class="btn btn-success" type="submit">
+										<a href="#" class="btn btn-primary pull-right" onclick="RichFaces.$('j_idt72:dejarNotaPopup').hide();" aria-hiden="true">Cancelar</a>	
+							     	</div><table id="tableConfirmarDejarNota" style="width: 100%">
+									
+									
+								</table>
+							</div>
+						</div><input type="hidden" name="javax.faces.ViewState" id="javax.faces.ViewState" value="-2746762134009480713:-2262906929622258924" autocomplete="off">
+</form></div></div></div><script type="text/javascript">new RichFaces.ui.PopupPanel("j_idt72:dejarNotaPopup",{"autosized":true} );</script></div>
+<form id="expediente" name="expediente" method="post" action="/scw/expediente.seam" enctype="multipart/form-data">
+<input type="hidden" name="expediente" value="expediente">
+
+			<div class="container">
+				 
+				<div class="row"><div id="expediente:j_idt78" class="col-xs-12 col-sm-10 col-md-7 col-lg-10 no-padding">
+					<div class="back col-lg-2 col-md-4 col-sm-3 col-xs-12"><div id="expediente:j_idt80">
+							<a class="btn btn-default bg-info" style="border-width: 1pt; border-color: #000000;" href="#" onclick="history.go(-1); return false;"><i aria-hidden="true" class="fa fa-arrow-circle-left"></i>Volver</a></div>
+					</div></div>
+				</div>					
+				<div class="row">
+					<div class="col-12 col-sm-12 col-md-12 col-lg-12">
+						<div class="row margin-top-xs"><fieldset id="expediente:j_idt99:j_idt100" class="ui-fieldset ui-widget ui-widget-content ui-corner-all ui-hidden-container ui-fieldset-toggleable border-grey-light corner-rounded-sm no-padding-top" style="background-color: #FAFAFA" data-widget="widget_expediente_j_idt99_j_idt100"><legend class="ui-fieldset-legend ui-corner-all ui-state-default"><span class="ui-fieldset-toggler ui-icon ui-icon-minusthick"></span>Datos Generales</legend><div class="ui-fieldset-content">
+			<div class="row no-margin no-padding">
+				<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+
+
+	<div class="form-group">
+		<div class="col-xs-12 col-sm-12 col-md-2 col-lg-2 control-label">
+			<label>Expediente:</label>
+		</div>
+		<div class="col-xs-10 col-sm-10 col-md-10 col-lg-10"><span style="color:#000000;">CNT 021236/2018</span>
+
+<input type="hidden" name="expediente:j_idt99:j_idt105" value="expediente:j_idt99:j_idt105">
+<input type="hidden" name="javax.faces.ViewState" id="javax.faces.ViewState" value="-2746762134009480713:-2262906929622258924" autocomplete="off">
+		
+		</div>
+	</div>
+				</div>
+			</div>
+			<div class="row no-margin no-padding">
+				<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+
+
+	<div class="form-group">
+		<div class="col-xs-12 col-sm-12 col-md-2 col-lg-2 control-label">
+			<label>Jurisdicción:</label>
+		</div>
+		<div class="col-xs-10 col-sm-10 col-md-10 col-lg-10"><span id="expediente:j_idt99:detailCamera" class="form_control" style="text-transform: uppercase; color:#000000;">Cámara Nacional de Apelaciones del Trabajo</span>		
+		</div>
+	</div>
+				</div>
+			</div>
+			<div class="row no-margin no-padding">
+				<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+
+
+	<div class="form-group">
+		<div class="col-xs-12 col-sm-12 col-md-2 col-lg-2 control-label">
+			<label for="detailDependencia">Dependencia:</label>
+		</div>
+		<div class="col-xs-10 col-sm-10 col-md-10 col-lg-10"><span id="expediente:j_idt99:detailDependencia" class="form_control" style="text-transform: uppercase; color:#000000;">JUZGADO NACIONAL DE 1RA INSTANCIA DEL TRABAJO NRO. 46</span>		
+		</div>
+	</div>
+				</div>
+			</div>
+			<div class="row no-margin no-padding">
+				<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+
+
+	<div class="form-group">
+		<div class="col-xs-12 col-sm-12 col-md-2 col-lg-2 control-label">
+			<label for="detailSituation">Sit. Actual:</label>
+		</div>
+		<div class="col-xs-10 col-sm-10 col-md-10 col-lg-10"><span id="expediente:j_idt99:detailSituation" class="form_control" style="text-transform: uppercase; color:#000000;">EN LETRA</span>		
+		</div>
+	</div>
+				</div>
+			</div>
+			<div class="row no-margin no-padding">
+				<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+
+
+	<div class="form-group">
+		<div class="col-xs-12 col-sm-12 col-md-2 col-lg-2 control-label">
+			<label for="detailCover">Carátula:</label>
+		</div>
+		<div class="col-xs-10 col-sm-10 col-md-10 col-lg-10"><span id="expediente:j_idt99:detailCover" class="form_control" style="text-transform: uppercase; color:#000000;">EXPERTA ART S.A. c/ GONZALEZ, LUCIA BEATRIZ s/EJECUCION FISCAL</span>		
+		</div>
+	</div>
+				</div>
+			</div></div><input type="hidden" id="expediente:j_idt99:j_idt100_collapsed" name="expediente:j_idt99:j_idt100_collapsed" value="false"></fieldset>
+						</div>
+					</div>
+				</div>
+				
+				<div class="row no-padding no-margin"><div id="expediente:expedienteTab" class="rf-tbp tabs-header"><input id="expediente:expedienteTab-value" name="expediente:expedienteTab-value" type="hidden" value="actuaciones"><div class="rf-tab-hdr-tabline-vis rf-tab-hdr-tabline-top"><table class="rf-tab-hdr-tabs" cellspacing="0"><tbody><tr><td style="padding-left: 5px;" class="rf-tab-hdr-spcr"><br></td><td id="expediente:actuaciones:header:inactive" class="rf-tab-hdr rf-tab-hdr-inact rf-tab-hdr-top" style="display : none"><span class="rf-tab-lbl">Actuaciones</span></td><td id="expediente:actuaciones:header:active" class="rf-tab-hdr rf-tab-hdr-act rf-tab-hdr-top" style=""><span class="rf-tab-lbl">Actuaciones</span></td><td id="expediente:actuaciones:header:disabled" class="rf-tab-hdr rf-tab-hdr-dis rf-tab-hdr-top" style="display : none"><span class="rf-tab-lbl">Actuaciones</span></td><td style="" class="rf-tab-hdr-spcr rf-tab-hortab-tabspcr-wdh"><br></td><td id="expediente:j_idt270:header:inactive" class="rf-tab-hdr rf-tab-hdr-inact rf-tab-hdr-top" style=""><span class="rf-tab-lbl">Intervinientes</span></td><td id="expediente:j_idt270:header:active" class="rf-tab-hdr rf-tab-hdr-act rf-tab-hdr-top" style="display : none"><span class="rf-tab-lbl">Intervinientes</span></td><td id="expediente:j_idt270:header:disabled" class="rf-tab-hdr rf-tab-hdr-dis rf-tab-hdr-top" style="display : none"><span class="rf-tab-lbl">Intervinientes</span></td><td style="" class="rf-tab-hdr-spcr rf-tab-hortab-tabspcr-wdh"><br></td><td id="expediente:j_idt348:header:inactive" class="rf-tab-hdr rf-tab-hdr-inact rf-tab-hdr-top" style=""><span class="rf-tab-lbl">Vinculados</span></td><td id="expediente:j_idt348:header:active" class="rf-tab-hdr rf-tab-hdr-act rf-tab-hdr-top" style="display : none"><span class="rf-tab-lbl">Vinculados</span></td><td id="expediente:j_idt348:header:disabled" class="rf-tab-hdr rf-tab-hdr-dis rf-tab-hdr-top" style="display : none"><span class="rf-tab-lbl">Vinculados</span></td><td style="" class="rf-tab-hdr-spcr rf-tab-hortab-tabspcr-wdh"><br></td><td id="expediente:j_idt380:header:inactive" class="rf-tab-hdr rf-tab-hdr-inact rf-tab-hdr-top" style=""><span class="rf-tab-lbl">Recursos</span></td><td id="expediente:j_idt380:header:active" class="rf-tab-hdr rf-tab-hdr-act rf-tab-hdr-top" style="display : none"><span class="rf-tab-lbl">Recursos</span></td><td id="expediente:j_idt380:header:disabled" class="rf-tab-hdr rf-tab-hdr-dis rf-tab-hdr-top" style="display : none"><span class="rf-tab-lbl">Recursos</span></td><td style="" class="rf-tab-hdr-spcr rf-tab-hortab-tabspcr-wdh"><br></td><td style="padding-right: 5px; width: 100%;" class="rf-tab-hdr-spcr"><br></td></tr></tbody></table><div class="rf-tab-hdr-scrl-lft rf-tab-hdn">«</div><div class="rf-tab-hdr-tablst rf-tab-hdn">↓</div><div class="rf-tab-hdr-scrl-rgh rf-tab-hdn">»</div></div><div class="rf-tab-hdr-brd"></div><div id="expediente:actuaciones" class="rf-tab"><div class="rf-tab-cnt" id="expediente:actuaciones:content">
+	
+	<style>
+		.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default {
+		   	background: -moz-linear-gradient(center top , rgba(255, 255, 255, 0.7), rgba(180, 215, 231, 0.3)) repeat scroll 0% 0% rgb(180, 215, 231);
+			text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.7);
+		}
+		
+		.background-grey-button {
+			background: #888888;
+		}
+    </style>
+
+  	<script type="text/javascript">
+
+		function todos(){
+			if(document.getElementById("expediente:checkBoxOtrasActuacionesId").checked){
+				document.getElementById("expediente:checkBoxDespachosYEscritosId").checked=false;
+				document.getElementById("expediente:checkBoxnotaelEctronicasYPapelId").checked=false;
+				document.getElementById("expediente:checkBoxInformacionesId").checked=false;										
+			}else{
+				document.getElementById("expediente:checkBoxDespachosYEscritosId").checked=true;
+				document.getElementById("expediente:checkBoxnotaelEctronicasYPapelId").checked=true;
+				document.getElementById("expediente:checkBoxInformacionesId").checked=true;					
+			}
+		}
+	
+		function controlDeLosTresPrimeros(){
+			var despachoChecked=document.getElementById("expediente:checkBoxDespachosYEscritosId").checked;
+			var notifChecked=document.getElementById("expediente:checkBoxnotaelEctronicasYPapelId").checked;
+			var infoChecked=document.getElementById("expediente:checkBoxInformacionesId").checked;			
+			
+			if(!despachoChecked && !notifChecked && !infoChecked){
+				document.getElementById("expediente:checkBoxOtrasActuacionesId").checked=true;
+			}else if(despachoChecked || notifChecked || infoChecked){
+				document.getElementById("expediente:checkBoxOtrasActuacionesId").checked=false;
+			}
+		}
+	
+	</script><div id="expediente:actuacionTab"><div id="expediente:j_idt141:notifPopup" style="visibility: hidden;"><div class="rf-pp-shade" id="expediente:j_idt141:notifPopup_shade" style="z-index:100;"><button class="rf-pp-btn" id="expediente:j_idt141:notifPopupFirstHref" name="expediente:j_idt141:notifPopupfirstHref"></button></div><div class="rf-pp-cntr background-gradient-grey" id="expediente:j_idt141:notifPopup_container" style="position: fixed; z-index:100; "><div class="rf-pp-shdw" id="expediente:j_idt141:notifPopup_shadow" style="opacity: 0.1;"></div><div class="rf-pp-cnt-scrlr" id="expediente:j_idt141:notifPopup_content_scroller"><div class="rf-pp-cnt" id="expediente:j_idt141:notifPopup_content">
+		        <div class="panel panel-default">
+					<div class="panel-heading">
+						<strong>Detalle de Notificacion</strong> <br>
+					</div>
+					<div class="panel-body"><table class="text-center">
+<tbody>
+<tr>
+<td><table id="expediente:j_idt141:movimientoCedula-table" class="table-striped border-dark-grey-sm">
+<thead>
+<tr>
+<th class="background-gradient-blue font-color-white padding-top-xs font-size-md text-center padding-bottom-xs" scope="col">Fecha</th>
+<th class="background-gradient-blue font-color-white padding-top-xs font-size-md text-center padding-bottom-xs" scope="col">Movimiento</th>
+</tr>
+</thead>
+<tbody>
+<tr><td></td></tr></tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+
+			     		<a href="#" class="btn btn-primary" style="margin-top: 10pt;" onclick="RichFaces.$('expediente:j_idt141:notifPopup').hide()">Volver</a>
+					</div>
+				</div></div></div></div><script type="text/javascript">new RichFaces.ui.PopupPanel("expediente:j_idt141:notifPopup",{"autosized":true} );</script></div><table id="expediente:panelGridFiltro">
+<tbody>
+<tr>
+<td><input id="expediente:checkBoxDespachosYEscritosId" type="checkbox" name="expediente:checkBoxDespachosYEscritosId" onclick="controlDeLosTresPrimeros();"></td>
+<td>Despachos/Escritos</td>
+<td><input id="expediente:checkBoxnotaelEctronicasYPapelId" type="checkbox" name="expediente:checkBoxnotaelEctronicasYPapelId" onclick="controlDeLosTresPrimeros();"></td>
+<td>Notificaciones</td>
+<td><input id="expediente:checkBoxInformacionesId" type="checkbox" name="expediente:checkBoxInformacionesId" onclick="controlDeLosTresPrimeros();"></td>
+<td>información</td>
+<td><input id="expediente:checkBoxOtrasActuacionesId" type="checkbox" name="expediente:checkBoxOtrasActuacionesId" checked="checked" onclick="todos();"></td>
+<td>Ver Todos</td>
+<td><input id="expediente:filtrarActuacionesBtn" type="submit" name="expediente:filtrarActuacionesBtn" value="Aplicar" class="btn btn-primary background-grey-button border-btn-dark-grey-sm" onclick="PF('dialog').show();"></td>
+</tr>
+</tbody>
+</table>
+<table id="expediente:action-table" class="table-striped border-dark-grey-sm width-all">
+<thead>
+<tr>
+<th class="background-gradient-blue font-color-white padding-top-xs font-size-md text-center padding-bottom-xs" scope="col"></th>
+<th class="background-gradient-blue font-color-white padding-top-xs font-size-md text-center padding-bottom-xs" scope="col">OFICINA</th>
+<th class="background-gradient-blue font-color-white padding-top-xs font-size-md text-center padding-bottom-xs" scope="col">FECHA</th>
+<th class="background-gradient-blue font-color-white padding-top-xs font-size-md text-center padding-bottom-xs" scope="col">TIPO</th>
+<th class="background-gradient-blue font-color-white padding-top-xs font-size-md text-center padding-bottom-xs" scope="col">DESCRIPCION / DETALLE</th>
+<th class="background-gradient-blue font-color-white padding-top-xs font-size-md text-center padding-bottom-xs" scope="col">A FS.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+				<div style="width: 200px;"><span id="expediente:action-table:0:j_idt182"></span>
+				</div></td>
+<td>
+				<div style="width: 50px;" class="text-center">
+					<span class="sr-only">Oficina: </span><span id="expediente:action-table:0:officeColumn" class="font-color-black">T46</span>
+				</div></td>
+<td>
+				<span class="sr-only">Fecha: </span><span class="font-color-black">9/06/2021</span></td>
+<td>
+				<span class="sr-only">Tipo actuacion: </span><span class="font-color-black">CAMBIO DE ESTADO DE EXPEDIENTE</span></td>
+<td>
+				<span class="sr-only">Detalle: </span><span class="font-color-black">EJECUCION FISCAL</span></td>
+<td>
+				<div style="width: 60px;" class="text-center">
+				</div></td>
+</tr>
+</tbody>
+</table>
+
+			
+			<style>
+			.no-pagination-background{
+			    background: none !important;
+	    		color: #ffffff !important;
+	    		font-size: 2rem;
+			}
+			.first-page{
+				margin-right:2rem !important;
+			}
+			.last-page{
+				margin-left:2rem !important;
+			}
+			</style><div id="expediente:j_idt217:divPagesAct" class="text-center background-gradient-blue" style="width: 100%;">
+				<ul class="pagination no-margin no-padding">
+					<li>
+					</li>
+					<li>
+					</li>
+						<li class="active"><span id="expediente:j_idt217:j_idt227:0:j_idt229" class="padding-pagination margin-pagination">
+								<span>1</span></span>
+						</li>
+					<li>
+					</li>
+					<li>
+					</li>
+				</ul></div><div id="expediente:btnActuacionesHistoricas"><a href="#" style="background-color: #333333; color: white;" onclick="jsf.util.chain(this,event,'PF(\'dialog\').show();','mojarra.jsfcljs(document.getElementById(\'expediente\'),{\'expediente:j_idt240\':\'expediente:j_idt240\',\'conversationPropagation\':\'join\'},\'\')');return false" class="btn pull-right">
+				<span><i class="fa fa-history fa-4" aria-hidden="true"></i> Ver históricas</span></a></div></div><div id="expediente:j_idt243">
+	
+		<h2 class="no-margin-bottom no-padding-bottom"><i aria-hidden="true" class="fa fa-book"></i> Notas</h2><div id="expediente:tableNotas">
+				<div class="alert white-panel border-grey-sm no-margin-bottom">
+					<span><strong><i aria-hidden="true" class="fa fa-bell"></i> El expediente no posee notas</strong></span>
+				</div><div id="expediente:j_idt256:j_idt258" class="text-center background-gradient-blue" style="width: 100%;">
+				<ul class="pagination no-margin no-padding">
+				</ul></div>
+					
+			<div class="well text-center no-padding no-margin">
+				<strong>Se ha(n) encontrado un total de 0 nota(s)
+				</strong>
+			</div></div></div></div></div><div id="expediente:j_idt270" style="display:none;"></div><div id="expediente:j_idt348" style="display:none;"></div><div id="expediente:j_idt380" style="display:none;"></div></div>
+				</div>
+			</div></form><input type="hidden" name="javax.faces.ViewState" id="javax.faces.ViewState" value="-2746762134009480713:-2262906929622258924" autocomplete="off">
+
+		
+		<script type="text/javascript">
+			(function() {
+				var camara = 'CNT';
+				scw.analytics.trackConsulta(camara, 'numero');
+				scw.analytics.trackPageView();
+			})();
+		</script>
+			<div class="connect">
+			</div><div id="j_idt465:dialog" class="ui-dialog ui-widget ui-widget-content ui-overlay-hidden ui-corner-all ui-shadow" style="overflow: hidden; margin: 0px; padding: 0px; width: 300px; height: auto;" role="dialog" aria-labelledby="j_idt465:dialog_title" aria-hidden="true"><div class="ui-dialog-titlebar ui-widget-header ui-helper-clearfix ui-corner-top"><span id="j_idt465:dialog_title" class="ui-dialog-title"></span></div><div class="ui-dialog-content ui-widget-content" style="height: 125.4px;">
+			    <p><strong>Consulta en proceso</strong></p>
+			    <div class="progress progress-striped active">
+				    <div class="progress-bar" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+				    </div>
+				</div>
+				<div class="text-center"><a id="j_idt465:cancelar" name="j_idt465:cancelar" href="https://scw.pjn.gov.ar" class="btn btn-default">
+						Cancelar
+					</a>
+				</div></div></div><div id="j_idt469:dialogLong" class="ui-dialog ui-widget ui-widget-content ui-overlay-hidden ui-corner-all ui-shadow" style="overflow: hidden; margin: 0px; padding: 0px; width: 550px; height: auto;" role="dialog" aria-labelledby="j_idt469:dialogLong_title" aria-hidden="true"><div class="ui-dialog-titlebar ui-widget-header ui-helper-clearfix ui-corner-top"><span id="j_idt469:dialogLong_title" class="ui-dialog-title"></span></div><div class="ui-dialog-content ui-widget-content" style="height: 185.4px;">
+			    <p><strong>Consulta en proceso</strong></p>
+			    <div class="progress progress-striped active">
+				  <div class="progress-bar" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+				  </div>
+				</div>
+				<div class="alert alert-info">
+					<i aria-hidden="true" class="fa fa-warning"></i><strong> Esta consulta es compleja y puede demorar algunos minutos.</strong>
+					<br>
+					<div class="text-center">
+						<strong>Por favor espere</strong>
+					</div>
+				</div></div></div>
+		</div>
+	</div>
+	<div id="push" style="height: 100px;"></div>
+	<footer>
+		<div class="container">
+			<div class="row">
+				<div class="widget col-xs-12 col-sm-12 col-md-6 col-lg-6">
+					<h4>Contáctenos </h4>
+					<p>
+						<i aria-hidden="true" class="fa fa-globe"></i><span>Ingresando a: </span><a href="https://servicios.pjn.gov.ar" target="_blank">servicios.pjn.gov.ar</a>
+					</p>
+				</div>
+				<div class="widget col-xs-12 col-sm-12 col-md-6 col-lg-6">
+					<h4>Importante </h4>
+					<p class="sangria" style="text-align: justify;"> Para una óptima visualización y utilización de las funcionalidades del sitio se recomienda acceder utilizando alguno de los siguientes navegadores: Google Chrome™ 3.0 o superior / Mozilla Firefox™ 11.0 o superior / Microsoft Internet Explorer™ 10.0 o superior.</p>
+					<p>
+						<span>Si desea descargar un navegador compatible, puede descargar Google Chrome desde el siguiente link externo:</span>
+						<a class="btn btn-primary btn-xs" target="_blank" href="https://www.google.com/intl/es-419/chrome/">
+							<i aria-hidden="true" class="fa fa-download"></i><span>Descargar</span>
+						</a>
+					</p>
+				</div>
+			</div> 
+			<div class="footer-border"></div>
+			<div class="row">
+				<div class="widget copyright col-12 col-sm-12 col-lg-12" style="text-align: center;"><a href="http://www.pjn.gov.ar" target="_blank">
+				PODER JUDICIAL DE LA NACION - REPUBLICA ARGENTINA - v6.11 
+				</a>
+				</div>
+				<br>
+			</div>
+		</div>
+	</footer><script type="text/javascript">new RichFaces.ui.TabPanel("expediente:expedienteTab",{"onbeforeitemchange":function(event){PF('dialog').show();},"ajax":{"incId":"1"} ,"activeItem":"actuaciones","isKeepHeight":false,"cycledSwitching":false} )
+new RichFaces.ui.Tab("expediente:actuaciones",{"index":0,"leave":null,"togglePanelId":"expediente:expedienteTab","switchMode":"ajax","name":"actuaciones","enter":null,"disabled":false} )
+new RichFaces.ui.Tab("expediente:j_idt270",{"index":1,"leave":null,"togglePanelId":"expediente:expedienteTab","switchMode":"ajax","name":"intervinientes","enter":null,"disabled":false} )
+new RichFaces.ui.Tab("expediente:j_idt348",{"index":2,"leave":null,"togglePanelId":"expediente:expedienteTab","switchMode":"ajax","name":"vinculados","enter":null,"disabled":false} )
+new RichFaces.ui.Tab("expediente:j_idt380",{"index":3,"leave":null,"togglePanelId":"expediente:expedienteTab","switchMode":"ajax","name":"recursos","enter":null,"disabled":false} )
+</script>
+<div id="textarea_simulator" style="position: absolute; top: 0px; left: 0px; visibility: hidden;"></div><div id="expediente:action-table:0:j_idt198" class="ui-tooltip ui-widget ui-widget-content ui-shadow ui-corner-all">JUZGADO NACIONAL DE 1RA INSTANCIA DEL TRABAJO NRO. 46</div><div class="ui-dialog-docking-zone"></div></body></html>

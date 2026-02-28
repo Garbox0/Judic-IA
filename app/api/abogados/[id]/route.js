@@ -34,17 +34,35 @@ export async function GET(request, { params }) {
             return NextResponse.json({ error: "Perfil no encontrado o no disponible" }, { status: 404 });
         }
 
-        // Fetch recent reviews
-        const { data: reviews } = await adminClient
-            .from('reviews')
-            .select('id, rating, comment, created_at')
-            .eq('lawyer_id', id)
-            .order('created_at', { ascending: false })
-            .limit(10);
+        // Fetch recent reviews + org membership badge
+        const [{ data: reviews }, { data: orgMember }] = await Promise.all([
+            adminClient
+                .from('reviews')
+                .select('id, rating, comment, created_at')
+                .eq('lawyer_id', id)
+                .order('created_at', { ascending: false })
+                .limit(10),
+            adminClient
+                .from('org_members')
+                .select('role, org:org_id(id, name, razon_social, type, verification_status)')
+                .eq('user_id', id)
+                .maybeSingle(),
+        ]);
+
+        // Only expose the estudio badge if it's verified
+        const estudioOrg = (
+            orgMember?.org?.type === 'estudio' &&
+            orgMember?.org?.verification_status === 'verified'
+        ) ? {
+            id: orgMember.org.id,
+            name: orgMember.org.razon_social || orgMember.org.name,
+            role: orgMember.role,
+        } : null;
 
         return NextResponse.json({
             ...lawyer,
-            reviews: reviews || []
+            reviews: reviews || [],
+            estudio: estudioOrg,
         });
 
     } catch (error) {

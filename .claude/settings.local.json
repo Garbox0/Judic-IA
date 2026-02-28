@@ -40,7 +40,14 @@
       "Bash(head -20 grep -rn \"matricula\\\\|colegio\" /d/Antigravity/Judic-IA/supabase/migrations/20260215_marketplace_schema.sql)",
       "Bash(SCBA_MEV_USER=Garbox0 SCBA_MEV_PASS='GbrlArq2025!' node _mev_explore.mjs)",
       "WebFetch(domain:mev.scba.gov.ar)",
-      "Bash(wait bq0cascoi)"
+      "Bash(wait bq0cascoi)",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(for f in /c/Users/Likkl/.claude/projects/d--Antigravity-Judic-IA/*.jsonl)",
+      "Bash(do)",
+      "Bash(if grep -qi \"4 fases\\\\|cuatro fases\\\\|fase 3.*estudio\\\\|fase 4.*estudio\\\\|pagos.*estudio\\\\|billing.*estudio\" \"$f\")",
+      "Bash(then)",
+      "Bash(echo \"FOUND in: $f\")"
     ]
   }
 }

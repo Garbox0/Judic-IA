@@ -71,6 +71,9 @@ export async function POST(request) {
                         verification_status: 'verified',
                     })
                     .eq('id', ownerId);
+
+                // 2b. Levantar el ban (el owner estaba bloqueado hasta aprobación)
+                await supabase.auth.admin.updateUser(ownerId, { ban_duration: 'none' });
             }
 
             // 3. Enviar email al titular
@@ -78,16 +81,18 @@ export async function POST(request) {
                 await sendEmail({
                     resendClient: resend,
                     to: ownerEmail,
-                    subject: '✅ Tu Estudio Jurídico fue verificado en Judic-IA',
+                    from: 'noreply@judic-ia.com',
+                    subject: '✅ Tu Estudio Jurídico fue verificado — Judic-IA',
                     html: getHtmlEmail({
                         heading: '¡Estudio Verificado!',
                         bodyContent: `
                             <p>Hola <strong>${ownerName}</strong>,</p>
                             <p>El estudio <strong>${org.razon_social}</strong> fue verificado con éxito en Judic-IA.</p>
-                            <p>Ya podés ingresar a tu panel y activar tu suscripción Enterprise para comenzar a trabajar con tu equipo.</p>
+                            <p>Ya podés ingresar al panel con tu <strong>email y contraseña de registro</strong>. Una vez dentro, activá tu suscripción Enterprise para comenzar a trabajar con tu equipo.</p>
+                            <p style="color:#6b7280;font-size:0.85rem;">Acceso: <strong>Panel Estudio</strong> en judic-ia.com</p>
                         `,
-                        buttonText: 'Ir a mi Panel',
-                        buttonUrl: `${appUrl}/dashboard`,
+                        buttonText: 'Ingresar a Judic-IA',
+                        buttonUrl: `${appUrl}/login`,
                     }),
                 });
             }
@@ -110,17 +115,18 @@ export async function POST(request) {
                 await sendEmail({
                     resendClient: resend,
                     to: ownerEmail,
-                    subject: '⚠️ Tu solicitud de Estudio Jurídico en Judic-IA',
+                    from: 'hola@judic-ia.com',
+                    subject: '⚠️ Necesitamos que corrijas un dato — Judic-IA',
                     html: getHtmlEmail({
-                        heading: 'Revisión de Solicitud',
+                        heading: 'Corrección de datos requerida',
                         bodyContent: `
                             <p>Hola <strong>${ownerName}</strong>,</p>
-                            <p>No pudimos verificar la solicitud para el estudio <strong>${org.razon_social}</strong>.</p>
-                            ${rejection_reason ? `<div style="background:#fff1f2;border-left:4px solid #f43f5e;padding:12px 16px;border-radius:6px;margin:12px 0;"><strong>Motivo:</strong> ${rejection_reason}</div>` : ''}
-                            <p>Podés comunicarte con nosotros para resolver cualquier inconveniente.</p>
+                            <p>Recibimos tu solicitud para registrar el estudio <strong>${org.razon_social}</strong> pero necesitamos que corrijas la siguiente información antes de poder aprobarte:</p>
+                            ${rejection_reason ? `<div style="background:#fff1f2;border-left:4px solid #f43f5e;padding:12px 16px;border-radius:6px;margin:16px 0;font-size:0.95rem;"><strong>Datos a corregir:</strong><br/><br/>${rejection_reason}</div>` : ''}
+                            <p><strong>Respondé directamente a este email</strong> con los datos corregidos y procesaremos tu solicitud a la brevedad.</p>
                         `,
-                        buttonText: 'Contactar Soporte',
-                        buttonUrl: `${appUrl}/contacto`,
+                        buttonText: 'Registrar otro estudio',
+                        buttonUrl: `${appUrl}/registro-estudio`,
                     }),
                 });
             }

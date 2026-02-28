@@ -65,6 +65,33 @@ export default function LoginPage() {
       setResendCooldown(60);
     };
 
+    const getPostLoginDest = async (userId) => {
+      try {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('org_id')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (prof?.org_id) {
+          const { data: member } = await supabase
+            .from('org_members')
+            .select('org:org_id(type, verification_status)')
+            .eq('user_id', userId)
+            .eq('org_id', prof.org_id)
+            .maybeSingle();
+
+          if (
+            member?.org?.type === 'estudio' &&
+            member?.org?.verification_status === 'verified'
+          ) {
+            return '/dashboard/estudio';
+          }
+        }
+      } catch {}
+      return '/dashboard';
+    };
+
     const validateProfileAndRedirect = async (userId) => {
       if (!userId) return;
       try {
@@ -79,7 +106,8 @@ export default function LoginPage() {
           if (profile.two_factor_email && !currentSession?.user?.app_metadata?.two_fa_verified_at) {
             if (currentSession) await goToOtp(currentSession);
           } else {
-            router.push('/dashboard');
+            const dest = await getPostLoginDest(userId);
+            router.push(dest);
           }
         }
       } catch (err) {
@@ -128,6 +156,25 @@ export default function LoginPage() {
       let msg = error.message;
       if (msg === "Email not confirmed") msg = "Debes confirmar tu email antes de ingresar. Revisa tu bandeja de entrada.";
       if (msg === "Invalid login credentials") msg = "Credenciales inválidas. Revisa tu email y contraseña.";
+      if (msg.toLowerCase().includes('ban')) {
+        // Distinguir entre estudio pendiente de revisión o rechazado
+        try {
+          const statusRes = await fetch('/api/auth/estudio-login-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+          const statusData = await statusRes.json();
+          if (statusData.status === 'pending') {
+            msg = "Tu solicitud de Estudio Jurídico está siendo revisada. Te avisaremos por email cuando esté habilitada.";
+          } else {
+            // rejected u otro: error genérico para no dar información extra
+            msg = "Credenciales inválidas. Revisa tu email y contraseña.";
+          }
+        } catch {
+          msg = "Credenciales inválidas. Revisa tu email y contraseña.";
+        }
+      }
       setError(msg);
       setLoading(false);
       return;
@@ -149,7 +196,8 @@ export default function LoginPage() {
         setStep('otp');
         setResendCooldown(60);
       } else {
-        router.push('/dashboard');
+        const dest = await getPostLoginDest(data.user.id);
+        router.push(dest);
       }
     } catch {
       router.push('/dashboard');
@@ -208,8 +256,9 @@ export default function LoginPage() {
         return;
       }
 
-      await supabase.auth.refreshSession();
-      router.push('/dashboard');
+      const { data: { session: refreshed } } = await supabase.auth.refreshSession();
+      const dest = refreshed?.user?.id ? await getPostLoginDest(refreshed.user.id) : '/dashboard';
+      router.push(dest);
     } catch {
       setError('Error de conexión. Intentá de nuevo.');
     } finally {

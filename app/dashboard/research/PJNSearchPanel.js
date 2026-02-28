@@ -6,7 +6,6 @@ import {
   Search,
   Loader2,
   FileText,
-  ExternalLink,
   ShieldCheck,
   RefreshCw,
   AlertCircle,
@@ -17,7 +16,13 @@ import {
   Eye,
   ChevronDown,
   ChevronUp,
-  Clock3
+  Clock3,
+  FolderPlus,
+  CheckCircle2,
+  Coins,
+  XCircle,
+  ShoppingCart,
+  Download
 } from 'lucide-react';
 import { getPjnParteTypeRule, resolvePjnParteType } from '@/lib/pjnParteRules';
 import './pjn-search.css';
@@ -147,6 +152,104 @@ export default function PJNSearchPanel() {
   const [detailErrorByKey, setDetailErrorByKey] = useState({});
   const [detailByKey, setDetailByKey] = useState({});
   const [detailPageByKey, setDetailPageByKey] = useState({});
+
+  // Créditos e importación
+  const [antecedentesCredits, setAntecedentesCredits] = useState(null);
+  const [creditsSource, setCreditsSource] = useState('individual'); // 'individual' | 'org'
+  const [creditsOrgName, setCreditsOrgName] = useState(null);
+  const [isOrgOwner, setIsOrgOwner] = useState(false);
+  const [buyingCredits, setBuyingCredits] = useState(false);
+  const [showCreditsModal, setShowCreditsModal] = useState(false);
+  const [importStateByKey, setImportStateByKey] = useState({});
+  const [importedCaseIdByKey, setImportedCaseIdByKey] = useState({});
+
+  useEffect(() => {
+    async function loadCredits() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const res = await fetch('/api/pjn/credits', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setAntecedentesCredits(data.credits ?? 0);
+      setCreditsSource(data.source || 'individual');
+      setCreditsOrgName(data.orgName || null);
+      setIsOrgOwner(data.isOrgOwner || false);
+    }
+    loadCredits();
+  }, []);
+
+  const handleImport = useCallback(async (row, rowKey, detail) => {
+    if (antecedentesCredits !== null && antecedentesCredits <= 0) {
+      setShowCreditsModal(true);
+      return;
+    }
+    setImportStateByKey(prev => ({ ...prev, [rowKey]: 'loading' }));
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch('/api/pjn/importar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          expediente: row.expediente,
+          caratula: row.caratula,
+          fuero: currentJurisdictionLabel,
+          jurisdiccion: jurisdiction,
+          source: 'pjn',
+          detail: detail || null,
+          link: row.link || null,
+        }),
+      });
+      const payload = await res.json();
+      if (!res.ok) {
+        if (payload?.error === 'CREDITS_EXHAUSTED') {
+          setImportStateByKey(prev => ({ ...prev, [rowKey]: 'no_credits' }));
+          setAntecedentesCredits(0);
+          setShowCreditsModal(true);
+          return;
+        }
+        throw new Error(payload?.error || 'Error al importar.');
+      }
+      setImportStateByKey(prev => ({ ...prev, [rowKey]: 'done' }));
+      setImportedCaseIdByKey(prev => ({ ...prev, [rowKey]: payload.caseId }));
+      setAntecedentesCredits(prev => (prev !== null ? Math.max(0, prev - 1) : null));
+    } catch (err) {
+      setImportStateByKey(prev => ({ ...prev, [rowKey]: 'error' }));
+      console.error('[PJNSearchPanel][Importar]', err.message);
+    }
+  }, [antecedentesCredits, currentJurisdictionLabel, jurisdiction]);
+
+  const handleBuyCredits = useCallback(async (packId) => {
+    if (creditsSource === 'org') {
+      window.location.href = '/dashboard/estudio/creditos';
+      return;
+    }
+    setBuyingCredits(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch('/api/mp/antecedentes/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ pack_id: packId }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || 'Error al iniciar pago.');
+      if (payload.init_point) window.location.href = payload.init_point;
+    } catch (err) {
+      console.error('[PJNSearchPanel][BuyCredits]', err.message);
+    } finally {
+      setBuyingCredits(false);
+    }
+  }, [creditsSource]);
 
   const currentRule = useMemo(() => getPjnParteTypeRule(jurisdiction), [jurisdiction]);
 
@@ -520,17 +623,6 @@ export default function PJNSearchPanel() {
                         <td>{row.ultimaActuacion || '-'}</td>
                         <td>
                           <div style={{ display: 'flex', gap: '0.35rem' }}>
-                            {row.link && (
-                              <a
-                                href={row.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="pjn-link-btn"
-                                aria-label={`Abrir expediente ${row.expediente} en nueva pestana`}
-                              >
-                                <ExternalLink size={14} aria-hidden="true" />
-                              </a>
-                            )}
                             <button
                               type="button"
                               className="pjn-link-btn"
@@ -563,9 +655,53 @@ export default function PJNSearchPanel() {
 
                             {!detailLoading && detail && (
                               <div>
-                                <div className="pjn-results-meta" style={{ marginBottom: '0.55rem' }}>
-                                  <span>Actuaciones: {acts.length}</span>
-                                  <span>Intervinientes: {Array.isArray(detail.intervinientes) ? detail.intervinientes.length : 0}</span>
+                                {/* Chips resumen + botón importar */}
+                                <div className="exp-summary-chips" style={{ marginBottom: '0.75rem' }}>
+                                  <span className="exp-chip">{acts.length} actuaciones</span>
+                                  <span className="exp-chip">{Array.isArray(detail.intervinientes) ? detail.intervinientes.length : 0} intervinientes</span>
+                                  {detail.sessionToken && <span className="exp-chip" style={{ color: '#34d399', borderColor: 'rgba(52,211,153,0.3)' }}><ShieldCheck size={11} /> Documentos disponibles</span>}
+                                  {/* Botón Importar */}
+                                  {(() => {
+                                    const importState = importStateByKey[rowKey] || 'idle';
+                                    const caseId = importedCaseIdByKey[rowKey];
+                                    if (importState === 'done' && caseId) {
+                                      return (
+                                        <a href={`/dashboard/cases/${caseId}`} className="exp-import-btn exp-import-btn--done">
+                                          <CheckCircle2 size={12} /> Ver en Expedientes
+                                        </a>
+                                      );
+                                    }
+                                    if (importState === 'no_credits') {
+                                      return (
+                                        <button type="button" className="exp-import-btn exp-import-btn--no-credits" onClick={() => setShowCreditsModal(true)}>
+                                          <AlertCircle size={12} /> Sin créditos — obtener más
+                                        </button>
+                                      );
+                                    }
+                                    if (importState === 'error') {
+                                      return (
+                                        <button type="button" className="exp-import-btn exp-import-btn--error" onClick={() => handleImport(row, rowKey, detail)}>
+                                          <AlertCircle size={12} /> Error — reintentar
+                                        </button>
+                                      );
+                                    }
+                                    return (
+                                      <button
+                                        type="button"
+                                        className={`exp-import-btn${antecedentesCredits === 0 ? ' exp-import-btn--no-credits' : ''}`}
+                                        onClick={() => handleImport(row, rowKey, detail)}
+                                        disabled={importState === 'loading'}
+                                        title={antecedentesCredits === 0 ? 'Sin créditos — hacé clic para obtener más' : 'Importar a mis Expedientes (consume 1 crédito)'}
+                                      >
+                                        {importState === 'loading'
+                                          ? <><Loader2 size={12} className="animate-spin" /> Importando...</>
+                                          : antecedentesCredits === 0
+                                            ? <><AlertCircle size={12} /> Sin créditos — obtener</>
+                                            : <><FolderPlus size={12} /> Importar al Dashboard</>
+                                        }
+                                      </button>
+                                    );
+                                  })()}
                                 </div>
 
                                 {acts.length > 0 ? (
@@ -673,6 +809,69 @@ export default function PJNSearchPanel() {
         <p className="pjn-field-hint" style={{ marginTop: '0.6rem' }}>
           Ultima consulta: {formatDateTime(results.run_at)}
         </p>
+      )}
+
+      {/* Modal de créditos */}
+      {showCreditsModal && (
+        <div className="ant-modal-overlay" onClick={() => setShowCreditsModal(false)} role="dialog" aria-modal="true" aria-label="Obtener créditos de importación">
+          <div className="ant-modal" onClick={e => e.stopPropagation()}>
+            <div className="ant-modal-header">
+              <div className="ant-modal-title">
+                <Coins size={18} />
+                <span>Créditos de importación</span>
+              </div>
+              <button type="button" className="ant-modal-close" onClick={() => setShowCreditsModal(false)} aria-label="Cerrar">
+                <XCircle size={18} />
+              </button>
+            </div>
+            {creditsSource === 'org' ? (
+              <div style={{ padding: '1.25rem 0' }}>
+                <p className="ant-modal-desc">
+                  {isOrgOwner
+                    ? 'El pool de créditos del estudio está agotado. Comprá más créditos desde el panel del estudio.'
+                    : 'El pool de créditos del estudio está agotado. Contactá al titular para recargar.'}
+                </p>
+                {isOrgOwner && (
+                  <button
+                    type="button"
+                    className="ant-modal-pack ant-modal-pack--featured"
+                    onClick={() => { window.location.href = '/dashboard/estudio/creditos'; }}
+                    style={{ width: '100%', marginTop: 8 }}
+                  >
+                    <span className="ant-modal-pack-label">Ir a Créditos del Estudio</span>
+                    <span className="ant-modal-pack-sub">Comprá packs para el pool compartido</span>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <>
+                <p className="ant-modal-desc">
+                  Necesitás créditos para importar expedientes a tu dashboard. Cada importación consume 1 crédito y te da acceso completo a las actuaciones y documentos.
+                </p>
+                <div className="ant-modal-packs">
+                  {[
+                    { id: 'pack_5',  label: '5 créditos',  price: '$25.000', sub: '$5.000 por crédito' },
+                    { id: 'pack_15', label: '15 créditos', price: '$60.000', sub: '$4.000 por crédito', featured: true },
+                    { id: 'pack_30', label: '30 créditos', price: '$99.000', sub: '$3.300 por crédito' },
+                  ].map(p => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className={`ant-modal-pack${p.featured ? ' ant-modal-pack--featured' : ''}`}
+                      onClick={() => { handleBuyCredits(p.id); setShowCreditsModal(false); }}
+                      disabled={buyingCredits}
+                    >
+                      <span className="ant-modal-pack-label">{p.label}</span>
+                      <span className="ant-modal-pack-price">{p.price}</span>
+                      <span className="ant-modal-pack-sub">{p.sub}</span>
+                      {p.featured && <span className="ant-modal-pack-badge">Más popular</span>}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </section>
   );

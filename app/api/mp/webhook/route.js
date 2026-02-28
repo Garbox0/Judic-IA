@@ -122,23 +122,37 @@ export async function POST(req) {
             }
 
             // external_reference format:
-            // - "credits:<purchase_id>:<user_id>"              (research credits)
-            // - "alert_credits:<purchase_id>:<user_id>"        (alert credits)
-            // - "antecedentes_credits:<purchase_id>:<user_id>" (antecedentes credits)
+            // - "credits:<purchase_id>:<user_id>"                             (research credits)
+            // - "alert_credits:<purchase_id>:<user_id>"                       (alert credits)
+            // - "antecedentes_credits:<purchase_id>:<user_id>"                (antecedentes individuales)
+            // - "org_antecedentes_credits:<purchase_id>:<org_id>:<user_id>"   (pool del estudio)
             const extRef = payment.external_reference || '';
-            const [purchaseType, purchaseId, userId] = extRef.split(':');
+            const refParts = extRef.split(':');
+            const purchaseType = refParts[0];
             const isResearchCredits = purchaseType === 'credits';
             const isAlertCredits = purchaseType === 'alert_credits';
             const isAntecedentesCredits = purchaseType === 'antecedentes_credits';
+            const isOrgAntecedentesCredits = purchaseType === 'org_antecedentes_credits';
 
-            if (!isResearchCredits && !isAlertCredits && !isAntecedentesCredits) {
+            if (!isResearchCredits && !isAlertCredits && !isAntecedentesCredits && !isOrgAntecedentesCredits) {
                 // No es un credit pack, ignorar aquí (continuará al flujo de suscripción)
                 console.log('Payment is not a known credit pack, skipping.');
                 return NextResponse.json({ ok: true });
             }
 
+            // org_antecedentes_credits: [type, purchaseId, orgId, userId]
+            // all others:               [type, purchaseId, userId]
+            const purchaseId = refParts[1];
+            const orgId = isOrgAntecedentesCredits ? refParts[2] : null;
+            const userId = isOrgAntecedentesCredits ? refParts[3] : refParts[2];
+
             if (!purchaseId || !userId) {
                 console.warn('❌ Invalid external_reference for credit payment:', extRef);
+                return NextResponse.json({ ok: true });
+            }
+
+            if (isOrgAntecedentesCredits && !orgId) {
+                console.warn('❌ Missing orgId in org_antecedentes_credits reference:', extRef);
                 return NextResponse.json({ ok: true });
             }
 
@@ -151,8 +165,16 @@ export async function POST(req) {
                 ? 'alert_credit_purchases'
                 : isAntecedentesCredits
                     ? 'antecedentes_credit_purchases'
-                    : 'credit_purchases';
-            const creditLabel = isAlertCredits ? 'alerta' : isAntecedentesCredits ? 'antecedentes' : 'research';
+                    : isOrgAntecedentesCredits
+                        ? 'org_antecedentes_credit_purchases'
+                        : 'credit_purchases';
+            const creditLabel = isAlertCredits
+                ? 'alerta'
+                : isAntecedentesCredits
+                    ? 'antecedentes'
+                    : isOrgAntecedentesCredits
+                        ? 'org_antecedentes'
+                        : 'research';
 
             if (payment.status === 'approved') {
                 // 1. Obtener el pack para saber cuántos credits
@@ -204,6 +226,24 @@ export async function POST(req) {
                     if (purchaseStatusError) {
                         throw new Error(`ANTECEDENTES_PURCHASE_STATUS_FAILED: ${purchaseStatusError.message}`);
                     }
+                } else if (isOrgAntecedentesCredits) {
+                    const addResult = await supabase.rpc('add_org_antecedentes_credits', {
+                        p_org_id: orgId,
+                        p_credits: purchase.credits
+                    });
+
+                    if (addResult.error) {
+                        throw new Error(`ORG_ANTECEDENTES_CREDITS_UPDATE_FAILED: ${addResult.error.message}`);
+                    }
+
+                    const { error: purchaseStatusError } = await supabase
+                        .from(purchasesTable)
+                        .update({ status: 'approved', mp_payment_id: String(mpId) })
+                        .eq('id', purchaseId);
+
+                    if (purchaseStatusError) {
+                        throw new Error(`ORG_ANTECEDENTES_PURCHASE_STATUS_FAILED: ${purchaseStatusError.message}`);
+                    }
                 } else {
                     const addResearchCreditsResult = await supabase.rpc('add_research_credits', {
                         p_user_id: userId,
@@ -238,7 +278,9 @@ export async function POST(req) {
                         ? 'créditos de alerta'
                         : isAntecedentesCredits
                             ? 'créditos de antecedentes'
-                            : 'créditos de estrategia';
+                            : isOrgAntecedentesCredits
+                                ? 'créditos de antecedentes (estudio)'
+                                : 'créditos de estrategia';
                     const creditPlural = purchase.credits === 1
                         ? `1 ${creditNoun.slice(0, -1)}`
                         : `${purchase.credits} ${creditNoun}`;
@@ -246,7 +288,9 @@ export async function POST(req) {
                         ? 'Pack de créditos de alerta'
                         : isAntecedentesCredits
                             ? 'Pack de créditos de antecedentes'
-                            : 'Pack de créditos de estrategia';
+                            : isOrgAntecedentesCredits
+                                ? 'Pack de créditos de antecedentes (pool del estudio)'
+                                : 'Pack de créditos de estrategia';
 
                     if (userEmail) {
                         await sendEmail({
@@ -312,12 +356,16 @@ export async function POST(req) {
                         ? 'créditos de alerta'
                         : isAntecedentesCredits
                             ? 'créditos de antecedentes'
-                            : 'créditos de estrategia';
+                            : isOrgAntecedentesCredits
+                                ? 'créditos de antecedentes (estudio)'
+                                : 'créditos de estrategia';
                     const opType = isAlertCredits
                         ? 'Pack de créditos de alerta'
                         : isAntecedentesCredits
                             ? 'Pack de créditos de antecedentes'
-                            : 'Pack de créditos de estrategia';
+                            : isOrgAntecedentesCredits
+                                ? 'Pack de créditos de antecedentes (pool del estudio)'
+                                : 'Pack de créditos de estrategia';
 
                     if (userEmail) {
                         await sendEmail({
@@ -396,18 +444,125 @@ export async function POST(req) {
 
         // console.log("✅ Subscription details:", sub);
 
-        // 3) Linkear con tu usuario
-        const userId = sub.external_reference;
-        if (!userId) {
-            console.warn("⚠️ No external_reference (userId) in subscription");
+        // 3) Detectar si es suscripción de estudio u de abogado individual
+        const externalRef = sub.external_reference;
+        if (!externalRef) {
+            console.warn("⚠️ No external_reference in subscription");
             return NextResponse.json({ ok: true });
         }
 
-        // 4) Inicializar Supabase y Patch
         const supabase = createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL,
             process.env.SUPABASE_SERVICE_ROLE_KEY
         );
+
+        // ─── SUSCRIPCIÓN ENTERPRISE (org) ────────────────────────────────────────
+        if (externalRef.startsWith('org_sub:')) {
+            const orgId = externalRef.replace('org_sub:', '');
+            console.log(`[webhook] Org subscription event — status: ${sub.status}, orgId: ${orgId}`);
+
+            const orgPatch = {
+                mp_preapproval_id: sub.id,
+                mp_subscription_status: sub.status,
+            };
+
+            const now = new Date();
+
+            if (sub.status === 'authorized') {
+                const expiryDate = new Date(now);
+                expiryDate.setDate(expiryDate.getDate() + 30);
+
+                orgPatch.subscription_status = 'active';
+                orgPatch.subscription_started_at = now.toISOString();
+                orgPatch.subscription_expiry = expiryDate.toISOString();
+
+                // Verificar si es primer alta (para emails y auditoría)
+                const { data: currentOrg } = await supabase
+                    .from('organizations')
+                    .select('subscription_status, razon_social, owner_id, plan_tier')
+                    .eq('id', orgId)
+                    .single();
+
+                const isFreshSubscription = currentOrg?.subscription_status !== 'active';
+
+                await supabase.from('organizations').update(orgPatch).eq('id', orgId);
+
+                if (isFreshSubscription && currentOrg?.owner_id) {
+                    try {
+                        const [{ data: ownerAuth }, { data: ownerProfile }] = await Promise.all([
+                            supabase.auth.admin.getUserById(currentOrg.owner_id),
+                            supabase.from('profiles').select('full_name').eq('id', currentOrg.owner_id).maybeSingle(),
+                        ]);
+                        const ownerEmail = ownerAuth?.user?.email;
+                        const ownerName = ownerProfile?.full_name || 'Titular';
+                        const amount = Math.round(sub.auto_recurring?.transaction_amount || 0);
+                        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://judic-ia.com';
+
+                        if (ownerEmail) {
+                            await resend.emails.send({
+                                from: 'billing@judic-ia.com',
+                                to: ownerEmail,
+                                subject: 'Suscripción Enterprise activada — Judic-IA ⚖️',
+                                html: `
+                                    <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#020617;color:#f8fafc;padding:40px;border-radius:12px;border:1px solid #1e293b;">
+                                        <h1 style="color:#fbbf24;margin:0 0 4px;font-size:28px;">Judic-IA</h1>
+                                        <p style="color:#94a3b8;font-size:13px;text-transform:uppercase;letter-spacing:2px;margin:0 0 32px;">Confirmación de suscripción</p>
+                                        <div style="background:rgba(255,255,255,0.03);padding:28px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);text-align:center;">
+                                            <p style="font-size:48px;margin:0 0 16px;">🏛️</p>
+                                            <h2 style="color:#f8fafc;margin-top:0;">¡El estudio está operativo!</h2>
+                                            <p style="color:#cbd5e1;line-height:1.6;margin:0;">
+                                                Hola <strong>${ownerName}</strong>, la suscripción Enterprise de <strong>${currentOrg.razon_social}</strong> fue activada correctamente.<br>
+                                                Ya podés invitar a tu equipo y comenzar a operar.
+                                            </p>
+                                            <a href="${appUrl}/dashboard/estudio" style="display:inline-block;margin-top:24px;background:#fbbf24;color:#020617;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Ir al Panel del Estudio</a>
+                                        </div>
+                                        <p style="margin-top:32px;font-size:12px;color:#475569;text-align:center;">© ${new Date().getFullYear()} Judic-IA.</p>
+                                    </div>
+                                `,
+                            });
+                        }
+
+                        await notifyBilling(resend, {
+                            subject: `✅ Suscripción Enterprise activada — ${currentOrg.razon_social}`,
+                            rows: [
+                                { label: 'Operación',         value: 'Nueva suscripción Enterprise' },
+                                { label: 'Estado',            value: '✅ Autorizado' },
+                                { label: 'Estudio',           value: currentOrg.razon_social },
+                                { label: 'Plan',              value: currentOrg.plan_tier },
+                                { label: 'Owner email',       value: ownerEmail },
+                                { label: 'Org ID',            value: orgId },
+                                { label: 'Monto',             value: `ARS ${amount}` },
+                                { label: 'MP Preapproval ID', value: sub.id },
+                                { label: 'Próximo cobro',     value: sub.next_payment_date ?? '—' },
+                                { label: 'Fecha/hora',        value: now.toISOString() },
+                            ],
+                        });
+                    } catch (emailErr) {
+                        console.error('[webhook org-sub] Email/audit error:', emailErr.message);
+                    }
+                }
+            }
+
+            if (sub.status === 'paused' || sub.status === 'cancelled') {
+                orgPatch.subscription_status = 'cancelled';
+                await supabase.from('organizations').update(orgPatch).eq('id', orgId);
+                console.log(`[webhook] Org subscription cancelled: ${orgId}`);
+            }
+
+            if (sub.status === 'payment_required' || sub.status === 'pending') {
+                const gracePeriod = new Date(now);
+                gracePeriod.setDate(gracePeriod.getDate() + 7);
+                orgPatch.subscription_status = 'past_due';
+                orgPatch.subscription_expiry = gracePeriod.toISOString();
+                await supabase.from('organizations').update(orgPatch).eq('id', orgId);
+                console.log(`[webhook] Org subscription past_due (grace until ${gracePeriod.toISOString()}): ${orgId}`);
+            }
+
+            return NextResponse.json({ ok: true });
+        }
+
+        // ─── SUSCRIPCIÓN INDIVIDUAL (abogado) — flujo existente ────────────────
+        const userId = externalRef;
 
         const patch = {
             mp_preapproval_id: sub.id,

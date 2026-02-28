@@ -74,27 +74,75 @@ export async function POST(request) {
             auth.user?.email === 'gbrlescalada@gmail.com' &&
             userId === '365cd259-4f1e-4004-a677-1eda06a5147e';
 
-        // 1. Consumir 1 crédito de antecedentes (atómico, evita race conditions)
+        // 1. Detectar si el usuario pertenece a un estudio verificado
+        let useOrgPool = false;
+        let orgIdForCredits = null;
+
         if (!isSuperUser) {
-            const { data: creditResult, error: creditErr } = await supabase.rpc(
-                'consume_antecedentes_credit',
-                { p_user_id: userId }
-            );
+            const { data: profileForOrg } = await supabase
+                .from('profiles')
+                .select('org_id')
+                .eq('id', userId)
+                .single();
 
-            if (creditErr) throw creditErr;
+            if (profileForOrg?.org_id) {
+                const { data: memberForOrg } = await supabase
+                    .from('org_members')
+                    .select('role, org:org_id(type, verification_status)')
+                    .eq('user_id', userId)
+                    .eq('org_id', profileForOrg.org_id)
+                    .single();
 
-            if (creditResult === 'exhausted') {
-                return NextResponse.json(
-                    { error: 'CREDITS_EXHAUSTED', message: 'No tenés créditos de antecedentes disponibles.' },
-                    { status: 402 }
-                );
-            }
-            if (creditResult === 'profile_missing') {
-                return NextResponse.json({ error: 'Perfil no encontrado.' }, { status: 404 });
+                if (
+                    memberForOrg?.org?.type === 'estudio' &&
+                    memberForOrg?.org?.verification_status === 'verified'
+                ) {
+                    useOrgPool = true;
+                    orgIdForCredits = profileForOrg.org_id;
+                }
             }
         }
 
-        // 2. Obtener (o crear) org del usuario
+        // 2. Consumir 1 crédito (atómico, evita race conditions)
+        if (!isSuperUser) {
+            if (useOrgPool) {
+                const { data: creditResult, error: creditErr } = await supabase.rpc(
+                    'consume_org_antecedentes_credit',
+                    { p_org_id: orgIdForCredits }
+                );
+
+                if (creditErr) throw creditErr;
+
+                if (creditResult === 'exhausted') {
+                    return NextResponse.json(
+                        { error: 'CREDITS_EXHAUSTED', message: 'El estudio no tiene créditos de antecedentes disponibles.' },
+                        { status: 402 }
+                    );
+                }
+                if (creditResult === 'org_missing') {
+                    return NextResponse.json({ error: 'Organización no encontrada.' }, { status: 404 });
+                }
+            } else {
+                const { data: creditResult, error: creditErr } = await supabase.rpc(
+                    'consume_antecedentes_credit',
+                    { p_user_id: userId }
+                );
+
+                if (creditErr) throw creditErr;
+
+                if (creditResult === 'exhausted') {
+                    return NextResponse.json(
+                        { error: 'CREDITS_EXHAUSTED', message: 'No tenés créditos de antecedentes disponibles.' },
+                        { status: 402 }
+                    );
+                }
+                if (creditResult === 'profile_missing') {
+                    return NextResponse.json({ error: 'Perfil no encontrado.' }, { status: 404 });
+                }
+            }
+        }
+
+        // 3. Obtener (o crear) org del usuario
         const { data: profile } = await supabase
             .from('profiles')
             .select('org_id, full_name')
@@ -121,7 +169,7 @@ export async function POST(request) {
             }
         }
 
-        // 3. Armar pjn_data (limitar actuaciones a 200 para no inflar la DB)
+        // 4. Armar pjn_data (limitar actuaciones a 200 para no inflar la DB)
         const actuaciones = Array.isArray(detail?.actuaciones)
             ? detail.actuaciones.slice(0, 200)
             : [];
@@ -140,7 +188,7 @@ export async function POST(request) {
             total_actuaciones: Array.isArray(detail?.actuaciones) ? detail.actuaciones.length : 0,
         };
 
-        // 4. Crear el Case
+        // 5. Crear el Case
         const matterLabel = source === 'scba'
             ? 'Civil y Comercial'
             : (PJN_MATERIA_MAP[String(jurisdiccion)] || 'General');
@@ -161,7 +209,17 @@ export async function POST(request) {
 
         if (caseErr) throw caseErr;
 
-        console.log(`[PJN Import] Expediente importado: ${expediente} → case ${newCase.id} (user ${userId})`);
+        // 6. Registrar uso de crédito del estudio (para historial por miembro)
+        if (useOrgPool && orgIdForCredits) {
+            await supabase.from('org_antecedentes_credit_usage').insert({
+                org_id: orgIdForCredits,
+                used_by: userId,
+                case_id: newCase.id,
+                expediente,
+            });
+        }
+
+        console.log(`[PJN Import] Expediente importado: ${expediente} → case ${newCase.id} (user ${userId}${useOrgPool ? `, org pool ${orgIdForCredits}` : ''})`);
 
         return NextResponse.json({ success: true, caseId: newCase.id });
 

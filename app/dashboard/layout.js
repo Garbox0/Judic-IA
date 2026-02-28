@@ -22,7 +22,8 @@ import {
   Globe,
   Sun,
   Moon,
-  X
+  X,
+  Building2
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -40,6 +41,7 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [theme, setTheme] = useState('light');
   const [show2faBanner, setShow2faBanner] = useState(false);
+  const [isEstudioMember, setIsEstudioMember] = useState(false);
 
   // Load theme from localStorage
   useEffect(() => {
@@ -98,6 +100,21 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
       if (!profileError && profileData) {
         setProfile(profileData);
 
+        // Check si pertenece a un estudio verificado
+        if (profileData.org_id) {
+          supabase
+            .from('org_members')
+            .select('role, org:org_id(type, verification_status)')
+            .eq('user_id', user.id)
+            .eq('org_id', profileData.org_id)
+            .maybeSingle()
+            .then(({ data: orgMember }) => {
+              if (orgMember?.org?.type === 'estudio' && orgMember?.org?.verification_status === 'verified') {
+                setIsEstudioMember(true);
+              }
+            });
+        }
+
         // Banner 2FA: mostrar si no tiene 2FA y no lo descartó antes
         if (!profileData.two_factor_email) {
           const dismissed = localStorage.getItem(`2fa_banner_dismissed_${user.id}`);
@@ -112,7 +129,9 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
         }
 
         // BLOQUE 4: ACTIVAR TRIAL AUTOMÁTICAMENTE
-        if (!profileData.subscription_status || !profileData.trial_ends_at) {
+        // No aplica para cuentas enterprise (ya tienen su propio plan)
+        const isEnterprise = profileData.plan_tier === 'enterprise' || profileData.plan_tier === 'pending_enterprise';
+        if (!isEnterprise && (!profileData.subscription_status || !profileData.trial_ends_at)) {
           console.log("🎭 New User detected, activating Trial...");
           fetch('/api/demo/activate', {
             method: 'POST',
@@ -265,6 +284,12 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
             <Settings size={18} className="nav-icon" />
             <span>Ajustes</span>
           </Link>
+          {!isDemo && isEstudioMember && (
+            <Link href="/dashboard/estudio" className={`nav-item ${pathname.startsWith('/dashboard/estudio') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+              <Building2 size={18} className="nav-icon" />
+              <span>Panel Estudio</span>
+            </Link>
+          )}
           {!isDemo && user?.email === 'gbrlescalada@gmail.com' && user?.id === '365cd259-4f1e-4004-a677-1eda06a5147e' && (
             <Link href="/dashboard/admin" className={`nav-item ${pathname.includes('/admin') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
               <ShieldCheck size={18} className="nav-icon" />

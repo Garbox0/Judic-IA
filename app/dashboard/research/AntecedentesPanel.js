@@ -224,7 +224,11 @@ export default function AntecedentesPanel() {
 
   // Créditos de antecedentes
   const [antecedentesCredits, setAntecedentesCredits] = useState(null);
+  const [creditsSource, setCreditsSource] = useState('individual'); // 'individual' | 'org'
+  const [creditsOrgName, setCreditsOrgName] = useState(null);
+  const [isOrgOwner, setIsOrgOwner] = useState(false);
   const [buyingCredits, setBuyingCredits] = useState(false);
+  const [showCreditsModal, setShowCreditsModal] = useState(false);
 
   // Estado de importación por expediente: rowKey → 'idle' | 'loading' | 'done' | 'error'
   const [importStateByKey, setImportStateByKey] = useState({});
@@ -232,17 +236,20 @@ export default function AntecedentesPanel() {
 
   const abortRef = useRef(false);
 
-  // Cargar balance de créditos al montar
+  // Cargar balance de créditos al montar (individual o pool del estudio)
   useEffect(() => {
     async function loadCredits() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase
-        .from('profiles')
-        .select('antecedentes_credits')
-        .eq('id', user.id)
-        .single();
-      setAntecedentesCredits(data?.antecedentes_credits ?? 0);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const res = await fetch('/api/pjn/credits', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setAntecedentesCredits(data.credits ?? 0);
+      setCreditsSource(data.source || 'individual');
+      setCreditsOrgName(data.orgName || null);
+      setIsOrgOwner(data.isOrgOwner || false);
     }
     loadCredits();
   }, []);
@@ -321,6 +328,10 @@ export default function AntecedentesPanel() {
   }, [detailByKey, expandedRowKey]);
 
   const handleImport = useCallback(async (row, rowKey, detail) => {
+    if (antecedentesCredits !== null && antecedentesCredits <= 0) {
+      setShowCreditsModal(true);
+      return;
+    }
     setImportStateByKey(prev => ({ ...prev, [rowKey]: 'loading' }));
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -345,6 +356,8 @@ export default function AntecedentesPanel() {
       if (!res.ok) {
         if (payload?.error === 'CREDITS_EXHAUSTED') {
           setImportStateByKey(prev => ({ ...prev, [rowKey]: 'no_credits' }));
+          setAntecedentesCredits(0);
+          setShowCreditsModal(true);
           return;
         }
         throw new Error(payload?.error || 'Error al importar.');
@@ -357,9 +370,14 @@ export default function AntecedentesPanel() {
       setImportStateByKey(prev => ({ ...prev, [rowKey]: 'error' }));
       console.error('[Importar]', err.message);
     }
-  }, []);
+  }, [antecedentesCredits]);
 
   const handleBuyCredits = useCallback(async (packId) => {
+    // Si el usuario está en un estudio, redirigir a la página de créditos del estudio
+    if (creditsSource === 'org') {
+      window.location.href = '/dashboard/estudio/creditos';
+      return;
+    }
     setBuyingCredits(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -380,7 +398,7 @@ export default function AntecedentesPanel() {
     } finally {
       setBuyingCredits(false);
     }
-  }, []);
+  }, [creditsSource]);
 
   const handleSearch = useCallback(async (e) => {
     e?.preventDefault();
@@ -479,29 +497,47 @@ export default function AntecedentesPanel() {
         <div className="ant-credits-bar" aria-label="Créditos de antecedentes">
           <span className="ant-credits-label">
             <Coins size={13} aria-hidden="true" />
-            Créditos de importación:
+            {creditsSource === 'org'
+              ? <>Pool del estudio{creditsOrgName ? ` (${creditsOrgName})` : ''}:</>
+              : <>Créditos de importación:</>}
             <strong className={antecedentesCredits === 0 ? 'ant-credits-zero' : 'ant-credits-count'}>
               {antecedentesCredits === null ? '…' : antecedentesCredits}
             </strong>
           </span>
           <div className="ant-credits-packs">
-            {[
-              { id: 'pack_5',  label: '5 créditos', price: '$25.000' },
-              { id: 'pack_15', label: '15 créditos', price: '$60.000' },
-              { id: 'pack_30', label: '30 créditos', price: '$99.000' },
-            ].map(p => (
-              <button
-                key={p.id}
-                type="button"
-                className="ant-buy-btn"
-                onClick={() => handleBuyCredits(p.id)}
-                disabled={buyingCredits}
-                title={`Comprar ${p.label} — ${p.price} ARS`}
-              >
-                <ShoppingCart size={11} aria-hidden="true" />
-                {p.label}
-              </button>
-            ))}
+            {creditsSource === 'org' ? (
+              isOrgOwner ? (
+                <button
+                  type="button"
+                  className="ant-buy-btn"
+                  onClick={() => { window.location.href = '/dashboard/estudio/creditos'; }}
+                  title="Comprar créditos para el estudio"
+                >
+                  <ShoppingCart size={11} aria-hidden="true" />
+                  Comprar para el estudio
+                </button>
+              ) : (
+                <span className="ant-credits-org-note">Contactá al titular para recargar</span>
+              )
+            ) : (
+              [
+                { id: 'pack_5',  label: '5 créditos', price: '$25.000' },
+                { id: 'pack_15', label: '15 créditos', price: '$60.000' },
+                { id: 'pack_30', label: '30 créditos', price: '$99.000' },
+              ].map(p => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className="ant-buy-btn"
+                  onClick={() => handleBuyCredits(p.id)}
+                  disabled={buyingCredits}
+                  title={`Comprar ${p.label} — ${p.price} ARS`}
+                >
+                  <ShoppingCart size={11} aria-hidden="true" />
+                  {p.label}
+                </button>
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -816,12 +852,6 @@ export default function AntecedentesPanel() {
                         <td className="pjn-cell-sm">{row.ultimaActuacion || '-'}</td>
                         <td>
                           <div style={{ display: 'flex', gap: '0.35rem' }}>
-                            {row.link && (
-                              <a href={row.link} target="_blank" rel="noopener noreferrer"
-                                className="pjn-link-btn" title="Ver en PJN SCW">
-                                <ExternalLink size={14} />
-                              </a>
-                            )}
                             <button
                               type="button"
                               className="pjn-link-btn"
@@ -887,9 +917,13 @@ export default function AntecedentesPanel() {
                                       }
                                       if (importState === 'no_credits') {
                                         return (
-                                          <span className="exp-import-btn exp-import-btn--no-credits">
-                                            <AlertCircle size={12} /> Sin créditos — comprá más arriba
-                                          </span>
+                                          <button
+                                            type="button"
+                                            className="exp-import-btn exp-import-btn--no-credits"
+                                            onClick={() => setShowCreditsModal(true)}
+                                          >
+                                            <AlertCircle size={12} /> Sin créditos — obtener más
+                                          </button>
                                         );
                                       }
                                       if (importState === 'error') {
@@ -906,15 +940,17 @@ export default function AntecedentesPanel() {
                                       return (
                                         <button
                                           type="button"
-                                          className="exp-import-btn"
+                                          className={`exp-import-btn${antecedentesCredits === 0 ? ' exp-import-btn--no-credits' : ''}`}
                                           onClick={() => handleImport(row, rowKey, detail)}
-                                          disabled={importState === 'loading' || antecedentesCredits === 0}
+                                          disabled={importState === 'loading'}
                                           aria-label={`Importar ${row.expediente} al dashboard de expedientes`}
-                                          title={antecedentesCredits === 0 ? 'Sin créditos disponibles' : 'Importar a mis Expedientes (consume 1 crédito)'}
+                                          title={antecedentesCredits === 0 ? 'Sin créditos — hacé clic para obtener más' : 'Importar a mis Expedientes (consume 1 crédito)'}
                                         >
                                           {importState === 'loading'
                                             ? <><Loader2 size={12} className="spin" /> Importando...</>
-                                            : <><FolderPlus size={12} /> Importar al Dashboard</>
+                                            : antecedentesCredits === 0
+                                              ? <><AlertCircle size={12} /> Sin créditos — obtener</>
+                                              : <><FolderPlus size={12} /> Importar al Dashboard</>
                                           }
                                         </button>
                                       );
@@ -992,29 +1028,40 @@ export default function AntecedentesPanel() {
                                                 <td className="pjn-cell-sm">{act.oficina || '-'}</td>
                                                 <td className="exp-act-fojas">{act.fojas || '-'}</td>
                                                 <td>
-                                                  <div className="exp-doc-btns">
-                                                    {act.linkVer && docUrl(act.linkVer) && (
-                                                      <a
-                                                        href={docUrl(act.linkVer)}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="exp-doc-btn exp-doc-btn-ver"
-                                                        title="Ver documento"
-                                                      >
-                                                        <Eye size={11} /> Ver
-                                                      </a>
-                                                    )}
-                                                    {act.linkDescargar && docUrl(act.linkDescargar) && (
-                                                      <a
-                                                        href={docUrl(act.linkDescargar)}
-                                                        download
-                                                        className="exp-doc-btn exp-doc-btn-dl"
-                                                        title="Descargar documento"
-                                                      >
-                                                        <Download size={11} /> PDF
-                                                      </a>
-                                                    )}
-                                                  </div>
+                                                  {importStateByKey[rowKey] === 'done' ? (
+                                                    <div className="exp-doc-btns">
+                                                      {act.linkVer && docUrl(act.linkVer) && (
+                                                        <a
+                                                          href={docUrl(act.linkVer)}
+                                                          target="_blank"
+                                                          rel="noopener noreferrer"
+                                                          className="exp-doc-btn exp-doc-btn-ver"
+                                                          title="Ver documento"
+                                                        >
+                                                          <Eye size={11} /> Ver
+                                                        </a>
+                                                      )}
+                                                      {act.linkDescargar && docUrl(act.linkDescargar) && (
+                                                        <a
+                                                          href={docUrl(act.linkDescargar)}
+                                                          download
+                                                          className="exp-doc-btn exp-doc-btn-dl"
+                                                          title="Descargar documento"
+                                                        >
+                                                          <Download size={11} /> PDF
+                                                        </a>
+                                                      )}
+                                                    </div>
+                                                  ) : (act.linkVer || act.linkDescargar) ? (
+                                                    <button
+                                                      type="button"
+                                                      className="exp-doc-locked"
+                                                      onClick={() => handleImport(row, rowKey, detail)}
+                                                      title="Importá el expediente para acceder a los documentos"
+                                                    >
+                                                      🔒
+                                                    </button>
+                                                  ) : null}
                                                 </td>
                                               </tr>
                                             ))}
@@ -1071,14 +1118,7 @@ export default function AntecedentesPanel() {
                       <td className="pjn-cell-sm">{row.organismo || '-'}</td>
                       <td className="pjn-cell-sm">{row.estado || '-'}</td>
                       <td className="pjn-cell-sm">{row.fecha || '-'}</td>
-                      <td>
-                        {row.link && (
-                          <a href={row.link} target="_blank" rel="noopener noreferrer"
-                            className="pjn-link-btn" title="Ver en MEV SCBA">
-                            <ExternalLink size={14} />
-                          </a>
-                        )}
-                      </td>
+                      <td></td>
                     </tr>
                   ))}
                 </tbody>
@@ -1092,6 +1132,69 @@ export default function AntecedentesPanel() {
               No se pudo consultar: {jurWithErrors.map(j => j.label).join(', ')}.
             </p>
           )}
+        </div>
+      )}
+
+      {/* Modal de créditos */}
+      {showCreditsModal && (
+        <div className="ant-modal-overlay" onClick={() => setShowCreditsModal(false)} role="dialog" aria-modal="true" aria-label="Obtener créditos de importación">
+          <div className="ant-modal" onClick={e => e.stopPropagation()}>
+            <div className="ant-modal-header">
+              <div className="ant-modal-title">
+                <Coins size={18} />
+                <span>Créditos de importación</span>
+              </div>
+              <button type="button" className="ant-modal-close" onClick={() => setShowCreditsModal(false)} aria-label="Cerrar">
+                <XCircle size={18} />
+              </button>
+            </div>
+            {creditsSource === 'org' ? (
+              <div style={{ padding: '1.25rem 0' }}>
+                <p className="ant-modal-desc">
+                  {isOrgOwner
+                    ? 'El pool de créditos del estudio está agotado. Comprá más créditos desde el panel del estudio.'
+                    : 'El pool de créditos del estudio está agotado. Contactá al titular para recargar.'}
+                </p>
+                {isOrgOwner && (
+                  <button
+                    type="button"
+                    className="ant-modal-pack ant-modal-pack--featured"
+                    onClick={() => { window.location.href = '/dashboard/estudio/creditos'; }}
+                    style={{ width: '100%', marginTop: 8 }}
+                  >
+                    <span className="ant-modal-pack-label">Ir a Créditos del Estudio</span>
+                    <span className="ant-modal-pack-sub">Comprá packs para el pool compartido</span>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <>
+                <p className="ant-modal-desc">
+                  Necesitás créditos para importar expedientes a tu dashboard. Cada importación consume 1 crédito y te da acceso completo a las actuaciones y documentos.
+                </p>
+                <div className="ant-modal-packs">
+                  {[
+                    { id: 'pack_5',  label: '5 créditos',  price: '$25.000', sub: '$5.000 por crédito' },
+                    { id: 'pack_15', label: '15 créditos', price: '$60.000', sub: '$4.000 por crédito', featured: true },
+                    { id: 'pack_30', label: '30 créditos', price: '$99.000', sub: '$3.300 por crédito' },
+                  ].map(p => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className={`ant-modal-pack${p.featured ? ' ant-modal-pack--featured' : ''}`}
+                      onClick={() => { handleBuyCredits(p.id); setShowCreditsModal(false); }}
+                      disabled={buyingCredits}
+                    >
+                      <span className="ant-modal-pack-label">{p.label}</span>
+                      <span className="ant-modal-pack-price">{p.price}</span>
+                      <span className="ant-modal-pack-sub">{p.sub}</span>
+                      {p.featured && <span className="ant-modal-pack-badge">Más popular</span>}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>

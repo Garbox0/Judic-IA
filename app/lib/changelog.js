@@ -34,6 +34,19 @@
 
 export const CHANGELOG = [
     {
+        id: 13,
+        date: "28 Feb 2026",
+        badge: "Nuevo",
+        items: [
+            "Ahora podes crear tu propio Panel para tu estudio jurídico",
+            "Panel de estudio jurídico: el titular puede cambiar el rol de cualquier miembro entre Abogado y Supervisor directamente desde la sección Miembros",
+            "Al remover un miembro del estudio, sus expedientes asignados vuelven automáticamente a la Bandeja General para que otro abogado pueda tomarlos",
+            "Supervisores y titulares pueden asignar expedientes de la bandeja directamente a cualquier abogado del equipo, sin que ese abogado tenga que tomarlos manualmente",
+            "Desde la vista de Supervisión, ahora podés reasignar cualquier expediente a otro abogado o devolverlo a la bandeja con un clic",
+            "Las invitaciones pendientes solo pueden cancelarse por el titular del estudio (se corrigió una brecha de permisos)",
+        ],
+    },
+    {
         id: 12,
         date: "27 Feb 2026",
         badge: "Nuevo",

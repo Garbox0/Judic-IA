@@ -7,11 +7,30 @@
  */
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { Resend } from 'resend';
+import { sendEmail } from '@/app/lib/resend';
+import { getHtmlEmail } from '@/lib/email-template';
+import { isValidEmail, isValidString } from '@/lib/validation';
+import { checkRateLimit, getClientIP } from '@/lib/rate-limiter';
+
+const PLAN_LABELS = {
+    enterprise_s:  'Enterprise S — Hasta 5 miembros',
+    enterprise_m:  'Enterprise M — Hasta 10 miembros',
+    enterprise_l:  'Enterprise L — Hasta 20 miembros',
+    enterprise_xl: 'Enterprise XL — Miembros ilimitados',
+};
 
 const VALID_PLANS = ['enterprise_s', 'enterprise_m', 'enterprise_l', 'enterprise_xl'];
 const MEMBER_LIMITS = { enterprise_s: 5, enterprise_m: 10, enterprise_l: 20, enterprise_xl: null };
 
 export async function POST(request) {
+    // Rate limit: máximo 3 registros de estudio por IP por hora
+    const ip = getClientIP(request);
+    const rl = checkRateLimit(`registrar-estudio:${ip}`, 3, 60 * 60 * 1000);
+    if (!rl.allowed) {
+        return NextResponse.json({ error: 'Demasiadas solicitudes. Intentá más tarde.' }, { status: 429 });
+    }
+
     const body = await request.json().catch(() => null);
 
     if (!body) {
@@ -24,14 +43,14 @@ export async function POST(request) {
         matriculas, plan_tier,
     } = body;
 
-    // Validar campos obligatorios
-    if (!razon_social || !cuit || !domicilio || !phone) {
+    // Validar campos obligatorios con límites de longitud
+    if (!isValidString(razon_social, 200) || !isValidString(cuit, 20) || !isValidString(domicilio, 300) || !isValidString(phone, 30)) {
         return NextResponse.json({ error: 'Faltan datos del estudio.' }, { status: 400 });
     }
-    if (!first_name || !last_name || !email || !password) {
-        return NextResponse.json({ error: 'Faltan datos del titular.' }, { status: 400 });
+    if (!isValidString(first_name, 100) || !isValidString(last_name, 100) || !isValidEmail(email) || !isValidString(password, 128)) {
+        return NextResponse.json({ error: 'Faltan datos del titular o el email es inválido.' }, { status: 400 });
     }
-    if (!Array.isArray(matriculas) || matriculas.length === 0) {
+    if (!Array.isArray(matriculas) || matriculas.length === 0 || matriculas.length > 10) {
         return NextResponse.json({ error: 'El titular debe tener al menos una matrícula.' }, { status: 400 });
     }
     if (!VALID_PLANS.includes(plan_tier)) {
@@ -75,6 +94,9 @@ export async function POST(request) {
     }
 
     const userId = authData.user.id;
+
+    // 1.5. Bloquear acceso hasta aprobación manual del admin
+    await supabase.auth.admin.updateUser(userId, { ban_duration: '876000h' });
 
     try {
         // 2. Actualizar perfil con datos del titular
@@ -124,8 +146,9 @@ export async function POST(request) {
             .update({ org_id: orgId })
             .eq('id', userId);
 
-        // 6. Notificar al admin (fire-and-forget)
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://judic-ia.com';
+
+        // 6. Notificar al admin (fire-and-forget)
         fetch(`${appUrl}/api/admin/notify-estudio-registration`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -141,6 +164,30 @@ export async function POST(request) {
                 org_id: orgId,
             }),
         }).catch(err => console.error('[estudio/registrar] Notify admin failed:', err));
+
+        // 7. Confirmar recepción al titular (fire-and-forget)
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        sendEmail({
+            resendClient: resend,
+            to: email,
+            from: 'Judic-IA <soporte@judic-ia.com>',
+            subject: 'Solicitud de Estudio Jurídico recibida — Judic-IA',
+            html: getHtmlEmail({
+                heading: 'Solicitud recibida',
+                bodyContent: `
+                    <p>Hola <strong>${fullName}</strong>,</p>
+                    <p>Recibimos la solicitud de registro para el estudio <strong>${razon_social}</strong>.</p>
+                    <div style="background:#f8f7f4;border-radius:10px;padding:16px;margin:12px 0;">
+                      <p style="margin:0 0 6px;"><strong>Plan solicitado:</strong> ${PLAN_LABELS[plan_tier] || plan_tier}</p>
+                      <p style="margin:0;"><strong>Estado:</strong> En revisión</p>
+                    </div>
+                    <p>Nuestro equipo verificará los datos y la matrícula del titular. Te avisaremos por este medio cuando el estudio esté habilitado para operar.</p>
+                    <p style="font-size:13px;color:#888;">Este proceso puede demorar hasta 48 horas hábiles. Si tenés alguna duda, contactanos en soporte@judic-ia.com.</p>
+                `,
+                buttonText: 'Ver mi panel',
+                buttonUrl: `${appUrl}/dashboard`,
+            }),
+        }).catch(err => console.error('[estudio/registrar] Confirm email failed:', err));
 
         return NextResponse.json({ success: true });
 
