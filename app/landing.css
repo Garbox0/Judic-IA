@@ -3388,9 +3388,9 @@ body.light-theme .enterprise-banner-login-hint { color: rgba(248,247,244,0.55); 
     border-color: rgba(0,0,0,0.1);
 }
 
-/* Sección de features — fondo blanco en light */
+/* Sección de features — fondo crema suave en light (igual que body) */
 .light-theme #features {
-    background: #ffffff;
+    background: transparent;
 }
 
 /* Footer en light — más visible */

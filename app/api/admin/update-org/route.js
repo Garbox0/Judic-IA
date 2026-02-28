@@ -125,8 +125,8 @@ export async function POST(request) {
                             ${rejection_reason ? `<div style="background:#fff1f2;border-left:4px solid #f43f5e;padding:12px 16px;border-radius:6px;margin:16px 0;font-size:0.95rem;"><strong>Datos a corregir:</strong><br/><br/>${rejection_reason}</div>` : ''}
                             <p><strong>Respondé directamente a este email</strong> con los datos corregidos y procesaremos tu solicitud a la brevedad.</p>
                         `,
-                        buttonText: 'Registrar otro estudio',
-                        buttonUrl: `${appUrl}/registro-estudio`,
+                        buttonText: 'Responder a este email',
+                        buttonUrl: `mailto:hola@judic-ia.com`,
                     }),
                 });
             }

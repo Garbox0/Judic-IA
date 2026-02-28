@@ -72,7 +72,7 @@ export async function POST(request) {
     const { data: authData, error: authErr } = await supabase.auth.admin.createUser({
         email,
         password,
-        email_confirm: false,
+        email_confirm: true,
         user_metadata: {
             first_name,
             last_name,
@@ -95,10 +95,10 @@ export async function POST(request) {
 
     const userId = authData.user.id;
 
-    // 1.5. Bloquear acceso hasta aprobación manual del admin
-    await supabase.auth.admin.updateUser(userId, { ban_duration: '876000h' });
-
     try {
+        // 1.5. Bloquear acceso hasta aprobación manual del admin
+        await supabase.auth.admin.updateUser(userId, { ban_duration: '876000h' });
+
         // 2. Actualizar perfil con datos del titular
         await supabase
             .from('profiles')

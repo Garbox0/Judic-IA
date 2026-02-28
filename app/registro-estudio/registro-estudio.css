@@ -2,11 +2,75 @@
    REGISTRO ESTUDIO JURÍDICO
    ============================================= */
 
+/* ── Forzar colores propios (no heredar dark mode del body) ── */
 .re-main {
+  --re-bg:         #f8f7f4;
+  --re-card:       #ffffff;
+  --re-text:       #1a1a2e;
+  --re-text-2:     #64748b;
+  --re-border:     #e2e8f0;
+  --re-input-bg:   #fafafa;
+  --re-input-text: #1a1a2e;
   min-height: 100vh;
-  background: var(--bg-primary, #f8f7f4);
+  background: var(--re-bg);
+  color: var(--re-text);
   padding: 24px 16px 60px;
   font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+/* Dark mode opt-in (solo si el usuario togglea en esta página) */
+.re-main.re-dark {
+  --re-bg:         #0f172a;
+  --re-card:       #1e293b;
+  --re-text:       #f1f5f9;
+  --re-text-2:     #94a3b8;
+  --re-border:     #334155;
+  --re-input-bg:   #0f172a;
+  --re-input-text: #f1f5f9;
+}
+
+/* ── Skip to content ── */
+.re-skip-link {
+  position: absolute;
+  top: -999px;
+  left: 0;
+  background: #c9a227;
+  color: #fff;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 0 0 8px 0;
+  z-index: 9999;
+  text-decoration: none;
+}
+
+.re-skip-link:focus {
+  top: 0;
+}
+
+/* ── Theme toggle ── */
+.re-theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 100;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid var(--re-border, #e2e8f0);
+  background: var(--re-card, #fff);
+  color: var(--re-text-2, #64748b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+}
+
+.re-theme-toggle:hover {
+  border-color: #c9a227;
+  color: #c9a227;
 }
 
 .re-back {
@@ -14,14 +78,14 @@
 }
 
 .re-back a {
-  color: var(--text-secondary, #666);
+  color: var(--re-text-2, #64748b);
   font-size: 14px;
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .re-back a:hover {
-  color: var(--accent, #c9a227);
+  color: #c9a227;
 }
 
 .re-container {
@@ -51,13 +115,13 @@
 .re-title {
   font-size: 24px;
   font-weight: 700;
-  color: var(--text-primary, #1a1a2e);
+  color: var(--re-text, #1a1a2e);
   margin: 0 0 8px;
 }
 
 .re-subtitle {
   font-size: 14px;
-  color: var(--text-secondary, #666);
+  color: var(--re-text-2, #64748b);
   margin: 0;
 }
 
@@ -84,8 +148,8 @@
   gap: 8px;
   padding: 8px 14px;
   border-radius: 24px;
-  background: var(--bg-secondary, #ececec);
-  color: var(--text-secondary, #888);
+  background: var(--re-border, #ececec);
+  color: var(--re-text-2, #64748b);
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
@@ -117,7 +181,7 @@
 .re-step-line {
   width: 24px;
   height: 2px;
-  background: var(--bg-secondary, #ddd);
+  background: var(--re-border, #ddd);
   border-radius: 2px;
   flex-shrink: 0;
 }
@@ -139,7 +203,7 @@
 
 /* Form card */
 .re-form {
-  background: var(--card-bg, #fff);
+  background: var(--re-card, #fff);
   border-radius: 16px;
   padding: 28px 28px 24px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.06);
@@ -148,13 +212,13 @@
 .re-form-title {
   font-size: 18px;
   font-weight: 700;
-  color: var(--text-primary, #1a1a2e);
+  color: var(--re-text, #1a1a2e);
   margin: 0 0 6px;
 }
 
 .re-form-hint {
   font-size: 13px;
-  color: var(--text-secondary, #888);
+  color: var(--re-text-2, #64748b);
   margin: 0 0 20px;
 }
 
@@ -169,7 +233,7 @@
 .re-field label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary, #333);
+  color: var(--re-text, #1a1a2e);
 }
 
 .re-required {
@@ -180,9 +244,9 @@
 .re-input {
   padding: 10px 14px;
   border-radius: 10px;
-  border: 1.5px solid var(--border, #e2e8f0);
-  background: var(--bg-primary, #fafafa);
-  color: var(--text-primary, #1a1a2e);
+  border: 1.5px solid var(--re-border, #e2e8f0);
+  background: var(--re-input-bg, #fafafa);
+  color: var(--re-text, #1a1a2e);
   font-size: 14px;
   transition: border-color 0.2s;
   width: 100%;
@@ -211,8 +275,44 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--text-secondary, #888);
+  color: var(--re-text-2, #64748b);
   padding: 4px;
+}
+
+/* CUIT status indicator */
+.re-cuit-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Label row (label + suggest button) */
+.re-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.re-suggest-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: #c9a227;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: opacity 0.2s;
+}
+
+.re-suggest-btn:hover {
+  opacity: 0.75;
 }
 
 /* Password rules */
@@ -224,9 +324,12 @@
 }
 
 .re-pw-rules span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 11px;
-  color: var(--text-secondary, #aaa);
-  background: var(--bg-secondary, #f1f5f9);
+  color: var(--re-text-2, #64748b);
+  background: var(--re-border, #f1f5f9);
   padding: 2px 8px;
   border-radius: 10px;
   transition: all 0.2s;
@@ -235,6 +338,29 @@
 .re-pw-rules .re-rule--ok {
   background: #e6f4ea;
   color: #2d7a3a;
+}
+
+.re-pw-rules .re-rule--breach {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+/* Spinning animation for HIBP check */
+.re-spin {
+  animation: re-spin-anim 0.8s linear infinite;
+}
+
+@keyframes re-spin-anim {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Disabled state for next button */
+.re-btn-next:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Row */
@@ -250,7 +376,7 @@
 }
 
 .re-matricula-block {
-  border: 1.5px solid var(--border, #e2e8f0);
+  border: 1.5px solid var(--re-border, #e2e8f0);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 12px;
@@ -260,7 +386,7 @@
 .re-matricula-block legend {
   font-size: 13px;
   font-weight: 700;
-  color: var(--text-secondary, #666);
+  color: var(--re-text-2, #64748b);
   padding: 0 8px;
 }
 
@@ -285,9 +411,9 @@
 
 .re-btn-add-matricula {
   background: none;
-  border: 1.5px dashed var(--border, #cbd5e1);
+  border: 1.5px dashed var(--re-border, #cbd5e1);
   border-radius: 10px;
-  color: var(--text-secondary, #888);
+  color: var(--re-text-2, #64748b);
   font-size: 13px;
   cursor: pointer;
   padding: 10px 16px;
@@ -348,9 +474,9 @@
 .re-btn-back {
   padding: 13px 18px;
   border-radius: 12px;
-  border: 1.5px solid var(--border, #e2e8f0);
+  border: 1.5px solid var(--re-border, #e2e8f0);
   background: transparent;
-  color: var(--text-secondary, #666);
+  color: var(--re-text-2, #64748b);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -377,8 +503,8 @@
   position: relative;
   padding: 18px 14px;
   border-radius: 14px;
-  border: 2px solid var(--border, #e2e8f0);
-  background: var(--bg-primary, #fafafa);
+  border: 2px solid var(--re-border, #e2e8f0);
+  background: var(--re-input-bg, #fafafa);
   cursor: pointer;
   text-align: center;
   transition: all 0.2s;
@@ -416,13 +542,13 @@
 .re-plan-name {
   font-size: 15px;
   font-weight: 700;
-  color: var(--text-primary, #1a1a2e);
+  color: var(--re-text, #1a1a2e);
   margin-bottom: 4px;
 }
 
 .re-plan-members {
   font-size: 11px;
-  color: var(--text-secondary, #888);
+  color: var(--re-text-2, #64748b);
   margin-bottom: 10px;
 }
 
@@ -434,13 +560,13 @@
 
 .re-plan-period {
   font-size: 11px;
-  color: var(--text-secondary, #999);
+  color: var(--re-text-2, #64748b);
   margin-left: 2px;
 }
 
 .re-plan-note {
   font-size: 12px;
-  color: var(--text-secondary, #888);
+  color: var(--re-text-2, #64748b);
   text-align: center;
   margin: 0 0 4px;
   line-height: 1.6;
@@ -448,7 +574,7 @@
 
 /* Confirmation */
 .re-confirm {
-  background: var(--card-bg, #fff);
+  background: var(--re-card, #fff);
   border-radius: 16px;
   padding: 40px 28px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.06);
@@ -463,20 +589,20 @@
 .re-confirm-title {
   font-size: 22px;
   font-weight: 800;
-  color: var(--text-primary, #1a1a2e);
+  color: var(--re-text, #1a1a2e);
   margin: 0 0 12px;
 }
 
 .re-confirm-text {
   font-size: 15px;
-  color: var(--text-secondary, #555);
+  color: var(--re-text-2, #4b5563);
   line-height: 1.7;
   margin: 0 0 8px;
 }
 
 .re-confirm-sub {
   font-size: 13px;
-  color: var(--text-secondary, #999);
+  color: var(--re-text-2, #64748b);
   margin: 0 0 28px;
 }
 
