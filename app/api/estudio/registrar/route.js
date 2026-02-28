@@ -24,6 +24,18 @@ const VALID_PLANS = ['enterprise_s', 'enterprise_m', 'enterprise_l', 'enterprise
 const MEMBER_LIMITS = { enterprise_s: 5, enterprise_m: 10, enterprise_l: 20, enterprise_xl: null };
 
 export async function POST(request) {
+  try {
+    return await _handlePost(request);
+  } catch (outerErr) {
+    console.error('[estudio/registrar] UNHANDLED OUTER ERROR:', outerErr?.message, outerErr?.stack);
+    return NextResponse.json({
+      error: 'Error inesperado al registrar el estudio.',
+      _debug: outerErr?.message,
+    }, { status: 500 });
+  }
+}
+
+async function _handlePost(request) {
     // Rate limit: máximo 3 registros de estudio por IP por hora
     const ip = getClientIP(request);
     const rl = checkRateLimit(`registrar-estudio:${ip}`, 3, 60 * 60 * 1000);
@@ -93,6 +105,10 @@ export async function POST(request) {
         return NextResponse.json({ error: 'Error al crear el usuario.' }, { status: 500 });
     }
 
+    if (!authData?.user?.id) {
+        console.error('[estudio/registrar] authData.user is null despite no error:', authData);
+        return NextResponse.json({ error: 'Error al crear el usuario (user null).', _debug: 'authData.user is null' }, { status: 500 });
+    }
     const userId = authData.user.id;
 
     try {
