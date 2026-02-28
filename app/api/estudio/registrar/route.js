@@ -113,7 +113,7 @@ async function _handlePost(request) {
 
     try {
         // 1.5. Bloquear acceso hasta aprobación manual del admin
-        const { error: banErr } = await supabase.auth.admin.updateUser(userId, { ban_duration: '876000h' });
+        const { error: banErr } = await supabase.auth.admin.updateUserById(userId, { ban_duration: '876000h' });
         if (banErr) console.error('[estudio/registrar] Ban error (non-fatal):', banErr.message);
 
         // 2. Actualizar perfil con datos del titular

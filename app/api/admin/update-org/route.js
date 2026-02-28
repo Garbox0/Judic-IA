@@ -73,7 +73,7 @@ export async function POST(request) {
                     .eq('id', ownerId);
 
                 // 2b. Levantar el ban (el owner estaba bloqueado hasta aprobación)
-                await supabase.auth.admin.updateUser(ownerId, { ban_duration: 'none' });
+                await supabase.auth.admin.updateUserById(ownerId, { ban_duration: 'none' });
             }
 
             // 3. Enviar email al titular
