@@ -171,6 +171,9 @@ export default function AlertsPanel() {
   const [csjnRoleDenunciado, setCsjnRoleDenunciado] = useState(true);
 
   const [alertCredits, setAlertCredits] = useState(0);
+  const [alertCreditsSource, setAlertCreditsSource] = useState('individual'); // 'individual' | 'org'
+  const [alertOrgName, setAlertOrgName] = useState(null);
+  const [alertIsOrgOwner, setAlertIsOrgOwner] = useState(false);
   const [buyingAlertPack, setBuyingAlertPack] = useState('');
   const [isPackModalOpen, setIsPackModalOpen] = useState(false);
   const [canManageAlerts, setCanManageAlerts] = useState(false);
@@ -247,8 +250,25 @@ export default function AlertsPanel() {
         setAlertCredits(0);
         setCanManageAlerts(false);
       } else {
-        setAlertCredits(Number(profile?.alert_credits_extra || 0));
         setCanManageAlerts(hasActivePaidSubscription(profile));
+
+        // Fetch effective alert credits (org pool or individual)
+        try {
+          const credRes = await fetch('/api/alerts/credits', {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
+          if (credRes.ok) {
+            const credData = await credRes.json();
+            setAlertCredits(credData.credits ?? 0);
+            setAlertCreditsSource(credData.source || 'individual');
+            setAlertOrgName(credData.orgName || null);
+            setAlertIsOrgOwner(credData.isOrgOwner || false);
+          } else {
+            setAlertCredits(Number(profile?.alert_credits_extra || 0));
+          }
+        } catch {
+          setAlertCredits(Number(profile?.alert_credits_extra || 0));
+        }
       }
     } catch (err) {
       console.error('[AlertsPanel] fetch error:', err);
@@ -313,7 +333,12 @@ export default function AlertsPanel() {
       const accessToken = session?.access_token;
       if (!accessToken) throw new Error('No hay sesion activa.');
 
-      const response = await fetch('/api/mp/alerts/create', {
+      // Owner de estudio verificado compra para el pool org, el resto compra individual
+      const alertCreateEndpoint = alertCreditsSource === 'org' && alertIsOrgOwner
+        ? '/api/mp/org-alerts/create'
+        : '/api/mp/alerts/create';
+
+      const response = await fetch(alertCreateEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -609,19 +634,36 @@ export default function AlertsPanel() {
           </p>
 
           <p className="alerts-credits" aria-live="polite">
-            Creditos de alerta disponibles: <strong>{alertCredits}</strong>
+            {alertCreditsSource === 'org'
+              ? <>Pool del estudio {alertOrgName ? `(${alertOrgName})` : ''}: <strong>{alertCredits}</strong></>
+              : <>Creditos de alerta disponibles: <strong>{alertCredits}</strong></>
+            }
           </p>
           <p className="alerts-credits-note">
             Cada credito activa 1 alerta por 30 dias.
           </p>
           <div className="alerts-pack-list">
-            <button
-              type="button"
-              className="alerts-pack-btn alerts-pack-open-btn"
-              onClick={() => setIsPackModalOpen(true)}
-            >
-              Comprar creditos de alerta
-            </button>
+            {alertCreditsSource === 'org' ? (
+              alertIsOrgOwner ? (
+                <button
+                  type="button"
+                  className="alerts-pack-btn alerts-pack-open-btn"
+                  onClick={() => setIsPackModalOpen(true)}
+                >
+                  Comprar para el estudio
+                </button>
+              ) : (
+                <span className="alerts-credits-note">El titular compra créditos para el estudio.</span>
+              )
+            ) : (
+              <button
+                type="button"
+                className="alerts-pack-btn alerts-pack-open-btn"
+                onClick={() => setIsPackModalOpen(true)}
+              >
+                Comprar creditos de alerta
+              </button>
+            )}
           </div>
         </div>
 

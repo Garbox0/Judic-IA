@@ -86,7 +86,7 @@ export async function POST(request) {
 
     const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('subscription_status, plan_tier, subscription_expiry, grace_period_ends_at, alert_credits_extra')
+        .select('subscription_status, plan_tier, subscription_expiry, grace_period_ends_at, alert_credits_extra, org_id')
         .eq('id', auth.user.id)
         .maybeSingle();
 
@@ -101,23 +101,57 @@ export async function POST(request) {
         return NextResponse.json({ error: 'SUBSCRIPTION_REQUIRED' }, { status: 403 });
     }
 
-    const currentAlertCredits = Number(profile?.alert_credits_extra || 0);
-    if (!Number.isFinite(currentAlertCredits) || currentAlertCredits < 1) {
-        return NextResponse.json({ error: 'ALERT_CREDITS_EXHAUSTED' }, { status: 403 });
+    // ─── ORG ALERT POOL CHECK ───────────────────────────────────────────────
+    let useOrgAlertPool = false;
+    let orgIdForAlert = null;
+
+    if (profile.org_id) {
+        const { data: orgData } = await supabase
+            .from('organizations')
+            .select('type, verification_status, alert_credits_pool')
+            .eq('id', profile.org_id)
+            .maybeSingle();
+
+        if (orgData?.type === 'estudio' && orgData?.verification_status === 'verified') {
+            useOrgAlertPool = true;
+            orgIdForAlert = profile.org_id;
+            if ((orgData.alert_credits_pool ?? 0) <= 0) {
+                return NextResponse.json({ error: 'ALERT_CREDITS_EXHAUSTED' }, { status: 403 });
+            }
+        }
     }
 
-    const { data: consumeResult, error: debitError } = await supabase.rpc('consume_alert_credit', {
-        p_user_id: auth.user.id,
-        p_amount: 1
-    });
+    // ─── CONSUME CREDIT ─────────────────────────────────────────────────────
+    if (useOrgAlertPool) {
+        const { data: consumeResult, error: debitError } = await supabase.rpc('consume_org_alert_credit', {
+            p_org_id: orgIdForAlert,
+        });
+        if (debitError) {
+            console.error('[alerts/create] org debit error:', debitError.message);
+            return NextResponse.json({ error: 'ALERT_CREDIT_DEBIT_FAILED' }, { status: 500 });
+        }
+        if (consumeResult !== 'ok') {
+            return NextResponse.json({ error: 'ALERT_CREDITS_EXHAUSTED' }, { status: 403 });
+        }
+    } else {
+        const currentAlertCredits = Number(profile?.alert_credits_extra || 0);
+        if (!Number.isFinite(currentAlertCredits) || currentAlertCredits < 1) {
+            return NextResponse.json({ error: 'ALERT_CREDITS_EXHAUSTED' }, { status: 403 });
+        }
 
-    if (debitError) {
-        console.error('[alerts/create] debit error:', debitError.message || debitError);
-        return NextResponse.json({ error: 'ALERT_CREDIT_DEBIT_FAILED' }, { status: 500 });
-    }
+        const { data: consumeResult, error: debitError } = await supabase.rpc('consume_alert_credit', {
+            p_user_id: auth.user.id,
+            p_amount: 1
+        });
 
-    if (consumeResult !== 'consumed') {
-        return NextResponse.json({ error: 'ALERT_CREDITS_EXHAUSTED' }, { status: 403 });
+        if (debitError) {
+            console.error('[alerts/create] debit error:', debitError.message || debitError);
+            return NextResponse.json({ error: 'ALERT_CREDIT_DEBIT_FAILED' }, { status: 500 });
+        }
+
+        if (consumeResult !== 'consumed') {
+            return NextResponse.json({ error: 'ALERT_CREDITS_EXHAUSTED' }, { status: 403 });
+        }
     }
 
     const insertPayload = {
@@ -142,19 +176,37 @@ export async function POST(request) {
 
     if (insertError) {
         console.error('[alerts/create] insert error:', insertError.message);
-        await refundOneAlertCredit(supabase, auth.user.id);
+        if (useOrgAlertPool) {
+            await supabase.rpc('add_org_alert_credits', { p_org_id: orgIdForAlert, p_credits: 1 });
+        } else {
+            await refundOneAlertCredit(supabase, auth.user.id);
+        }
         return NextResponse.json({ error: 'CREATE_CASE_ALERT_FAILED' }, { status: 500 });
     }
 
-    const { data: profileAfter } = await supabase
-        .from('profiles')
-        .select('alert_credits_extra')
-        .eq('id', auth.user.id)
-        .maybeSingle();
+    // Log usage for org pool
+    if (useOrgAlertPool && orgIdForAlert) {
+        await supabase.from('org_alert_credit_usage').insert({
+            org_id: orgIdForAlert,
+            used_by: auth.user.id,
+            alert_id: createdAlert.id,
+        });
+    }
+
+    let creditsLeft = 0;
+    if (useOrgAlertPool) {
+        const { data: orgAfter } = await supabase
+            .from('organizations').select('alert_credits_pool').eq('id', orgIdForAlert).single();
+        creditsLeft = orgAfter?.alert_credits_pool ?? 0;
+    } else {
+        const { data: profileAfter } = await supabase
+            .from('profiles').select('alert_credits_extra').eq('id', auth.user.id).maybeSingle();
+        creditsLeft = Number(profileAfter?.alert_credits_extra || 0);
+    }
 
     return NextResponse.json({
         ok: true,
         alert: createdAlert,
-        credits_left: Number(profileAfter?.alert_credits_extra || 0)
+        credits_left: creditsLeft,
     });
 }

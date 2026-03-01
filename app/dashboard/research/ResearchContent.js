@@ -70,6 +70,11 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
     const [quotaExhausted, setQuotaExhausted] = useState(false); // true = llegó a 0, false = compra proactiva
     const [trialExpired, setTrialExpired] = useState(false); // [NEW] Trial Expiration Check
 
+    // Org research pool (for verified estudios)
+    const [orgResearchCredits, setOrgResearchCredits] = useState(null);
+    const [orgResearchSource, setOrgResearchSource] = useState('individual'); // 'individual' | 'org'
+    const [orgResearchName, setOrgResearchName] = useState(null);
+
     // Voice input
     const [isListening, setIsListening] = useState(false);
     const [hasSpeechSupport, setHasSpeechSupport] = useState(false);
@@ -274,6 +279,22 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                 if (profile && isTrialExpired(profile)) {
                     setTrialExpired(true);
                 }
+
+                // Fetch effective research credits (org pool or individual)
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (session?.access_token) {
+                        const credRes = await fetch('/api/research/credits', {
+                            headers: { Authorization: `Bearer ${session.access_token}` },
+                        });
+                        if (credRes.ok) {
+                            const credData = await credRes.json();
+                            setOrgResearchSource(credData.source || 'individual');
+                            setOrgResearchCredits(credData.credits ?? null);
+                            setOrgResearchName(credData.orgName || null);
+                        }
+                    }
+                } catch { /* non-blocking */ }
 
                 // Fetch History
                 const { data: reports } = await supabase
@@ -1427,6 +1448,21 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                     )}
 
                                     {!isDemoProp && userProfile && (() => {
+                                        // Org research pool takes precedence for verified estudios
+                                        if (orgResearchSource === 'org' && orgResearchCredits !== null) {
+                                            const isLow = orgResearchCredits <= 2;
+                                            return (
+                                                <div className="research-quota-bar">
+                                                    <div className="research-quota-track">
+                                                        <div className={`research-quota-fill ${isLow ? 'low' : ''}`} style={{ width: orgResearchCredits > 0 ? '60%' : '0%' }} />
+                                                    </div>
+                                                    <span className={`research-quota-label ${isLow ? 'low' : ''}`}>
+                                                        {orgResearchCredits} crédito{orgResearchCredits !== 1 ? 's' : ''} del pool del estudio
+                                                        {orgResearchName && <span className="quota-extra-badge"> · {orgResearchName}</span>}
+                                                    </span>
+                                                </div>
+                                            );
+                                        }
                                         const limit = getPlanLimit(userProfile.plan_tier, 'research_reports');
                                         const used = userProfile.research_reports_used || 0;
                                         const extra = userProfile.research_reports_extra || 0;

@@ -123,10 +123,11 @@ export async function POST(req) {
 
             // external_reference format:
             // - "credits:<purchase_id>:<user_id>"                             (research credits individuales)
-            // - "alert_credits:<purchase_id>:<user_id>"                       (alert credits)
+            // - "alert_credits:<purchase_id>:<user_id>"                       (alert credits individuales)
             // - "antecedentes_credits:<purchase_id>:<user_id>"                (antecedentes individuales)
             // - "org_antecedentes_credits:<purchase_id>:<org_id>:<user_id>"   (pool antecedentes del estudio)
             // - "org_research_credits:<purchase_id>:<org_id>:<user_id>"       (pool research del estudio)
+            // - "org_alert_credits:<purchase_id>:<org_id>:<user_id>"          (pool alertas del estudio)
             const extRef = payment.external_reference || '';
             const refParts = extRef.split(':');
             const purchaseType = refParts[0];
@@ -135,8 +136,9 @@ export async function POST(req) {
             const isAntecedentesCredits = purchaseType === 'antecedentes_credits';
             const isOrgAntecedentesCredits = purchaseType === 'org_antecedentes_credits';
             const isOrgResearchCredits = purchaseType === 'org_research_credits';
+            const isOrgAlertCredits = purchaseType === 'org_alert_credits';
 
-            if (!isResearchCredits && !isAlertCredits && !isAntecedentesCredits && !isOrgAntecedentesCredits && !isOrgResearchCredits) {
+            if (!isResearchCredits && !isAlertCredits && !isAntecedentesCredits && !isOrgAntecedentesCredits && !isOrgResearchCredits && !isOrgAlertCredits) {
                 // No es un credit pack, ignorar aquí (continuará al flujo de suscripción)
                 console.log('Payment is not a known credit pack, skipping.');
                 return NextResponse.json({ ok: true });
@@ -144,7 +146,7 @@ export async function POST(req) {
 
             // org_*_credits: [type, purchaseId, orgId, userId]
             // all others:    [type, purchaseId, userId]
-            const isOrgCreditPack = isOrgAntecedentesCredits || isOrgResearchCredits;
+            const isOrgCreditPack = isOrgAntecedentesCredits || isOrgResearchCredits || isOrgAlertCredits;
             const purchaseId = refParts[1];
             const orgId = isOrgCreditPack ? refParts[2] : null;
             const userId = isOrgCreditPack ? refParts[3] : refParts[2];
@@ -172,7 +174,9 @@ export async function POST(req) {
                         ? 'org_antecedentes_credit_purchases'
                         : isOrgResearchCredits
                             ? 'org_research_credit_purchases'
-                            : 'credit_purchases';
+                            : isOrgAlertCredits
+                                ? 'org_alert_credit_purchases'
+                                : 'credit_purchases';
             const creditLabel = isAlertCredits
                 ? 'alerta'
                 : isAntecedentesCredits
@@ -181,7 +185,9 @@ export async function POST(req) {
                         ? 'org_antecedentes'
                         : isOrgResearchCredits
                             ? 'org_research'
-                            : 'research';
+                            : isOrgAlertCredits
+                                ? 'org_alert'
+                                : 'research';
 
             if (payment.status === 'approved') {
                 // 1. Obtener el pack para saber cuántos credits
@@ -269,6 +275,24 @@ export async function POST(req) {
                     if (purchaseStatusError) {
                         throw new Error(`ORG_RESEARCH_PURCHASE_STATUS_FAILED: ${purchaseStatusError.message}`);
                     }
+                } else if (isOrgAlertCredits) {
+                    const addResult = await supabase.rpc('add_org_alert_credits', {
+                        p_org_id: orgId,
+                        p_credits: purchase.credits
+                    });
+
+                    if (addResult.error) {
+                        throw new Error(`ORG_ALERT_CREDITS_UPDATE_FAILED: ${addResult.error.message}`);
+                    }
+
+                    const { error: purchaseStatusError } = await supabase
+                        .from(purchasesTable)
+                        .update({ status: 'approved', mp_payment_id: String(mpId) })
+                        .eq('id', purchaseId);
+
+                    if (purchaseStatusError) {
+                        throw new Error(`ORG_ALERT_PURCHASE_STATUS_FAILED: ${purchaseStatusError.message}`);
+                    }
                 } else {
                     const addResearchCreditsResult = await supabase.rpc('add_research_credits', {
                         p_user_id: userId,
@@ -307,7 +331,9 @@ export async function POST(req) {
                                 ? 'créditos de antecedentes (estudio)'
                                 : isOrgResearchCredits
                                     ? 'créditos de investigación (estudio)'
-                                    : 'créditos de estrategia';
+                                    : isOrgAlertCredits
+                                        ? 'créditos de alerta (estudio)'
+                                        : 'créditos de estrategia';
                     const creditPlural = purchase.credits === 1
                         ? `1 ${creditNoun.slice(0, -1)}`
                         : `${purchase.credits} ${creditNoun}`;
@@ -319,7 +345,9 @@ export async function POST(req) {
                                 ? 'Pack de créditos de antecedentes (pool del estudio)'
                                 : isOrgResearchCredits
                                     ? 'Pack de créditos de investigación (pool del estudio)'
-                                    : 'Pack de créditos de estrategia';
+                                    : isOrgAlertCredits
+                                        ? 'Pack de créditos de alerta (pool del estudio)'
+                                        : 'Pack de créditos de estrategia';
 
                     if (userEmail) {
                         await sendEmail({
@@ -389,7 +417,9 @@ export async function POST(req) {
                                 ? 'créditos de antecedentes (estudio)'
                                 : isOrgResearchCredits
                                     ? 'créditos de investigación (estudio)'
-                                    : 'créditos de estrategia';
+                                    : isOrgAlertCredits
+                                        ? 'créditos de alerta (estudio)'
+                                        : 'créditos de estrategia';
                     const opType = isAlertCredits
                         ? 'Pack de créditos de alerta'
                         : isAntecedentesCredits
@@ -398,7 +428,9 @@ export async function POST(req) {
                                 ? 'Pack de créditos de antecedentes (pool del estudio)'
                                 : isOrgResearchCredits
                                     ? 'Pack de créditos de investigación (pool del estudio)'
-                                    : 'Pack de créditos de estrategia';
+                                    : isOrgAlertCredits
+                                        ? 'Pack de créditos de alerta (pool del estudio)'
+                                        : 'Pack de créditos de estrategia';
 
                     if (userEmail) {
                         await sendEmail({
