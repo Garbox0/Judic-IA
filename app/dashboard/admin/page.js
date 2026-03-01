@@ -80,6 +80,7 @@ export default function AdminPage() {
     const [rejectModal, setRejectModal] = useState({ open: false, userId: null, matriculaId: null, reason: '' });
     const [estudios, setEstudios] = useState([]);
     const [estudiosLoading, setEstudiosLoading] = useState(false);
+    const [estudiosFilter, setEstudiosFilter] = useState('all');
     const [rejectOrgModal, setRejectOrgModal] = useState({ open: false, orgId: null, reason: '' });
     const router = useRouter();
 
@@ -1500,34 +1501,60 @@ export default function AdminPage() {
                             )}
 
                             {/* TAB: ESTUDIOS */}
-                            {activeTab === 'estudios' && (
+                            {activeTab === 'estudios' && (() => {
+                                const pending  = estudios.filter(e => e.verification_status === 'pending').length;
+                                const filtered = estudiosFilter === 'all' ? estudios
+                                    : estudios.filter(e => e.verification_status === estudiosFilter);
+                                return (
                                 <div className="glass-card overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                    <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-6 py-10 px-10 border-b border-admin-stroke">
+                                    {/* Header */}
+                                    <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 py-8 px-10 border-b border-admin-stroke">
                                         <div className="space-y-1">
                                             <h3 className="text-2xl font-black text-admin-primary tracking-tighter">Estudios Jurídicos</h3>
                                             <p className="text-admin-muted text-[10px] font-black uppercase tracking-[0.3em] opacity-60">
-                                                Verificación de estudios — {estudios.filter(e => e.verification_status === 'pending').length} pendientes
+                                                {estudios.length} registrados · {pending} pendiente{pending !== 1 ? 's' : ''}
                                             </p>
                                         </div>
-                                        <button onClick={fetchEstudios} className="action-btn" title="Actualizar">
-                                            <RefreshCw size={14} className={estudiosLoading ? 'animate-spin' : ''} />
-                                        </button>
+                                        <div className="flex items-center gap-3">
+                                            {/* Filtro */}
+                                            <div className="flex bg-admin-surface border border-admin-stroke rounded-xl overflow-hidden text-[10px] font-black uppercase tracking-widest">
+                                                {[
+                                                    { key: 'all',      label: 'Todos' },
+                                                    { key: 'pending',  label: `Pendientes${pending > 0 ? ` (${pending})` : ''}` },
+                                                    { key: 'verified', label: 'Verificados' },
+                                                    { key: 'rejected', label: 'Rechazados' },
+                                                ].map(f => (
+                                                    <button
+                                                        key={f.key}
+                                                        onClick={() => setEstudiosFilter(f.key)}
+                                                        className={`px-4 py-2 transition-colors ${estudiosFilter === f.key ? 'bg-gold text-[#0d1526]' : 'text-admin-muted hover:text-admin-primary'}`}
+                                                    >{f.label}</button>
+                                                ))}
+                                            </div>
+                                            <button onClick={fetchEstudios} className="action-btn" title="Actualizar">
+                                                <RefreshCw size={14} className={estudiosLoading ? 'animate-spin' : ''} />
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    <div className="mx-10 mt-8 mb-10 space-y-4">
+                                    {/* Lista */}
+                                    <div className="mx-10 mt-8 mb-10">
                                         {estudiosLoading ? (
                                             <div className="flex justify-center py-20">
                                                 <RefreshCw size={28} className="animate-spin text-admin-muted opacity-40" />
                                             </div>
-                                        ) : estudios.length === 0 ? (
+                                        ) : filtered.length === 0 ? (
                                             <div className="flex flex-col items-center justify-center py-20">
                                                 <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/5">
                                                     <Building2 size={36} className="text-admin-muted opacity-20" />
                                                 </div>
-                                                <p className="text-admin-muted text-[10px] font-black uppercase tracking-widest opacity-60">Sin estudios registrados</p>
+                                                <p className="text-admin-muted text-[10px] font-black uppercase tracking-widest opacity-60">
+                                                    {estudiosFilter === 'all' ? 'Sin estudios registrados' : 'Sin resultados para este filtro'}
+                                                </p>
                                             </div>
                                         ) : (
-                                            estudios.map(estudio => {
+                                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                                            {filtered.map(estudio => {
                                                 const isPending  = estudio.verification_status === 'pending';
                                                 const isVerified = estudio.verification_status === 'verified';
                                                 const isRejected = estudio.verification_status === 'rejected';
@@ -1537,71 +1564,58 @@ export default function AdminPage() {
                                                 const badgeLabel = isVerified ? 'Verificado' : isRejected ? 'Rechazado' : 'Pendiente';
 
                                                 return (
-                                                    <div key={estudio.id} className="table-row p-6 rounded-2xl flex flex-col gap-4">
-                                                        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-                                                            <div className="flex items-start gap-4 flex-1 min-w-0">
-                                                                <div className="w-12 h-12 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
-                                                                    <Building2 size={20} className="text-gold" />
+                                                    <div key={estudio.id} className={`table-row rounded-2xl flex flex-col gap-0 overflow-hidden border ${isPending ? 'border-gold/20' : isVerified ? 'border-emerald/15' : 'border-rose/15'}`}>
+                                                        {/* Card header */}
+                                                        <div className="flex items-start justify-between gap-3 p-5 pb-4">
+                                                            <div className="flex items-start gap-3 min-w-0 flex-1">
+                                                                <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0 mt-0.5">
+                                                                    <Building2 size={17} className="text-gold" />
                                                                 </div>
-                                                                <div className="flex flex-col min-w-0 flex-1">
-                                                                    <div className="flex items-center gap-3 flex-wrap">
-                                                                        <span className="font-black text-admin-primary text-base tracking-tight">{estudio.razon_social || estudio.name}</span>
-                                                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${badgeClass}`}>{badgeLabel}</span>
-                                                                        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full border border-admin-stroke text-admin-muted">{estudio.plan_tier?.replace('_', ' ').toUpperCase()}</span>
-                                                                    </div>
-                                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 mt-2 text-[11px] text-admin-muted">
-                                                                        <span><strong>CUIT:</strong> {estudio.cuit || '-'}</span>
-                                                                        <span><strong>Tel:</strong> {estudio.phone || '-'}</span>
-                                                                        <span className="col-span-2"><strong>Domicilio:</strong> {estudio.domicilio || '-'}</span>
+                                                                <div className="min-w-0 flex-1">
+                                                                    <p className="font-black text-admin-primary text-sm tracking-tight leading-tight truncate">
+                                                                        {estudio.razon_social || estudio.name}
+                                                                    </p>
+                                                                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${badgeClass}`}>{badgeLabel}</span>
+                                                                        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-admin-stroke text-admin-muted">
+                                                                            {estudio.plan_tier?.replace(/_/g, ' ').toUpperCase()}
+                                                                        </span>
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            <p className="text-[9px] text-admin-muted opacity-50 font-mono shrink-0 mt-1">
+                                                                {new Date(estudio.created_at).toLocaleDateString('es-AR')}
+                                                            </p>
+                                                        </div>
 
-                                                            {/* Acciones */}
-                                                            {isPending && (
-                                                                <div className="flex gap-2 shrink-0">
-                                                                    <button
-                                                                        onClick={() => handleEstudioAction(estudio.id, 'verify')}
-                                                                        className="premium-btn emerald text-xs px-4 py-2 flex items-center gap-2"
-                                                                        aria-label={`Verificar ${estudio.razon_social}`}
-                                                                    >
-                                                                        <CheckCircle2 size={13} /> Verificar
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => setRejectOrgModal({ open: true, orgId: estudio.id, reason: '' })}
-                                                                        className="premium-btn rose text-xs px-4 py-2 flex items-center gap-2"
-                                                                        aria-label={`Rechazar ${estudio.razon_social}`}
-                                                                    >
-                                                                        <XCircle size={13} /> Rechazar
-                                                                    </button>
-                                                                </div>
-                                                            )}
+                                                        {/* Datos del estudio */}
+                                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 px-5 pb-4 text-[11px] text-admin-muted border-b border-admin-stroke">
+                                                            <span><strong className="text-admin-primary/60">CUIT</strong> {estudio.cuit || '-'}</span>
+                                                            <span><strong className="text-admin-primary/60">Tel</strong> {estudio.phone || '-'}</span>
+                                                            <span className="col-span-2"><strong className="text-admin-primary/60">Domicilio</strong> {estudio.domicilio || '-'}</span>
                                                         </div>
 
                                                         {/* Titular */}
                                                         {estudio.owner && (
-                                                            <div className="bg-admin-surface/50 rounded-xl p-4 border border-admin-stroke">
-                                                                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-admin-muted mb-2">Titular</p>
+                                                            <div className="px-5 py-3 border-b border-admin-stroke">
                                                                 <div className="flex items-center gap-3">
-                                                                    <div className="w-8 h-8 rounded-lg bg-admin-surface border border-admin-stroke flex items-center justify-center text-[10px] font-black text-admin-muted">
+                                                                    <div className="w-7 h-7 rounded-lg bg-admin-surface border border-admin-stroke flex items-center justify-center text-[9px] font-black text-admin-muted shrink-0">
                                                                         {(estudio.owner.full_name || '?').slice(0,2).toUpperCase()}
                                                                     </div>
-                                                                    <div>
-                                                                        <p className="text-sm font-bold text-admin-primary">{estudio.owner.full_name}</p>
-                                                                        <p className="text-[10px] text-admin-muted font-mono">{estudio.owner.email}</p>
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <p className="text-[11px] font-bold text-admin-primary truncate">{estudio.owner.full_name}</p>
+                                                                        <p className="text-[10px] text-admin-muted font-mono truncate">{estudio.owner.email}</p>
                                                                     </div>
-                                                                    <span className={`ml-auto text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full border ${
+                                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border shrink-0 ${
                                                                         estudio.owner.verification_status === 'verified' ? 'text-emerald bg-emerald/10 border-emerald/20' : 'text-gold bg-gold/10 border-gold/20'
                                                                     }`}>
-                                                                        Matrícula {estudio.owner.verification_status === 'verified' ? 'verificada' : 'pendiente'}
+                                                                        {estudio.owner.verification_status === 'verified' ? 'Matrícula OK' : 'Mat. pendiente'}
                                                                     </span>
                                                                 </div>
-
-                                                                {/* Matrículas del titular */}
                                                                 {Array.isArray(estudio.owner.matriculas) && estudio.owner.matriculas.length > 0 && (
-                                                                    <div className="mt-3 flex flex-wrap gap-2">
+                                                                    <div className="mt-2 flex flex-wrap gap-1.5">
                                                                         {estudio.owner.matriculas.map((m, i) => (
-                                                                            <span key={i} className="text-[9px] font-mono bg-admin-surface border border-admin-stroke rounded-lg px-2 py-1 text-admin-muted">
+                                                                            <span key={i} className="text-[9px] font-mono bg-admin-surface border border-admin-stroke rounded-lg px-2 py-0.5 text-admin-muted">
                                                                                 {m.colegio} · T°{m.tomo} F°{m.folio}
                                                                             </span>
                                                                         ))}
@@ -1611,21 +1625,47 @@ export default function AdminPage() {
                                                         )}
 
                                                         {isRejected && estudio.rejection_reason && (
-                                                            <div className="bg-rose/5 border border-rose/20 rounded-xl px-4 py-3 text-xs text-rose">
-                                                                <strong>Motivo:</strong> {estudio.rejection_reason}
+                                                            <div className="px-5 py-3 text-[11px] text-rose border-b border-admin-stroke">
+                                                                <strong>Motivo de rechazo:</strong> {estudio.rejection_reason}
                                                             </div>
                                                         )}
 
-                                                        <p className="text-[9px] text-admin-muted opacity-40 font-mono">
-                                                            Registrado: {new Date(estudio.created_at).toLocaleDateString('es-AR')} · ID: {estudio.id}
-                                                        </p>
+                                                        {/* Acciones */}
+                                                        <div className="flex items-center justify-between gap-3 px-5 py-3">
+                                                            <p className="text-[9px] text-admin-muted opacity-40 font-mono truncate">ID: {estudio.id}</p>
+                                                            {isPending && (
+                                                                <div className="flex gap-2 shrink-0">
+                                                                    <button
+                                                                        onClick={() => handleEstudioAction(estudio.id, 'verify')}
+                                                                        className="premium-btn emerald text-xs px-3 py-1.5 flex items-center gap-1.5"
+                                                                        aria-label={`Verificar ${estudio.razon_social}`}
+                                                                    >
+                                                                        <CheckCircle2 size={12} /> Verificar
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => setRejectOrgModal({ open: true, orgId: estudio.id, reason: '' })}
+                                                                        className="premium-btn rose text-xs px-3 py-1.5 flex items-center gap-1.5"
+                                                                        aria-label={`Rechazar ${estudio.razon_social}`}
+                                                                    >
+                                                                        <XCircle size={12} /> Rechazar
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                            {isVerified && (
+                                                                <span className="text-[10px] font-black text-emerald flex items-center gap-1">
+                                                                    <CheckCircle2 size={12} /> Activo
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 );
-                                            })
+                                            })}
+                                            </div>
                                         )}
                                     </div>
                                 </div>
-                            )}
+                                );
+                            })()}
                         </div>
                     </div>
                 </div>
