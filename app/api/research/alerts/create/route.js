@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifyAuth } from '@/lib/api-auth';
 
-const ALLOWED_PORTALS = new Set(['PJN', 'SCBA', 'CABA', 'CSJN_SORTEOS']);
+const ALLOWED_PORTALS = new Set(['PJN', 'SCBA', 'CSJN_SORTEOS']);
+const COMING_SOON_PORTALS = new Set(['CABA']);
 const ALLOWED_FREQUENCIES = new Set(['daily', 'weekly']);
 
 function isFutureDate(value) {
@@ -71,6 +72,10 @@ export async function POST(request) {
     const frequency = cleanText(body?.frequency || 'daily').toLowerCase();
     const jurisdiction = cleanText(body?.jurisdiction || '');
     const fueroId = cleanText(body?.fuero_id || '');
+
+    if (COMING_SOON_PORTALS.has(portal)) {
+        return NextResponse.json({ error: 'PORTAL_PROXIMAMENTE' }, { status: 400 });
+    }
 
     if (!ALLOWED_PORTALS.has(portal)) {
         return NextResponse.json({ error: 'PORTAL_INVALIDO' }, { status: 400 });

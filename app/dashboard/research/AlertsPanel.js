@@ -28,7 +28,7 @@ import {
 const PORTAL_OPTIONS = [
   { value: 'PJN', label: 'Nacion y Federal (PJN)' },
   { value: 'SCBA', label: 'Buenos Aires (SCBA)' },
-  { value: 'CABA', label: 'Ciudad de Buenos Aires (CABA)' },
+  { value: 'CABA', label: 'Ciudad de Buenos Aires (CABA) — Próximamente', disabled: true },
   { value: 'CSJN_SORTEOS', label: 'Sorteos Federal (CSJN)' }
 ];
 
@@ -77,6 +77,9 @@ function mapAlertOperationError(err) {
   }
   if (up.includes('QUERY_INVALIDA')) {
     return 'Debes ingresar un termino valido (minimo 3 caracteres).';
+  }
+  if (up.includes('PORTAL_PROXIMAMENTE')) {
+    return 'Este portal estara disponible proximamente.';
   }
   if (up.includes('PORTAL_INVALIDO')) {
     return 'Portal invalido para crear alerta.';
@@ -714,7 +717,7 @@ export default function AlertsPanel() {
                 onChange={(e) => setPortal(e.target.value)}
               >
                 {PORTAL_OPTIONS.map((item) => (
-                  <option key={item.value} value={item.value}>{item.label}</option>
+                  <option key={item.value} value={item.value} disabled={item.disabled}>{item.label}</option>
                 ))}
               </select>
             </div>
