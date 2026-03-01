@@ -429,12 +429,8 @@ export default function PJNSearchPanel() {
           <h3 id="pjn-search-title">Consulta verificable de expedientes</h3>
         </div>
         <p className="pjn-search-subtitle">
-          Consulta oficial con validacion automatica en segundo plano.
+          Consulta oficial verificada directamente con el sistema judicial.
         </p>
-        <div className="pjn-auto-badge" aria-live="polite">
-          <ShieldCheck size={14} aria-hidden="true" />
-          Resolucion automatica de captcha
-        </div>
       </div>
 
       <form onSubmit={handleSearch} className="pjn-search-form">
