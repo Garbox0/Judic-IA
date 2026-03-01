@@ -132,6 +132,8 @@ export async function POST(request) {
     // --- SECURITY: IDOR PROTECTION & QUOTA ---
     try {
         let effectiveUserId = null;
+        let useOrgResearchPool = false;
+        let orgIdForResearch = null;
 
         if (mode === 'demo') {
             const forwardedFor = request.headers.get('x-forwarded-for');
@@ -194,7 +196,41 @@ export async function POST(request) {
             // SUPERUSER CHECK
             const isSuperUser = user?.email === 'gbrlescalada@gmail.com' && user?.id === '365cd259-4f1e-4004-a677-1eda06a5147e';
 
+            // ─── ORG RESEARCH POOL CHECK ───────────────────────────────────────────
+            // Si el usuario pertenece a un estudio verificado, consume del pool del org.
+            // Esto reemplaza el check individual para todos los miembros del estudio.
             if (!isSuperUser) {
+                const { data: profOrg } = await supabase
+                    .from('profiles')
+                    .select('org_id')
+                    .eq('id', effectiveUserId)
+                    .single();
+
+                if (profOrg?.org_id) {
+                    const { data: orgForResearch } = await supabase
+                        .from('organizations')
+                        .select('type, verification_status, research_credits_pool')
+                        .eq('id', profOrg.org_id)
+                        .maybeSingle();
+
+                    if (orgForResearch?.type === 'estudio' && orgForResearch?.verification_status === 'verified') {
+                        useOrgResearchPool = true;
+                        orgIdForResearch = profOrg.org_id;
+
+                        if ((orgForResearch.research_credits_pool ?? 0) <= 0) {
+                            return NextResponse.json({
+                                error: 'SIN_CREDITOS_ESTUDIO',
+                                laws: '⚠️ SIN CRÉDITOS DE INVESTIGACIÓN',
+                                cases: 'El estudio no tiene créditos de investigación disponibles. El titular debe adquirir un pack desde el Panel del Estudio → Créditos.',
+                                links: []
+                            }, { status: 402 });
+                        }
+                    }
+                }
+            }
+            // ───────────────────────────────────────────────────────────────────────
+
+            if (!isSuperUser && !useOrgResearchPool) {
                 // Verify access and quota using centralized middleware
                 // 🔒 Research reports have their own quota (tied to Brave API cost)
                 const accessCheck = await verifyAccess(effectiveUserId, 'advanced_research', 'research_reports');
@@ -1019,6 +1055,16 @@ ANÁLISIS DE LA CONSULTA:
 
                 if (savedReport) {
                     result.report_meta = savedReport;
+                }
+
+                // Consumir crédito del pool del estudio (si aplica)
+                if (useOrgResearchPool && orgIdForResearch) {
+                    await supabase.rpc('consume_org_research_credit', { p_org_id: orgIdForResearch });
+                    await supabase.from('org_research_credit_usage').insert({
+                        org_id: orgIdForResearch,
+                        used_by: secureUserId,
+                        query,
+                    });
                 }
 
                 // Persist only GOLD STANDARD results (score >= 60)
