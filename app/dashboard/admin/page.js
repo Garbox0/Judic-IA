@@ -1517,7 +1517,7 @@ export default function AdminPage() {
                                         </div>
                                         <div className="flex items-center gap-3">
                                             {/* Filtro */}
-                                            <div className="flex bg-admin-surface border border-admin-stroke rounded-xl overflow-hidden text-[10px] font-black uppercase tracking-widest">
+                                            <div className="estudio-filter-bar">
                                                 {[
                                                     { key: 'all',      label: 'Todos' },
                                                     { key: 'pending',  label: `Pendientes${pending > 0 ? ` (${pending})` : ''}` },
@@ -1527,7 +1527,7 @@ export default function AdminPage() {
                                                     <button
                                                         key={f.key}
                                                         onClick={() => setEstudiosFilter(f.key)}
-                                                        className={`px-4 py-2 transition-colors ${estudiosFilter === f.key ? 'bg-gold text-[#0d1526]' : 'text-admin-muted hover:text-admin-primary'}`}
+                                                        className={`estudio-filter-btn${estudiosFilter === f.key ? ' active' : ''}`}
                                                     >{f.label}</button>
                                                 ))}
                                             </div>

@@ -74,17 +74,13 @@ export default function LoginPage() {
           .maybeSingle();
 
         if (prof?.org_id) {
-          const { data: member } = await supabase
-            .from('org_members')
-            .select('org:org_id(type, verification_status)')
-            .eq('user_id', userId)
-            .eq('org_id', prof.org_id)
+          const { data: org } = await supabase
+            .from('organizations')
+            .select('type, verification_status')
+            .eq('id', prof.org_id)
             .maybeSingle();
 
-          if (
-            member?.org?.type === 'estudio' &&
-            member?.org?.verification_status === 'verified'
-          ) {
+          if (org?.type === 'estudio' && org?.verification_status === 'verified') {
             return '/dashboard/estudio';
           }
         }
