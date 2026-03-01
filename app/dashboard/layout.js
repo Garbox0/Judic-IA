@@ -252,8 +252,12 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
           )}
 
           <div className="plan-badge">
-            {profile?.plan_tier === 'professional' ? (
+            {profile?.plan_tier === 'enterprise' || profile?.plan_tier === 'pending_enterprise' ? (
+              <span className="plan-inline"><Building2 size={14} /> ENTERPRISE</span>
+            ) : profile?.plan_tier === 'professional' ? (
               <span className="plan-inline"><Crown size={14} /> PRO SUITE</span>
+            ) : profile?.plan_tier === 'trial' ? (
+              <span className="plan-inline"><Sparkles size={14} /> TRIAL</span>
             ) : (
               <span className="plan-inline"><Scale size={14} /> PLAN STARTER</span>
             )}
