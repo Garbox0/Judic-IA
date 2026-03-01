@@ -14,10 +14,10 @@ import { isValidEmail, isValidString } from '@/lib/validation';
 import { checkRateLimit, getClientIP } from '@/lib/rate-limiter';
 
 const PLAN_LABELS = {
-    enterprise_s:  'Enterprise S — Hasta 5 miembros',
-    enterprise_m:  'Enterprise M — Hasta 10 miembros',
-    enterprise_l:  'Enterprise L — Hasta 20 miembros',
-    enterprise_xl: 'Enterprise XL — Miembros ilimitados',
+    enterprise_s:  'Enterprise S — Hasta 5 miembros ($89.000/mes)',
+    enterprise_m:  'Enterprise M — Hasta 10 miembros ($149.000/mes)',
+    enterprise_l:  'Enterprise L — Hasta 20 miembros ($249.000/mes)',
+    enterprise_xl: 'Enterprise XL — Miembros ilimitados ($449.000/mes)',
 };
 
 const VALID_PLANS = ['enterprise_s', 'enterprise_m', 'enterprise_l', 'enterprise_xl'];
@@ -165,26 +165,57 @@ async function _handlePost(request) {
             .eq('id', userId);
 
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://judic-ia.com';
+        const resend = new Resend(process.env.RESEND_API_KEY);
 
-        // 6. Notificar al admin (fire-and-forget)
-        fetch(`${appUrl}/api/admin/notify-estudio-registration`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                razon_social,
-                cuit,
-                domicilio,
-                phone,
-                titular_name: fullName,
-                titular_email: email,
-                matriculas,
-                plan_tier,
-                org_id: orgId,
+        // 6. Notificar al admin — inline (evita self-fetch que Vercel corta al retornar)
+        const matriculasHtml = Array.isArray(matriculas) && matriculas.length > 0
+            ? `<p><strong>Matrículas del Titular (${matriculas.length}):</strong></p>
+               <table style="border-collapse:collapse;width:100%;font-size:14px;margin-bottom:12px;">
+                 <thead>
+                   <tr style="background:#f1f5f9;">
+                     <th style="padding:6px 10px;border:1px solid #e2e8f0;text-align:left;">Colegio</th>
+                     <th style="padding:6px 10px;border:1px solid #e2e8f0;">Tomo</th>
+                     <th style="padding:6px 10px;border:1px solid #e2e8f0;">Folio</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   ${matriculas.map(m => `<tr>
+                     <td style="padding:6px 10px;border:1px solid #e2e8f0;">${m.colegio || '-'}</td>
+                     <td style="padding:6px 10px;border:1px solid #e2e8f0;text-align:center;">${m.tomo || '-'}</td>
+                     <td style="padding:6px 10px;border:1px solid #e2e8f0;text-align:center;">${m.folio || '-'}</td>
+                   </tr>`).join('')}
+                 </tbody>
+               </table>`
+            : '<p>Sin matrículas registradas.</p>';
+
+        await sendEmail({
+            resendClient: resend,
+            to: 'gbrlescalada@gmail.com',
+            from: 'Soporte Judic-IA <soporte@judic-ia.com>',
+            subject: '🏛️ Nuevo Estudio Jurídico — Solicitud de verificación',
+            html: getHtmlEmail({
+                heading: 'Nuevo Estudio Jurídico',
+                bodyContent: `
+                    <p>Hola Gabriel,</p>
+                    <p>Un nuevo estudio jurídico solicitó registro en Judic-IA:</p>
+                    <div style="background:#f8f7f4;border-radius:10px;padding:16px;margin:12px 0;">
+                      <p style="margin:0 0 6px;"><strong>Razón Social:</strong> ${razon_social}</p>
+                      <p style="margin:0 0 6px;"><strong>CUIT:</strong> ${cuit || '-'}</p>
+                      <p style="margin:0 0 6px;"><strong>Domicilio:</strong> ${domicilio || '-'}</p>
+                      <p style="margin:0;"><strong>Teléfono:</strong> ${phone || '-'}</p>
+                    </div>
+                    <p><strong>Titular:</strong> ${fullName} &lt;${email}&gt;</p>
+                    ${matriculasHtml}
+                    <p><strong>Plan solicitado:</strong> ${PLAN_LABELS[plan_tier] || plan_tier}</p>
+                    <p style="font-size:13px;color:#888;">ID de org: ${orgId || '-'}</p>
+                    <p>Verificá el CUIT en ARCA y la matrícula del titular antes de aprobar.</p>
+                `,
+                buttonText: 'Verificar en Panel Admin',
+                buttonUrl: `${appUrl}/dashboard/admin`,
             }),
-        }).catch(err => console.error('[estudio/registrar] Notify admin failed:', err));
+        }).catch(err => console.error('[estudio/registrar] Admin email failed:', err));
 
         // 7. Confirmar recepción al titular (fire-and-forget)
-        const resend = new Resend(process.env.RESEND_API_KEY);
         sendEmail({
             resendClient: resend,
             to: email,
