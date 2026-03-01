@@ -40,10 +40,10 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Missing orgId or action' }, { status: 400 });
         }
 
-        // Obtener org con owner
+        // Obtener org (sin join a auth.users — no accesible via PostgREST)
         const { data: org, error: orgErr } = await supabase
             .from('organizations')
-            .select('*, owner:owner_id(id, full_name, email)')
+            .select('*')
             .eq('id', orgId)
             .single();
 
@@ -51,9 +51,17 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Estudio no encontrado' }, { status: 404 });
         }
 
-        const ownerEmail = org.owner?.email;
-        const ownerName  = org.owner?.full_name || 'Titular';
-        const ownerId    = org.owner?.id || org.owner_id;
+        const ownerId = org.owner_id;
+
+        // Obtener perfil del owner por separado
+        const { data: ownerProfile } = ownerId ? await supabase
+            .from('profiles')
+            .select('id, full_name, email')
+            .eq('id', ownerId)
+            .single() : { data: null };
+
+        const ownerEmail = ownerProfile?.email;
+        const ownerName  = ownerProfile?.full_name || 'Titular';
 
         if (action === 'verify') {
             // 1. Marcar org como verificada
