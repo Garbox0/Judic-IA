@@ -180,6 +180,11 @@ export default function PJNSearchPanel() {
     loadCredits();
   }, []);
 
+  const currentJurisdictionLabel = useMemo(
+    () => JURISDICTIONS.find((item) => item.value === jurisdiction)?.label || '',
+    [jurisdiction]
+  );
+
   const handleImport = useCallback(async (row, rowKey, detail) => {
     if (antecedentesCredits !== null && antecedentesCredits <= 0) {
       setShowCreditsModal(true);
@@ -261,11 +266,6 @@ export default function PJNSearchPanel() {
     }
     setParteTipo((prev) => prev || '');
   }, [currentRule, searchType]);
-
-  const currentJurisdictionLabel = useMemo(
-    () => JURISDICTIONS.find((item) => item.value === jurisdiction)?.label || '',
-    [jurisdiction]
-  );
 
   const rows = results?.results || [];
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
