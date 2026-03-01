@@ -102,17 +102,19 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
 
         // Check si pertenece a un estudio verificado
         if (profileData.org_id) {
-          supabase
-            .from('org_members')
-            .select('role, org:org_id(type, verification_status)')
-            .eq('user_id', user.id)
-            .eq('org_id', profileData.org_id)
-            .maybeSingle()
-            .then(({ data: orgMember }) => {
-              if (orgMember?.org?.type === 'estudio' && orgMember?.org?.verification_status === 'verified') {
-                setIsEstudioMember(true);
-              }
-            });
+          const { data: orgData } = await supabase
+            .from('organizations')
+            .select('type, verification_status')
+            .eq('id', profileData.org_id)
+            .maybeSingle();
+
+          if (orgData?.type === 'estudio' && orgData?.verification_status === 'verified') {
+            setIsEstudioMember(true);
+            if (pathname === '/dashboard') {
+              router.push('/dashboard/estudio');
+              return;
+            }
+          }
         }
 
         // Banner 2FA: mostrar si no tiene 2FA y no lo descartó antes
