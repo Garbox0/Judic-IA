@@ -221,7 +221,21 @@ export async function POST(request) {
 
         console.log(`[PJN Import] Expediente importado: ${expediente} → case ${newCase.id} (user ${userId}${useOrgPool ? `, org pool ${orgIdForCredits}` : ''})`);
 
-        return NextResponse.json({ success: true, caseId: newCase.id });
+        // Fetch verified balance so client always shows server-confirmed value
+        let credits_left = null;
+        if (!isSuperUser) {
+            if (useOrgPool && orgIdForCredits) {
+                const { data: orgAfter } = await supabase
+                    .from('organizations').select('antecedentes_credits_pool').eq('id', orgIdForCredits).single();
+                credits_left = orgAfter?.antecedentes_credits_pool ?? 0;
+            } else {
+                const { data: profAfter } = await supabase
+                    .from('profiles').select('antecedentes_credits').eq('id', userId).single();
+                credits_left = profAfter?.antecedentes_credits ?? 0;
+            }
+        }
+
+        return NextResponse.json({ success: true, caseId: newCase.id, credits_left });
 
     } catch (err) {
         console.error('[PJN Import] Error:', err.message);

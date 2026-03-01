@@ -243,14 +243,24 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         // Limpiar param de la URL sin recargar
         router.replace('/dashboard/research', { scroll: false });
 
-        // Si el pago fue aprobado, refrescar perfil para mostrar nuevos credits
+        // Si el pago fue aprobado, refrescar perfil Y créditos desde el servidor
         if (creditsParam === 'ok') {
-            supabase.auth.getUser().then(({ data: { user } }) => {
-                if (!user) return;
-                supabase.from('profiles').select('*').eq('id', user.id).single()
-                    .then(({ data: profile }) => {
-                        if (profile) setUserProfile(profile);
-                    });
+            try { sessionStorage.removeItem('research_credits_cache'); } catch { /* ignore */ }
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                if (!session) return;
+                Promise.all([
+                    supabase.from('profiles').select('*').eq('id', session.user.id).single(),
+                    fetch('/api/research/credits', { headers: { Authorization: `Bearer ${session.access_token}` } }),
+                ]).then(async ([{ data: profile }, credRes]) => {
+                    if (profile) setUserProfile(profile);
+                    if (credRes?.ok) {
+                        const credData = await credRes.json();
+                        setOrgResearchSource(credData.source || 'individual');
+                        setOrgResearchCredits(credData.credits ?? null);
+                        setOrgResearchName(credData.orgName || null);
+                        try { sessionStorage.setItem('research_credits_cache', JSON.stringify(credData)); } catch { /* ignore */ }
+                    }
+                });
             });
         }
 
@@ -819,6 +829,22 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
             if (!res.ok) throw new Error("Search failed");
             const data = await res.json();
             setResults(data);
+
+            // Update credits display with server-confirmed balance after each search
+            if (data.credits_left !== undefined && data.credits_left !== null) {
+                if (data.credits_source === 'org') {
+                    setOrgResearchCredits(data.credits_left);
+                } else {
+                    setOrgResearchCredits(data.credits_left);
+                    if (userProfile) {
+                        setUserProfile(prev => prev ? { ...prev, research_reports_extra: data.credits_left } : prev);
+                    }
+                }
+                try {
+                    const cached = JSON.parse(sessionStorage.getItem('research_credits_cache') || '{}');
+                    sessionStorage.setItem('research_credits_cache', JSON.stringify({ ...cached, credits: data.credits_left }));
+                } catch { /* ignore */ }
+            }
 
             // [FIX] Update History Immediately
             if (data.report_meta) {

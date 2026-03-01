@@ -377,8 +377,15 @@ export default function AntecedentesPanel() {
       }
       setImportStateByKey(prev => ({ ...prev, [rowKey]: 'done' }));
       setImportedCaseIdByKey(prev => ({ ...prev, [rowKey]: payload.caseId }));
-      // Refrescar balance de créditos
-      setAntecedentesCredits(prev => (prev !== null ? Math.max(0, prev - 1) : null));
+      // Use server-confirmed balance (not optimistic local decrement)
+      const newBalance = (payload.credits_left !== null && payload.credits_left !== undefined)
+        ? payload.credits_left
+        : (antecedentesCredits !== null ? Math.max(0, antecedentesCredits - 1) : null);
+      setAntecedentesCredits(newBalance);
+      try {
+        const cached = JSON.parse(sessionStorage.getItem('antecedentes_credits_cache') || '{}');
+        sessionStorage.setItem('antecedentes_credits_cache', JSON.stringify({ ...cached, credits: newBalance }));
+      } catch { /* ignore */ }
     } catch (err) {
       setImportStateByKey(prev => ({ ...prev, [rowKey]: 'error' }));
       console.error('[Importar]', err.message);

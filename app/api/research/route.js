@@ -1126,6 +1126,21 @@ ANÁLISIS DE LA CONSULTA:
                 : 0
         };
 
+        // Return verified balance so the client always shows server-confirmed credits
+        try {
+            if (useOrgResearchPool && orgIdForResearch) {
+                const { data: orgAfter } = await supabase
+                    .from('organizations').select('research_credits_pool').eq('id', orgIdForResearch).single();
+                result.credits_left = orgAfter?.research_credits_pool ?? 0;
+                result.credits_source = 'org';
+            } else if (!isSuperUser && secureUserId) {
+                const { data: profAfter } = await supabase
+                    .from('profiles').select('research_reports_extra, research_reports_used').eq('id', secureUserId).single();
+                result.credits_left = profAfter?.research_reports_extra ?? 0;
+                result.credits_source = 'individual';
+            }
+        } catch { /* non-blocking */ }
+
         return NextResponse.json(result);
 
     } catch (error) {
