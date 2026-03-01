@@ -239,6 +239,18 @@ export default function AntecedentesPanel() {
   // Cargar balance de créditos al montar (individual o pool del estudio)
   useEffect(() => {
     async function loadCredits() {
+      // Show cached value immediately to avoid perceived delay
+      try {
+        const cached = sessionStorage.getItem('antecedentes_credits_cache');
+        if (cached) {
+          const c = JSON.parse(cached);
+          setAntecedentesCredits(c.credits ?? 0);
+          setCreditsSource(c.source || 'individual');
+          setCreditsOrgName(c.orgName || null);
+          setIsOrgOwner(c.isOrgOwner || false);
+        }
+      } catch { /* ignore */ }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
       const res = await fetch('/api/pjn/credits', {
@@ -250,6 +262,7 @@ export default function AntecedentesPanel() {
       setCreditsSource(data.source || 'individual');
       setCreditsOrgName(data.orgName || null);
       setIsOrgOwner(data.isOrgOwner || false);
+      sessionStorage.setItem('antecedentes_credits_cache', JSON.stringify(data));
     }
     loadCredits();
   }, []);

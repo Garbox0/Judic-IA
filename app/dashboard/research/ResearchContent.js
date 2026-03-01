@@ -272,7 +272,27 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setCurrentUser(user);
-                const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+
+                // Show cached credits immediately (eliminates perceived delay on re-visits)
+                try {
+                    const cached = sessionStorage.getItem('research_credits_cache');
+                    if (cached) {
+                        const c = JSON.parse(cached);
+                        setOrgResearchSource(c.source || 'individual');
+                        setOrgResearchCredits(c.credits ?? null);
+                        setOrgResearchName(c.orgName || null);
+                    }
+                } catch { /* ignore */ }
+
+                // Fetch profile and credits in parallel (instead of sequentially)
+                const { data: { session } } = await supabase.auth.getSession();
+                const [{ data: profile }, credRes] = await Promise.all([
+                    supabase.from('profiles').select('*').eq('id', user.id).single(),
+                    session?.access_token
+                        ? fetch('/api/research/credits', { headers: { Authorization: `Bearer ${session.access_token}` } })
+                        : Promise.resolve(null),
+                ]);
+
                 setUserProfile(profile);
 
                 // Check trial expiration (frontend UX; backend enforces this)
@@ -280,19 +300,16 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                     setTrialExpired(true);
                 }
 
-                // Fetch effective research credits (org pool or individual)
+                // Process credits result
                 try {
-                    const { data: { session } } = await supabase.auth.getSession();
-                    if (session?.access_token) {
-                        const credRes = await fetch('/api/research/credits', {
-                            headers: { Authorization: `Bearer ${session.access_token}` },
-                        });
-                        if (credRes.ok) {
-                            const credData = await credRes.json();
-                            setOrgResearchSource(credData.source || 'individual');
-                            setOrgResearchCredits(credData.credits ?? null);
-                            setOrgResearchName(credData.orgName || null);
-                        }
+                    if (credRes?.ok) {
+                        const credData = await credRes.json();
+                        setOrgResearchSource(credData.source || 'individual');
+                        setOrgResearchCredits(credData.credits ?? null);
+                        setOrgResearchName(credData.orgName || null);
+                        sessionStorage.setItem('research_credits_cache', JSON.stringify(credData));
+                    } else {
+                        setOrgResearchSource('individual');
                     }
                 } catch { /* non-blocking */ }
 

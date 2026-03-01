@@ -218,6 +218,18 @@ export default function AlertsPanel() {
     setLoading(true);
     setError('');
 
+    // Show cached credits immediately to avoid perceived delay
+    try {
+      const cached = sessionStorage.getItem('alert_credits_cache');
+      if (cached) {
+        const c = JSON.parse(cached);
+        setAlertCredits(c.credits ?? 0);
+        setAlertCreditsSource(c.source || 'individual');
+        setAlertOrgName(c.orgName || null);
+        setAlertIsOrgOwner(c.isOrgOwner || false);
+      }
+    } catch { /* ignore */ }
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -227,20 +239,19 @@ export default function AlertsPanel() {
         return;
       }
 
-      const { data: alertsData, error: alertsError } = await supabase
-        .from('case_alerts')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false });
+      // Fetch alerts, profile and credits in parallel
+      const [
+        { data: alertsData, error: alertsError },
+        { data: profile, error: profileError },
+        credRes,
+      ] = await Promise.all([
+        supabase.from('case_alerts').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }),
+        supabase.from('profiles').select('alert_credits_extra, subscription_status, plan_tier, subscription_expiry, grace_period_ends_at').eq('id', session.user.id).maybeSingle(),
+        fetch('/api/alerts/credits', { headers: { Authorization: `Bearer ${session.access_token}` } }),
+      ]);
 
       if (alertsError) throw alertsError;
       setAlerts(alertsData || []);
-
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('alert_credits_extra, subscription_status, plan_tier, subscription_expiry, grace_period_ends_at')
-        .eq('id', session.user.id)
-        .maybeSingle();
 
       if (profileError) {
         const txt = readErrorMessage(profileError, '');
@@ -252,17 +263,15 @@ export default function AlertsPanel() {
       } else {
         setCanManageAlerts(hasActivePaidSubscription(profile));
 
-        // Fetch effective alert credits (org pool or individual)
+        // Process credits result
         try {
-          const credRes = await fetch('/api/alerts/credits', {
-            headers: { Authorization: `Bearer ${session.access_token}` },
-          });
           if (credRes.ok) {
             const credData = await credRes.json();
             setAlertCredits(credData.credits ?? 0);
             setAlertCreditsSource(credData.source || 'individual');
             setAlertOrgName(credData.orgName || null);
             setAlertIsOrgOwner(credData.isOrgOwner || false);
+            sessionStorage.setItem('alert_credits_cache', JSON.stringify(credData));
           } else {
             setAlertCredits(Number(profile?.alert_credits_extra || 0));
           }
