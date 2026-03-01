@@ -66,6 +66,13 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
     }
   }, [theme]);
 
+  // Redirect estudio members whenever they land on the root /dashboard
+  useEffect(() => {
+    if (!isDemo && isEstudioMember && pathname === '/dashboard') {
+      router.push('/dashboard/estudio');
+    }
+  }, [pathname, isEstudioMember, isDemo, router]);
+
   useEffect(() => {
     if (isDemo) return; // Skip Auth Check in Demo Mode
 
