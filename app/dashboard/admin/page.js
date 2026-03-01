@@ -178,12 +178,25 @@ export default function AdminPage() {
     const fetchEstudios = async () => {
         setEstudiosLoading(true);
         try {
-            const { data, error } = await supabase
+            // owner_id FK apunta a auth.users (no accesible via PostgREST) → dos queries
+            const { data: orgs, error } = await supabase
                 .from('organizations')
-                .select('*, owner:owner_id(id, full_name, email, matriculas, verification_status)')
+                .select('*')
                 .eq('type', 'estudio')
                 .order('created_at', { ascending: false });
-            if (!error) setEstudios(data || []);
+            if (error) throw error;
+
+            const ownerIds = (orgs || []).map(o => o.owner_id).filter(Boolean);
+            let profilesMap = {};
+            if (ownerIds.length > 0) {
+                const { data: profiles } = await supabase
+                    .from('profiles')
+                    .select('id, full_name, email, matriculas, verification_status')
+                    .in('id', ownerIds);
+                (profiles || []).forEach(p => { profilesMap[p.id] = p; });
+            }
+
+            setEstudios((orgs || []).map(o => ({ ...o, owner: profilesMap[o.owner_id] || null })));
         } catch (err) {
             console.error('Error fetching estudios:', err);
         } finally {
