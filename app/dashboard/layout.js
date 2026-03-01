@@ -160,6 +160,11 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
     checkSession();
   }, [router, isDemo]);
 
+  // Estudio routes have their own layout — skip individual dashboard wrapper
+  if (pathname.startsWith('/dashboard/estudio')) {
+    return <>{children}</>;
+  }
+
   if (loading) return (
     <div className="loading-container">
       <div className="loading-spinner"></div>
