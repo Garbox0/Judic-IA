@@ -72,7 +72,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
 
     // Org research pool (for verified estudios)
     const [orgResearchCredits, setOrgResearchCredits] = useState(null);
-    const [orgResearchSource, setOrgResearchSource] = useState('individual'); // 'individual' | 'org'
+    const [orgResearchSource, setOrgResearchSource] = useState(null); // null = loading | 'individual' | 'org'
     const [orgResearchName, setOrgResearchName] = useState(null);
 
     // Voice input
@@ -1447,19 +1447,18 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                         <p className="mic-error-hint">{micError}</p>
                                     )}
 
-                                    {!isDemoProp && userProfile && (() => {
+                                    {!isDemoProp && userProfile && orgResearchSource !== null && (() => {
                                         // Org research pool takes precedence for verified estudios
                                         if (orgResearchSource === 'org' && orgResearchCredits !== null) {
                                             const isLow = orgResearchCredits <= 2;
                                             return (
-                                                <div className="research-quota-bar">
-                                                    <div className="research-quota-track">
-                                                        <div className={`research-quota-fill ${isLow ? 'low' : ''}`} style={{ width: orgResearchCredits > 0 ? '60%' : '0%' }} />
-                                                    </div>
-                                                    <span className={`research-quota-label ${isLow ? 'low' : ''}`}>
-                                                        {orgResearchCredits} crédito{orgResearchCredits !== 1 ? 's' : ''} del pool del estudio
-                                                        {orgResearchName && <span className="quota-extra-badge"> · {orgResearchName}</span>}
-                                                    </span>
+                                                <div className="research-org-credits-badge">
+                                                    <Building2 size={13} aria-hidden="true" />
+                                                    Pool del estudio:&nbsp;
+                                                    <strong className={isLow ? 'low' : ''}>
+                                                        {orgResearchCredits} crédito{orgResearchCredits !== 1 ? 's' : ''}
+                                                    </strong>
+                                                    {orgResearchName && <span className="research-org-credits-name"> · {orgResearchName}</span>}
                                                 </div>
                                             );
                                         }

@@ -2277,6 +2277,50 @@ body.light-theme .mode-card.selected .mode-card-title {
 }
 
 /* =========================================
+   RESEARCH ORG POOL CREDITS BADGE
+   ========================================= */
+.research-org-credits-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.6rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    color: var(--text-secondary, #94a3b8);
+    background: rgba(245, 166, 35, 0.06);
+    border: 1px solid rgba(245, 166, 35, 0.18);
+}
+
+.research-org-credits-badge svg {
+    color: #f5a623;
+    flex-shrink: 0;
+}
+
+.research-org-credits-badge strong {
+    color: #f5a623;
+    font-weight: 700;
+}
+
+.research-org-credits-badge strong.low {
+    color: #f87171;
+}
+
+.research-org-credits-name {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+body.light-theme .research-org-credits-badge {
+    color: #64748b;
+    background: rgba(245, 166, 35, 0.05);
+    border-color: rgba(245, 166, 35, 0.2);
+}
+
+body.light-theme .research-org-credits-name {
+    color: rgba(15, 23, 42, 0.35);
+}
+
+/* =========================================
    RESEARCH QUOTA BAR
    ========================================= */
 .research-quota-bar {
