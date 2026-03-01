@@ -234,18 +234,30 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
         return () => clearInterval(timer);
     }, [loading, timeLeft]);
 
-    // Detectar redirect de MercadoPago tras compra de credits
+    // Detectar redirect de MercadoPago tras compra de credits (research, antecedentes o alertas)
     useEffect(() => {
-        const creditsParam = searchParams?.get('credits');
-        if (!creditsParam) return;
+        const creditsParam    = searchParams?.get('credits');       // research individual + antecedentes individual
+        const alertCredits    = searchParams?.get('alert_credits'); // alertas individual
 
-        setCreditsToast(creditsParam);
-        // Limpiar param de la URL sin recargar
+        const anyParam = creditsParam || alertCredits;
+        if (!anyParam) return;
+
+        // Mostrar toast según el param presente
+        setCreditsToast(creditsParam || alertCredits);
+        // Limpiar params de la URL sin recargar
         router.replace('/dashboard/research', { scroll: false });
 
-        // Si el pago fue aprobado, refrescar perfil Y créditos desde el servidor
-        if (creditsParam === 'ok') {
-            try { sessionStorage.removeItem('research_credits_cache'); } catch { /* ignore */ }
+        const isOk = creditsParam === 'ok' || alertCredits === 'ok';
+        if (isOk) {
+            // Invalida TODOS los caches antes de que los paneles dinámicos monten
+            // Así AntecedentesPanel y AlertsPanel no muestran el saldo viejo
+            try {
+                sessionStorage.removeItem('research_credits_cache');
+                sessionStorage.removeItem('antecedentes_credits_cache');
+                sessionStorage.removeItem('alert_credits_cache');
+            } catch { /* ignore */ }
+
+            // Refresca perfil + créditos de research en paralelo
             supabase.auth.getSession().then(({ data: { session } }) => {
                 if (!session) return;
                 Promise.all([
