@@ -567,7 +567,7 @@ body.light-theme .table-row:hover {
         padding: 1rem;
     }
 
-    .user-table-header .user-table-grid > *:not(:first-child) {
+    .user-table-header .user-table-grid>*:not(:first-child) {
         display: none;
     }
 
@@ -577,7 +577,7 @@ body.light-theme .table-row:hover {
         padding: 1rem;
     }
 
-    .table-header-row .verify-table-grid > *:not(:first-child) {
+    .table-header-row .verify-table-grid>*:not(:first-child) {
         display: none;
     }
 
@@ -762,7 +762,7 @@ body.light-theme .table-row:hover {
 body.light-theme .estudio-filter-bar {
     background: #ffffff;
     border-color: rgba(15, 23, 42, 0.12);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 body.light-theme .estudio-filter-btn {
@@ -772,4 +772,317 @@ body.light-theme .estudio-filter-btn {
 body.light-theme .estudio-filter-btn.active {
     background: var(--gold);
     color: #020617;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TAB REFERIDOS — Formulario y cards de vendedores
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Sección de formulario */
+.ref-form-section {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--admin-stroke);
+    border-radius: 20px;
+    padding: 1.75rem 2rem;
+}
+
+.ref-form-title {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: var(--admin-text-muted);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ref-form-title svg {
+    color: var(--gold);
+}
+
+.ref-form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-end;
+}
+
+.ref-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.ref-field--name {
+    flex: 1;
+    min-width: 200px;
+}
+
+.ref-field--num {
+    width: 100px;
+}
+
+.ref-field label {
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--admin-text-muted);
+}
+
+.ref-input {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-stroke);
+    border-radius: 12px;
+    padding: 0.65rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--admin-text-primary);
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+}
+
+.ref-input::placeholder {
+    opacity: 0.35;
+}
+
+.ref-input:focus {
+    outline: none;
+    border-color: rgba(251, 191, 36, 0.45);
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.08);
+}
+
+body.light-theme .ref-input {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.1);
+    color: #0f172a;
+}
+
+body.light-theme .ref-input:focus {
+    border-color: rgba(251, 191, 36, 0.6);
+}
+
+/* Código recién creado */
+.ref-code-result {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    background: rgba(16, 185, 129, 0.07);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 14px;
+    padding: 0.9rem 1.25rem;
+}
+
+.ref-code-result__code {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: var(--admin-text-primary);
+    letter-spacing: 0.15em;
+}
+
+.ref-code-result__label {
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--admin-text-muted);
+    margin-bottom: 0.15rem;
+}
+
+.ref-code-result__url {
+    font-size: 10px;
+    color: var(--admin-text-secondary);
+    margin-top: 0.1rem;
+    font-family: monospace;
+}
+
+/* Cards de vendedores */
+.ref-vendor-card {
+    border: 1px solid var(--admin-stroke);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.ref-vendor-card--inactive {
+    border-color: rgba(255, 255, 255, 0.04);
+    opacity: 0.5;
+}
+
+.ref-vendor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.ref-vendor-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1rem;
+    color: var(--gold);
+    flex-shrink: 0;
+}
+
+.ref-vendor-meta {
+    flex: 1;
+    margin-left: 0.85rem;
+}
+
+.ref-vendor-name {
+    font-weight: 900;
+    font-size: 0.875rem;
+    color: var(--admin-text-primary);
+}
+
+.ref-vendor-pills {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.25rem;
+}
+
+.ref-pill {
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 2px 8px;
+    border-radius: 99px;
+    border: 1px solid;
+}
+
+.ref-pill--active {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--emerald);
+    border-color: rgba(16, 185, 129, 0.25);
+}
+
+.ref-pill--inactive {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--admin-text-muted);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.ref-pill--code {
+    color: var(--gold);
+    border-color: rgba(251, 191, 36, 0.3);
+    background: rgba(251, 191, 36, 0.08);
+    font-family: monospace;
+}
+
+.ref-pill--info {
+    color: var(--admin-text-muted);
+    border-color: var(--admin-stroke);
+    background: transparent;
+}
+
+.ref-vendor-stats {
+    text-align: right;
+    margin-right: 0.75rem;
+}
+
+.ref-vendor-stats__amount {
+    font-size: 0.8rem;
+    font-weight: 900;
+    color: var(--admin-text-primary);
+}
+
+.ref-vendor-stats__sub {
+    font-size: 9px;
+    color: var(--admin-text-muted);
+    margin-top: 2px;
+}
+
+/* Referrals list dentro del card */
+.ref-referral-list {
+    border-top: 1px solid var(--admin-stroke);
+}
+
+.ref-referral-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 1.25rem;
+    border-bottom: 1px solid var(--admin-stroke);
+    font-size: 0.82rem;
+}
+
+.ref-referral-row:last-child {
+    border-bottom: none;
+}
+
+.ref-referral-left {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.ref-referral-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    white-space: nowrap;
+}
+
+.ref-referral-name {
+    font-weight: 700;
+    color: var(--admin-text-primary);
+}
+
+.ref-referral-type {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--admin-text-muted);
+}
+
+.ref-months-text {
+    font-size: 9px;
+    color: var(--admin-text-muted);
+}
+
+.ref-months-gold {
+    color: var(--gold);
+    font-weight: 700;
+}
+
+.ref-commission-val {
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: var(--admin-text-primary);
+}
+
+/* Empty state */
+.ref-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    opacity: 0.4;
+    text-align: center;
+}
+
+.ref-empty p {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: var(--admin-text-muted);
+    margin-top: 1rem;
 }

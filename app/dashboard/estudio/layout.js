@@ -14,7 +14,7 @@ const ROLE_LABELS = { owner: 'Titular', supervisor: 'Supervisor', abogado: 'Abog
 const PLAN_LABELS = { enterprise_s: 'Enterprise S', enterprise_m: 'Enterprise M', enterprise_l: 'Enterprise L', enterprise_xl: 'Enterprise XL' };
 
 const PLAN_PRICES = { enterprise_s: '$89.000', enterprise_m: '$149.000', enterprise_l: '$249.000', enterprise_xl: '$449.000' };
-const PLAN_MEMBERS = { enterprise_s: 'Hasta 5 miembros', enterprise_m: 'Hasta 10 miembros', enterprise_l: 'Hasta 20 miembros', enterprise_xl: 'Miembros ilimitados' };
+const PLAN_MEMBERS = { enterprise_s: 'Hasta 5 miembros', enterprise_m: 'Hasta 10 miembros', enterprise_l: 'Hasta 20 miembros', enterprise_xl: 'Hasta 40 miembros' };
 
 function SubscriptionGate({ org, role }) {
   const [loading, setLoading] = useState(false);
@@ -35,7 +35,7 @@ function SubscriptionGate({ org, role }) {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || 'Error al iniciar el pago'); return; }
-      window.location.href = data.init_point;
+      window.open(data.init_point, '_blank', 'noopener,noreferrer');
     } catch {
       setError('Error de conexión. Intentá de nuevo.');
     } finally {
@@ -94,27 +94,27 @@ function SubscriptionGate({ org, role }) {
 }
 
 export default function EstudioLayout({ children }) {
-  const router   = useRouter();
+  const router = useRouter();
   const pathname = usePathname();
-  const [user,    setUser]    = useState(null);
+  const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [org,     setOrg]     = useState(null);
-  const [role,    setRole]    = useState(null);
+  const [org, setOrg] = useState(null);
+  const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [theme, setTheme]     = useState('light');
+  const [theme, setTheme] = useState('light');
 
   useEffect(() => {
     try {
       const t = localStorage.getItem('app-theme') || 'light';
       setTheme(t);
-    } catch {}
+    } catch { }
   }, []);
 
   useEffect(() => {
     if (theme === 'light') document.body.classList.add('light-theme');
     else document.body.classList.remove('light-theme');
-    try { localStorage.setItem('app-theme', theme); } catch {}
+    try { localStorage.setItem('app-theme', theme); } catch { }
   }, [theme]);
 
   useEffect(() => {
@@ -171,29 +171,29 @@ export default function EstudioLayout({ children }) {
     </div>
   );
 
-  const orgName    = org?.razon_social || org?.name || 'Mi Estudio';
-  const planLabel  = PLAN_LABELS[org?.plan_tier] || 'Enterprise';
-  const roleLabel  = ROLE_LABELS[role] || 'Abogado';
+  const orgName = org?.razon_social || org?.name || 'Mi Estudio';
+  const planLabel = PLAN_LABELS[org?.plan_tier] || 'Enterprise';
+  const roleLabel = ROLE_LABELS[role] || 'Abogado';
   const displayName = profile?.full_name || user?.email || 'Usuario';
-  const initials   = displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  const initials = displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   const canSupervise = role === 'owner' || role === 'supervisor';
   const canManageMembers = role === 'owner';
 
   const navItems = [
-    { href: '/dashboard/estudio',               label: 'Resumen',        icon: LayoutDashboard, exact: true },
-    { href: '/dashboard/estudio/bandeja',        label: 'Bandeja',        icon: Inbox },
+    { href: '/dashboard/estudio', label: 'Resumen', icon: LayoutDashboard, exact: true },
+    { href: '/dashboard/estudio/bandeja', label: 'Bandeja', icon: Inbox },
     ...(canSupervise ? [{ href: '/dashboard/estudio/supervision', label: 'Supervisión', icon: BarChart2 }] : []),
-    { href: '/dashboard/estudio/buscar',         label: 'Buscar',         icon: Search },
-    { href: '/dashboard/estudio/archivados',     label: 'Archivados',     icon: Archive },
+    { href: '/dashboard/estudio/buscar', label: 'Buscar', icon: Search },
+    { href: '/dashboard/estudio/archivados', label: 'Archivados', icon: Archive },
     ...(canManageMembers ? [{ href: '/dashboard/estudio/miembros', label: 'Miembros', icon: Users }] : []),
-    { href: '/dashboard/estudio/creditos',       label: 'Créditos',       icon: Coins },
+    { href: '/dashboard/estudio/creditos', label: 'Créditos', icon: Coins },
     ...(canManageMembers ? [{ href: '/dashboard/estudio/suscripcion', label: 'Suscripción', icon: CreditCard }] : []),
   ];
 
   const externalItems = [
     { href: '/dashboard/research', label: 'Investigación', icon: Scale },
-    { href: '/dashboard/settings', label: 'Ajustes',       icon: Settings },
+    { href: '/dashboard/settings', label: 'Ajustes', icon: Settings },
   ];
 
   const isActive = (href, exact = false) => exact
@@ -282,7 +282,7 @@ export default function EstudioLayout({ children }) {
                   await fetch('/api/auth/2fa/logout', {
                     method: 'POST',
                     headers: { Authorization: `Bearer ${session.access_token}` }
-                  }).catch(() => {});
+                  }).catch(() => { });
                 }
                 await supabase.auth.signOut();
                 router.push('/login');

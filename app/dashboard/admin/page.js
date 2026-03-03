@@ -1746,160 +1746,205 @@ export default function AdminPage() {
 
                             {/* TAB: REFERIDOS */}
                             {activeTab === 'referidos' && (
-                                <div className="glass-card overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 py-8 px-10 border-b border-admin-stroke">
-                                        <div className="space-y-1">
-                                            <h3 className="text-2xl font-black text-admin-primary tracking-tighter">Vendedores & Referidos</h3>
-                                            <p className="text-admin-muted text-[10px] font-black uppercase tracking-[0.3em] opacity-60">
+                                <div className="glass-card" role="region" aria-label="Panel de vendedores y referidos">
+                                    {/* Header */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2rem 2.5rem', borderBottom: '1px solid var(--admin-stroke)' }}>
+                                        <div>
+                                            <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--admin-text-primary)', letterSpacing: '-0.02em', marginBottom: '0.2rem' }}>
+                                                Vendedores &amp; Referidos
+                                            </h3>
+                                            <p style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.25em', color: 'var(--admin-text-muted)', opacity: 0.7 }}
+                                                aria-live="polite">
                                                 {referidos.codes.length} vendedores · {referidos.referrals.filter(r => r.status === 'converted').length} conversiones
                                             </p>
                                         </div>
-                                        <button onClick={fetchReferidos} className="action-btn" title="Actualizar">
-                                            <RefreshCw size={14} className={referidosLoading ? 'animate-spin' : ''} />
+                                        <button
+                                            onClick={fetchReferidos}
+                                            className="action-btn"
+                                            aria-label="Actualizar lista de referidos"
+                                            title="Actualizar"
+                                        >
+                                            <RefreshCw size={14} aria-hidden="true" className={referidosLoading ? 'animate-spin' : ''} />
                                         </button>
                                     </div>
 
-                                    <div className="mx-10 mt-8 mb-10 space-y-8">
-                                        {/* Formulario alta de vendedor */}
-                                        <div className="bg-white/3 border border-admin-stroke rounded-2xl p-6">
-                                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-admin-muted mb-4 flex items-center gap-2">
-                                                <PlusCircle size={14} className="text-gold" /> Nuevo Vendedor
+                                    <div style={{ padding: '2rem 2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+                                        {/* ── Formulario alta de vendedor ── */}
+                                        <section className="ref-form-section" aria-labelledby="ref-form-heading">
+                                            <h4 className="ref-form-title" id="ref-form-heading">
+                                                <PlusCircle size={14} aria-hidden="true" />
+                                                Nuevo Vendedor
                                             </h4>
-                                            <form onSubmit={handleCreateVendor} className="flex flex-wrap gap-3 items-end">
-                                                <div className="flex flex-col gap-1.5 flex-1 min-w-[180px]">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-admin-muted">Nombre completo</label>
+                                            <form onSubmit={handleCreateVendor} className="ref-form-row" noValidate>
+                                                <div className="ref-field ref-field--name">
+                                                    <label htmlFor="ref-vendor-name">Nombre completo</label>
                                                     <input
+                                                        id="ref-vendor-name"
+                                                        className="ref-input"
                                                         type="text"
                                                         placeholder="Ej: Gabriel Rodríguez"
                                                         value={newVendor.name}
                                                         onChange={e => setNewVendor(p => ({ ...p, name: e.target.value }))}
-                                                        className="bg-admin-surface border border-admin-stroke rounded-xl py-3 px-4 text-sm text-admin-primary focus:outline-none focus:border-gold/40 font-bold placeholder:opacity-30"
+                                                        autoComplete="name"
                                                         required
+                                                        aria-required="true"
                                                     />
                                                 </div>
-                                                <div className="flex flex-col gap-1.5 w-24">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-admin-muted">Comisión %</label>
+                                                <div className="ref-field ref-field--num">
+                                                    <label htmlFor="ref-commission">Comisión %</label>
                                                     <input
+                                                        id="ref-commission"
+                                                        className="ref-input"
                                                         type="number" min="1" max="50" step="0.5"
                                                         value={newVendor.commission_pct}
                                                         onChange={e => setNewVendor(p => ({ ...p, commission_pct: parseFloat(e.target.value) }))}
-                                                        className="bg-admin-surface border border-admin-stroke rounded-xl py-3 px-4 text-sm text-admin-primary focus:outline-none focus:border-gold/40 font-bold"
+                                                        aria-describedby="ref-commission-hint"
                                                     />
+                                                    <span id="ref-commission-hint" style={{ display: 'none' }}>Porcentaje de comisión sobre el pago neto</span>
                                                 </div>
-                                                <div className="flex flex-col gap-1.5 w-28">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-admin-muted">Meses ventana</label>
+                                                <div className="ref-field ref-field--num">
+                                                    <label htmlFor="ref-months">Meses ventana</label>
                                                     <input
+                                                        id="ref-months"
+                                                        className="ref-input"
                                                         type="number" min="1" max="24"
                                                         value={newVendor.recurring_months}
                                                         onChange={e => setNewVendor(p => ({ ...p, recurring_months: parseInt(e.target.value) }))}
-                                                        className="bg-admin-surface border border-admin-stroke rounded-xl py-3 px-4 text-sm text-admin-primary focus:outline-none focus:border-gold/40 font-bold"
+                                                        aria-describedby="ref-months-hint"
                                                     />
+                                                    <span id="ref-months-hint" style={{ display: 'none' }}>Cantidad de meses en que se paga comisión por cada cliente referido</span>
                                                 </div>
-                                                <button type="submit" disabled={vendorSubmitting || !newVendor.name.trim()}
-                                                    className="premium-btn emerald py-3 px-6 disabled:opacity-50">
-                                                    <PlusCircle size={14} /> {vendorSubmitting ? 'Generando...' : 'Generar Código'}
+                                                <button
+                                                    type="submit"
+                                                    className="premium-btn emerald"
+                                                    disabled={vendorSubmitting || !newVendor.name.trim()}
+                                                    aria-disabled={vendorSubmitting || !newVendor.name.trim()}
+                                                    aria-busy={vendorSubmitting}
+                                                >
+                                                    <PlusCircle size={14} aria-hidden="true" />
+                                                    {vendorSubmitting ? 'Generando...' : 'Generar Código'}
                                                 </button>
                                             </form>
+
                                             {/* Código recién creado */}
                                             {createdCode && (
-                                                <div className="mt-4 flex items-center gap-3 bg-emerald/10 border border-emerald/20 rounded-xl px-4 py-3">
-                                                    <CheckCircle2 size={16} className="text-emerald flex-shrink-0" />
-                                                    <div>
-                                                        <p className="text-[9px] font-black uppercase tracking-widest text-admin-muted">Código generado para {createdCode.name}</p>
-                                                        <p className="text-lg font-black text-admin-primary tracking-widest">{createdCode.code}</p>
-                                                        <p className="text-[10px] text-admin-secondary mt-0.5">judic-ia.com/ref/{createdCode.code}</p>
+                                                <div className="ref-code-result" role="status" aria-live="polite" aria-label={`Código ${createdCode.code} generado para ${createdCode.name}`}>
+                                                    <CheckCircle2 size={18} style={{ color: 'var(--emerald)', flexShrink: 0 }} aria-hidden="true" />
+                                                    <div style={{ flex: 1 }}>
+                                                        <p className="ref-code-result__label">Código generado para {createdCode.name}</p>
+                                                        <p className="ref-code-result__code">{createdCode.code}</p>
+                                                        <p className="ref-code-result__url">judic-ia.com/ref/{createdCode.code}</p>
                                                     </div>
                                                     <button
-                                                        onClick={() => { navigator.clipboard.writeText(`https://judic-ia.com/ref/${createdCode.code}`); showNotification('success', 'Link copiado'); }}
-                                                        className="ml-auto action-btn"
+                                                        className="action-btn"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(`https://judic-ia.com/ref/${createdCode.code}`);
+                                                            showNotification('success', 'Link copiado al portapapeles');
+                                                        }}
+                                                        aria-label={`Copiar link de referido para ${createdCode.name}`}
                                                         title="Copiar link"
                                                     >
-                                                        <Copy size={14} />
+                                                        <Copy size={14} aria-hidden="true" />
                                                     </button>
                                                 </div>
                                             )}
-                                        </div>
+                                        </section>
 
-                                        {/* Tabla de vendedores */}
-                                        {referidosLoading ? (
-                                            <div className="flex justify-center py-12">
-                                                <RefreshCw size={28} className="animate-spin text-admin-muted opacity-40" />
-                                            </div>
-                                        ) : referidos.codes.length === 0 ? (
-                                            <div className="flex flex-col items-center justify-center py-16 opacity-40">
-                                                <Handshake size={40} className="text-admin-muted mb-4" />
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-admin-muted">Sin vendedores registrados</p>
-                                            </div>
-                                        ) : referidos.codes.map(vendor => {
-                                            const vendorReferrals = referidos.referrals.filter(r => r.code_id === vendor.id);
-                                            const summaryRow = referidos.summary.find(s => s.code === vendor.code) || {};
-                                            return (
-                                                <div key={vendor.id} className={`border rounded-2xl overflow-hidden ${vendor.is_active ? 'border-admin-stroke' : 'border-white/5 opacity-50'}`}>
-                                                    {/* Cabecera del vendedor */}
-                                                    <div className="flex items-center justify-between px-6 py-4 bg-white/2">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center text-gold font-black">
-                                                                {vendor.name[0]}
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-black text-admin-primary text-sm">{vendor.name}</p>
-                                                                <div className="flex items-center gap-2 mt-0.5">
-                                                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full tracking-wider ${vendor.is_active ? 'bg-emerald/10 text-emerald border border-emerald/20' : 'bg-white/5 text-admin-muted border border-white/10'}`}>
-                                                                        {vendor.is_active ? 'ACTIVO' : 'BLOQUEADO'}
-                                                                    </span>
-                                                                    <span className="text-[9px] font-black text-gold tracking-widest">{vendor.code}</span>
-                                                                    <span className="text-[9px] text-admin-muted">{vendor.commission_pct}% · {vendor.recurring_months}m ventana</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-6">
-                                                            <div className="text-right">
-                                                                <p className="text-xs font-black text-admin-primary">ARS {parseFloat(summaryRow.total_commission_ars || 0).toLocaleString('es-AR')}</p>
-                                                                <p className="text-[9px] text-admin-muted">{summaryRow.converted || 0} conversiones</p>
-                                                            </div>
-                                                            {vendor.is_active && (
-                                                                <button
-                                                                    onClick={() => setReplaceModal({ open: true, codeId: vendor.id, codeName: vendor.name })}
-                                                                    className="action-btn"
-                                                                    title="Reemplazar código (bloquea el actual)"
-                                                                >
-                                                                    <RotateCcw size={14} />
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Referrals del vendedor */}
-                                                    {vendorReferrals.length > 0 && (
-                                                        <div className="divide-y divide-white/5 px-6">
-                                                            {vendorReferrals.map(r => {
-                                                                const clientName = r.profiles?.full_name || r.organizations?.razon_social || r.organizations?.name || 'Desconocido';
-                                                                const monthsLeft = vendor.recurring_months - (r.conversion_count || 0);
-                                                                const effectiveMax = r.type === 'estudio' ? Math.min(vendor.recurring_months, 3) : Math.min(vendor.recurring_months, 1);
-                                                                const mesesLeft = Math.max(0, effectiveMax - (r.conversion_count || 0));
-                                                                return (
-                                                                    <div key={r.id} className="flex items-center justify-between py-3 text-sm">
-                                                                        <div className="flex items-center gap-3">
-                                                                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${r.status === 'converted' ? 'bg-emerald/10 text-emerald border-emerald/20'
-                                                                                : 'bg-gold/10 text-gold border-gold/20'
-                                                                                }`}>{r.status.toUpperCase()}</span>
-                                                                            <span className="text-admin-primary font-bold">{clientName}</span>
-                                                                            <span className="text-[9px] text-admin-muted capitalize">{r.type}</span>
-                                                                        </div>
-                                                                        <div className="flex items-center gap-4">
-                                                                            <span className="text-[9px] text-admin-muted">
-                                                                                {r.conversion_count || 0}/{effectiveMax} meses · <span className={mesesLeft > 0 ? 'text-gold' : 'text-admin-muted'}>{mesesLeft > 0 ? `${mesesLeft} restante${mesesLeft !== 1 ? 's' : ''}` : 'Ventana agotada'}</span>
-                                                                            </span>
-                                                                            <span className="text-xs font-black text-admin-primary">ARS {parseFloat(r.commission_amount || 0).toLocaleString('es-AR')}</span>
+                                        {/* ── Lista de vendedores ── */}
+                                        <section aria-label="Lista de vendedores activos" aria-busy={referidosLoading}>
+                                            {referidosLoading ? (
+                                                <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }} role="status" aria-label="Cargando vendedores">
+                                                    <RefreshCw size={28} className="animate-spin" style={{ color: 'var(--admin-text-muted)', opacity: 0.4 }} aria-hidden="true" />
+                                                </div>
+                                            ) : referidos.codes.length === 0 ? (
+                                                <div className="ref-empty" role="status">
+                                                    <Handshake size={40} aria-hidden="true" />
+                                                    <p>Sin vendedores registrados</p>
+                                                </div>
+                                            ) : (
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                                    {referidos.codes.map(vendor => {
+                                                        const vendorReferrals = referidos.referrals.filter(r => r.code_id === vendor.id);
+                                                        const summaryRow = referidos.summary.find(s => s.code === vendor.code) || {};
+                                                        return (
+                                                            <article
+                                                                key={vendor.id}
+                                                                className={`ref-vendor-card${!vendor.is_active ? ' ref-vendor-card--inactive' : ''}`}
+                                                                aria-label={`Vendedor ${vendor.name}, código ${vendor.code}, ${vendor.is_active ? 'activo' : 'bloqueado'}`}
+                                                            >
+                                                                <div className="ref-vendor-header">
+                                                                    <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                                                                        <div className="ref-vendor-avatar" aria-hidden="true">{vendor.name[0]}</div>
+                                                                        <div className="ref-vendor-meta">
+                                                                            <p className="ref-vendor-name">{vendor.name}</p>
+                                                                            <div className="ref-vendor-pills">
+                                                                                <span className={`ref-pill ${vendor.is_active ? 'ref-pill--active' : 'ref-pill--inactive'}`}>
+                                                                                    {vendor.is_active ? 'Activo' : 'Bloqueado'}
+                                                                                </span>
+                                                                                <span className="ref-pill ref-pill--code">{vendor.code}</span>
+                                                                                <span className="ref-pill ref-pill--info">{vendor.commission_pct}% · {vendor.recurring_months}m</span>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    )}
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                                        <div className="ref-vendor-stats">
+                                                                            <p className="ref-vendor-stats__amount">ARS {parseFloat(summaryRow.total_commission_ars || 0).toLocaleString('es-AR')}</p>
+                                                                            <p className="ref-vendor-stats__sub">{summaryRow.converted || 0} conversiones</p>
+                                                                        </div>
+                                                                        {vendor.is_active && (
+                                                                            <button
+                                                                                className="action-btn"
+                                                                                onClick={() => setReplaceModal({ open: true, codeId: vendor.id, codeName: vendor.name })}
+                                                                                aria-label={`Reemplazar código de ${vendor.name}. El código actual quedará bloqueado.`}
+                                                                                title="Reemplazar código"
+                                                                            >
+                                                                                <RotateCcw size={14} aria-hidden="true" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+
+                                                                {vendorReferrals.length > 0 && (
+                                                                    <div className="ref-referral-list" role="list" aria-label={`${vendorReferrals.length} clientes referidos por ${vendor.name}`}>
+                                                                        {vendorReferrals.map(r => {
+                                                                            const clientName = r.profiles?.full_name || r.organizations?.razon_social || r.organizations?.name || 'Desconocido';
+                                                                            const effectiveMax = r.type === 'estudio' ? Math.min(vendor.recurring_months, 3) : Math.min(vendor.recurring_months, 1);
+                                                                            const mesesLeft = Math.max(0, effectiveMax - (r.conversion_count || 0));
+                                                                            return (
+                                                                                <div
+                                                                                    key={r.id}
+                                                                                    className="ref-referral-row"
+                                                                                    role="listitem"
+                                                                                    aria-label={`${clientName}, ${r.status}, ${mesesLeft} meses restantes, ARS ${parseFloat(r.commission_amount || 0).toLocaleString('es-AR')}`}
+                                                                                >
+                                                                                    <div className="ref-referral-left">
+                                                                                        <span className={`ref-pill ${r.status === 'converted' ? 'ref-pill--active' : 'ref-pill--code'}`} aria-hidden="true">
+                                                                                            {r.status === 'converted' ? 'Pagó' : 'Pendiente'}
+                                                                                        </span>
+                                                                                        <span className="ref-referral-name">{clientName}</span>
+                                                                                        <span className="ref-referral-type">{r.type}</span>
+                                                                                    </div>
+                                                                                    <div className="ref-referral-right">
+                                                                                        <span className="ref-months-text">
+                                                                                            {r.conversion_count || 0}/{effectiveMax}m ·{' '}
+                                                                                            <span className={mesesLeft > 0 ? 'ref-months-gold' : ''}>
+                                                                                                {mesesLeft > 0 ? `${mesesLeft} rest.` : 'Agotado'}
+                                                                                            </span>
+                                                                                        </span>
+                                                                                        <span className="ref-commission-val">ARS {parseFloat(r.commission_amount || 0).toLocaleString('es-AR')}</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                )}
+                                                            </article>
+                                                        );
+                                                    })}
                                                 </div>
-                                            );
-                                        })}
+                                            )}
+                                        </section>
                                     </div>
                                 </div>
                             )}
