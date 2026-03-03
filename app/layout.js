@@ -78,7 +78,17 @@ export default async function RootLayout({ children }) {
           nonce={nonce}
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
-            __html: `window.judicNonce = "${nonce}";`
+            __html: `
+              window.judicNonce = "${nonce}";
+              (function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const ref = urlParams.get('ref');
+                if (ref) {
+                  localStorage.setItem('referral_code', ref);
+                  console.log('Referral detected:', ref);
+                }
+              })();
+            `
           }}
         />
         {children}

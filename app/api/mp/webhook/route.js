@@ -35,6 +35,99 @@ async function notifyBilling(resend, { subject, rows }) {
     }
 }
 
+// ─── REFERRAL CONVERSION TRACKING (v2 — hardened) ──────────────────────────
+// Solo se llama desde el bloque de suscripciones (nunca desde credit packs).
+// Calcula comisión sobre el neto (descontando fee estimado de MercadoPago).
+const MP_FEE_FACTOR = 0.95; // ~5% de retención promedio de MercadoPago AR
+
+// Ventana máxima de comisión según tipo de cliente referido:
+// - Individual: solo el primer pago (vendedor cierra y cobra una vez)
+// - Estudio: primeros 3 meses (ticket alto, margen controlado)
+const TYPE_MAX_MONTHS = { individual: 1, estudio: 3 };
+
+async function handleReferralConversion(supabase, { userId, orgId, amount }) {
+    try {
+        const entityId = orgId || userId;
+        const isOrg = Boolean(orgId);
+
+        // 1. Buscar código de referido asociado al usuario/org
+        const table = isOrg ? 'organizations' : 'profiles';
+        const { data: entity } = await supabase
+            .from(table)
+            .select('referred_by_code')
+            .eq('id', entityId)
+            .single();
+
+        const referred_by_code = entity?.referred_by_code;
+        if (!referred_by_code) return;
+
+        // 2. Buscar datos del vendedor: comisión % y ventana de meses
+        const { data: refCode } = await supabase
+            .from('referral_codes')
+            .select('id, commission_pct, recurring_months')
+            .eq('code', referred_by_code.toUpperCase())
+            .eq('is_active', true)
+            .single();
+
+        if (!refCode) return;
+
+        // 3. Buscar el registro de referido para este usuario/org
+        const targetField = isOrg ? 'referred_org_id' : 'referred_user_id';
+        const { data: referral } = await supabase
+            .from('referrals')
+            .select('id, status, conversion_count')
+            .eq('code_id', refCode.id)
+            .eq(targetField, entityId)
+            .maybeSingle();
+
+        // 4. Verificar que no superó la ventana de meses según tipo de referido
+        const referralType = isOrg ? 'estudio' : 'individual';
+        const typeMaxMonths = TYPE_MAX_MONTHS[referralType] ?? 1;
+        // La ventana efectiva es el mínimo entre la config del vendedor y el tope por tipo
+        const effectiveWindow = Math.min(refCode.recurring_months, typeMaxMonths);
+
+        const currentCount = referral?.conversion_count ?? 0;
+        if (currentCount >= effectiveWindow) {
+            console.log(`[referral] ventana agotada para ${referralType} ${entityId} (${currentCount}/${effectiveWindow} meses)`);
+            return;
+        }
+
+        // 5. Calcular comisión sobre NETO (no sobre el bruto cobrado al cliente)
+        const netAmount = amount * MP_FEE_FACTOR;
+        const commission_amount = (netAmount * (refCode.commission_pct / 100)).toFixed(2);
+
+        const now = new Date().toISOString();
+        const newCount = currentCount + 1;
+        const isFirstConversion = !referral || referral.status === 'pending';
+
+        if (referral) {
+            // Actualizar registro existente (ON CONFLICT seguro por unicidad del constraint)
+            await supabase.from('referrals').update({
+                status: 'converted',
+                converted_at: isFirstConversion ? now : referral.converted_at,
+                commission_amount: (parseFloat(referral.commission_amount ?? 0) + parseFloat(commission_amount)).toFixed(2),
+                conversion_count: newCount,
+            }).eq('id', referral.id);
+        } else {
+            // Primera vez: insertar (fallará silenciosamente si hay constraint violation = idempotente)
+            await supabase.from('referrals').insert({
+                code_id: refCode.id,
+                referred_user_id: isOrg ? null : userId,
+                referred_org_id: isOrg ? orgId : null,
+                type: isOrg ? 'estudio' : 'individual',
+                status: 'converted',
+                converted_at: now,
+                commission_amount,
+                conversion_count: 1,
+            });
+        }
+
+        console.log(`[referral] conversión #${newCount}/${refCode.recurring_months} — ${entityId} → ARS ${commission_amount} neto`);
+    } catch (err) {
+        console.error('[handleReferralConversion] error:', err);
+    }
+}
+
 // 🔐 HMAC Signature Validation for MercadoPago Webhooks
 function validateMPSignature(req, body) {
     const xSignature = req.headers.get('x-signature');
@@ -607,6 +700,9 @@ export async function POST(req) {
                                 { label: 'Fecha/hora', value: now.toISOString() },
                             ],
                         });
+
+                        // TRACK REFERRAL CONVERSION (Enterprise)
+                        await handleReferralConversion(supabase, { orgId, amount });
                     } catch (emailErr) {
                         console.error('[webhook org-sub] Email/audit error:', emailErr.message);
                     }
@@ -795,6 +891,11 @@ export async function POST(req) {
                     { label: 'Fecha/hora', value: new Date().toISOString() },
                 ],
             });
+
+            // TRACK REFERRAL CONVERSION (Individual)
+            if (isFreshUpgrade) {
+                await handleReferralConversion(supabase, { userId, amount });
+            }
         }
 
         return NextResponse.json({ ok: true });

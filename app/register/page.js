@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sun, Moon, ShieldCheck, ShieldAlert, ShieldEllipsis, RefreshCw, Sparkles, Key, Lock, Eye, EyeOff } from 'lucide-react';
@@ -12,6 +12,7 @@ import './register.css';
 
 export default function RegisterPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     // Form States
     const [email, setEmail] = useState('');
@@ -26,6 +27,35 @@ export default function RegisterPage() {
     const [matriculas, setMatriculas] = useState([{ id: crypto.randomUUID(), colegio: '', tomo: '', folio: '', zona: '', custom: '' }]);
     const [specialties, setSpecialties] = useState([]);
     const [consent, setConsent] = useState(false);
+
+    // Referral States
+    const [referralCode, setReferralCode] = useState('');
+    const [referrerName, setReferrerName] = useState(null);
+
+    useEffect(() => {
+        const urlRef = searchParams.get('ref');
+        const savedRef = localStorage.getItem('referral_code');
+        const codeToUse = urlRef || savedRef;
+        if (codeToUse) {
+            setReferralCode(codeToUse);
+            localStorage.setItem('referral_code', codeToUse);
+            validateReferral(codeToUse);
+        }
+    }, [searchParams]);
+
+    const validateReferral = async (code) => {
+        try {
+            const res = await fetch(`/api/referrals/validate?code=${code}`);
+            const data = await res.json();
+            if (res.ok && data.valid) {
+                setReferrerName(data.name);
+            } else {
+                setReferrerName(null);
+            }
+        } catch {
+            setReferrerName(null);
+        }
+    };
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -386,6 +416,7 @@ export default function RegisterPage() {
                     jurisdiccion: finalJurisdiccion,
                     especialidades: specialties,
                     matriculas: matriculasData,
+                    referred_by_code: referralCode,
                 }
             }
         });
@@ -462,6 +493,42 @@ export default function RegisterPage() {
                             <div className="register-field">
                                 <label htmlFor="lastName">Apellido</label>
                                 <input id="lastName" name="lastName" autoComplete="family-name" type="text" placeholder="Pérez" value={lastName} onChange={e => setLastName(e.target.value)} required />
+                            </div>
+
+                            <div className="register-field full-width">
+                                <label htmlFor="referralCode">Código de Referido (Opcional)</label>
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        id="referralCode"
+                                        type="text"
+                                        placeholder="Ej: GAB01"
+                                        value={referralCode}
+                                        onChange={e => {
+                                            const val = e.target.value.toUpperCase();
+                                            setReferralCode(val);
+                                            if (val.length >= 3) validateReferral(val);
+                                            else setReferrerName(null);
+                                        }}
+                                        className="w-full"
+                                        style={{ textTransform: 'uppercase' }}
+                                    />
+                                    {referrerName && (
+                                        <div style={{
+                                            marginTop: '0.5rem',
+                                            fontSize: '0.85rem',
+                                            color: '#22c55e',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.4rem',
+                                            padding: '0.3rem 0.6rem',
+                                            background: 'rgba(34, 197, 94, 0.08)',
+                                            borderRadius: '4px',
+                                            width: 'fit-content'
+                                        }}>
+                                            <ShieldCheck size={14} /> Referido por: <strong>{referrerName}</strong>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="register-field full-width">

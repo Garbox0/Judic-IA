@@ -14,25 +14,25 @@ import { isValidEmail, isValidString } from '@/lib/validation';
 import { checkRateLimit, getClientIP } from '@/lib/rate-limiter';
 
 const PLAN_LABELS = {
-    enterprise_s:  'Enterprise S — Hasta 5 miembros ($89.000/mes)',
-    enterprise_m:  'Enterprise M — Hasta 10 miembros ($149.000/mes)',
-    enterprise_l:  'Enterprise L — Hasta 20 miembros ($249.000/mes)',
-    enterprise_xl: 'Enterprise XL — Miembros ilimitados ($449.000/mes)',
+    enterprise_s: 'Enterprise S — Hasta 5 miembros ($89.000/mes)',
+    enterprise_m: 'Enterprise M — Hasta 10 miembros ($149.000/mes)',
+    enterprise_l: 'Enterprise L — Hasta 20 miembros ($249.000/mes)',
+    enterprise_xl: 'Enterprise XL — Hasta 40 miembros ($449.000/mes)',
 };
 
 const VALID_PLANS = ['enterprise_s', 'enterprise_m', 'enterprise_l', 'enterprise_xl'];
-const MEMBER_LIMITS = { enterprise_s: 5, enterprise_m: 10, enterprise_l: 20, enterprise_xl: null };
+const MEMBER_LIMITS = { enterprise_s: 5, enterprise_m: 10, enterprise_l: 20, enterprise_xl: 40 };
 
 export async function POST(request) {
-  try {
-    return await _handlePost(request);
-  } catch (outerErr) {
-    console.error('[estudio/registrar] UNHANDLED OUTER ERROR:', outerErr?.message, outerErr?.stack);
-    return NextResponse.json({
-      error: 'Error inesperado al registrar el estudio.',
-      _debug: outerErr?.message,
-    }, { status: 500 });
-  }
+    try {
+        return await _handlePost(request);
+    } catch (outerErr) {
+        console.error('[estudio/registrar] UNHANDLED OUTER ERROR:', outerErr?.message, outerErr?.stack);
+        return NextResponse.json({
+            error: 'Error inesperado al registrar el estudio.',
+            _debug: outerErr?.message,
+        }, { status: 500 });
+    }
 }
 
 async function _handlePost(request) {
@@ -52,7 +52,7 @@ async function _handlePost(request) {
     const {
         razon_social, cuit, domicilio, phone,
         first_name, last_name, email, password,
-        matriculas, plan_tier,
+        matriculas, plan_tier, referral_code
     } = body;
 
     // Validar campos obligatorios con límites de longitud
@@ -74,6 +74,23 @@ async function _handlePost(request) {
         process.env.SUPABASE_SERVICE_ROLE_KEY,
         { auth: { persistSession: false } }
     );
+
+    // Validar código de referido si se proporcionó
+    let validReferralCode = null;
+    let referralCodeId = null;
+    if (referral_code) {
+        const { data: refData } = await supabase
+            .from('referral_codes')
+            .select('id, code')
+            .eq('code', referral_code.toUpperCase())
+            .eq('is_active', true)
+            .single();
+
+        if (refData) {
+            validReferralCode = refData.code;
+            referralCodeId = refData.id;
+        }
+    }
 
     // 1. Crear usuario en Supabase Auth
     const fullName = `${first_name} ${last_name}`;
@@ -117,7 +134,6 @@ async function _handlePost(request) {
         if (banErr) console.error('[estudio/registrar] Ban error (non-fatal):', banErr.message);
 
         // 2. Actualizar perfil con datos del titular
-        // Nota: no tocamos plan_tier (protegido por trigger) — el plan vive en organizations
         const { error: profileErr } = await supabase
             .from('profiles')
             .update({
@@ -126,6 +142,7 @@ async function _handlePost(request) {
                 jurisdiccion: finalJurisdiccion,
                 matriculas,
                 verification_status: 'pending',
+                referred_by_code: validReferralCode, // También guardamos en el profile
             })
             .eq('id', userId);
         if (profileErr) console.error('[estudio/registrar] Profile update error (non-fatal):', profileErr.message);
@@ -145,6 +162,7 @@ async function _handlePost(request) {
                 plan_tier,
                 member_limit: MEMBER_LIMITS[plan_tier],
                 settings: {},
+                referred_by_code: validReferralCode, // Guardamos el código
             })
             .select('id')
             .single();
@@ -152,6 +170,18 @@ async function _handlePost(request) {
         if (orgErr) throw orgErr;
 
         const orgId = org.id;
+
+        // 3.5. Registrar el referido pendiente
+        if (referralCodeId) {
+            await supabase
+                .from('referrals')
+                .insert({
+                    code_id: referralCodeId,
+                    referred_org_id: orgId,
+                    type: 'estudio',
+                    status: 'pending'
+                });
+        }
 
         // 4. Crear vínculo owner
         await supabase
@@ -243,7 +273,7 @@ async function _handlePost(request) {
     } catch (err) {
         console.error('[estudio/registrar] FATAL:', err.message, err.code, err.details);
         // Intentar limpiar el usuario creado si algo falló
-        await supabase.auth.admin.deleteUser(userId).catch(() => {});
+        await supabase.auth.admin.deleteUser(userId).catch(() => { });
         // Devolver el error real para diagnóstico (se puede opacar en producción una vez resuelto)
         return NextResponse.json({
             error: 'Error al registrar el estudio. Intentá nuevamente.',
