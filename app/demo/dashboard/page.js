@@ -9,7 +9,8 @@ import {
     Calendar,
     BookOpen,
     Settings,
-    Globe
+    Globe,
+    Building2
 } from 'lucide-react';
 import UsageGuideDemo from '@/app/components/UsageGuideDemo';
 import { demoManuals } from '@/app/lib/demoManuals';
@@ -81,6 +82,14 @@ export default function DemoDashboardHome() {
             icon: <Settings size={24} />,
             link: '/dashboard/settings',
             color: '#94a3b8'
+        },
+        {
+            id: 'estudio',
+            title: 'Panel Estudio',
+            desc: 'Gestión exclusiva para dueños de despachos.',
+            icon: <Building2 size={24} />,
+            link: '/dashboard/estudio',
+            color: '#fbbf24'
         }
     ];
 
