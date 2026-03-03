@@ -1173,261 +1173,280 @@ export default function SettingsPage({ isDemo = false }) {
 
                         {activeTab === 'billing' && (
                             <div className="stg-tab-pane">
-                                {/* Plan Actual Section */}
-                                <div className="stg-current-plan-box">
-                                    <h3 className="stg-billing-title">Tu Plan Actual</h3>
-                                    <div className="stg-current-status-card">
-                                        <div className="stg-status-info">
-                                            <span className="stg-status-icon">{formData.plan_tier === 'professional' ? <Crown size={24} className="text-amber-400" /> : <Scale size={24} className="text-slate-400" />}</span>
-                                            <div>
-                                                <h4 className="m-0 fs-1-2rem">{formData.plan_tier === 'professional' ? 'Judic-IA Suite Pro' : 'Plan Starter (Gratuito)'}</h4>
-                                                <p className="billing-plan-p">
-                                                    {formData.plan_tier === 'professional' ? 'Acceso completo a todas las funciones legales.' : 'Acceso limitado. Sube de nivel para desbloquear potencia total.'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="stg-badge-v2 active">
-                                            <Check size={12} /> ACTIVO {formData.subscription_expiry && `(Hasta ${new Date(formData.subscription_expiry).toLocaleDateString()})`}
-                                        </div>
+
+                                {/* Aviso especial para miembros de estudio Enterprise */}
+                                {formData.plan_tier === 'enterprise_member' && (
+                                    <div className="stg-current-plan-box" style={{ textAlign: 'center', padding: '2.5rem 1.5rem' }}>
+                                        <Building2 size={40} style={{ margin: '0 auto 1rem', display: 'block', opacity: 0.7 }} />
+                                        <h3 className="stg-billing-title" style={{ marginBottom: '0.75rem' }}>Suscripción gestionada por tu Estudio</h3>
+                                        <p className="stg-hint" style={{ maxWidth: 420, margin: '0 auto 1.5rem' }}>
+                                            Sos miembro de un Estudio Jurídico Enterprise. La suscripción, los créditos y la facturación son administrados por el titular del estudio.
+                                        </p>
+                                        <Link href="/dashboard/estudio/suscripcion" className="stg-gold-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                                            <Building2 size={16} /> Ver panel del Estudio
+                                        </Link>
                                     </div>
-                                </div>
+                                )}
 
-                                <div className="stg-divider-lg"></div>
-
-                                {formData.plan_tier !== 'professional' ? (
-                                    <>
-                                        <h3 className="stg-sec-title">Mejorar al Plan Profesional</h3>
-                                        <div className="stg-plan-card stg-premium-glow">
-                                            <div className="stg-plan-badge">RECOMENDADO</div>
-                                            <small className="stg-tag">Gabinete de Élite</small>
-                                            <h2 className="stg-plan-name">Judic-IA Suite Pro</h2>
-                                            <div className="stg-price-row">
-                                                <span className="stg-val">$25.000</span>
-                                                <span className="stg-period">/ mensual</span>
-                                            </div>
-                                            <ul className="stg-plan-list">
-                                                <li><Check size={16} className="text-emerald-400" /> Asistente IA Ilimitado</li>
-                                                <li><Check size={16} className="text-emerald-400" /> Investigación de Jurisprudencia Pro</li>
-                                                <li><Check size={16} className="text-emerald-400" /> Gestión de Clientes sin límites</li>
-                                                <li><Check size={16} className="text-emerald-400" /> Generación de Documentos Premium</li>
-
-                                                <div className="billing-footer-v2">
-                                                    <button
-                                                        className="stg-gold-btn pulse-anim billing-btn-pro"
-                                                        onClick={handleSaveBilling}
-                                                        disabled={saving || paymentPending}
-                                                    >
-                                                        {paymentPending ? 'ESPERANDO COMPROBACIÓN...' : (saving ? 'PROCESANDO...' : 'SUSCRIBIRSE AHORA')}
-                                                    </button>
-
-                                                    <div className="billing-trust-v2 full-opacity">
-                                                        <img src="/mercadopago/logo_white.svg" alt="Mercado Pago" className="mp-logo-v2" />
-                                                        <div className="billing-divider-v2"></div>
-                                                        <div className="billing-secure-badge">
-                                                            <Shield size={14} className="text-emerald-500" />
-                                                            <span className="billing-secure-text">
-                                                                PAGO SEGURO
-                                                            </span>
-                                                        </div>
+                                {formData.plan_tier !== 'enterprise_member' && (
+                                    <div>
+                                        {/* Plan Actual Section */}
+                                        <div className="stg-current-plan-box">
+                                            <h3 className="stg-billing-title">Tu Plan Actual</h3>
+                                            <div className="stg-current-status-card">
+                                                <div className="stg-status-info">
+                                                    <span className="stg-status-icon">{formData.plan_tier === 'professional' ? <Crown size={24} className="text-amber-400" /> : <Scale size={24} className="text-slate-400" />}</span>
+                                                    <div>
+                                                        <h4 className="m-0 fs-1-2rem">{formData.plan_tier === 'professional' ? 'Judic-IA Suite Pro' : 'Plan Starter (Gratuito)'}</h4>
+                                                        <p className="billing-plan-p">
+                                                            {formData.plan_tier === 'professional' ? 'Acceso completo a todas las funciones legales.' : 'Acceso limitado. Sube de nivel para desbloquear potencia total.'}
+                                                        </p>
                                                     </div>
                                                 </div>
-                                            </ul>
+                                                <div className="stg-badge-v2 active">
+                                                    <Check size={12} /> ACTIVO {formData.subscription_expiry && `(Hasta ${new Date(formData.subscription_expiry).toLocaleDateString()})`}
+                                                </div>
+                                            </div>
                                         </div>
-                                    </>
-                                ) : (
-                                    <div className="stg-success-card">
-                                        <div className="stg-success-icon-box"><Gem size={48} className="text-amber-400" /></div>
-                                        <h3 className="stg-success-title">¡Ya eres Profesional!</h3>
-                                        <p className="stg-success-text">Estás aprovechando al máximo el Gabinete Jurídico.</p>
 
-                                        <div className="billing-success-actions">
-                                            {formData.subscription_status === 'cancelled' ? (
-                                                <div className="stg-badge-v2 billing-cancel-alert">
-                                                    <ShieldOff size={14} className="text-red-400" /> CANCELADA (Expira el {formData.subscription_expiry ? new Date(formData.subscription_expiry).toLocaleDateString() : 'fin de mes'})
+                                        <div className="stg-divider-lg"></div>
+
+                                        {formData.plan_tier !== 'professional' ? (
+                                            <>
+                                                <h3 className="stg-sec-title">Mejorar al Plan Profesional</h3>
+                                                <div className="stg-plan-card stg-premium-glow">
+                                                    <div className="stg-plan-badge">RECOMENDADO</div>
+                                                    <small className="stg-tag">Gabinete de Élite</small>
+                                                    <h2 className="stg-plan-name">Judic-IA Suite Pro</h2>
+                                                    <div className="stg-price-row">
+                                                        <span className="stg-val">$25.000</span>
+                                                        <span className="stg-period">/ mensual</span>
+                                                    </div>
+                                                    <ul className="stg-plan-list">
+                                                        <li><Check size={16} className="text-emerald-400" /> Asistente IA Ilimitado</li>
+                                                        <li><Check size={16} className="text-emerald-400" /> Investigación de Jurisprudencia Pro</li>
+                                                        <li><Check size={16} className="text-emerald-400" /> Gestión de Clientes sin límites</li>
+                                                        <li><Check size={16} className="text-emerald-400" /> Generación de Documentos Premium</li>
+
+                                                        <div className="billing-footer-v2">
+                                                            <button
+                                                                className="stg-gold-btn pulse-anim billing-btn-pro"
+                                                                onClick={handleSaveBilling}
+                                                                disabled={saving || paymentPending}
+                                                            >
+                                                                {paymentPending ? 'ESPERANDO COMPROBACIÓN...' : (saving ? 'PROCESANDO...' : 'SUSCRIBIRSE AHORA')}
+                                                            </button>
+
+                                                            <div className="billing-trust-v2 full-opacity">
+                                                                <img src="/mercadopago/logo_white.svg" alt="Mercado Pago" className="mp-logo-v2" />
+                                                                <div className="billing-divider-v2"></div>
+                                                                <div className="billing-secure-badge">
+                                                                    <Shield size={14} className="text-emerald-500" />
+                                                                    <span className="billing-secure-text">
+                                                                        PAGO SEGURO
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </ul>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="stg-success-card">
+                                                <div className="stg-success-icon-box"><Gem size={48} className="text-amber-400" /></div>
+                                                <h3 className="stg-success-title">¡Ya eres Profesional!</h3>
+                                                <p className="stg-success-text">Estás aprovechando al máximo el Gabinete Jurídico.</p>
+
+                                                <div className="billing-success-actions">
+                                                    {formData.subscription_status === 'cancelled' ? (
+                                                        <div className="stg-badge-v2 billing-cancel-alert">
+                                                            <ShieldOff size={14} className="text-red-400" /> CANCELADA (Expira el {formData.subscription_expiry ? new Date(formData.subscription_expiry).toLocaleDateString() : 'fin de mes'})
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            className="stg-outline-btn danger btn-cancel-sub"
+                                                            onClick={() => setModalOpen(true)}
+                                                            disabled={saving}
+                                                        >
+                                                            {saving ? 'Cancelando...' : 'Cancelar Suscripción'}
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                <div className="billing-trust-v2 mt-1-5rem pt-1-5rem border-top-glow">
+                                                    <img src="/mercadopago/logo_white.svg" alt="Mercado Pago" className="mp-logo-footer" />
+                                                    <div className="billing-divider-v2 billing-divider-short"></div>
+                                                    <div className="billing-secure-badge">
+                                                        <Shield size={14} className="text-emerald-500" />
+                                                        <span className="billing-secure-text billing-secure-text-sm">
+                                                            PAGO SEGURO
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Custom Confirmation Modal */}
+                                                {modalOpen && (
+                                                    <div className="modal-overlay-v2">
+                                                        <div className="modal-content-v2" role="dialog" aria-modal="true" aria-labelledby="cancel-sub-modal-title">
+                                                            <h3 id="cancel-sub-modal-title" className="modal-title-v2">
+                                                                ¿Cancelar Suscripción?
+                                                            </h3>
+                                                            <p className="modal-text-v2">
+                                                                Perderás acceso a las funciones profesionales (búsqueda ilimitada, documentos, IA avanzada) al finalizar tu periodo actual.
+                                                            </p>
+                                                            <div className="modal-btn-row">
+                                                                <button
+                                                                    onClick={() => setModalOpen(false)}
+                                                                    className="btn-modal-ghost"
+                                                                >
+                                                                    Conservar Plan
+                                                                </button>
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        setSaving(true);
+                                                                        try {
+                                                                            const { data: { session: cancelSession } } = await supabase.auth.getSession();
+                                                                            const res = await fetch('/api/mp/subscription/cancel', {
+                                                                                method: 'POST',
+                                                                                headers: {
+                                                                                    'Content-Type': 'application/json',
+                                                                                    ...(cancelSession?.access_token ? { 'Authorization': `Bearer ${cancelSession.access_token}` } : {})
+                                                                                },
+                                                                                body: JSON.stringify({ userId: user.id })
+                                                                            });
+                                                                            const d = await res.json();
+                                                                            if (!res.ok) throw new Error(d.error);
+                                                                            toast.success(d.message || "Suscripción cancelada.");
+                                                                            setFormData(p => ({ ...p, subscription_status: 'cancelled' }));
+                                                                            window.location.reload();
+                                                                        } catch (e) {
+                                                                            toast.error("Error al cancelar: " + e.message);
+                                                                        } finally {
+                                                                            setSaving(false);
+                                                                            setModalOpen(false);
+                                                                        }
+                                                                    }}
+                                                                    className="btn-modal-danger"
+                                                                >
+                                                                    {saving ? 'Procesando...' : 'Confirmar Baja'}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Invoice History Section */}
+                                        <div className="stg-invoice-section">
+                                            <div className="stg-invoice-header">
+                                                <div className="stg-invoice-title">
+                                                    <Receipt size={20} className="text-amber-400" />
+                                                    <h4>Historial de Facturas</h4>
+                                                </div>
+                                            </div>
+
+                                            {invoicesLoading ? (
+                                                <div className="stg-invoice-loading">
+                                                    <div className="spinner-small" />
+                                                    <span>Cargando facturas...</span>
+                                                </div>
+                                            ) : invoices.length === 0 ? (
+                                                <div className="stg-invoice-empty">
+                                                    <FileText size={32} className="text-slate-500" />
+                                                    <p>No hay facturas disponibles aún.</p>
                                                 </div>
                                             ) : (
-                                                <button
-                                                    className="stg-outline-btn danger btn-cancel-sub"
-                                                    onClick={() => setModalOpen(true)}
-                                                    disabled={saving}
-                                                >
-                                                    {saving ? 'Cancelando...' : 'Cancelar Suscripción'}
-                                                </button>
+                                                <div className="stg-invoice-list">
+                                                    {invoices.map(invoice => (
+                                                        <div key={invoice.id} className="stg-invoice-item">
+                                                            <div className="stg-invoice-info">
+                                                                <div className="stg-invoice-icon">
+                                                                    <FileText size={18} />
+                                                                </div>
+                                                                <div className="stg-invoice-details">
+                                                                    <span className="stg-invoice-desc">{invoice.description}</span>
+                                                                    <span className="stg-invoice-date">
+                                                                        {new Date(invoice.payment_date).toLocaleDateString('es-AR', {
+                                                                            day: '2-digit',
+                                                                            month: 'long',
+                                                                            year: 'numeric'
+                                                                        })}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="stg-invoice-amount">
+                                                                ${invoice.amount?.toLocaleString('es-AR')}
+                                                            </div>
+                                                            <div className="stg-invoice-actions">
+                                                                {invoice.status === 'pending' ? (
+                                                                    <div className="stg-invoice-pending">
+                                                                        <Clock size={14} />
+                                                                        <span>En preparación</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <>
+                                                                        <button
+                                                                            className="stg-invoice-btn view"
+                                                                            onClick={() => {
+                                                                                setSelectedInvoice(invoice);
+                                                                                setInvoiceModalOpen(true);
+                                                                            }}
+                                                                            title="Ver factura"
+                                                                            aria-label="Ver factura"
+                                                                        >
+                                                                            <Eye size={16} aria-hidden="true" />
+                                                                        </button>
+                                                                        <a
+                                                                            href={invoice.file_url}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="stg-invoice-btn download"
+                                                                            title="Descargar factura"
+                                                                            aria-label="Descargar factura"
+                                                                        >
+                                                                            <Download size={16} aria-hidden="true" />
+                                                                        </a>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             )}
                                         </div>
 
-                                        <div className="billing-trust-v2 mt-1-5rem pt-1-5rem border-top-glow">
-                                            <img src="/mercadopago/logo_white.svg" alt="Mercado Pago" className="mp-logo-footer" />
-                                            <div className="billing-divider-v2 billing-divider-short"></div>
-                                            <div className="billing-secure-badge">
-                                                <Shield size={14} className="text-emerald-500" />
-                                                <span className="billing-secure-text billing-secure-text-sm">
-                                                    PAGO SEGURO
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Custom Confirmation Modal */}
-                                        {modalOpen && (
-                                            <div className="modal-overlay-v2">
-                                                <div className="modal-content-v2" role="dialog" aria-modal="true" aria-labelledby="cancel-sub-modal-title">
-                                                    <h3 id="cancel-sub-modal-title" className="modal-title-v2">
-                                                        ¿Cancelar Suscripción?
-                                                    </h3>
-                                                    <p className="modal-text-v2">
-                                                        Perderás acceso a las funciones profesionales (búsqueda ilimitada, documentos, IA avanzada) al finalizar tu periodo actual.
-                                                    </p>
-                                                    <div className="modal-btn-row">
+                                        {/* Invoice PDF Viewer Modal */}
+                                        {invoiceModalOpen && selectedInvoice && (
+                                            <div className="modal-overlay-v2" onClick={() => setInvoiceModalOpen(false)}>
+                                                <div className="invoice-modal-content" role="dialog" aria-modal="true" aria-labelledby="invoice-modal-title" onClick={e => e.stopPropagation()}>
+                                                    <div className="invoice-modal-header">
+                                                        <h3 id="invoice-modal-title">Factura - {selectedInvoice.description}</h3>
                                                         <button
-                                                            onClick={() => setModalOpen(false)}
-                                                            className="btn-modal-ghost"
+                                                            className="invoice-modal-close"
+                                                            onClick={() => setInvoiceModalOpen(false)}
+                                                            aria-label="Cerrar factura"
                                                         >
-                                                            Conservar Plan
+                                                            <X size={20} aria-hidden="true" />
                                                         </button>
-                                                        <button
-                                                            onClick={async () => {
-                                                                setSaving(true);
-                                                                try {
-                                                                    const { data: { session: cancelSession } } = await supabase.auth.getSession();
-                                                                    const res = await fetch('/api/mp/subscription/cancel', {
-                                                                        method: 'POST',
-                                                                        headers: {
-                                                                            'Content-Type': 'application/json',
-                                                                            ...(cancelSession?.access_token ? { 'Authorization': `Bearer ${cancelSession.access_token}` } : {})
-                                                                        },
-                                                                        body: JSON.stringify({ userId: user.id })
-                                                                    });
-                                                                    const d = await res.json();
-                                                                    if (!res.ok) throw new Error(d.error);
-                                                                    toast.success(d.message || "Suscripción cancelada.");
-                                                                    setFormData(p => ({ ...p, subscription_status: 'cancelled' }));
-                                                                    window.location.reload();
-                                                                } catch (e) {
-                                                                    toast.error("Error al cancelar: " + e.message);
-                                                                } finally {
-                                                                    setSaving(false);
-                                                                    setModalOpen(false);
-                                                                }
-                                                            }}
-                                                            className="btn-modal-danger"
+                                                    </div>
+                                                    <div className="invoice-modal-body">
+                                                        <PdfReader url={selectedInvoice.file_url} />
+                                                    </div>
+                                                    <div className="invoice-modal-footer">
+                                                        <a
+                                                            href={selectedInvoice.file_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="stg-gold-btn"
                                                         >
-                                                            {saving ? 'Procesando...' : 'Confirmar Baja'}
-                                                        </button>
+                                                            <Download size={16} />
+                                                            Descargar PDF
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </div>
                                         )}
-                                    </div>
-                                )}
-
-                                {/* Invoice History Section */}
-                                <div className="stg-invoice-section">
-                                    <div className="stg-invoice-header">
-                                        <div className="stg-invoice-title">
-                                            <Receipt size={20} className="text-amber-400" />
-                                            <h4>Historial de Facturas</h4>
-                                        </div>
-                                    </div>
-
-                                    {invoicesLoading ? (
-                                        <div className="stg-invoice-loading">
-                                            <div className="spinner-small" />
-                                            <span>Cargando facturas...</span>
-                                        </div>
-                                    ) : invoices.length === 0 ? (
-                                        <div className="stg-invoice-empty">
-                                            <FileText size={32} className="text-slate-500" />
-                                            <p>No hay facturas disponibles aún.</p>
-                                        </div>
-                                    ) : (
-                                        <div className="stg-invoice-list">
-                                            {invoices.map(invoice => (
-                                                <div key={invoice.id} className="stg-invoice-item">
-                                                    <div className="stg-invoice-info">
-                                                        <div className="stg-invoice-icon">
-                                                            <FileText size={18} />
-                                                        </div>
-                                                        <div className="stg-invoice-details">
-                                                            <span className="stg-invoice-desc">{invoice.description}</span>
-                                                            <span className="stg-invoice-date">
-                                                                {new Date(invoice.payment_date).toLocaleDateString('es-AR', {
-                                                                    day: '2-digit',
-                                                                    month: 'long',
-                                                                    year: 'numeric'
-                                                                })}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="stg-invoice-amount">
-                                                        ${invoice.amount?.toLocaleString('es-AR')}
-                                                    </div>
-                                                    <div className="stg-invoice-actions">
-                                                        {invoice.status === 'pending' ? (
-                                                            <div className="stg-invoice-pending">
-                                                                <Clock size={14} />
-                                                                <span>En preparación</span>
-                                                            </div>
-                                                        ) : (
-                                                            <>
-                                                                <button
-                                                                    className="stg-invoice-btn view"
-                                                                    onClick={() => {
-                                                                        setSelectedInvoice(invoice);
-                                                                        setInvoiceModalOpen(true);
-                                                                    }}
-                                                                    title="Ver factura"
-                                                                    aria-label="Ver factura"
-                                                                >
-                                                                    <Eye size={16} aria-hidden="true" />
-                                                                </button>
-                                                                <a
-                                                                    href={invoice.file_url}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="stg-invoice-btn download"
-                                                                    title="Descargar factura"
-                                                                    aria-label="Descargar factura"
-                                                                >
-                                                                    <Download size={16} aria-hidden="true" />
-                                                                </a>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Invoice PDF Viewer Modal */}
-                                {invoiceModalOpen && selectedInvoice && (
-                                    <div className="modal-overlay-v2" onClick={() => setInvoiceModalOpen(false)}>
-                                        <div className="invoice-modal-content" role="dialog" aria-modal="true" aria-labelledby="invoice-modal-title" onClick={e => e.stopPropagation()}>
-                                            <div className="invoice-modal-header">
-                                                <h3 id="invoice-modal-title">Factura - {selectedInvoice.description}</h3>
-                                                <button
-                                                    className="invoice-modal-close"
-                                                    onClick={() => setInvoiceModalOpen(false)}
-                                                    aria-label="Cerrar factura"
-                                                >
-                                                    <X size={20} aria-hidden="true" />
-                                                </button>
-                                            </div>
-                                            <div className="invoice-modal-body">
-                                                <PdfReader url={selectedInvoice.file_url} />
-                                            </div>
-                                            <div className="invoice-modal-footer">
-                                                <a
-                                                    href={selectedInvoice.file_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="stg-gold-btn"
-                                                >
-                                                    <Download size={16} />
-                                                    Descargar PDF
-                                                </a>
-                                            </div>
-                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -1526,110 +1545,110 @@ export default function SettingsPage({ isDemo = false }) {
                                     </button>
                                 </div>
 
-                                    {deleteModalOpen && (
-                                        <div className="stg-modal-overlay">
-                                            <div className="stg-modal-content" role="dialog" aria-modal="true" aria-label="Eliminar cuenta definitivamente">
-                                                {deletionStep === 'initial' && (
-                                                    <>
-                                                        <h3 className="text-xl font-bold mb-4 text-red-500">¿Estás absolutamente seguro?</h3>
-                                                        <p className="text-slate-400 mb-6">
-                                                            Esta acción eliminará <strong>permanentemente</strong> tu cuenta, casos, clientes y expedientes.
-                                                            <br /><br />
-                                                            Para confirmar, enviaremos un código a tu email.
-                                                        </p>
-                                                        <div className="flex justify-end gap-3">
-                                                            <button
-                                                                className="stg-ghost-btn"
-                                                                onClick={() => setDeleteModalOpen(false)}
-                                                            >
-                                                                Cancelar
-                                                            </button>
-                                                            <button
-                                                                className="stg-danger-btn"
-                                                                onClick={async () => {
-                                                                    setSaving(true);
-                                                                    try {
-                                                                        const { data: { session } } = await supabase.auth.getSession();
-                                                                        const res = await fetch('/api/account/request-deletion-otp', {
-                                                                            method: 'POST',
-                                                                            headers: {
-                                                                                'Authorization': `Bearer ${session?.access_token}`
-                                                                            }
-                                                                        });
-                                                                        if (!res.ok) throw new Error('Error solicitando eliminación');
-                                                                        setDeletionStep('otp_sent');
-                                                                        toast.success("Código enviado a tu email");
-                                                                    } catch (e) {
-                                                                        toast.error(e.message);
-                                                                    } finally {
-                                                                        setSaving(false);
-                                                                    }
-                                                                }}
-                                                                disabled={saving}
-                                                            >
-                                                                {saving ? 'Enviando...' : 'Sí, eliminar cuenta'}
-                                                            </button>
-                                                        </div>
-                                                    </>
-                                                )}
+                                {deleteModalOpen && (
+                                    <div className="stg-modal-overlay">
+                                        <div className="stg-modal-content" role="dialog" aria-modal="true" aria-label="Eliminar cuenta definitivamente">
+                                            {deletionStep === 'initial' && (
+                                                <>
+                                                    <h3 className="text-xl font-bold mb-4 text-red-500">¿Estás absolutamente seguro?</h3>
+                                                    <p className="text-slate-400 mb-6">
+                                                        Esta acción eliminará <strong>permanentemente</strong> tu cuenta, casos, clientes y expedientes.
+                                                        <br /><br />
+                                                        Para confirmar, enviaremos un código a tu email.
+                                                    </p>
+                                                    <div className="flex justify-end gap-3">
+                                                        <button
+                                                            className="stg-ghost-btn"
+                                                            onClick={() => setDeleteModalOpen(false)}
+                                                        >
+                                                            Cancelar
+                                                        </button>
+                                                        <button
+                                                            className="stg-danger-btn"
+                                                            onClick={async () => {
+                                                                setSaving(true);
+                                                                try {
+                                                                    const { data: { session } } = await supabase.auth.getSession();
+                                                                    const res = await fetch('/api/account/request-deletion-otp', {
+                                                                        method: 'POST',
+                                                                        headers: {
+                                                                            'Authorization': `Bearer ${session?.access_token}`
+                                                                        }
+                                                                    });
+                                                                    if (!res.ok) throw new Error('Error solicitando eliminación');
+                                                                    setDeletionStep('otp_sent');
+                                                                    toast.success("Código enviado a tu email");
+                                                                } catch (e) {
+                                                                    toast.error(e.message);
+                                                                } finally {
+                                                                    setSaving(false);
+                                                                }
+                                                            }}
+                                                            disabled={saving}
+                                                        >
+                                                            {saving ? 'Enviando...' : 'Sí, eliminar cuenta'}
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
 
-                                                {deletionStep === 'otp_sent' && (
-                                                    <>
-                                                        <h3 className="text-xl font-bold mb-4">Ingresa el código de confirmación</h3>
-                                                        <p className="text-slate-400 mb-4">Revisa tu email y escribe el código de 6 dígitos.</p>
+                                            {deletionStep === 'otp_sent' && (
+                                                <>
+                                                    <h3 className="text-xl font-bold mb-4">Ingresa el código de confirmación</h3>
+                                                    <p className="text-slate-400 mb-4">Revisa tu email y escribe el código de 6 dígitos.</p>
 
-                                                        <input
-                                                            type="text"
-                                                            className="stg-dark-input text-center text-2xl tracking-widest mb-6"
-                                                            placeholder="000000"
-                                                            maxLength={6}
-                                                            value={deletionOtp}
-                                                            onChange={(e) => setDeletionOtp(e.target.value)}
-                                                        />
+                                                    <input
+                                                        type="text"
+                                                        className="stg-dark-input text-center text-2xl tracking-widest mb-6"
+                                                        placeholder="000000"
+                                                        maxLength={6}
+                                                        value={deletionOtp}
+                                                        onChange={(e) => setDeletionOtp(e.target.value)}
+                                                    />
 
-                                                        <div className="flex justify-end gap-3">
-                                                            <button
-                                                                className="stg-ghost-btn"
-                                                                onClick={() => setDeleteModalOpen(false)}
-                                                            >
-                                                                Cancelar
-                                                            </button>
-                                                            <button
-                                                                className="stg-danger-btn"
-                                                                onClick={async () => {
-                                                                    setSaving(true);
-                                                                    try {
-                                                                        const { data: { session } } = await supabase.auth.getSession();
-                                                                        const res = await fetch('/api/account/confirm-deletion', {
-                                                                            method: 'POST',
-                                                                            headers: {
-                                                                                'Content-Type': 'application/json',
-                                                                                'Authorization': `Bearer ${session?.access_token}`
-                                                                            },
-                                                                            body: JSON.stringify({ otp: deletionOtp })
-                                                                        });
+                                                    <div className="flex justify-end gap-3">
+                                                        <button
+                                                            className="stg-ghost-btn"
+                                                            onClick={() => setDeleteModalOpen(false)}
+                                                        >
+                                                            Cancelar
+                                                        </button>
+                                                        <button
+                                                            className="stg-danger-btn"
+                                                            onClick={async () => {
+                                                                setSaving(true);
+                                                                try {
+                                                                    const { data: { session } } = await supabase.auth.getSession();
+                                                                    const res = await fetch('/api/account/confirm-deletion', {
+                                                                        method: 'POST',
+                                                                        headers: {
+                                                                            'Content-Type': 'application/json',
+                                                                            'Authorization': `Bearer ${session?.access_token}`
+                                                                        },
+                                                                        body: JSON.stringify({ otp: deletionOtp })
+                                                                    });
 
-                                                                        const d = await res.json();
-                                                                        if (!res.ok) throw new Error(d.error || 'Error eliminando cuenta');
+                                                                    const d = await res.json();
+                                                                    if (!res.ok) throw new Error(d.error || 'Error eliminando cuenta');
 
-                                                                        toast.success("Cuenta eliminada correctamente");
-                                                                        window.location.href = '/'; // Force redirect
-                                                                    } catch (e) {
-                                                                        toast.error(e.message);
-                                                                    } finally {
-                                                                        setSaving(false);
-                                                                    }
-                                                                }}
-                                                                disabled={saving || deletionOtp.length < 6}
-                                                            >
-                                                                {saving ? 'Eliminando...' : 'CONFIRMAR ELIMINACIÓN'}
-                                                            </button>
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
+                                                                    toast.success("Cuenta eliminada correctamente");
+                                                                    window.location.href = '/'; // Force redirect
+                                                                } catch (e) {
+                                                                    toast.error(e.message);
+                                                                } finally {
+                                                                    setSaving(false);
+                                                                }
+                                                            }}
+                                                            disabled={saving || deletionOtp.length < 6}
+                                                        >
+                                                            {saving ? 'Eliminando...' : 'CONFIRMAR ELIMINACIÓN'}
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
-                                    )}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </main>

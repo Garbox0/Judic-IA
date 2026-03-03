@@ -378,17 +378,17 @@ export async function POST(req) {
                     await notifyBilling(resend, {
                         subject: `✅ Pago aprobado — ${opType}`,
                         rows: [
-                            { label: 'Operación',       value: opType },
-                            { label: 'Estado',          value: '✅ Aprobado' },
-                            { label: 'Abogado',         value: userName },
-                            { label: 'Email',           value: userEmail },
-                            { label: 'User ID',         value: userId },
-                            { label: 'Créditos',        value: String(purchase.credits) },
-                            { label: 'Pack ID',         value: purchase.pack_id },
-                            { label: 'Monto',           value: `ARS ${payment.transaction_amount ?? '—'}` },
-                            { label: 'MP Payment ID',   value: String(mpId) },
-                            { label: 'Purchase ID (DB)',value: purchaseId },
-                            { label: 'Fecha/hora',      value: new Date().toISOString() },
+                            { label: 'Operación', value: opType },
+                            { label: 'Estado', value: '✅ Aprobado' },
+                            { label: 'Abogado', value: userName },
+                            { label: 'Email', value: userEmail },
+                            { label: 'User ID', value: userId },
+                            { label: 'Créditos', value: String(purchase.credits) },
+                            { label: 'Pack ID', value: purchase.pack_id },
+                            { label: 'Monto', value: `ARS ${payment.transaction_amount ?? '—'}` },
+                            { label: 'MP Payment ID', value: String(mpId) },
+                            { label: 'Purchase ID (DB)', value: purchaseId },
+                            { label: 'Fecha/hora', value: new Date().toISOString() },
                         ],
                     });
                 } catch (emailErr) {
@@ -461,14 +461,14 @@ export async function POST(req) {
                     await notifyBilling(resend, {
                         subject: `❌ Pago rechazado — ${opType}`,
                         rows: [
-                            { label: 'Operación',       value: opType },
-                            { label: 'Estado',          value: `❌ ${payment.status} / ${payment.status_detail ?? '—'}` },
-                            { label: 'Abogado',         value: userName },
-                            { label: 'Email',           value: userEmail },
-                            { label: 'User ID',         value: userId },
-                            { label: 'MP Payment ID',   value: String(mpId) },
-                            { label: 'Purchase ID (DB)',value: purchaseId },
-                            { label: 'Fecha/hora',      value: new Date().toISOString() },
+                            { label: 'Operación', value: opType },
+                            { label: 'Estado', value: `❌ ${payment.status} / ${payment.status_detail ?? '—'}` },
+                            { label: 'Abogado', value: userName },
+                            { label: 'Email', value: userEmail },
+                            { label: 'User ID', value: userId },
+                            { label: 'MP Payment ID', value: String(mpId) },
+                            { label: 'Purchase ID (DB)', value: purchaseId },
+                            { label: 'Fecha/hora', value: new Date().toISOString() },
                         ],
                     });
                 } catch (emailErr) {
@@ -534,8 +534,13 @@ export async function POST(req) {
             const now = new Date();
 
             if (sub.status === 'authorized') {
-                const expiryDate = new Date(now);
-                expiryDate.setDate(expiryDate.getDate() + 30);
+                // Usar fecha real de próximo cobro de MP; fallback a +30 días.
+                const mpNextPayment = sub.next_payment_date ? new Date(sub.next_payment_date) : null;
+                const expiryDate = (mpNextPayment && !isNaN(mpNextPayment)) ? mpNextPayment : (() => {
+                    const d = new Date(now);
+                    d.setDate(d.getDate() + 30);
+                    return d;
+                })();
 
                 orgPatch.subscription_status = 'active';
                 orgPatch.subscription_started_at = now.toISOString();
@@ -590,16 +595,16 @@ export async function POST(req) {
                         await notifyBilling(resend, {
                             subject: `✅ Suscripción Enterprise activada — ${currentOrg.razon_social}`,
                             rows: [
-                                { label: 'Operación',         value: 'Nueva suscripción Enterprise' },
-                                { label: 'Estado',            value: '✅ Autorizado' },
-                                { label: 'Estudio',           value: currentOrg.razon_social },
-                                { label: 'Plan',              value: currentOrg.plan_tier },
-                                { label: 'Owner email',       value: ownerEmail },
-                                { label: 'Org ID',            value: orgId },
-                                { label: 'Monto',             value: `ARS ${amount}` },
+                                { label: 'Operación', value: 'Nueva suscripción Enterprise' },
+                                { label: 'Estado', value: '✅ Autorizado' },
+                                { label: 'Estudio', value: currentOrg.razon_social },
+                                { label: 'Plan', value: currentOrg.plan_tier },
+                                { label: 'Owner email', value: ownerEmail },
+                                { label: 'Org ID', value: orgId },
+                                { label: 'Monto', value: `ARS ${amount}` },
                                 { label: 'MP Preapproval ID', value: sub.id },
-                                { label: 'Próximo cobro',     value: sub.next_payment_date ?? '—' },
-                                { label: 'Fecha/hora',        value: now.toISOString() },
+                                { label: 'Próximo cobro', value: sub.next_payment_date ?? '—' },
+                                { label: 'Fecha/hora', value: now.toISOString() },
                             ],
                         });
                     } catch (emailErr) {
@@ -646,10 +651,14 @@ export async function POST(req) {
             const now = new Date();
             patch.subscription_started_at = now.toISOString();
 
-            // Calculate expiry (30 days from now)
-            const expiryDate = new Date(now);
-            expiryDate.setDate(expiryDate.getDate() + 30);
-            patch.subscription_expiry = expiryDate.toISOString();
+            // Usar fecha real de próximo cobro de MP; fallback a +30 días.
+            const mpNextPaymentInd = sub.next_payment_date ? new Date(sub.next_payment_date) : null;
+            const expiryDateInd = (mpNextPaymentInd && !isNaN(mpNextPaymentInd)) ? mpNextPaymentInd : (() => {
+                const d = new Date(now);
+                d.setDate(d.getDate() + 30);
+                return d;
+            })();
+            patch.subscription_expiry = expiryDateInd.toISOString();
 
             // Reset monthly quota timestamp
             patch.quota_reset_at = now.toISOString();
@@ -774,16 +783,16 @@ export async function POST(req) {
             await notifyBilling(resend, {
                 subject: `✅ Suscripción autorizada — ${isFreshUpgrade ? 'Nuevo alta' : 'Renovación mensual'}`,
                 rows: [
-                    { label: 'Operación',           value: isFreshUpgrade ? 'Nueva suscripción Profesional' : 'Renovación mensual Profesional' },
-                    { label: 'Estado',              value: '✅ Autorizado' },
-                    { label: 'Abogado',             value: userName },
-                    { label: 'Email',               value: userEmail },
-                    { label: 'User ID',             value: userId },
-                    { label: 'Monto',               value: `ARS ${amount}` },
-                    { label: 'MP Preapproval ID',   value: sub.id },
-                    { label: 'MP Status',           value: sub.status },
-                    { label: 'Próximo cobro',       value: sub.next_payment_date ?? '—' },
-                    { label: 'Fecha/hora',          value: new Date().toISOString() },
+                    { label: 'Operación', value: isFreshUpgrade ? 'Nueva suscripción Profesional' : 'Renovación mensual Profesional' },
+                    { label: 'Estado', value: '✅ Autorizado' },
+                    { label: 'Abogado', value: userName },
+                    { label: 'Email', value: userEmail },
+                    { label: 'User ID', value: userId },
+                    { label: 'Monto', value: `ARS ${amount}` },
+                    { label: 'MP Preapproval ID', value: sub.id },
+                    { label: 'MP Status', value: sub.status },
+                    { label: 'Próximo cobro', value: sub.next_payment_date ?? '—' },
+                    { label: 'Fecha/hora', value: new Date().toISOString() },
                 ],
             });
         }

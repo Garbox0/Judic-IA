@@ -64,8 +64,14 @@ export async function POST(request) {
 
         // 5. Actualizar la org en Supabase
         const now = new Date();
-        const expiryDate = new Date(now);
-        expiryDate.setDate(expiryDate.getDate() + 30);
+        // Usar la fecha real de próximo cobro que devuelve MP (next_payment_date).
+        // Fallback a +30 días si MP no la incluye aún (suscripción muy reciente).
+        const mpNextPayment = sub.next_payment_date ? new Date(sub.next_payment_date) : null;
+        const expiryDate = (mpNextPayment && !isNaN(mpNextPayment)) ? mpNextPayment : (() => {
+            const d = new Date(now);
+            d.setDate(d.getDate() + 30);
+            return d;
+        })();
 
         await supabase
             .from('organizations')
@@ -78,7 +84,7 @@ export async function POST(request) {
             })
             .eq('id', orgId);
 
-        return NextResponse.json({ ok: true, status: 'active' });
+        return NextResponse.json({ ok: true, status: 'active', subscription_expiry: expiryDate.toISOString() });
 
     } catch (err) {
         console.error('[org-subscription/sync] Error:', err.message);

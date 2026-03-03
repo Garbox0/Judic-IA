@@ -252,7 +252,7 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
           )}
 
           <div className="plan-badge">
-            {profile?.plan_tier === 'enterprise' || profile?.plan_tier === 'pending_enterprise' ? (
+            {['enterprise', 'pending_enterprise', 'enterprise_member', 'enterprise_s', 'enterprise_m', 'enterprise_l', 'enterprise_xl'].includes(profile?.plan_tier) ? (
               <span className="plan-inline"><Building2 size={14} /> ENTERPRISE</span>
             ) : profile?.plan_tier === 'professional' ? (
               <span className="plan-inline"><Crown size={14} /> PRO SUITE</span>
@@ -316,7 +316,7 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
           )}
         </nav>
 
-        {!isDemo && profile?.plan_tier !== 'professional' && (
+        {!isDemo && !['professional', 'enterprise', 'pending_enterprise', 'enterprise_member', 'enterprise_s', 'enterprise_m', 'enterprise_l', 'enterprise_xl'].includes(profile?.plan_tier) && (
           <div
             className="upgrade-card"
             onClick={() => router.push('/dashboard/settings?tab=billing')}
@@ -357,7 +357,7 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
                   await fetch('/api/auth/2fa/logout', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${session.access_token}` }
-                  }).catch(() => {});
+                  }).catch(() => { });
                 }
                 await supabase.auth.signOut();
                 router.push('/login');
