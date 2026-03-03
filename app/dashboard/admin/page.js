@@ -34,6 +34,11 @@ import {
     ShieldOff,
     Trash2,
     Building2,
+    Handshake,
+    Link2,
+    RotateCcw,
+    PlusCircle,
+    Copy,
 } from 'lucide-react';
 import {
     BarChart,
@@ -82,6 +87,13 @@ export default function AdminPage() {
     const [estudiosLoading, setEstudiosLoading] = useState(false);
     const [estudiosFilter, setEstudiosFilter] = useState('all');
     const [rejectOrgModal, setRejectOrgModal] = useState({ open: false, orgId: null, reason: '' });
+    // ── REFERIDOS ──────────────────────────────────────────────────────────────
+    const [referidos, setReferidos] = useState({ summary: [], codes: [], referrals: [] });
+    const [referidosLoading, setReferidosLoading] = useState(false);
+    const [newVendor, setNewVendor] = useState({ name: '', commission_pct: 20, recurring_months: 6 });
+    const [vendorSubmitting, setVendorSubmitting] = useState(false);
+    const [createdCode, setCreatedCode] = useState(null);
+    const [replaceModal, setReplaceModal] = useState({ open: false, codeId: null, codeName: '' });
     const router = useRouter();
 
     useEffect(() => {
@@ -174,6 +186,60 @@ export default function AdminPage() {
         fetchAuditReport();
         fetchBans();
         fetchEstudios();
+        fetchReferidos();
+    };
+
+    const fetchReferidos = async () => {
+        setReferidosLoading(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const res = await fetch('/api/admin/referrals', {
+                headers: { 'Authorization': `Bearer ${session?.access_token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setReferidos(data);
+            }
+        } catch (err) { console.error('Error fetching referrals:', err); }
+        finally { setReferidosLoading(false); }
+    };
+
+    const handleCreateVendor = async (e) => {
+        e.preventDefault();
+        if (!newVendor.name.trim()) return;
+        setVendorSubmitting(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const res = await fetch('/api/admin/referrals', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+                body: JSON.stringify(newVendor)
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            setCreatedCode(data.code);
+            setNewVendor({ name: '', commission_pct: 20, recurring_months: 6 });
+            showNotification('success', `Código ${data.code.code} generado.`);
+            fetchReferidos();
+        } catch (err) { showNotification('error', err.message); }
+        finally { setVendorSubmitting(false); }
+    };
+
+    const handleReplaceCode = async () => {
+        if (!replaceModal.codeId) return;
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const res = await fetch('/api/admin/referrals', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+                body: JSON.stringify({ old_code_id: replaceModal.codeId, vendor_name: replaceModal.codeName })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            showNotification('success', `Código reemplazado: ${data.old_code} → ${data.new_code}`);
+            setReplaceModal({ open: false, codeId: null, codeName: '' });
+            fetchReferidos();
+        } catch (err) { showNotification('error', err.message); }
     };
 
     const fetchEstudios = async () => {
@@ -719,6 +785,18 @@ export default function AdminPage() {
                             {estudios.filter(e => e.verification_status === 'pending').length > 0 && (
                                 <span className="bg-gold text-white text-[9px] font-black px-2 py-0.5 rounded-full ml-1 animate-pulse">
                                     {estudios.filter(e => e.verification_status === 'pending').length}
+                                </span>
+                            )}
+                        </button>
+                        <button
+                            onClick={() => { setActiveTab('referidos'); fetchReferidos(); }}
+                            className={`tab-trigger ${activeTab === 'referidos' ? 'active gold' : ''}`}
+                        >
+                            <Handshake size={14} />
+                            Referidos
+                            {referidos.summary.filter(v => v.pending > 0).length > 0 && (
+                                <span className="bg-gold text-black text-[9px] font-black px-2 py-0.5 rounded-full ml-1 animate-pulse">
+                                    {referidos.summary.filter(v => v.pending > 0).length}
                                 </span>
                             )}
                         </button>
@@ -1502,173 +1580,359 @@ export default function AdminPage() {
 
                             {/* TAB: ESTUDIOS */}
                             {activeTab === 'estudios' && (() => {
-                                const pending  = estudios.filter(e => e.verification_status === 'pending').length;
+                                const pending = estudios.filter(e => e.verification_status === 'pending').length;
                                 const filtered = estudiosFilter === 'all' ? estudios
                                     : estudios.filter(e => e.verification_status === estudiosFilter);
                                 return (
-                                <div className="glass-card overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                    {/* Header */}
-                                    <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 py-8 px-10 border-b border-admin-stroke">
-                                        <div className="space-y-1">
-                                            <h3 className="text-2xl font-black text-admin-primary tracking-tighter">Estudios Jurídicos</h3>
-                                            <p className="text-admin-muted text-[10px] font-black uppercase tracking-[0.3em] opacity-60">
-                                                {estudios.length} registrados · {pending} pendiente{pending !== 1 ? 's' : ''}
-                                            </p>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            {/* Filtro */}
-                                            <div className="estudio-filter-bar">
-                                                {[
-                                                    { key: 'all',      label: 'Todos' },
-                                                    { key: 'pending',  label: `Pendientes${pending > 0 ? ` (${pending})` : ''}` },
-                                                    { key: 'verified', label: 'Verificados' },
-                                                    { key: 'rejected', label: 'Rechazados' },
-                                                ].map(f => (
-                                                    <button
-                                                        key={f.key}
-                                                        onClick={() => setEstudiosFilter(f.key)}
-                                                        className={`estudio-filter-btn${estudiosFilter === f.key ? ' active' : ''}`}
-                                                    >{f.label}</button>
-                                                ))}
-                                            </div>
-                                            <button onClick={fetchEstudios} className="action-btn" title="Actualizar">
-                                                <RefreshCw size={14} className={estudiosLoading ? 'animate-spin' : ''} />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Lista */}
-                                    <div className="mx-10 mt-8 mb-10">
-                                        {estudiosLoading ? (
-                                            <div className="flex justify-center py-20">
-                                                <RefreshCw size={28} className="animate-spin text-admin-muted opacity-40" />
-                                            </div>
-                                        ) : filtered.length === 0 ? (
-                                            <div className="flex flex-col items-center justify-center py-20">
-                                                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/5">
-                                                    <Building2 size={36} className="text-admin-muted opacity-20" />
-                                                </div>
-                                                <p className="text-admin-muted text-[10px] font-black uppercase tracking-widest opacity-60">
-                                                    {estudiosFilter === 'all' ? 'Sin estudios registrados' : 'Sin resultados para este filtro'}
+                                    <div className="glass-card overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                        {/* Header */}
+                                        <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 py-8 px-10 border-b border-admin-stroke">
+                                            <div className="space-y-1">
+                                                <h3 className="text-2xl font-black text-admin-primary tracking-tighter">Estudios Jurídicos</h3>
+                                                <p className="text-admin-muted text-[10px] font-black uppercase tracking-[0.3em] opacity-60">
+                                                    {estudios.length} registrados · {pending} pendiente{pending !== 1 ? 's' : ''}
                                                 </p>
                                             </div>
-                                        ) : (
-                                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                                            {filtered.map(estudio => {
-                                                const isPending  = estudio.verification_status === 'pending';
-                                                const isVerified = estudio.verification_status === 'verified';
-                                                const isRejected = estudio.verification_status === 'rejected';
-                                                const badgeClass = isVerified ? 'text-emerald bg-emerald/10 border-emerald/20'
-                                                    : isRejected ? 'text-rose bg-rose/10 border-rose/20'
-                                                    : 'text-gold bg-gold/10 border-gold/20 animate-pulse';
-                                                const badgeLabel = isVerified ? 'Verificado' : isRejected ? 'Rechazado' : 'Pendiente';
+                                            <div className="flex items-center gap-3">
+                                                {/* Filtro */}
+                                                <div className="estudio-filter-bar">
+                                                    {[
+                                                        { key: 'all', label: 'Todos' },
+                                                        { key: 'pending', label: `Pendientes${pending > 0 ? ` (${pending})` : ''}` },
+                                                        { key: 'verified', label: 'Verificados' },
+                                                        { key: 'rejected', label: 'Rechazados' },
+                                                    ].map(f => (
+                                                        <button
+                                                            key={f.key}
+                                                            onClick={() => setEstudiosFilter(f.key)}
+                                                            className={`estudio-filter-btn${estudiosFilter === f.key ? ' active' : ''}`}
+                                                        >{f.label}</button>
+                                                    ))}
+                                                </div>
+                                                <button onClick={fetchEstudios} className="action-btn" title="Actualizar">
+                                                    <RefreshCw size={14} className={estudiosLoading ? 'animate-spin' : ''} />
+                                                </button>
+                                            </div>
+                                        </div>
 
-                                                return (
-                                                    <div key={estudio.id} className={`table-row rounded-2xl flex flex-col gap-0 overflow-hidden border ${isPending ? 'border-gold/20' : isVerified ? 'border-emerald/15' : 'border-rose/15'}`}>
-                                                        {/* Card header */}
-                                                        <div className="flex items-start justify-between gap-3 p-5 pb-4">
-                                                            <div className="flex items-start gap-3 min-w-0 flex-1">
-                                                                <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0 mt-0.5">
-                                                                    <Building2 size={17} className="text-gold" />
-                                                                </div>
-                                                                <div className="min-w-0 flex-1">
-                                                                    <p className="font-black text-admin-primary text-sm tracking-tight leading-tight truncate">
-                                                                        {estudio.razon_social || estudio.name}
+                                        {/* Lista */}
+                                        <div className="mx-10 mt-8 mb-10">
+                                            {estudiosLoading ? (
+                                                <div className="flex justify-center py-20">
+                                                    <RefreshCw size={28} className="animate-spin text-admin-muted opacity-40" />
+                                                </div>
+                                            ) : filtered.length === 0 ? (
+                                                <div className="flex flex-col items-center justify-center py-20">
+                                                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/5">
+                                                        <Building2 size={36} className="text-admin-muted opacity-20" />
+                                                    </div>
+                                                    <p className="text-admin-muted text-[10px] font-black uppercase tracking-widest opacity-60">
+                                                        {estudiosFilter === 'all' ? 'Sin estudios registrados' : 'Sin resultados para este filtro'}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                                                    {filtered.map(estudio => {
+                                                        const isPending = estudio.verification_status === 'pending';
+                                                        const isVerified = estudio.verification_status === 'verified';
+                                                        const isRejected = estudio.verification_status === 'rejected';
+                                                        const badgeClass = isVerified ? 'text-emerald bg-emerald/10 border-emerald/20'
+                                                            : isRejected ? 'text-rose bg-rose/10 border-rose/20'
+                                                                : 'text-gold bg-gold/10 border-gold/20 animate-pulse';
+                                                        const badgeLabel = isVerified ? 'Verificado' : isRejected ? 'Rechazado' : 'Pendiente';
+
+                                                        return (
+                                                            <div key={estudio.id} className={`table-row rounded-2xl flex flex-col gap-0 overflow-hidden border ${isPending ? 'border-gold/20' : isVerified ? 'border-emerald/15' : 'border-rose/15'}`}>
+                                                                {/* Card header */}
+                                                                <div className="flex items-start justify-between gap-3 p-5 pb-4">
+                                                                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                                                                        <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0 mt-0.5">
+                                                                            <Building2 size={17} className="text-gold" />
+                                                                        </div>
+                                                                        <div className="min-w-0 flex-1">
+                                                                            <p className="font-black text-admin-primary text-sm tracking-tight leading-tight truncate">
+                                                                                {estudio.razon_social || estudio.name}
+                                                                            </p>
+                                                                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${badgeClass}`}>{badgeLabel}</span>
+                                                                                <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-admin-stroke text-admin-muted">
+                                                                                    {estudio.plan_tier?.replace(/_/g, ' ').toUpperCase()}
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <p className="text-[9px] text-admin-muted opacity-50 font-mono shrink-0 mt-1">
+                                                                        {new Date(estudio.created_at).toLocaleDateString('es-AR')}
                                                                     </p>
-                                                                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${badgeClass}`}>{badgeLabel}</span>
-                                                                        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-admin-stroke text-admin-muted">
-                                                                            {estudio.plan_tier?.replace(/_/g, ' ').toUpperCase()}
-                                                                        </span>
-                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                            <p className="text-[9px] text-admin-muted opacity-50 font-mono shrink-0 mt-1">
-                                                                {new Date(estudio.created_at).toLocaleDateString('es-AR')}
-                                                            </p>
-                                                        </div>
 
-                                                        {/* Datos del estudio */}
-                                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 px-5 pb-4 text-[11px] text-admin-muted border-b border-admin-stroke">
-                                                            <span><strong className="text-admin-primary/60">CUIT</strong> {estudio.cuit || '-'}</span>
-                                                            <span><strong className="text-admin-primary/60">Tel</strong> {estudio.phone || '-'}</span>
-                                                            <span className="col-span-2"><strong className="text-admin-primary/60">Domicilio</strong> {estudio.domicilio || '-'}</span>
-                                                        </div>
-
-                                                        {/* Titular */}
-                                                        {estudio.owner && (
-                                                            <div className="px-5 py-3 border-b border-admin-stroke">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="w-7 h-7 rounded-lg bg-admin-surface border border-admin-stroke flex items-center justify-center text-[9px] font-black text-admin-muted shrink-0">
-                                                                        {(estudio.owner.full_name || '?').slice(0,2).toUpperCase()}
-                                                                    </div>
-                                                                    <div className="min-w-0 flex-1">
-                                                                        <p className="text-[11px] font-bold text-admin-primary truncate">{estudio.owner.full_name}</p>
-                                                                        <p className="text-[10px] text-admin-muted font-mono truncate">{estudio.owner.email}</p>
-                                                                    </div>
-                                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border shrink-0 ${
-                                                                        estudio.owner.verification_status === 'verified' ? 'text-emerald bg-emerald/10 border-emerald/20' : 'text-gold bg-gold/10 border-gold/20'
-                                                                    }`}>
-                                                                        {estudio.owner.verification_status === 'verified' ? 'Matrícula OK' : 'Mat. pendiente'}
-                                                                    </span>
+                                                                {/* Datos del estudio */}
+                                                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 px-5 pb-4 text-[11px] text-admin-muted border-b border-admin-stroke">
+                                                                    <span><strong className="text-admin-primary/60">CUIT</strong> {estudio.cuit || '-'}</span>
+                                                                    <span><strong className="text-admin-primary/60">Tel</strong> {estudio.phone || '-'}</span>
+                                                                    <span className="col-span-2"><strong className="text-admin-primary/60">Domicilio</strong> {estudio.domicilio || '-'}</span>
                                                                 </div>
-                                                                {Array.isArray(estudio.owner.matriculas) && estudio.owner.matriculas.length > 0 && (
-                                                                    <div className="mt-2 flex flex-wrap gap-1.5">
-                                                                        {estudio.owner.matriculas.map((m, i) => (
-                                                                            <span key={i} className="text-[9px] font-mono bg-admin-surface border border-admin-stroke rounded-lg px-2 py-0.5 text-admin-muted">
-                                                                                {m.colegio} · T°{m.tomo} F°{m.folio}
+
+                                                                {/* Titular */}
+                                                                {estudio.owner && (
+                                                                    <div className="px-5 py-3 border-b border-admin-stroke">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div className="w-7 h-7 rounded-lg bg-admin-surface border border-admin-stroke flex items-center justify-center text-[9px] font-black text-admin-muted shrink-0">
+                                                                                {(estudio.owner.full_name || '?').slice(0, 2).toUpperCase()}
+                                                                            </div>
+                                                                            <div className="min-w-0 flex-1">
+                                                                                <p className="text-[11px] font-bold text-admin-primary truncate">{estudio.owner.full_name}</p>
+                                                                                <p className="text-[10px] text-admin-muted font-mono truncate">{estudio.owner.email}</p>
+                                                                            </div>
+                                                                            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border shrink-0 ${estudio.owner.verification_status === 'verified' ? 'text-emerald bg-emerald/10 border-emerald/20' : 'text-gold bg-gold/10 border-gold/20'
+                                                                                }`}>
+                                                                                {estudio.owner.verification_status === 'verified' ? 'Matrícula OK' : 'Mat. pendiente'}
                                                                             </span>
-                                                                        ))}
+                                                                        </div>
+                                                                        {Array.isArray(estudio.owner.matriculas) && estudio.owner.matriculas.length > 0 && (
+                                                                            <div className="mt-2 flex flex-wrap gap-1.5">
+                                                                                {estudio.owner.matriculas.map((m, i) => (
+                                                                                    <span key={i} className="text-[9px] font-mono bg-admin-surface border border-admin-stroke rounded-lg px-2 py-0.5 text-admin-muted">
+                                                                                        {m.colegio} · T°{m.tomo} F°{m.folio}
+                                                                                    </span>
+                                                                                ))}
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 )}
-                                                            </div>
-                                                        )}
 
-                                                        {isRejected && estudio.rejection_reason && (
-                                                            <div className="px-5 py-3 text-[11px] text-rose border-b border-admin-stroke">
-                                                                <strong>Motivo de rechazo:</strong> {estudio.rejection_reason}
-                                                            </div>
-                                                        )}
+                                                                {isRejected && estudio.rejection_reason && (
+                                                                    <div className="px-5 py-3 text-[11px] text-rose border-b border-admin-stroke">
+                                                                        <strong>Motivo de rechazo:</strong> {estudio.rejection_reason}
+                                                                    </div>
+                                                                )}
 
-                                                        {/* Acciones */}
-                                                        <div className="flex items-center justify-between gap-3 px-5 py-3">
-                                                            <p className="text-[9px] text-admin-muted opacity-40 font-mono truncate">ID: {estudio.id}</p>
-                                                            {isPending && (
-                                                                <div className="flex gap-2 shrink-0">
-                                                                    <button
-                                                                        onClick={() => handleEstudioAction(estudio.id, 'verify')}
-                                                                        className="premium-btn emerald text-xs px-3 py-1.5 flex items-center gap-1.5"
-                                                                        aria-label={`Verificar ${estudio.razon_social}`}
-                                                                    >
-                                                                        <CheckCircle2 size={12} /> Verificar
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => setRejectOrgModal({ open: true, orgId: estudio.id, reason: '' })}
-                                                                        className="premium-btn rose text-xs px-3 py-1.5 flex items-center gap-1.5"
-                                                                        aria-label={`Rechazar ${estudio.razon_social}`}
-                                                                    >
-                                                                        <XCircle size={12} /> Rechazar
-                                                                    </button>
+                                                                {/* Acciones */}
+                                                                <div className="flex items-center justify-between gap-3 px-5 py-3">
+                                                                    <p className="text-[9px] text-admin-muted opacity-40 font-mono truncate">ID: {estudio.id}</p>
+                                                                    {isPending && (
+                                                                        <div className="flex gap-2 shrink-0">
+                                                                            <button
+                                                                                onClick={() => handleEstudioAction(estudio.id, 'verify')}
+                                                                                className="premium-btn emerald text-xs px-3 py-1.5 flex items-center gap-1.5"
+                                                                                aria-label={`Verificar ${estudio.razon_social}`}
+                                                                            >
+                                                                                <CheckCircle2 size={12} /> Verificar
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => setRejectOrgModal({ open: true, orgId: estudio.id, reason: '' })}
+                                                                                className="premium-btn rose text-xs px-3 py-1.5 flex items-center gap-1.5"
+                                                                                aria-label={`Rechazar ${estudio.razon_social}`}
+                                                                            >
+                                                                                <XCircle size={12} /> Rechazar
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                    {isVerified && (
+                                                                        <span className="text-[10px] font-black text-emerald flex items-center gap-1">
+                                                                            <CheckCircle2 size={12} /> Activo
+                                                                        </span>
+                                                                    )}
                                                                 </div>
-                                                            )}
-                                                            {isVerified && (
-                                                                <span className="text-[10px] font-black text-emerald flex items-center gap-1">
-                                                                    <CheckCircle2 size={12} /> Activo
-                                                                </span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+
+                            {/* TAB: REFERIDOS */}
+                            {activeTab === 'referidos' && (
+                                <div className="glass-card overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 py-8 px-10 border-b border-admin-stroke">
+                                        <div className="space-y-1">
+                                            <h3 className="text-2xl font-black text-admin-primary tracking-tighter">Vendedores & Referidos</h3>
+                                            <p className="text-admin-muted text-[10px] font-black uppercase tracking-[0.3em] opacity-60">
+                                                {referidos.codes.length} vendedores · {referidos.referrals.filter(r => r.status === 'converted').length} conversiones
+                                            </p>
+                                        </div>
+                                        <button onClick={fetchReferidos} className="action-btn" title="Actualizar">
+                                            <RefreshCw size={14} className={referidosLoading ? 'animate-spin' : ''} />
+                                        </button>
+                                    </div>
+
+                                    <div className="mx-10 mt-8 mb-10 space-y-8">
+                                        {/* Formulario alta de vendedor */}
+                                        <div className="bg-white/3 border border-admin-stroke rounded-2xl p-6">
+                                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-admin-muted mb-4 flex items-center gap-2">
+                                                <PlusCircle size={14} className="text-gold" /> Nuevo Vendedor
+                                            </h4>
+                                            <form onSubmit={handleCreateVendor} className="flex flex-wrap gap-3 items-end">
+                                                <div className="flex flex-col gap-1.5 flex-1 min-w-[180px]">
+                                                    <label className="text-[9px] font-black uppercase tracking-widest text-admin-muted">Nombre completo</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Ej: Gabriel Rodríguez"
+                                                        value={newVendor.name}
+                                                        onChange={e => setNewVendor(p => ({ ...p, name: e.target.value }))}
+                                                        className="bg-admin-surface border border-admin-stroke rounded-xl py-3 px-4 text-sm text-admin-primary focus:outline-none focus:border-gold/40 font-bold placeholder:opacity-30"
+                                                        required
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col gap-1.5 w-24">
+                                                    <label className="text-[9px] font-black uppercase tracking-widest text-admin-muted">Comisión %</label>
+                                                    <input
+                                                        type="number" min="1" max="50" step="0.5"
+                                                        value={newVendor.commission_pct}
+                                                        onChange={e => setNewVendor(p => ({ ...p, commission_pct: parseFloat(e.target.value) }))}
+                                                        className="bg-admin-surface border border-admin-stroke rounded-xl py-3 px-4 text-sm text-admin-primary focus:outline-none focus:border-gold/40 font-bold"
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col gap-1.5 w-28">
+                                                    <label className="text-[9px] font-black uppercase tracking-widest text-admin-muted">Meses ventana</label>
+                                                    <input
+                                                        type="number" min="1" max="24"
+                                                        value={newVendor.recurring_months}
+                                                        onChange={e => setNewVendor(p => ({ ...p, recurring_months: parseInt(e.target.value) }))}
+                                                        className="bg-admin-surface border border-admin-stroke rounded-xl py-3 px-4 text-sm text-admin-primary focus:outline-none focus:border-gold/40 font-bold"
+                                                    />
+                                                </div>
+                                                <button type="submit" disabled={vendorSubmitting || !newVendor.name.trim()}
+                                                    className="premium-btn emerald py-3 px-6 disabled:opacity-50">
+                                                    <PlusCircle size={14} /> {vendorSubmitting ? 'Generando...' : 'Generar Código'}
+                                                </button>
+                                            </form>
+                                            {/* Código recién creado */}
+                                            {createdCode && (
+                                                <div className="mt-4 flex items-center gap-3 bg-emerald/10 border border-emerald/20 rounded-xl px-4 py-3">
+                                                    <CheckCircle2 size={16} className="text-emerald flex-shrink-0" />
+                                                    <div>
+                                                        <p className="text-[9px] font-black uppercase tracking-widest text-admin-muted">Código generado para {createdCode.name}</p>
+                                                        <p className="text-lg font-black text-admin-primary tracking-widest">{createdCode.code}</p>
+                                                        <p className="text-[10px] text-admin-secondary mt-0.5">judic-ia.com/ref/{createdCode.code}</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => { navigator.clipboard.writeText(`https://judic-ia.com/ref/${createdCode.code}`); showNotification('success', 'Link copiado'); }}
+                                                        className="ml-auto action-btn"
+                                                        title="Copiar link"
+                                                    >
+                                                        <Copy size={14} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Tabla de vendedores */}
+                                        {referidosLoading ? (
+                                            <div className="flex justify-center py-12">
+                                                <RefreshCw size={28} className="animate-spin text-admin-muted opacity-40" />
+                                            </div>
+                                        ) : referidos.codes.length === 0 ? (
+                                            <div className="flex flex-col items-center justify-center py-16 opacity-40">
+                                                <Handshake size={40} className="text-admin-muted mb-4" />
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-admin-muted">Sin vendedores registrados</p>
+                                            </div>
+                                        ) : referidos.codes.map(vendor => {
+                                            const vendorReferrals = referidos.referrals.filter(r => r.code_id === vendor.id);
+                                            const summaryRow = referidos.summary.find(s => s.code === vendor.code) || {};
+                                            return (
+                                                <div key={vendor.id} className={`border rounded-2xl overflow-hidden ${vendor.is_active ? 'border-admin-stroke' : 'border-white/5 opacity-50'}`}>
+                                                    {/* Cabecera del vendedor */}
+                                                    <div className="flex items-center justify-between px-6 py-4 bg-white/2">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center text-gold font-black">
+                                                                {vendor.name[0]}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-black text-admin-primary text-sm">{vendor.name}</p>
+                                                                <div className="flex items-center gap-2 mt-0.5">
+                                                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full tracking-wider ${vendor.is_active ? 'bg-emerald/10 text-emerald border border-emerald/20' : 'bg-white/5 text-admin-muted border border-white/10'}`}>
+                                                                        {vendor.is_active ? 'ACTIVO' : 'BLOQUEADO'}
+                                                                    </span>
+                                                                    <span className="text-[9px] font-black text-gold tracking-widest">{vendor.code}</span>
+                                                                    <span className="text-[9px] text-admin-muted">{vendor.commission_pct}% · {vendor.recurring_months}m ventana</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-6">
+                                                            <div className="text-right">
+                                                                <p className="text-xs font-black text-admin-primary">ARS {parseFloat(summaryRow.total_commission_ars || 0).toLocaleString('es-AR')}</p>
+                                                                <p className="text-[9px] text-admin-muted">{summaryRow.converted || 0} conversiones</p>
+                                                            </div>
+                                                            {vendor.is_active && (
+                                                                <button
+                                                                    onClick={() => setReplaceModal({ open: true, codeId: vendor.id, codeName: vendor.name })}
+                                                                    className="action-btn"
+                                                                    title="Reemplazar código (bloquea el actual)"
+                                                                >
+                                                                    <RotateCcw size={14} />
+                                                                </button>
                                                             )}
                                                         </div>
                                                     </div>
-                                                );
-                                            })}
-                                            </div>
-                                        )}
+
+                                                    {/* Referrals del vendedor */}
+                                                    {vendorReferrals.length > 0 && (
+                                                        <div className="divide-y divide-white/5 px-6">
+                                                            {vendorReferrals.map(r => {
+                                                                const clientName = r.profiles?.full_name || r.organizations?.razon_social || r.organizations?.name || 'Desconocido';
+                                                                const monthsLeft = vendor.recurring_months - (r.conversion_count || 0);
+                                                                const effectiveMax = r.type === 'estudio' ? Math.min(vendor.recurring_months, 3) : Math.min(vendor.recurring_months, 1);
+                                                                const mesesLeft = Math.max(0, effectiveMax - (r.conversion_count || 0));
+                                                                return (
+                                                                    <div key={r.id} className="flex items-center justify-between py-3 text-sm">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${r.status === 'converted' ? 'bg-emerald/10 text-emerald border-emerald/20'
+                                                                                : 'bg-gold/10 text-gold border-gold/20'
+                                                                                }`}>{r.status.toUpperCase()}</span>
+                                                                            <span className="text-admin-primary font-bold">{clientName}</span>
+                                                                            <span className="text-[9px] text-admin-muted capitalize">{r.type}</span>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-4">
+                                                                            <span className="text-[9px] text-admin-muted">
+                                                                                {r.conversion_count || 0}/{effectiveMax} meses · <span className={mesesLeft > 0 ? 'text-gold' : 'text-admin-muted'}>{mesesLeft > 0 ? `${mesesLeft} restante${mesesLeft !== 1 ? 's' : ''}` : 'Ventana agotada'}</span>
+                                                                            </span>
+                                                                            <span className="text-xs font-black text-admin-primary">ARS {parseFloat(r.commission_amount || 0).toLocaleString('es-AR')}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
-                                );
-                            })()}
+                            )}
                         </div>
                     </div>
                 </div>
+
+                {/* --- MODAL: REEMPLAZAR CÓDIGO DE VENDEDOR --- */}
+                {replaceModal.open && (
+                    <div className="modal-overlay" onClick={() => setReplaceModal({ open: false, codeId: null, codeName: '' })}>
+                        <div className="premium-modal" onClick={e => e.stopPropagation()}>
+                            <div className="modal-header-strip" />
+                            <div className="p-10 space-y-6">
+                                <div className="flex items-center gap-4 text-gold">
+                                    <RotateCcw size={28} />
+                                    <h3 className="text-xl font-black tracking-tighter">Reemplazar Código</h3>
+                                </div>
+                                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-5 py-4">
+                                    <p className="text-sm text-amber-300 font-bold">⚠️ El código anterior quedará <strong>bloqueado permanentemente</strong>. Todo el progreso y comisiones del vendedor se preservan automáticamente en el nuevo código.</p>
+                                </div>
+                                <p className="text-admin-secondary text-sm">Se generará un nuevo código para <strong className="text-admin-primary">{replaceModal.codeName}</strong>. Todos los clientes referidos con el código anterior seguirán asignados a este vendedor.</p>
+                                <div className="flex gap-3">
+                                    <button onClick={() => setReplaceModal({ open: false, codeId: null, codeName: '' })} className="premium-btn flex-1">
+                                        Cancelar
+                                    </button>
+                                    <button onClick={handleReplaceCode} className="premium-btn emerald flex-1">
+                                        <RotateCcw size={14} /> Confirmar Reemplazo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* --- MODAL: RECHAZAR ESTUDIO --- */}
                 {rejectOrgModal.open && (
