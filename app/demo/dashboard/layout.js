@@ -20,7 +20,8 @@ import {
     Calculator,
     Sun,
     Moon,
-    Globe
+    Globe,
+    Building2
 } from 'lucide-react';
 import SafeChatWidget from '../../components/SafeChatWidget'; // Corrected path
 
@@ -70,6 +71,11 @@ export default function DemoDashboardLayout({ children }) {
     const getLink = (path) => {
         return path.replace('/dashboard', basePath);
     };
+
+    // Estudio routes have their own layout — skip individual dashboard wrapper
+    if (pathname.startsWith('/demo/dashboard/estudio')) {
+        return <>{children}</>;
+    }
 
     return (
         <div className={`dashboard-layout demo-mode ${theme === 'light' ? 'light-theme' : ''}`}>
@@ -152,6 +158,10 @@ export default function DemoDashboardLayout({ children }) {
                     <Link href={`${basePath}/settings`} className={`nav-item ${pathname.includes('/settings') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
                         <Settings size={18} className="nav-icon" />
                         <span>Ajustes</span>
+                    </Link>
+                    <Link href={`${basePath}/estudio`} className={`nav-item ${pathname.includes('/estudio') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+                        <Building2 size={18} className="nav-icon" />
+                        <span>Panel Estudio</span>
                     </Link>
                 </nav>
 
