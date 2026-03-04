@@ -41,16 +41,16 @@ import './pjn-search.css';
 // PJN — 28 jurisdicciones del SCW Federal
 // ──────────────────────────────────────────────────────────────────────────
 const PJN_JURISDICTIONS = [
-  { value: '0',  label: 'CSJ - Corte Suprema de Justicia de la Nación' },
-  { value: '1',  label: 'CIV - Cámara Nacional Civil' },
-  { value: '2',  label: 'CAF - Cámara Contencioso Administrativo Federal' },
-  { value: '3',  label: 'CCF - Cámara Civil y Comercial Federal' },
-  { value: '4',  label: 'CNE - Cámara Nacional Electoral' },
-  { value: '5',  label: 'CSS - Cámara Federal de Seguridad Social' },
-  { value: '6',  label: 'CPE - Cámara Nacional Penal Económico' },
-  { value: '7',  label: 'CNT - Cámara Nacional del Trabajo' },
-  { value: '8',  label: 'CFP - Cámara Criminal y Correccional Federal' },
-  { value: '9',  label: 'CCC - Cámara Nacional Criminal y Correccional' },
+  { value: '0', label: 'CSJ - Corte Suprema de Justicia de la Nación' },
+  { value: '1', label: 'CIV - Cámara Nacional Civil' },
+  { value: '2', label: 'CAF - Cámara Contencioso Administrativo Federal' },
+  { value: '3', label: 'CCF - Cámara Civil y Comercial Federal' },
+  { value: '4', label: 'CNE - Cámara Nacional Electoral' },
+  { value: '5', label: 'CSS - Cámara Federal de Seguridad Social' },
+  { value: '6', label: 'CPE - Cámara Nacional Penal Económico' },
+  { value: '7', label: 'CNT - Cámara Nacional del Trabajo' },
+  { value: '8', label: 'CFP - Cámara Criminal y Correccional Federal' },
+  { value: '9', label: 'CCC - Cámara Nacional Criminal y Correccional' },
   { value: '10', label: 'COM - Cámara Nacional Comercial' },
   { value: '11', label: 'CPF - Cámara Federal de Casación Penal' },
   { value: '12', label: 'CPN - Cámara Nacional Casación Penal' },
@@ -120,28 +120,28 @@ const PARTE_TIPOS_OPTIONS = [
 // ──────────────────────────────────────────────────────────────────────────
 const SCBA_JURISDICTIONS = [
   { id: 'SCJ', label: 'Suprema Corte SCBA' },
-  { id: 'LP',  label: 'La Plata' },
-  { id: 'LZ',  label: 'Lomas de Zamora' },
-  { id: 'SI',  label: 'San Isidro' },
-  { id: 'SM',  label: 'San Martín' },
-  { id: 'LM',  label: 'La Matanza' },
-  { id: 'QU',  label: 'Quilmes' },
-  { id: 'MO',  label: 'Morón' },
-  { id: 'AL',  label: 'Avellaneda-Lanús' },
-  { id: 'MR',  label: 'Moreno-Gral. Rodríguez' },
-  { id: 'MP',  label: 'Mar del Plata' },
-  { id: 'BB',  label: 'Bahía Blanca' },
-  { id: 'ME',  label: 'Mercedes' },
-  { id: 'AZ',  label: 'Azul' },
-  { id: 'DO',  label: 'Dolores' },
-  { id: 'JU',  label: 'Junín' },
-  { id: 'NE',  label: 'Necochea' },
-  { id: 'OL',  label: 'Olavarría' },
-  { id: 'PE',  label: 'Pergamino' },
-  { id: 'SN',  label: 'San Nicolás' },
-  { id: 'TA',  label: 'Tandil' },
-  { id: 'TL',  label: 'Trenque Lauquen' },
-  { id: 'ZC',  label: 'Zárate/Campana' },
+  { id: 'LP', label: 'La Plata' },
+  { id: 'LZ', label: 'Lomas de Zamora' },
+  { id: 'SI', label: 'San Isidro' },
+  { id: 'SM', label: 'San Martín' },
+  { id: 'LM', label: 'La Matanza' },
+  { id: 'QU', label: 'Quilmes' },
+  { id: 'MO', label: 'Morón' },
+  { id: 'AL', label: 'Avellaneda-Lanús' },
+  { id: 'MR', label: 'Moreno-Gral. Rodríguez' },
+  { id: 'MP', label: 'Mar del Plata' },
+  { id: 'BB', label: 'Bahía Blanca' },
+  { id: 'ME', label: 'Mercedes' },
+  { id: 'AZ', label: 'Azul' },
+  { id: 'DO', label: 'Dolores' },
+  { id: 'JU', label: 'Junín' },
+  { id: 'NE', label: 'Necochea' },
+  { id: 'OL', label: 'Olavarría' },
+  { id: 'PE', label: 'Pergamino' },
+  { id: 'SN', label: 'San Nicolás' },
+  { id: 'TA', label: 'Tandil' },
+  { id: 'TL', label: 'Trenque Lauquen' },
+  { id: 'ZC', label: 'Zárate/Campana' },
   { id: 'TCP', label: 'Tribunal de Casación Penal' },
 ];
 
@@ -188,7 +188,7 @@ function parseExpediente(expedienteRaw = '') {
   return {
     prefix: (match[1] || '').toUpperCase(),
     numero: match[2],
-    anio:   match[3],
+    anio: match[3],
   };
 }
 
@@ -216,11 +216,11 @@ export default function AntecedentesPanel() {
   const [scbaUseCustom, setScbaUseCustom] = useState(false);
 
   // PJN expandable detail rows
-  const [expandedRowKey,  setExpandedRowKey]  = useState('');
+  const [expandedRowKey, setExpandedRowKey] = useState('');
   const [detailLoadingKey, setDetailLoadingKey] = useState('');
   const [detailErrorByKey, setDetailErrorByKey] = useState({});
-  const [detailByKey,      setDetailByKey]      = useState({});
-  const [detailPageByKey,  setDetailPageByKey]  = useState({});
+  const [detailByKey, setDetailByKey] = useState({});
+  const [detailPageByKey, setDetailPageByKey] = useState({});
 
   // Créditos de antecedentes
   const [antecedentesCredits, setAntecedentesCredits] = useState(null);
@@ -235,6 +235,8 @@ export default function AntecedentesPanel() {
   const [importedCaseIdByKey, setImportedCaseIdByKey] = useState({});
 
   const abortRef = useRef(false);
+  const RESULTS_PAGE_SIZE = 10;
+  const [resultsPage, setResultsPage] = useState(1);
 
   // Cargar balance de créditos al montar (individual o pool del estudio)
   useEffect(() => {
@@ -267,10 +269,10 @@ export default function AntecedentesPanel() {
     loadCredits();
   }, []);
 
-  const activePjnPreset   = PJN_PRESETS.find(p => p.id === pjnPreset) || PJN_PRESETS[0];
-  const pjnJursToSearch   = pjnUseCustom ? pjnCustomJurs : activePjnPreset.jurisdictions;
-  const activeScbaPreset  = SCBA_PRESETS.find(p => p.id === scbaPreset) || SCBA_PRESETS[0];
-  const scbaJursToSearch  = scbaUseCustom ? scbaCustomJurs : activeScbaPreset.jurisdictions;
+  const activePjnPreset = PJN_PRESETS.find(p => p.id === pjnPreset) || PJN_PRESETS[0];
+  const pjnJursToSearch = pjnUseCustom ? pjnCustomJurs : activePjnPreset.jurisdictions;
+  const activeScbaPreset = SCBA_PRESETS.find(p => p.id === scbaPreset) || SCBA_PRESETS[0];
+  const scbaJursToSearch = scbaUseCustom ? scbaCustomJurs : activeScbaPreset.jurisdictions;
   const jurisdictionsToSearch = source === 'pjn' ? pjnJursToSearch : scbaJursToSearch;
 
   const resetDetailState = () => {
@@ -433,6 +435,7 @@ export default function AntecedentesPanel() {
     setJurisdictionResults([]);
     setProgress({ current: 0, total: jurisdictionsToSearch.length, label: '' });
     resetDetailState();
+    setResultsPage(1);
     abortRef.current = false;
 
     try {
@@ -445,8 +448,8 @@ export default function AntecedentesPanel() {
         if (abortRef.current) break;
 
         if (source === 'pjn') {
-          const jurId    = jurisdictionsToSearch[i];
-          const jurObj   = PJN_JURISDICTIONS.find(j => j.value === jurId);
+          const jurId = jurisdictionsToSearch[i];
+          const jurObj = PJN_JURISDICTIONS.find(j => j.value === jurId);
           const jurLabel = jurObj?.label || `Jur. ${jurId}`;
           const jurShort = jurLabel.split(' - ')[0];
           setProgress({ current: i + 1, total: jurisdictionsToSearch.length, label: jurShort });
@@ -466,8 +469,8 @@ export default function AntecedentesPanel() {
             }
           } catch { accJurResults.push({ id: jurId, label: jurShort, count: 0, error: 'Error de conexión' }); }
         } else {
-          const jurId    = jurisdictionsToSearch[i];
-          const jurObj   = SCBA_JURISDICTIONS.find(j => j.id === jurId);
+          const jurId = jurisdictionsToSearch[i];
+          const jurObj = SCBA_JURISDICTIONS.find(j => j.id === jurId);
           const jurLabel = jurObj?.label || jurId;
           setProgress({ current: i + 1, total: jurisdictionsToSearch.length, label: jurLabel });
           try {
@@ -496,9 +499,9 @@ export default function AntecedentesPanel() {
     }
   }, [nombre, jurisdictionsToSearch, parteTipo, source]);
 
-  const totalFound      = results.length;
-  const jurWithResults  = jurisdictionResults.filter(j => j.count > 0);
-  const jurWithErrors   = jurisdictionResults.filter(j => j.error);
+  const totalFound = results.length;
+  const jurWithResults = jurisdictionResults.filter(j => j.count > 0);
+  const jurWithErrors = jurisdictionResults.filter(j => j.error);
 
   return (
     <div className="pjn-search-container">
@@ -541,7 +544,7 @@ export default function AntecedentesPanel() {
               )
             ) : (
               [
-                { id: 'pack_5',  label: '5 créditos', price: '$25.000' },
+                { id: 'pack_5', label: '5 créditos', price: '$25.000' },
                 { id: 'pack_15', label: '15 créditos', price: '$60.000' },
                 { id: 'pack_30', label: '30 créditos', price: '$99.000' },
               ].map(p => (
@@ -851,16 +854,16 @@ export default function AntecedentesPanel() {
                   </tr>
                 </thead>
                 <tbody>
-                  {results.map((row, i) => {
-                    const rowKey = `pjn-${row.expediente}-${i}`;
-                    const expanded      = expandedRowKey === rowKey;
-                    const detail        = detailByKey[rowKey];
-                    const detailError   = detailErrorByKey[rowKey];
+                  {results.slice((resultsPage - 1) * RESULTS_PAGE_SIZE, resultsPage * RESULTS_PAGE_SIZE).map((row, i) => {
+                    const rowKey = `pjn-${row.expediente}-${(resultsPage - 1) * RESULTS_PAGE_SIZE + i}`;
+                    const expanded = expandedRowKey === rowKey;
+                    const detail = detailByKey[rowKey];
+                    const detailError = detailErrorByKey[rowKey];
                     const detailLoading = detailLoadingKey === rowKey;
-                    const acts          = Array.isArray(detail?.actuaciones) ? detail.actuaciones : [];
-                    const detailPage    = detailPageByKey[rowKey] || 1;
-                    const detailTotal   = Math.max(1, Math.ceil(acts.length / DETAIL_PAGE_SIZE));
-                    const detailSlice   = acts.slice((detailPage - 1) * DETAIL_PAGE_SIZE, detailPage * DETAIL_PAGE_SIZE);
+                    const acts = Array.isArray(detail?.actuaciones) ? detail.actuaciones : [];
+                    const detailPage = detailPageByKey[rowKey] || 1;
+                    const detailTotal = Math.max(1, Math.ceil(acts.length / DETAIL_PAGE_SIZE));
+                    const detailSlice = acts.slice((detailPage - 1) * DETAIL_PAGE_SIZE, detailPage * DETAIL_PAGE_SIZE);
 
                     return [
                       <tr key={`${rowKey}-main`}>
@@ -1130,7 +1133,7 @@ export default function AntecedentesPanel() {
                   </tr>
                 </thead>
                 <tbody>
-                  {results.map((row, i) => (
+                  {results.slice((resultsPage - 1) * RESULTS_PAGE_SIZE, resultsPage * RESULTS_PAGE_SIZE).map((row, i) => (
                     <tr key={`scba-${row.nroCausa}-${i}`}>
                       <td className="pjn-cell-mono">{row.nroCausa || row.nroExpediente || '-'}</td>
                       <td className="pjn-cell-caratula">{row.caratula || '-'}</td>
@@ -1145,6 +1148,28 @@ export default function AntecedentesPanel() {
               </table>
             )}
           </div>
+
+          {Math.ceil(results.length / RESULTS_PAGE_SIZE) > 1 && (
+            <div className="pjn-inline-pagination" style={{ marginTop: '0.75rem' }} role="navigation" aria-label="Paginación de resultados">
+              <button
+                type="button"
+                className="pjn-page-btn"
+                onClick={() => setResultsPage(p => Math.max(1, p - 1))}
+                disabled={resultsPage <= 1}
+                aria-label="Página anterior de resultados"
+              >← Anterior</button>
+              <span className="pjn-page-label" aria-live="polite">
+                Pág. {resultsPage} de {Math.ceil(results.length / RESULTS_PAGE_SIZE)} · {results.length} causas
+              </span>
+              <button
+                type="button"
+                className="pjn-page-btn"
+                onClick={() => setResultsPage(p => Math.min(Math.ceil(results.length / RESULTS_PAGE_SIZE), p + 1))}
+                disabled={resultsPage >= Math.ceil(results.length / RESULTS_PAGE_SIZE)}
+                aria-label="Página siguiente de resultados"
+              >Siguiente →</button>
+            </div>
+          )}
 
           {jurWithErrors.length > 0 && (
             <p className="ant-errors-note">
@@ -1194,7 +1219,7 @@ export default function AntecedentesPanel() {
                 </p>
                 <div className="ant-modal-packs">
                   {[
-                    { id: 'pack_5',  label: '5 créditos',  price: '$25.000', sub: '$5.000 por crédito' },
+                    { id: 'pack_5', label: '5 créditos', price: '$25.000', sub: '$5.000 por crédito' },
                     { id: 'pack_15', label: '15 créditos', price: '$60.000', sub: '$4.000 por crédito', featured: true },
                     { id: 'pack_30', label: '30 créditos', price: '$99.000', sub: '$3.300 por crédito' },
                   ].map(p => (
