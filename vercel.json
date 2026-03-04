@@ -1,4 +1,12 @@
 {
+  "functions": {
+    "app/api/pjn/search/route.js": {
+      "maxDuration": 60
+    },
+    "app/api/pjn/detalle/route.js": {
+      "maxDuration": 60
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/check-expiry",
