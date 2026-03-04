@@ -393,19 +393,20 @@ export default function CaseDetailPage({ params }) {
                                                 <div className="exp-doc-btns" style={{ marginLeft: 'auto', display: 'flex', gap: '0.4rem' }}>
                                                     {act.linkVer && (
                                                         <a
-                                                            href={`/api/pjn/doc?url=${encodeURIComponent(act.linkVer)}`}
+                                                            href={act.linkVer}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="exp-doc-btn exp-doc-btn-ver"
                                                             aria-label={`Ver documento de actuación ${act.fecha}`}
                                                         >
-                                                            <Eye size={12} aria-hidden="true" /> Ver
+                                                            <Eye size={12} aria-hidden="true" /> Ver en PJN
                                                         </a>
                                                     )}
                                                     {act.linkDescargar && (
                                                         <a
-                                                            href={`/api/pjn/doc?url=${encodeURIComponent(act.linkDescargar)}&download=1`}
-                                                            download
+                                                            href={act.linkDescargar}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
                                                             className="exp-doc-btn exp-doc-btn-dl"
                                                             aria-label={`Descargar PDF de actuación ${act.fecha}`}
                                                         >
