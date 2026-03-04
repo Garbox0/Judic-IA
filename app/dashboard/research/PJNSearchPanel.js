@@ -146,6 +146,7 @@ export default function PJNSearchPanel() {
   const [searched, setSearched] = useState(false);
   const [results, setResults] = useState(null);
   const [page, setPage] = useState(1);
+  const [simulatedProgress, setSimulatedProgress] = useState(0);
 
   const [expandedRowKey, setExpandedRowKey] = useState('');
   const [detailLoadingKey, setDetailLoadingKey] = useState('');
@@ -322,6 +323,18 @@ export default function PJNSearchPanel() {
     setResults(null);
     setPage(1);
     setExpandedRowKey('');
+    setSimulatedProgress(0);
+
+    let progressInterval;
+    if (searchType === 'parte') {
+      progressInterval = setInterval(() => {
+        setSimulatedProgress(old => {
+          if (old >= 95) return 95;
+          const inc = old < 50 ? 5 : old < 80 ? 2 : 0.5;
+          return old + inc;
+        });
+      }, 800);
+    }
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -359,6 +372,8 @@ export default function PJNSearchPanel() {
     } catch (err) {
       setError(readErrorMessage(err, 'No se pudo completar la consulta.'));
     } finally {
+      if (progressInterval) clearInterval(progressInterval);
+      setSimulatedProgress(100);
       setLoading(false);
     }
   }, [anio, currentJurisdictionLabel, jurisdiction, nombre, numero, parteTipo, searchType]);
@@ -529,9 +544,33 @@ export default function PJNSearchPanel() {
         </div>
 
         {loading && (
-          <div className="pjn-loading-hint" aria-live="polite">
-            <Loader2 size={15} className="animate-spin" aria-hidden="true" />
-            Ejecutando consulta completa. Puede tardar entre 10 y 60 segundos.
+          <div className="pjn-loading-hint" aria-live="polite" style={{ marginTop: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <Loader2 size={15} className="animate-spin" aria-hidden="true" />
+              <span>
+                {searchType === 'parte'
+                  ? 'Ejecutando busqueda profunda en todo el fuero...'
+                  : 'Consultando expediente en tiempo real...'}
+              </span>
+            </div>
+            {searchType === 'parte' && (
+              <div className="pjn-progress-bar-container" style={{ width: '100%', height: '6px', background: '#eaeaea', borderRadius: '4px', overflow: 'hidden' }}>
+                <div
+                  className="pjn-progress-bar-fill"
+                  style={{ width: `${simulatedProgress}%`, height: '100%', background: '#ff8a00', transition: 'width 0.8s ease' }}
+                />
+              </div>
+            )}
+            {searchType === 'parte' && simulatedProgress < 95 && (
+              <small style={{ color: '#666', marginTop: '0.5rem', display: 'block' }}>
+                Esta operacion puede demorar hasta 60 segundos por la cantidad de paginas.
+              </small>
+            )}
+            {searchType === 'parte' && simulatedProgress >= 95 && (
+              <small style={{ color: '#ff8a00', marginTop: '0.5rem', display: 'block' }}>
+                Casi listo, procesando ultimos resultados...
+              </small>
+            )}
           </div>
         )}
 
@@ -611,159 +650,159 @@ export default function PJNSearchPanel() {
                   const detailSlice = acts.slice(detailSliceStart, detailSliceStart + DETAIL_PAGE_SIZE);
 
                   return [
-                      <tr key={`${rowKey}-main`}>
-                        <td className="pjn-cell-exp">{row.expediente || '-'}</td>
-                        <td className="pjn-cell-caratula">{row.caratula || '-'}</td>
-                        <td>{row.dependencia || '-'}</td>
-                        <td>{row.situacion || '-'}</td>
-                        <td>{row.ultimaActuacion || '-'}</td>
-                        <td>
-                          <div style={{ display: 'flex', gap: '0.35rem' }}>
-                            <button
-                              type="button"
-                              className="pjn-link-btn"
-                              onClick={() => handleLoadDetail(row, absoluteIndex)}
-                              aria-label={`Ver detalle de ${row.expediente}`}
-                              title="Ver detalle interno"
-                            >
-                              {expanded ? <ChevronUp size={14} aria-hidden="true" /> : <Eye size={14} aria-hidden="true" />}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>,
+                    <tr key={`${rowKey}-main`}>
+                      <td className="pjn-cell-exp">{row.expediente || '-'}</td>
+                      <td className="pjn-cell-caratula">{row.caratula || '-'}</td>
+                      <td>{row.dependencia || '-'}</td>
+                      <td>{row.situacion || '-'}</td>
+                      <td>{row.ultimaActuacion || '-'}</td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '0.35rem' }}>
+                          <button
+                            type="button"
+                            className="pjn-link-btn"
+                            onClick={() => handleLoadDetail(row, absoluteIndex)}
+                            aria-label={`Ver detalle de ${row.expediente}`}
+                            title="Ver detalle interno"
+                          >
+                            {expanded ? <ChevronUp size={14} aria-hidden="true" /> : <Eye size={14} aria-hidden="true" />}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>,
 
-                      expanded ? (
-                        <tr key={`${rowKey}-detail`}>
-                          <td colSpan={6} style={{ padding: '0.8rem' }}>
-                            {detailLoading && (
-                              <div className="pjn-loading-hint">
-                                <Loader2 size={15} className="animate-spin" aria-hidden="true" />
-                                Cargando detalle completo...
-                              </div>
-                            )}
+                    expanded ? (
+                      <tr key={`${rowKey}-detail`}>
+                        <td colSpan={6} style={{ padding: '0.8rem' }}>
+                          {detailLoading && (
+                            <div className="pjn-loading-hint">
+                              <Loader2 size={15} className="animate-spin" aria-hidden="true" />
+                              Cargando detalle completo...
+                            </div>
+                          )}
 
-                            {!detailLoading && detailError && (
-                              <div className="pjn-error" role="alert">
-                                <AlertCircle size={16} aria-hidden="true" />
-                                <span>{detailError}</span>
-                              </div>
-                            )}
+                          {!detailLoading && detailError && (
+                            <div className="pjn-error" role="alert">
+                              <AlertCircle size={16} aria-hidden="true" />
+                              <span>{detailError}</span>
+                            </div>
+                          )}
 
-                            {!detailLoading && detail && (
-                              <div>
-                                {/* Chips resumen + botón importar */}
-                                <div className="exp-summary-chips" style={{ marginBottom: '0.75rem' }}>
-                                  <span className="exp-chip">{acts.length} actuaciones</span>
-                                  <span className="exp-chip">{Array.isArray(detail.intervinientes) ? detail.intervinientes.length : 0} intervinientes</span>
-                                  {detail.sessionToken && <span className="exp-chip" style={{ color: '#34d399', borderColor: 'rgba(52,211,153,0.3)' }}><ShieldCheck size={11} /> Documentos disponibles</span>}
-                                  {/* Botón Importar */}
-                                  {(() => {
-                                    const importState = importStateByKey[rowKey] || 'idle';
-                                    const caseId = importedCaseIdByKey[rowKey];
-                                    if (importState === 'done' && caseId) {
-                                      return (
-                                        <a href={`/dashboard/cases/${caseId}`} className="exp-import-btn exp-import-btn--done">
-                                          <CheckCircle2 size={12} /> Ver en Expedientes
-                                        </a>
-                                      );
-                                    }
-                                    if (importState === 'no_credits') {
-                                      return (
-                                        <button type="button" className="exp-import-btn exp-import-btn--no-credits" onClick={() => setShowCreditsModal(true)}>
-                                          <AlertCircle size={12} /> Sin créditos — obtener más
-                                        </button>
-                                      );
-                                    }
-                                    if (importState === 'error') {
-                                      return (
-                                        <button type="button" className="exp-import-btn exp-import-btn--error" onClick={() => handleImport(row, rowKey, detail)}>
-                                          <AlertCircle size={12} /> Error — reintentar
-                                        </button>
-                                      );
-                                    }
+                          {!detailLoading && detail && (
+                            <div>
+                              {/* Chips resumen + botón importar */}
+                              <div className="exp-summary-chips" style={{ marginBottom: '0.75rem' }}>
+                                <span className="exp-chip">{acts.length} actuaciones</span>
+                                <span className="exp-chip">{Array.isArray(detail.intervinientes) ? detail.intervinientes.length : 0} intervinientes</span>
+                                {detail.sessionToken && <span className="exp-chip" style={{ color: '#34d399', borderColor: 'rgba(52,211,153,0.3)' }}><ShieldCheck size={11} /> Documentos disponibles</span>}
+                                {/* Botón Importar */}
+                                {(() => {
+                                  const importState = importStateByKey[rowKey] || 'idle';
+                                  const caseId = importedCaseIdByKey[rowKey];
+                                  if (importState === 'done' && caseId) {
                                     return (
-                                      <button
-                                        type="button"
-                                        className={`exp-import-btn${antecedentesCredits === 0 ? ' exp-import-btn--no-credits' : ''}`}
-                                        onClick={() => handleImport(row, rowKey, detail)}
-                                        disabled={importState === 'loading'}
-                                        title={antecedentesCredits === 0 ? 'Sin créditos — hacé clic para obtener más' : 'Importar a mis Expedientes (consume 1 crédito)'}
-                                      >
-                                        {importState === 'loading'
-                                          ? <><Loader2 size={12} className="animate-spin" /> Importando...</>
-                                          : antecedentesCredits === 0
-                                            ? <><AlertCircle size={12} /> Sin créditos — obtener</>
-                                            : <><FolderPlus size={12} /> Importar al Dashboard</>
-                                        }
+                                      <a href={`/dashboard/cases/${caseId}`} className="exp-import-btn exp-import-btn--done">
+                                        <CheckCircle2 size={12} /> Ver en Expedientes
+                                      </a>
+                                    );
+                                  }
+                                  if (importState === 'no_credits') {
+                                    return (
+                                      <button type="button" className="exp-import-btn exp-import-btn--no-credits" onClick={() => setShowCreditsModal(true)}>
+                                        <AlertCircle size={12} /> Sin créditos — obtener más
                                       </button>
                                     );
-                                  })()}
-                                </div>
-
-                                {acts.length > 0 ? (
-                                  <>
-                                    <div className="pjn-results-table-wrap">
-                                      <table className="pjn-results-table">
-                                        <thead>
-                                          <tr>
-                                            <th>Fecha</th>
-                                            <th>Tipo</th>
-                                            <th>Descripcion</th>
-                                            <th>Oficina</th>
-                                          </tr>
-                                        </thead>
-                                        <tbody>
-                                          {detailSlice.map((act, aIdx) => (
-                                            <tr key={`${rowKey}-act-${aIdx}`}>
-                                              <td>{act.fecha || '-'}</td>
-                                              <td>{act.tipo || '-'}</td>
-                                              <td>{act.descripcion || '-'}</td>
-                                              <td>{act.oficina || '-'}</td>
-                                            </tr>
-                                          ))}
-                                        </tbody>
-                                      </table>
-                                    </div>
-
-                                    {detailTotalPages > 1 && (
-                                      <div className="pjn-inline-pagination">
-                                        <button
-                                          type="button"
-                                          className="pjn-page-btn"
-                                          onClick={() => setDetailPageByKey((prev) => ({
-                                            ...prev,
-                                            [rowKey]: Math.max(1, detailPage - 1)
-                                          }))}
-                                          disabled={detailPage <= 1}
-                                        >
-                                          Anterior
-                                        </button>
-                                        <span className="pjn-page-label">Pagina {detailPage} de {detailTotalPages}</span>
-                                        <button
-                                          type="button"
-                                          className="pjn-page-btn"
-                                          onClick={() => setDetailPageByKey((prev) => ({
-                                            ...prev,
-                                            [rowKey]: Math.min(detailTotalPages, detailPage + 1)
-                                          }))}
-                                          disabled={detailPage >= detailTotalPages}
-                                        >
-                                          Siguiente
-                                        </button>
-                                      </div>
-                                    )}
-                                  </>
-                                ) : (
-                                  <div className="pjn-empty" style={{ marginTop: 0 }}>
-                                    <ChevronDown size={20} aria-hidden="true" />
-                                    <p>No hay actuaciones para mostrar.</p>
-                                  </div>
-                                )}
+                                  }
+                                  if (importState === 'error') {
+                                    return (
+                                      <button type="button" className="exp-import-btn exp-import-btn--error" onClick={() => handleImport(row, rowKey, detail)}>
+                                        <AlertCircle size={12} /> Error — reintentar
+                                      </button>
+                                    );
+                                  }
+                                  return (
+                                    <button
+                                      type="button"
+                                      className={`exp-import-btn${antecedentesCredits === 0 ? ' exp-import-btn--no-credits' : ''}`}
+                                      onClick={() => handleImport(row, rowKey, detail)}
+                                      disabled={importState === 'loading'}
+                                      title={antecedentesCredits === 0 ? 'Sin créditos — hacé clic para obtener más' : 'Importar a mis Expedientes (consume 1 crédito)'}
+                                    >
+                                      {importState === 'loading'
+                                        ? <><Loader2 size={12} className="animate-spin" /> Importando...</>
+                                        : antecedentesCredits === 0
+                                          ? <><AlertCircle size={12} /> Sin créditos — obtener</>
+                                          : <><FolderPlus size={12} /> Importar al Dashboard</>
+                                      }
+                                    </button>
+                                  );
+                                })()}
                               </div>
-                            )}
-                          </td>
-                        </tr>
-                      ) : null
+
+                              {acts.length > 0 ? (
+                                <>
+                                  <div className="pjn-results-table-wrap">
+                                    <table className="pjn-results-table">
+                                      <thead>
+                                        <tr>
+                                          <th>Fecha</th>
+                                          <th>Tipo</th>
+                                          <th>Descripcion</th>
+                                          <th>Oficina</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {detailSlice.map((act, aIdx) => (
+                                          <tr key={`${rowKey}-act-${aIdx}`}>
+                                            <td>{act.fecha || '-'}</td>
+                                            <td>{act.tipo || '-'}</td>
+                                            <td>{act.descripcion || '-'}</td>
+                                            <td>{act.oficina || '-'}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+
+                                  {detailTotalPages > 1 && (
+                                    <div className="pjn-inline-pagination">
+                                      <button
+                                        type="button"
+                                        className="pjn-page-btn"
+                                        onClick={() => setDetailPageByKey((prev) => ({
+                                          ...prev,
+                                          [rowKey]: Math.max(1, detailPage - 1)
+                                        }))}
+                                        disabled={detailPage <= 1}
+                                      >
+                                        Anterior
+                                      </button>
+                                      <span className="pjn-page-label">Pagina {detailPage} de {detailTotalPages}</span>
+                                      <button
+                                        type="button"
+                                        className="pjn-page-btn"
+                                        onClick={() => setDetailPageByKey((prev) => ({
+                                          ...prev,
+                                          [rowKey]: Math.min(detailTotalPages, detailPage + 1)
+                                        }))}
+                                        disabled={detailPage >= detailTotalPages}
+                                      >
+                                        Siguiente
+                                      </button>
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <div className="pjn-empty" style={{ marginTop: 0 }}>
+                                  <ChevronDown size={20} aria-hidden="true" />
+                                  <p>No hay actuaciones para mostrar.</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ) : null
                   ];
                 })}
               </tbody>
@@ -846,7 +885,7 @@ export default function PJNSearchPanel() {
                 </p>
                 <div className="ant-modal-packs">
                   {[
-                    { id: 'pack_5',  label: '5 créditos',  price: '$25.000', sub: '$5.000 por crédito' },
+                    { id: 'pack_5', label: '5 créditos', price: '$25.000', sub: '$5.000 por crédito' },
                     { id: 'pack_15', label: '15 créditos', price: '$60.000', sub: '$4.000 por crédito', featured: true },
                     { id: 'pack_30', label: '30 créditos', price: '$99.000', sub: '$3.300 por crédito' },
                   ].map(p => (

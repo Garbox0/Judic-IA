@@ -784,9 +784,16 @@ export default function AntecedentesPanel() {
       {loading && progress && (
         <div className="ant-progress-block" role="status" aria-live="polite">
           <Loader2 size={16} className="spin" />
-          <div className="ant-progress-text">
-            <span>Consultando <strong>{progress.label}</strong></span>
-            <span className="ant-progress-count">{progress.current} / {progress.total}</span>
+          <div className="ant-progress-text" style={{ flex: 1 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+              <span>Consultando <strong>{progress.label}</strong></span>
+              <span className="ant-progress-count">{progress.current} / {progress.total}</span>
+            </div>
+            {(progress.current >= 1 && progress.current <= progress.total) && (
+              <small style={{ color: '#666', fontSize: '11px', transition: 'color 0.3s' }}>
+                Puede demorar varios segundos por dependencia. Paciencia...
+              </small>
+            )}
           </div>
           <div className="ant-progress-bar">
             <div
