@@ -14,7 +14,10 @@ import {
   Search,
   Play,
   Power,
-  PowerOff
+  PowerOff,
+  ChevronDown,
+  ChevronUp,
+  Clock
 } from 'lucide-react';
 import './pjn-search.css';
 import {
@@ -181,6 +184,9 @@ export default function AlertsPanel() {
   const [isPackModalOpen, setIsPackModalOpen] = useState(false);
   const [canManageAlerts, setCanManageAlerts] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState('');
+  const [expandedAlertId, setExpandedAlertId] = useState(null);
+  const [historyByAlertId, setHistoryByAlertId] = useState({});
+  const [loadingHistoryId, setLoadingHistoryId] = useState(null);
   const successTimeoutRef = useRef(null);
 
   const hasCsjnDraft = portal === 'CSJN_SORTEOS';
@@ -205,6 +211,33 @@ export default function AlertsPanel() {
     setCsjnRoleDenunciante(true);
     setCsjnRoleDenunciado(true);
   }, []);
+
+  const fetchAlertHistory = useCallback(async (alertId) => {
+    if (historyByAlertId[alertId]) return; // already loaded
+    setLoadingHistoryId(alertId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) return;
+      const res = await fetch(`/api/research/alerts/${alertId}/history?limit=8`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const json = await res.json();
+      if (json.ok) {
+        setHistoryByAlertId(prev => ({ ...prev, [alertId]: json.logs || [] }));
+      }
+    } catch { /* ignore */ } finally {
+      setLoadingHistoryId(null);
+    }
+  }, [historyByAlertId]);
+
+  const toggleHistory = useCallback((alertId) => {
+    setExpandedAlertId(prev => {
+      const next = prev === alertId ? null : alertId;
+      if (next) fetchAlertHistory(alertId);
+      return next;
+    });
+  }, [fetchAlertHistory]);
 
   const setTransientSuccess = useCallback((message, timeoutMs = 7000) => {
     setSuccess(message);
@@ -1047,7 +1080,24 @@ export default function AlertsPanel() {
                     </div>
                   </div>
 
+                  {/* Historial botón */}
                   <div className="alerts-card-actions">
+                    <button
+                      type="button"
+                      className={`alerts-action-btn alerts-action-history ${expandedAlertId === alertItem.id ? 'active' : ''}`}
+                      onClick={() => toggleHistory(alertItem.id)}
+                      aria-expanded={expandedAlertId === alertItem.id}
+                      aria-label="Ver historial de ejecuciones"
+                    >
+                      {loadingHistoryId === alertItem.id
+                        ? <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                        : expandedAlertId === alertItem.id
+                          ? <ChevronUp size={13} aria-hidden="true" />
+                          : <ChevronDown size={13} aria-hidden="true" />
+                      }
+                      Historial
+                    </button>
+
                     <button
                       type="button"
                       className="alerts-action-btn alerts-action-run"
@@ -1098,6 +1148,53 @@ export default function AlertsPanel() {
                       </button>
                     )}
                   </div>
+
+                  {/* Panel de historial expandible */}
+                  {expandedAlertId === alertItem.id && (
+                    <div className="alerts-history-panel" role="region" aria-label="Historial de ejecuciones">
+                      {loadingHistoryId === alertItem.id ? (
+                        <div className="alerts-history-loading">
+                          <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                          <span>Cargando historial...</span>
+                        </div>
+                      ) : !historyByAlertId[alertItem.id] || historyByAlertId[alertItem.id].length === 0 ? (
+                        <p className="alerts-history-empty">
+                          <Clock size={14} aria-hidden="true" /> Esta alerta todavía no tiene ejecuciones registradas.
+                        </p>
+                      ) : (
+                        <table className="alerts-history-table" aria-label="Ejecuciones de la alerta">
+                          <thead>
+                            <tr>
+                              <th>Fecha</th>
+                              <th>Estado</th>
+                              <th>Coincidencias</th>
+                              <th>Nuevas</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {historyByAlertId[alertItem.id].map(log => (
+                              <tr key={log.id} className={log.has_error ? 'alerts-history-row-error' : ''}>
+                                <td>{formatDate(log.ran_at)}</td>
+                                <td>
+                                  {log.has_error
+                                    ? <span className="alerts-history-status-err" title={log.error_short || ''}>❌ Error</span>
+                                    : <span className="alerts-history-status-ok">✔️ OK</span>
+                                  }
+                                </td>
+                                <td>{log.results_found ?? '-'}</td>
+                                <td>
+                                  {log.new_count !== null
+                                    ? <strong className={log.new_count > 0 ? 'alerts-history-new-highlight' : ''}>{log.new_count}</strong>
+                                    : '-'
+                                  }
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  )}
                 </article>
               );
             })}
