@@ -196,106 +196,277 @@ export async function POST(request) {
             return NextResponse.json({ error: 'fromDate no puede ser mayor que toDate.' }, { status: 400 });
         }
 
-        if (portal !== 'CSJN_SORTEOS') {
+        // ── CSJN_SORTEOS ──────────────────────────────────────────
+        if (portal === 'CSJN_SORTEOS') {
+            if (alertId) {
+                const { data: alertOwnership } = await supabase
+                    .from('case_alerts')
+                    .select('id')
+                    .eq('id', alertId)
+                    .eq('user_id', auth.user.id)
+                    .maybeSingle();
+
+                if (!alertOwnership) {
+                    return NextResponse.json({ error: 'Alerta no encontrada o sin permisos.' }, { status: 403 });
+                }
+            }
+
+            const sorteos = await fetchCsjnDailySorteos({
+                exactDate: requestedDate || null,
+                fromDate: requestedFromDate || null,
+                toDate: requestedToDate || null,
+                filters: csjnFilters
+            });
+
+            const scopedCases = applyCsjnAlertFilters(sorteos.cases, csjnFilters);
+            const matches = matchSorteosByEntity(query, scopedCases);
+
+            let newMatches = matches;
+            let newCount = matches.length;
+            let runMeta = null;
+
+            if (alertId) {
+                const seenIds = await loadAlertSeenIds(supabase, alertId);
+                const dedupe = computeNewMatches(matches, seenIds);
+                newMatches = dedupe.new_matches;
+                newCount = dedupe.new_count;
+                runMeta = {
+                    ...buildAlertRunMeta({
+                        seenIds: dedupe.seen_ids_next,
+                        newCount,
+                        sourceDateIso: sorteos.source_date_iso,
+                        requestedDateIso: sorteos.requested_date_iso || requestedDate || null,
+                        requestedRangeFromIso: sorteos.requested_range_from_iso || requestedFromDate || null,
+                        requestedRangeToIso: sorteos.requested_range_to_iso || requestedToDate || null
+                    }),
+                    scoped_dataset_total: scopedCases.length,
+                    applied_filters: hasCsjnAlertFilters(csjnFilters) ? csjnFilters : null
+                };
+            }
+
+            await safeLogExecution(supabase, alertId || null, matches.length, newCount, null, runMeta);
+
             return NextResponse.json({
-                error: 'Portal no soportado para busqueda inmediata.',
-                supported: ['CSJN_SORTEOS']
+                ok: true,
+                portal,
+                query,
+                run_at: new Date().toISOString(),
+                requested_date_iso: requestedDate || null,
+                requested_range_from_iso: requestedFromDate || null,
+                requested_range_to_iso: requestedToDate || null,
+                source_date: sorteos.source_date,
+                source_date_iso: sorteos.source_date_iso,
+                source_url: sorteos.source_url,
+                dataset_total: sorteos.total,
+                scoped_dataset_total: scopedCases.length,
+                applied_filters: hasCsjnAlertFilters(csjnFilters) ? csjnFilters : null,
+                matches_total: matches.length,
+                new_matches_total: newCount,
+                matches: matches.slice(0, 25).map((m) => ({
+                    id: m.id,
+                    assigned_date: m.assigned_date,
+                    expediente: m.expediente,
+                    dependencia_asignada: m.dependencia_asignada,
+                    denunciantes: m.denunciantes,
+                    denunciados: m.denunciados,
+                    delitos: m.delitos,
+                    match_score: m.match_score
+                })),
+                new_matches: newMatches.slice(0, 25).map((m) => ({
+                    id: m.id,
+                    assigned_date: m.assigned_date,
+                    expediente: m.expediente,
+                    dependencia_asignada: m.dependencia_asignada,
+                    denunciantes: m.denunciantes,
+                    denunciados: m.denunciados,
+                    delitos: m.delitos,
+                    match_score: m.match_score
+                }))
+            });
+
+            // ── PJN ───────────────────────────────────────────────────
+        } else if (portal === 'PJN') {
+            if (alertId) {
+                const { data: alertOwnership } = await supabase
+                    .from('case_alerts')
+                    .select('id')
+                    .eq('id', alertId)
+                    .eq('user_id', auth.user.id)
+                    .maybeSingle();
+                if (!alertOwnership) {
+                    return NextResponse.json({ error: 'Alerta no encontrada o sin permisos.' }, { status: 403 });
+                }
+            }
+
+            const { searchByParte, searchByExpediente } = await import('@/lib/captchaSolver.js');
+            const jurisdictionId = cleanText(parsedBody?.jurisdictionId || '1');
+            const inferredType = /\d{1,8}\s*\/\s*\d{4}/.test(query) ? 'por_expediente' : 'por_parte';
+            const queryType = cleanText(parsedBody?.queryType || '') || inferredType;
+
+            let rawResults = [];
+
+            if (queryType.includes('expediente')) {
+                const expMatch = query.match(/(\d{1,8})\s*\/\s*(\d{4})/);
+                if (!expMatch) {
+                    return NextResponse.json({ error: 'Formato de expediente inválido. Usar NNNN/AAAA.' }, { status: 400 });
+                }
+                const pjnResult = await searchByExpediente({
+                    jurisdiccion: jurisdictionId,
+                    numero: expMatch[1],
+                    anio: expMatch[2]
+                });
+                if (pjnResult?.error) throw new Error(pjnResult.error);
+                rawResults = pjnResult?.results || [];
+            } else {
+                const pjnResult = await searchByParte({
+                    jurisdiccion: jurisdictionId,
+                    nombre: query
+                });
+                if (pjnResult?.error) throw new Error(pjnResult.error);
+                rawResults = pjnResult?.results || [];
+            }
+
+            const matches = rawResults.map((r) => ({
+                ...r,
+                id: cleanText(r.expediente || `${r.caratula}-${r.dependencia}`),
+                dependencia_asignada: r.dependencia || '-',
+                assigned_date: r.ultimaActuacion || '-',
+                caratula: r.caratula || '-',
+            }));
+
+            let newMatches = matches;
+            let newCount = matches.length;
+            let runMeta = null;
+
+            if (alertId) {
+                const seenIds = await loadAlertSeenIds(supabase, alertId);
+                const dedupe = computeNewMatches(matches, seenIds);
+                newMatches = dedupe.new_matches;
+                newCount = dedupe.new_count;
+                runMeta = buildAlertRunMeta({
+                    seenIds: dedupe.seen_ids_next,
+                    newCount,
+                    sourceDateIso: new Date().toISOString().split('T')[0],
+                });
+            }
+
+            await safeLogExecution(supabase, alertId || null, matches.length, newCount, null, runMeta);
+
+            return NextResponse.json({
+                ok: true,
+                portal,
+                query,
+                run_at: new Date().toISOString(),
+                matches_total: matches.length,
+                new_matches_total: newCount,
+                matches: matches.slice(0, 25).map((m) => ({
+                    id: m.id,
+                    expediente: m.expediente,
+                    caratula: m.caratula,
+                    dependencia_asignada: m.dependencia_asignada,
+                    assigned_date: m.assigned_date,
+                    situacion: m.situacion,
+                    fuero: m.fuero,
+                })),
+                new_matches: newMatches.slice(0, 25).map((m) => ({
+                    id: m.id,
+                    expediente: m.expediente,
+                    caratula: m.caratula,
+                    dependencia_asignada: m.dependencia_asignada,
+                    assigned_date: m.assigned_date,
+                    situacion: m.situacion,
+                    fuero: m.fuero,
+                }))
+            });
+
+            // ── SCBA ──────────────────────────────────────────────────
+        } else if (portal === 'SCBA') {
+            if (alertId) {
+                const { data: alertOwnership } = await supabase
+                    .from('case_alerts')
+                    .select('id')
+                    .eq('id', alertId)
+                    .eq('user_id', auth.user.id)
+                    .maybeSingle();
+                if (!alertOwnership) {
+                    return NextResponse.json({ error: 'Alerta no encontrada o sin permisos.' }, { status: 403 });
+                }
+            }
+
+            const { searchMEVByName } = await import('@/lib/scbaMevSolver.js');
+            const scbaJurisdiction = cleanText(parsedBody?.jurisdictionId || 'LP');
+
+            const scbaResult = await searchMEVByName({
+                nombre: query,
+                jurisdiccionId: scbaJurisdiction,
+                maxOrganismos: 4,
+            });
+
+            if (scbaResult.error) throw new Error(scbaResult.error);
+
+            const matches = (scbaResult.results || []).map((r) => ({
+                ...r,
+                id: cleanText(r.nroExpediente || r.nroCausa || `${r.caratula}-${r.organismo}`),
+                expediente: r.nroExpediente || r.nroCausa || '-',
+                caratula: r.caratula || '-',
+                dependencia_asignada: r.organismo || r.jurisdiccion || '-',
+                assigned_date: r.fecha || '-',
+            }));
+
+            let newMatches = matches;
+            let newCount = matches.length;
+            let runMeta = null;
+
+            if (alertId) {
+                const seenIds = await loadAlertSeenIds(supabase, alertId);
+                const dedupe = computeNewMatches(matches, seenIds);
+                newMatches = dedupe.new_matches;
+                newCount = dedupe.new_count;
+                runMeta = buildAlertRunMeta({
+                    seenIds: dedupe.seen_ids_next,
+                    newCount,
+                    sourceDateIso: new Date().toISOString().split('T')[0],
+                });
+            }
+
+            await safeLogExecution(supabase, alertId || null, matches.length, newCount, null, runMeta);
+
+            return NextResponse.json({
+                ok: true,
+                portal,
+                query,
+                run_at: new Date().toISOString(),
+                matches_total: matches.length,
+                new_matches_total: newCount,
+                matches: matches.slice(0, 25).map((m) => ({
+                    id: m.id,
+                    expediente: m.expediente,
+                    caratula: m.caratula,
+                    dependencia_asignada: m.dependencia_asignada,
+                    assigned_date: m.assigned_date,
+                })),
+                new_matches: newMatches.slice(0, 25).map((m) => ({
+                    id: m.id,
+                    expediente: m.expediente,
+                    caratula: m.caratula,
+                    dependencia_asignada: m.dependencia_asignada,
+                    assigned_date: m.assigned_date,
+                }))
+            });
+
+            // ── Portal no soportado ───────────────────────────────────
+        } else {
+            return NextResponse.json({
+                error: 'Portal no soportado.',
+                supported: ['CSJN_SORTEOS', 'PJN', 'SCBA']
             }, { status: 400 });
         }
 
-        if (alertId) {
-            const { data: alertOwnership } = await supabase
-                .from('case_alerts')
-                .select('id')
-                .eq('id', alertId)
-                .eq('user_id', auth.user.id)
-                .maybeSingle();
-
-            if (!alertOwnership) {
-                return NextResponse.json({ error: 'Alerta no encontrada o sin permisos.' }, { status: 403 });
-            }
-        }
-
-        const sorteos = await fetchCsjnDailySorteos({
-            exactDate: requestedDate || null,
-            fromDate: requestedFromDate || null,
-            toDate: requestedToDate || null,
-            filters: csjnFilters
-        });
-
-        const scopedCases = applyCsjnAlertFilters(sorteos.cases, csjnFilters);
-        const matches = matchSorteosByEntity(query, scopedCases);
-
-        let newMatches = matches;
-        let newCount = matches.length;
-        let runMeta = null;
-
-        if (alertId) {
-            const seenIds = await loadAlertSeenIds(supabase, alertId);
-            const dedupe = computeNewMatches(matches, seenIds);
-            newMatches = dedupe.new_matches;
-            newCount = dedupe.new_count;
-            runMeta = {
-                ...buildAlertRunMeta({
-                    seenIds: dedupe.seen_ids_next,
-                    newCount,
-                    sourceDateIso: sorteos.source_date_iso,
-                    requestedDateIso: sorteos.requested_date_iso || requestedDate || null,
-                    requestedRangeFromIso: sorteos.requested_range_from_iso || requestedFromDate || null,
-                    requestedRangeToIso: sorteos.requested_range_to_iso || requestedToDate || null
-                }),
-                scoped_dataset_total: scopedCases.length,
-                applied_filters: hasCsjnAlertFilters(csjnFilters) ? csjnFilters : null
-            };
-        }
-
-        await safeLogExecution(supabase, alertId || null, matches.length, newCount, null, runMeta);
-
-        return NextResponse.json({
-            ok: true,
-            portal,
-            query,
-            run_at: new Date().toISOString(),
-            requested_date_iso: requestedDate || null,
-            requested_range_from_iso: requestedFromDate || null,
-            requested_range_to_iso: requestedToDate || null,
-            source_requested_date: sorteos.requested_date || null,
-            source_requested_range_from: sorteos.requested_range_from || null,
-            source_requested_range_to: sorteos.requested_range_to || null,
-            source_date: sorteos.source_date,
-            source_date_iso: sorteos.source_date_iso,
-            source_url: sorteos.source_url,
-            dataset_total: sorteos.total,
-            scoped_dataset_total: scopedCases.length,
-            applied_filters: hasCsjnAlertFilters(csjnFilters) ? csjnFilters : null,
-            matches_total: matches.length,
-            new_matches_total: newCount,
-            matches: matches.slice(0, 25).map((m) => ({
-                id: m.id,
-                assigned_date: m.assigned_date,
-                expediente: m.expediente,
-                dependencia_asignada: m.dependencia_asignada,
-                denunciantes: m.denunciantes,
-                denunciados: m.denunciados,
-                delitos: m.delitos,
-                match_score: m.match_score
-            })),
-            new_matches: newMatches.slice(0, 25).map((m) => ({
-                id: m.id,
-                assigned_date: m.assigned_date,
-                expediente: m.expediente,
-                dependencia_asignada: m.dependencia_asignada,
-                denunciantes: m.denunciantes,
-                denunciados: m.denunciados,
-                delitos: m.delitos,
-                match_score: m.match_score
-            }))
-        });
     } catch (error) {
         console.error('[alerts/test] Error:', error);
 
-        const alertId = cleanText(parsedBody?.alertId || '');
-        await safeLogExecution(supabase, alertId || null, 0, 0, error?.message || 'ERROR', null);
+        const catchAlertId = cleanText(parsedBody?.alertId || '');
+        await safeLogExecution(supabase, catchAlertId || null, 0, 0, error?.message || 'ERROR', null);
 
         return NextResponse.json({
             ok: false,
