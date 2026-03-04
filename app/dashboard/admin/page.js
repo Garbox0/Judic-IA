@@ -39,6 +39,7 @@ import {
     RotateCcw,
     PlusCircle,
     Copy,
+    Ban,
 } from 'lucide-react';
 import {
     BarChart,
@@ -889,14 +890,41 @@ export default function AdminPage() {
 
                                                     <div className="flex items-center justify-end gap-2 pr-2">
                                                         <button onClick={() => handleAction(user.id, 'toggle-pro', { active: user.plan_tier !== 'professional' || user.subscription_status !== 'active' })}
-                                                            className={`action-btn ${user.plan_tier === 'professional' && user.subscription_status === 'active' ? 'text-gold border-gold/30 bg-gold/10' : ''}`} title="Toggle Professional">
+                                                            className={`action-btn ${user.plan_tier === 'professional' && user.subscription_status === 'active' ? 'text-gold border-gold/30 bg-gold/10' : ''}`}
+                                                            title="Toggle Professional"
+                                                            aria-label={`${user.plan_tier === 'professional' ? 'Quitar' : 'Activar'} plan Professional para ${user.full_name || user.email}`}>
                                                             <Crown size={15} />
                                                         </button>
-                                                        <button onClick={() => handleAction(user.id, 'reset-usage')} className="action-btn text-emerald hover:bg-emerald/10 hover:border-emerald/30" title="Reset Usage">
+                                                        <button onClick={() => handleAction(user.id, 'reset-usage')}
+                                                            className="action-btn text-emerald hover:bg-emerald/10 hover:border-emerald/30"
+                                                            title="Resetear uso AI"
+                                                            aria-label={`Resetear consumo de AI para ${user.full_name || user.email}`}>
                                                             <RefreshCw size={15} />
                                                         </button>
-                                                        <button onClick={() => handleAction(user.id, 'revoke-access')} className="action-btn text-rose hover:bg-rose/10 hover:border-rose/30" title="Revoke Access">
+                                                        <button onClick={() => handleAction(user.id, 'revoke-access')}
+                                                            className="action-btn text-rose hover:bg-rose/10 hover:border-rose/30"
+                                                            title="Revocar acceso"
+                                                            aria-label={`Revocar acceso para ${user.full_name || user.email}`}>
                                                             <Power size={15} />
+                                                        </button>
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (!window.confirm(`¿Banear a ${user.email}? No podrá registrarse ni iniciar sesión.`)) return;
+                                                                const { data: { session: s } } = await supabase.auth.getSession();
+                                                                fetch('/api/admin/bans', {
+                                                                    method: 'POST',
+                                                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${s?.access_token}` },
+                                                                    body: JSON.stringify({ email: user.email, reason: `Ban rápido desde panel – ${user.full_name || ''}` })
+                                                                }).then(r => r.ok
+                                                                    ? (showNotification('success', `${user.email} baneado`), fetchBans())
+                                                                    : showNotification('error', 'Error al banear')
+                                                                );
+                                                            }}
+                                                            className="action-btn"
+                                                            style={{ color: '#f97316', borderColor: 'rgba(249,115,22,0.25)', background: 'rgba(249,115,22,0.06)' }}
+                                                            title="Banear email"
+                                                            aria-label={`Banear email ${user.email}`}>
+                                                            <Ban size={15} />
                                                         </button>
                                                     </div>
                                                 </div>

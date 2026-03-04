@@ -65,9 +65,12 @@ export async function POST(request) {
         { auth: { persistSession: false } }
     );
 
-    // Generar código único: primeras 3 letras del apellido + número incremental
-    const nameParts = name.trim().split(' ');
-    const base = (nameParts[nameParts.length - 1] || nameParts[0]).slice(0, 3).toUpperCase();
+    // Generar código único: inicial del nombre + 2 letras del apellido + número
+    // Ej: Gabriel Escalada → GES01, Juan Escalada → JES01
+    const nameParts = name.trim().split(/\s+/);
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : firstName;
+    const base = (firstName[0] + lastName.slice(0, 2)).toUpperCase().replace(/[^A-Z]/g, 'X').padEnd(3, 'X');
 
     // Buscar cuántos códigos con esa base ya existen
     const { data: existing } = await supabase
@@ -129,9 +132,11 @@ export async function PATCH(request) {
         .update({ is_active: false })
         .eq('id', old_code_id);
 
-    // 3. Generar nuevo código para el mismo vendedor
-    const nameParts = (vendor_name || oldCode.name).trim().split(' ');
-    const base = (nameParts[nameParts.length - 1] || nameParts[0]).slice(0, 3).toUpperCase();
+    // Generar nuevo código con mismo esquema: inicial nombre + 2 letras apellido + número
+    const nameParts2 = (vendor_name || oldCode.name).trim().split(/\s+/);
+    const firstName2 = nameParts2[0] || '';
+    const lastName2 = nameParts2.length > 1 ? nameParts2[nameParts2.length - 1] : firstName2;
+    const base = (firstName2[0] + lastName2.slice(0, 2)).toUpperCase().replace(/[^A-Z]/g, 'X').padEnd(3, 'X');
     const { data: existing } = await supabase
         .from('referral_codes')
         .select('code')
