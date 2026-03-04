@@ -21,7 +21,9 @@ import {
     User,
     Shield,
     Bot,
-    Briefcase
+    Briefcase,
+    Eye,
+    Download
 } from 'lucide-react';
 // Reusing ChatWidget for context view
 import ChatWidget from '../../../components/ChatWidget';
@@ -358,18 +360,73 @@ export default function CaseDetailPage({ params }) {
                 {activeTab === 'files' && (
                     <div className="files-section">
                         <div className="upload-zone">
-                            <label className="btn-upload">
-                                {uploading ? <><Clock className="animate-spin" size={20} /> Subiendo...</> : <><Upload size={20} /> Subir Nuevo Archivo</>}
-                                <input type="file" onChange={handleFileUpload} disabled={uploading} style={{ display: 'none' }} />
+                            <label className="btn-upload" htmlFor="case-file-upload">
+                                {uploading ? <><Clock className="animate-spin" size={20} aria-hidden="true" /> Subiendo...</> : <><Upload size={20} aria-hidden="true" /> Subir Nuevo Archivo</>}
+                                <input id="case-file-upload" type="file" onChange={handleFileUpload} disabled={uploading} style={{ display: 'none' }} aria-label="Subir archivo al expediente" />
                             </label>
                             <p className="upload-hint">Documentos, imágenes o escritos legibles.</p>
                         </div>
 
-                        <div className="files-list">
-                            {attachments.length === 0 ? <p className="empty-msg">No hay archivos adjuntos.</p> : (
-                                attachments.map(file => (
+                        {/* Documentos PJN desde actuaciones */}
+                        {caseData.pjn_data?.actuaciones?.some(a => a.linkVer || a.linkDescargar) && (
+                            <div className="pjn-docs-section">
+                                <div className="pjn-docs-header">
+                                    <FileText size={15} aria-hidden="true" />
+                                    <span>Documentos del expediente PJN</span>
+                                    <span className="pjn-docs-badge">PJN</span>
+                                </div>
+                                <div className="files-list">
+                                    {caseData.pjn_data.actuaciones
+                                        .filter(a => a.linkVer || a.linkDescargar)
+                                        .map((act, idx) => (
+                                            <div key={`pjn-doc-${idx}`} className="file-row">
+                                                <div className="file-icon"><FileText size={24} aria-hidden="true" /></div>
+                                                <div className="file-info">
+                                                    <span className="file-name" style={{ color: '#e2e8f0' }}>
+                                                        {act.tipo || act.descripcion || `Actuación ${idx + 1}`}
+                                                    </span>
+                                                    <span className="file-meta">
+                                                        {act.fecha || '-'}
+                                                        {act.descripcion && <span style={{ marginLeft: '0.5rem', opacity: 0.7 }}>{act.descripcion}</span>}
+                                                    </span>
+                                                </div>
+                                                <div className="exp-doc-btns" style={{ marginLeft: 'auto', display: 'flex', gap: '0.4rem' }}>
+                                                    {act.linkVer && (
+                                                        <a
+                                                            href={`/api/pjn/doc?url=${encodeURIComponent(act.linkVer)}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="exp-doc-btn exp-doc-btn-ver"
+                                                            aria-label={`Ver documento de actuación ${act.fecha}`}
+                                                        >
+                                                            <Eye size={12} aria-hidden="true" /> Ver
+                                                        </a>
+                                                    )}
+                                                    {act.linkDescargar && (
+                                                        <a
+                                                            href={`/api/pjn/doc?url=${encodeURIComponent(act.linkDescargar)}&download=1`}
+                                                            download
+                                                            className="exp-doc-btn exp-doc-btn-dl"
+                                                            aria-label={`Descargar PDF de actuación ${act.fecha}`}
+                                                        >
+                                                            <Download size={12} aria-hidden="true" /> PDF
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))
+                                    }
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Archivos manuales */}
+                        <div className="files-list" style={{ marginTop: caseData.pjn_data?.actuaciones?.some(a => a.linkVer || a.linkDescargar) ? '1.5rem' : '0' }}>
+                            {attachments.length === 0
+                                ? <p className="empty-msg">{caseData.source === 'pjn_import' ? 'No hay archivos subidos manualmente.' : 'No hay archivos adjuntos.'}</p>
+                                : attachments.map(file => (
                                     <div key={file.id} className="file-row">
-                                        <div className="file-icon"><FileText size={24} /></div>
+                                        <div className="file-icon"><FileText size={24} aria-hidden="true" /></div>
                                         <div className="file-info">
                                             <a href={file.file_url} target="_blank" rel="noopener noreferrer" className="file-name">{file.file_name}</a>
                                             <span className="file-meta">
@@ -393,7 +450,7 @@ export default function CaseDetailPage({ params }) {
                                         )}
                                     </div>
                                 ))
-                            )}
+                            }
                         </div>
                     </div>
                 )}

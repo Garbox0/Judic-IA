@@ -581,3 +581,74 @@
     padding: 3rem;
     color: var(--muted);
 }
+
+/* PJN DOCS SECTION */
+.pjn-docs-section {
+    background: rgba(251, 191, 36, 0.04);
+    border: 1px solid rgba(251, 191, 36, 0.12);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.pjn-docs-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fbbf24;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+}
+
+.pjn-docs-badge {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    letter-spacing: 0.5px;
+}
+
+.exp-doc-btns {
+    display: flex;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+.exp-doc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.exp-doc-btn-ver {
+    background: rgba(96, 165, 250, 0.12);
+    color: #60a5fa;
+    border: 1px solid rgba(96, 165, 250, 0.25);
+}
+
+.exp-doc-btn-ver:hover {
+    background: rgba(96, 165, 250, 0.22);
+}
+
+.exp-doc-btn-dl {
+    background: rgba(52, 211, 153, 0.1);
+    color: #34d399;
+    border: 1px solid rgba(52, 211, 153, 0.25);
+}
+
+.exp-doc-btn-dl:hover {
+    background: rgba(52, 211, 153, 0.2);
+}

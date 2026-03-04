@@ -625,8 +625,8 @@ export default function AntecedentesPanel() {
         {source === 'pjn' && (
           <>
             <div className="pjn-field-group">
-              <label className="pjn-label">Fuero a consultar</label>
-              <div className="pjn-tabs" role="group" aria-label="Tipo de antecedentes">
+              <span id="ant-fuero-label" className="pjn-label">Fuero a consultar</span>
+              <div className="pjn-tabs" role="group" aria-labelledby="ant-fuero-label">
                 {PJN_PRESETS.map(({ id, label, Icon }) => (
                   <button
                     key={id}
@@ -656,8 +656,8 @@ export default function AntecedentesPanel() {
 
             {pjnUseCustom && (
               <div className="pjn-field-group">
-                <label className="pjn-label">Jurisdicciones</label>
-                <div className="ant-jurisdiction-grid">
+                <span id="ant-jurs-label" className="pjn-label">Jurisdicciones</span>
+                <div className="ant-jurisdiction-grid" role="group" aria-labelledby="ant-jurs-label">
                   {PJN_JURISDICTIONS.map(jur => (
                     <label key={jur.value} className="ant-jur-checkbox">
                       <input
@@ -696,8 +696,8 @@ export default function AntecedentesPanel() {
         {source === 'scba' && (
           <>
             <div className="pjn-field-group">
-              <label className="pjn-label">Departamento judicial</label>
-              <div className="pjn-tabs" role="group" aria-label="Zona PBA">
+              <span id="ant-dpto-jud-label" className="pjn-label">Departamento judicial</span>
+              <div className="pjn-tabs" role="group" aria-labelledby="ant-dpto-jud-label">
                 {SCBA_PRESETS.map(({ id, label, Icon }) => (
                   <button
                     key={id}
@@ -727,8 +727,8 @@ export default function AntecedentesPanel() {
 
             {scbaUseCustom && (
               <div className="pjn-field-group">
-                <label className="pjn-label">Departamentos</label>
-                <div className="ant-jurisdiction-grid">
+                <span id="ant-deptos-label" className="pjn-label">Departamentos</span>
+                <div className="ant-jurisdiction-grid" role="group" aria-labelledby="ant-deptos-label">
                   {SCBA_JURISDICTIONS.map(jur => (
                     <label key={jur.id} className="ant-jur-checkbox">
                       <input
@@ -759,15 +759,17 @@ export default function AntecedentesPanel() {
             type="submit"
             className="pjn-btn-primary"
             disabled={loading || !nombre.trim() || jurisdictionsToSearch.length === 0}
+            aria-label={loading ? 'Buscando antecedentes, por favor espere' : 'Buscar antecedentes'}
+            aria-busy={loading}
           >
-            {loading ? <Loader2 size={16} className="spin" /> : <Search size={16} />}
+            {loading ? <Loader2 size={16} className="spin" aria-hidden="true" /> : <Search size={16} aria-hidden="true" />}
             {loading
               ? `Consultando ${source === 'pjn' ? 'PJN' : 'SCBA MEV'}...`
               : 'Buscar antecedentes'
             }
           </button>
           {loading && (
-            <button type="button" className="pjn-btn-secondary" onClick={() => { abortRef.current = true; }}>
+            <button type="button" className="pjn-btn-secondary" aria-label="Detener búsqueda" onClick={() => { abortRef.current = true; }}>
               Detener
             </button>
           )}
