@@ -999,7 +999,41 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                         {/* Jurisprudencia tab */}
                         {activeTab === 'jurisprudencia' && (
                             <div className="search-box-container glass-panel">
-                                <div className="jurisdiction-selector">
+                                {/* MODE SELECTOR - Two clear cards */}
+                                <div className="mode-selector">
+                                    <span className="mode-selector-label">¿Cómo querés buscar?</span>
+                                    <div className="mode-cards">
+                                        <button
+                                            type="button"
+                                            onClick={() => setAssistedMode(true)}
+                                            className={`mode-card ${assistedMode ? 'selected' : ''}`}
+                                            aria-pressed={assistedMode}
+                                        >
+                                            <div className="mode-card-icon assisted-icon">
+                                                <Sparkles size={22} aria-hidden="true" />
+                                            </div>
+                                            <span className="mode-card-title">Asistido por IA</span>
+                                            <span className="mode-card-desc">La IA analiza y mejora tu búsqueda antes de ejecutarla para obtener mejores resultados.</span>
+                                            {assistedMode && <span className="mode-card-badge">Activo</span>}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setAssistedMode(false)}
+                                            className={`mode-card ${!assistedMode ? 'selected' : ''}`}
+                                            aria-pressed={!assistedMode}
+                                        >
+                                            <div className="mode-card-icon expert-icon">
+                                                <Zap size={22} aria-hidden="true" />
+                                            </div>
+                                            <span className="mode-card-title">Búsqueda Directa</span>
+                                            <span className="mode-card-desc">Tu consulta se ejecuta tal cual la escribís, sin modificaciones. Ideal para búsquedas precisas.</span>
+                                            {!assistedMode && <span className="mode-card-badge">Activo</span>}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <fieldset className="jurisdiction-selector" aria-label="Seleccionar jurisdicción">
+                                    <legend className="sr-only">Tipo de justicia</legend>
                                     <label htmlFor="res_scope_nacional" className={`radio-btn ${scope === 'nacional' ? 'active' : ''}`}>
                                         <input
                                             id="res_scope_nacional"
@@ -1031,12 +1065,13 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                                 className="province-select"
                                                 value={province}
                                                 onChange={(e) => setProvince(e.target.value)}
+                                                aria-label="Provincia"
                                             >
                                                 {provinces.map(p => <option key={p} value={p}>{p}</option>)}
                                             </select>
                                         </>
                                     )}
-                                </div>
+                                </fieldset>
 
                                 {/* Search tips */}
                                 <details className="search-tips-details tips-details">
@@ -1063,7 +1098,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                     </div>
                                 </details>
 
-                                <form onSubmit={handleSearch} className="search-box">
+                                <form onSubmit={handleSearch} className="search-box" role="search" aria-label="Formulario de investigación jurídica">
                                     <label htmlFor="research_input" className="sr-only">Consulta de investigación jurídica</label>
                                     <input
                                         id="research_input"
@@ -1072,6 +1107,8 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                         placeholder={placeholder}
                                         value={query}
                                         onChange={(e) => setQuery(e.target.value)}
+                                        aria-label="Ingresá tu consulta jurídica"
+                                        aria-required="true"
                                     />
                                     {hasSpeechSupport && (
                                         <button
@@ -1079,13 +1116,20 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
                                             onClick={startVoiceInput}
                                             className={`btn-mic${isListening ? ' listening' : ''}`}
                                             title={isListening ? 'Detener grabación' : 'Dictar consulta por voz'}
-                                            aria-label={isListening ? 'Detener grabación' : 'Dictar consulta por voz'}
+                                            aria-label={isListening ? 'Detener grabación de voz' : 'Dictar consulta por voz'}
+                                            aria-pressed={isListening}
                                         >
-                                            {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+                                            {isListening ? <MicOff size={20} aria-hidden="true" /> : <Mic size={20} aria-hidden="true" />}
                                         </button>
                                     )}
-                                    <button type="submit" disabled={loading} className="btn-search-submit">
-                                        {loading ? <Zap size={18} className="spin-animation" /> : <Search size={18} />}
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="btn-search-submit"
+                                        aria-label={loading ? 'Procesando búsqueda, por favor espere' : 'Generar Estrategia IA'}
+                                        aria-busy={loading}
+                                    >
+                                        {loading ? <Zap size={18} className="spin-animation" aria-hidden="true" /> : <Search size={18} aria-hidden="true" />}
                                         {loading ? 'Procesando Inteligencia...' : 'Generar Estrategia IA'}
                                     </button>
                                 </form>
