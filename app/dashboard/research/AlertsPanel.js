@@ -136,6 +136,7 @@ function isFutureDate(value) {
 
 function hasActivePaidSubscription(profile) {
   if (!profile) return false;
+  if (profile.role === 'admin') return true;       // admin siempre habilitado
   if (profile.plan_tier === 'enterprise') return true;
   if (profile.plan_tier !== 'professional') return false;
 
@@ -282,7 +283,7 @@ export default function AlertsPanel() {
         credRes,
       ] = await Promise.all([
         supabase.from('case_alerts').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }),
-        supabase.from('profiles').select('alert_credits_extra, subscription_status, plan_tier, subscription_expiry, grace_period_ends_at').eq('id', session.user.id).maybeSingle(),
+        supabase.from('profiles').select('role, alert_credits_extra, subscription_status, plan_tier, subscription_expiry, grace_period_ends_at').eq('id', session.user.id).maybeSingle(),
         fetch('/api/alerts/credits', { headers: { Authorization: `Bearer ${session.access_token}` } }),
       ]);
 
