@@ -17,28 +17,34 @@ export async function GET(req) {
     );
 
     // Auth: solo admins
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-        return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-        return NextResponse.json({ error: 'Sesión inválida' }, { status: 401 });
-    }
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-    if (profile?.role !== 'admin') {
-        return NextResponse.json({ error: 'Se requiere rol admin' }, { status: 403 });
-    }
-
+    // Auth opción 1: CRON_SECRET como query param o header (más simple para testing)
     const url = new URL(req.url);
+    const secretParam = url.searchParams.get('secret');
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (cronSecret && secretParam === cronSecret) {
+        // Autenticado por CRON_SECRET — skip verificación de usuario
+    } else {
+        // Auth opción 2: Bearer token de admin
+        const authHeader = req.headers.get('authorization');
+        if (!authHeader?.startsWith('Bearer ')) {
+            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+        }
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        if (authError || !user) {
+            return NextResponse.json({ error: 'Sesión inválida' }, { status: 401 });
+        }
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+        if (profile?.role !== 'admin') {
+            return NextResponse.json({ error: 'Se requiere rol admin' }, { status: 403 });
+        }
+    }
+
     const limit = Math.max(1, Math.min(Number(url.searchParams.get('limit')) || 100, 500));
 
     const startedAt = new Date().toISOString();
