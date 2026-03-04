@@ -44,7 +44,7 @@ export async function GET(request) {
     // If user has no org, return individual credits
     if (!profile.org_id) {
         return NextResponse.json({
-            credits: profile.antecedentes_credits ?? 0,
+            credits: Math.max(0, profile.antecedentes_credits ?? 0),
             source: 'individual',
             orgId: null,
             orgName: null,
@@ -65,7 +65,7 @@ export async function GET(request) {
     // Only use org pool if it's a verified estudio
     if (!org || org.type !== 'estudio' || org.verification_status !== 'verified') {
         return NextResponse.json({
-            credits: profile.antecedentes_credits ?? 0,
+            credits: Math.max(0, profile.antecedentes_credits ?? 0),
             source: 'individual',
             orgId: null,
             orgName: null,
@@ -74,7 +74,7 @@ export async function GET(request) {
     }
 
     return NextResponse.json({
-        credits: org.antecedentes_credits_pool ?? 0,
+        credits: Math.max(0, org.antecedentes_credits_pool ?? 0),
         source: 'org',
         orgId: org.id,
         orgName: org.razon_social || org.name,

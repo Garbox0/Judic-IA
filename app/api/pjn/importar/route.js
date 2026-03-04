@@ -20,16 +20,16 @@ import { verifyAuth } from '@/lib/api-auth';
 
 // Mapeo jurisdicción PJN → materia legal
 const PJN_MATERIA_MAP = {
-    '0':  'Constitucional',           // CSJ
-    '1':  'Civil',                    // CIV
-    '2':  'Contencioso Administrativo', // CAF
-    '3':  'Civil y Comercial Federal',// CCF
-    '4':  'Electoral',                // CNE
-    '5':  'Previsional',              // CSS
-    '6':  'Penal Económico',          // CPE
-    '7':  'Laboral',                  // CNT
-    '8':  'Penal',                    // CFP
-    '9':  'Penal',                    // CCC
+    '0': 'Constitucional',           // CSJ
+    '1': 'Civil',                    // CIV
+    '2': 'Contencioso Administrativo', // CAF
+    '3': 'Civil y Comercial Federal',// CCF
+    '4': 'Electoral',                // CNE
+    '5': 'Previsional',              // CSS
+    '6': 'Penal Económico',          // CPE
+    '7': 'Laboral',                  // CNT
+    '8': 'Penal',                    // CFP
+    '9': 'Penal',                    // CCC
     '10': 'Comercial',                // COM
     '11': 'Penal',                    // CPF
     '12': 'Penal',                    // CPN
@@ -227,11 +227,11 @@ export async function POST(request) {
             if (useOrgPool && orgIdForCredits) {
                 const { data: orgAfter } = await supabase
                     .from('organizations').select('antecedentes_credits_pool').eq('id', orgIdForCredits).single();
-                credits_left = orgAfter?.antecedentes_credits_pool ?? 0;
+                credits_left = Math.max(0, orgAfter?.antecedentes_credits_pool ?? 0);
             } else {
                 const { data: profAfter } = await supabase
                     .from('profiles').select('antecedentes_credits').eq('id', userId).single();
-                credits_left = profAfter?.antecedentes_credits ?? 0;
+                credits_left = Math.max(0, profAfter?.antecedentes_credits ?? 0);
             }
         }
 
