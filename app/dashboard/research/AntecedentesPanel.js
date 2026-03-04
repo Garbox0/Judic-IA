@@ -237,6 +237,8 @@ export default function AntecedentesPanel() {
   const abortRef = useRef(false);
   const RESULTS_PAGE_SIZE = 10;
   const [resultsPage, setResultsPage] = useState(1);
+  const [sortCol, setSortCol] = useState(null);   // 'expediente'|'caratula'|'fuero'|'dependencia'|'situacion'|'fecha'
+  const [sortDir, setSortDir] = useState('asc');  // 'asc' | 'desc'
 
   // Cargar balance de créditos al montar (individual o pool del estudio)
   useEffect(() => {
@@ -436,6 +438,8 @@ export default function AntecedentesPanel() {
     setProgress({ current: 0, total: jurisdictionsToSearch.length, label: '' });
     resetDetailState();
     setResultsPage(1);
+    setSortCol(null);
+    setSortDir('asc');
     abortRef.current = false;
 
     try {
@@ -840,286 +844,329 @@ export default function AntecedentesPanel() {
           </div>
 
           <div className="pjn-results-table-wrap">
-            {source === 'pjn' ? (
-              <table className="pjn-results-table">
-                <thead>
-                  <tr>
-                    <th>Expediente</th>
-                    <th>Carátula</th>
-                    <th>Fuero</th>
-                    <th>Dependencia</th>
-                    <th>Situación</th>
-                    <th>Última actuación</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {results.slice((resultsPage - 1) * RESULTS_PAGE_SIZE, resultsPage * RESULTS_PAGE_SIZE).map((row, i) => {
-                    const rowKey = `pjn-${row.expediente}-${(resultsPage - 1) * RESULTS_PAGE_SIZE + i}`;
-                    const expanded = expandedRowKey === rowKey;
-                    const detail = detailByKey[rowKey];
-                    const detailError = detailErrorByKey[rowKey];
-                    const detailLoading = detailLoadingKey === rowKey;
-                    const acts = Array.isArray(detail?.actuaciones) ? detail.actuaciones : [];
-                    const detailPage = detailPageByKey[rowKey] || 1;
-                    const detailTotal = Math.max(1, Math.ceil(acts.length / DETAIL_PAGE_SIZE));
-                    const detailSlice = acts.slice((detailPage - 1) * DETAIL_PAGE_SIZE, detailPage * DETAIL_PAGE_SIZE);
+            {source === 'pjn' ? (() => {
+              // --- Sort logic ---
+              const parseDate = (s) => {
+                if (!s) return 0;
+                const [d, m, y] = String(s).split('/').map(Number);
+                return y ? new Date(y, (m || 1) - 1, d || 1).getTime() : 0;
+              };
+              const colMap = { expediente: 'expediente', caratula: 'caratula', fuero: '_jur_label', dependencia: 'dependencia', situacion: 'situacion', fecha: 'ultimaActuacion' };
+              const handleSort = (col) => {
+                if (sortCol === col) {
+                  if (sortDir === 'asc') setSortDir('desc');
+                  else { setSortCol(null); setSortDir('asc'); }
+                } else {
+                  setSortCol(col); setSortDir('asc');
+                }
+                setResultsPage(1);
+              };
+              const SortIcon = ({ col }) => {
+                if (sortCol !== col) return <span aria-hidden="true" style={{ opacity: 0.3, fontSize: '0.7em' }}> ↕</span>;
+                return <span aria-hidden="true" style={{ fontSize: '0.7em' }}>{sortDir === 'asc' ? ' ↑' : ' ↓'}</span>;
+              };
+              const sortedResults = sortCol
+                ? [...results].sort((a, b) => {
+                  const field = colMap[sortCol];
+                  const va = sortCol === 'fecha' ? parseDate(a[field]) : String(a[field] || '').toLowerCase();
+                  const vb = sortCol === 'fecha' ? parseDate(b[field]) : String(b[field] || '').toLowerCase();
+                  if (va < vb) return sortDir === 'asc' ? -1 : 1;
+                  if (va > vb) return sortDir === 'asc' ? 1 : -1;
+                  return 0;
+                })
+                : results;
+              const thBtn = (col, label) => (
+                <th key={col}>
+                  <button
+                    type="button"
+                    onClick={() => handleSort(col)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'inherit', fontSize: 'inherit', color: 'inherit', padding: 0, whiteSpace: 'nowrap' }}
+                    aria-label={`Ordenar por ${label}`}
+                    title={sortCol === col ? (sortDir === 'asc' ? 'Ordenado A→Z, click para Z→A' : 'Ordenado Z→A, click para quitar orden') : `Ordenar por ${label}`}
+                  >{label}<SortIcon col={col} /></button>
+                </th>
+              );
+              return (
+                <table className="pjn-results-table">
+                  <thead>
+                    <tr>
+                      {thBtn('expediente', 'Expediente')}
+                      {thBtn('caratula', 'Carátula')}
+                      {thBtn('fuero', 'Fuero')}
+                      {thBtn('dependencia', 'Dependencia')}
+                      {thBtn('situacion', 'Situación')}
+                      {thBtn('fecha', 'Última actuación')}
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedResults.slice((resultsPage - 1) * RESULTS_PAGE_SIZE, resultsPage * RESULTS_PAGE_SIZE).map((row, i) => {
+                      const rowKey = `pjn-${row.expediente}-${(resultsPage - 1) * RESULTS_PAGE_SIZE + i}`;
+                      const expanded = expandedRowKey === rowKey;
+                      const detail = detailByKey[rowKey];
+                      const detailError = detailErrorByKey[rowKey];
+                      const detailLoading = detailLoadingKey === rowKey;
+                      const acts = Array.isArray(detail?.actuaciones) ? detail.actuaciones : [];
+                      const detailPage = detailPageByKey[rowKey] || 1;
+                      const detailTotal = Math.max(1, Math.ceil(acts.length / DETAIL_PAGE_SIZE));
+                      const detailSlice = acts.slice((detailPage - 1) * DETAIL_PAGE_SIZE, detailPage * DETAIL_PAGE_SIZE);
 
-                    return [
-                      <tr key={`${rowKey}-main`}>
-                        <td className="pjn-cell-mono">{row.expediente || '-'}</td>
-                        <td className="pjn-cell-caratula">{row.caratula || '-'}</td>
-                        <td><span className="ant-fuero-badge">{row._jur_label}</span></td>
-                        <td className="pjn-cell-sm">{row.dependencia || '-'}</td>
-                        <td className="pjn-cell-sm">{row.situacion || '-'}</td>
-                        <td className="pjn-cell-sm">{row.ultimaActuacion || '-'}</td>
-                        <td>
-                          <div style={{ display: 'flex', gap: '0.35rem' }}>
-                            <button
-                              type="button"
-                              className="pjn-link-btn"
-                              onClick={() => handleLoadDetail(row, rowKey)}
-                              title={expanded ? 'Ocultar detalle' : 'Ver actuaciones'}
-                              aria-label={`Ver detalle de ${row.expediente}`}
-                            >
-                              {expanded
-                                ? <ChevronUp size={14} aria-hidden="true" />
-                                : <Eye size={14} aria-hidden="true" />}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>,
-
-                      expanded ? (
-                        <tr key={`${rowKey}-detail`}>
-                          <td colSpan={7} style={{ padding: '1rem 0.75rem', background: 'var(--pjn-row-alt, #f9fafb)' }}>
-                            {detailLoading && (
-                              <div className="pjn-loading-hint">
-                                <Loader2 size={15} className="spin" aria-hidden="true" />
-                                Cargando expediente completo...
-                              </div>
-                            )}
-                            {!detailLoading && detailError && (
-                              <div className="pjn-error-msg" role="alert">
-                                <AlertCircle size={15} /> {detailError}
-                              </div>
-                            )}
-                            {!detailLoading && detail && (() => {
-                              const intervinientes = Array.isArray(detail.intervinientes) ? detail.intervinientes : [];
-                              const datosKeys = detail.datosGenerales ? Object.entries(detail.datosGenerales) : [];
-                              const sessionToken = detail.sessionToken || '';
-
-                              const docUrl = (link) => {
-                                if (!link || !sessionToken) return null;
-                                return `/api/pjn/doc?token=${sessionToken}&url=${encodeURIComponent(link)}`;
-                              };
-
-                              return (
-                                <div className="exp-detail">
-                                  {/* Chips resumen + botón importar */}
-                                  <div className="exp-summary-chips">
-                                    <span className="exp-chip"><List size={11} /> {acts.length} actuaciones</span>
-                                    <span className="exp-chip"><Users size={11} /> {intervinientes.length} intervinientes</span>
-                                    {datosKeys.length > 0 && <span className="exp-chip"><Info size={11} /> Datos generales</span>}
-                                    {sessionToken && <span className="exp-chip" style={{ color: '#34d399', borderColor: 'rgba(52,211,153,0.3)' }}><ShieldCheck size={11} /> Documentos disponibles</span>}
-
-                                    {/* Botón Importar al Dashboard */}
-                                    {(() => {
-                                      const importState = importStateByKey[rowKey] || 'idle';
-                                      const caseId = importedCaseIdByKey[rowKey];
-                                      if (importState === 'done' && caseId) {
-                                        return (
-                                          <a
-                                            href={`/dashboard/cases/${caseId}`}
-                                            className="exp-import-btn exp-import-btn--done"
-                                            aria-label="Ver expediente importado en el dashboard"
-                                          >
-                                            <CheckCircle2 size={12} /> Ver en Expedientes
-                                          </a>
-                                        );
-                                      }
-                                      if (importState === 'no_credits') {
-                                        return (
-                                          <button
-                                            type="button"
-                                            className="exp-import-btn exp-import-btn--no-credits"
-                                            onClick={() => setShowCreditsModal(true)}
-                                          >
-                                            <AlertCircle size={12} /> Sin créditos — obtener más
-                                          </button>
-                                        );
-                                      }
-                                      if (importState === 'error') {
-                                        return (
-                                          <button
-                                            type="button"
-                                            className="exp-import-btn exp-import-btn--error"
-                                            onClick={() => handleImport(row, rowKey, detail)}
-                                          >
-                                            <AlertCircle size={12} /> Error — reintentar
-                                          </button>
-                                        );
-                                      }
-                                      return (
-                                        <button
-                                          type="button"
-                                          className={`exp-import-btn${antecedentesCredits === 0 ? ' exp-import-btn--no-credits' : ''}`}
-                                          onClick={() => handleImport(row, rowKey, detail)}
-                                          disabled={importState === 'loading'}
-                                          aria-label={`Importar ${row.expediente} al dashboard de expedientes`}
-                                          title={antecedentesCredits === 0 ? 'Sin créditos — hacé clic para obtener más' : 'Importar a mis Expedientes (consume 1 crédito)'}
-                                        >
-                                          {importState === 'loading'
-                                            ? <><Loader2 size={12} className="spin" /> Importando...</>
-                                            : antecedentesCredits === 0
-                                              ? <><AlertCircle size={12} /> Sin créditos — obtener</>
-                                              : <><FolderPlus size={12} /> Importar al Dashboard</>
-                                          }
-                                        </button>
-                                      );
-                                    })()}
-                                  </div>
-
-                                  {/* Datos generales */}
-                                  {datosKeys.length > 0 && (
-                                    <div className="exp-section">
-                                      <div className="exp-section-header">
-                                        <Info size={13} /> Datos del expediente
-                                      </div>
-                                      <div className="exp-datos-grid">
-                                        {datosKeys.map(([k, v]) => (
-                                          <div key={k} className="exp-dato-item">
-                                            <span className="exp-dato-key">{k}</span>
-                                            <span className="exp-dato-val">{v}</span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Intervinientes */}
-                                  {intervinientes.length > 0 && (
-                                    <div className="exp-section">
-                                      <div className="exp-section-header">
-                                        <Users size={13} /> Intervinientes
-                                      </div>
-                                      <div className="pjn-results-table-wrap">
-                                        <table className="exp-table">
-                                          <thead>
-                                            <tr>
-                                              <th>Rol</th>
-                                              <th>Nombre</th>
-                                            </tr>
-                                          </thead>
-                                          <tbody>
-                                            {intervinientes.map((p, pIdx) => (
-                                              <tr key={`${rowKey}-int-${pIdx}`}>
-                                                <td><span className="exp-parte-badge">{p.tipo || '-'}</span></td>
-                                                <td>{p.nombre || '-'}</td>
-                                              </tr>
-                                            ))}
-                                          </tbody>
-                                        </table>
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Actuaciones */}
-                                  {acts.length > 0 ? (
-                                    <div className="exp-section">
-                                      <div className="exp-section-header">
-                                        <BookOpen size={13} /> Actuaciones ({acts.length})
-                                      </div>
-                                      <div className="pjn-results-table-wrap">
-                                        <table className="exp-table">
-                                          <thead>
-                                            <tr>
-                                              <th>Fecha</th>
-                                              <th>Tipo</th>
-                                              <th>Descripción</th>
-                                              <th>Oficina</th>
-                                              <th style={{ textAlign: 'center' }}>Fojas</th>
-                                              <th>Docs</th>
-                                            </tr>
-                                          </thead>
-                                          <tbody>
-                                            {detailSlice.map((act, aIdx) => (
-                                              <tr key={`${rowKey}-act-${aIdx}`} className="exp-act-row">
-                                                <td className="exp-act-fecha">{act.fecha || '-'}</td>
-                                                <td className="exp-act-tipo">{act.tipo || '-'}</td>
-                                                <td className="exp-act-desc">{act.descripcion || '-'}</td>
-                                                <td className="pjn-cell-sm">{act.oficina || '-'}</td>
-                                                <td className="exp-act-fojas">{act.fojas || '-'}</td>
-                                                <td>
-                                                  {importStateByKey[rowKey] === 'done' ? (
-                                                    <div className="exp-doc-btns">
-                                                      {act.linkVer && docUrl(act.linkVer) && (
-                                                        <a
-                                                          href={docUrl(act.linkVer)}
-                                                          target="_blank"
-                                                          rel="noopener noreferrer"
-                                                          className="exp-doc-btn exp-doc-btn-ver"
-                                                          title="Ver documento"
-                                                        >
-                                                          <Eye size={11} /> Ver
-                                                        </a>
-                                                      )}
-                                                      {act.linkDescargar && docUrl(act.linkDescargar) && (
-                                                        <a
-                                                          href={docUrl(act.linkDescargar)}
-                                                          download
-                                                          className="exp-doc-btn exp-doc-btn-dl"
-                                                          title="Descargar documento"
-                                                        >
-                                                          <Download size={11} /> PDF
-                                                        </a>
-                                                      )}
-                                                    </div>
-                                                  ) : (act.linkVer || act.linkDescargar) ? (
-                                                    <button
-                                                      type="button"
-                                                      className="exp-doc-locked"
-                                                      onClick={() => handleImport(row, rowKey, detail)}
-                                                      title="Importá el expediente para acceder a los documentos"
-                                                    >
-                                                      🔒
-                                                    </button>
-                                                  ) : null}
-                                                </td>
-                                              </tr>
-                                            ))}
-                                          </tbody>
-                                        </table>
-                                      </div>
-                                      {detailTotal > 1 && (
-                                        <div className="pjn-inline-pagination">
-                                          <button type="button" className="pjn-page-btn"
-                                            onClick={() => setDetailPageByKey(prev => ({ ...prev, [rowKey]: Math.max(1, detailPage - 1) }))}
-                                            disabled={detailPage <= 1}>Anterior</button>
-                                          <span className="pjn-page-label">Pág. {detailPage} de {detailTotal}</span>
-                                          <button type="button" className="pjn-page-btn"
-                                            onClick={() => setDetailPageByKey(prev => ({ ...prev, [rowKey]: Math.min(detailTotal, detailPage + 1) }))}
-                                            disabled={detailPage >= detailTotal}>Siguiente</button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <div className="pjn-no-results" style={{ marginTop: 0 }}>
-                                      <ChevronDown size={20} aria-hidden="true" />
-                                      <p>No hay actuaciones registradas.</p>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })()}
+                      return [
+                        <tr key={`${rowKey}-main`}>
+                          <td className="pjn-cell-mono">{row.expediente || '-'}</td>
+                          <td className="pjn-cell-caratula">{row.caratula || '-'}</td>
+                          <td><span className="ant-fuero-badge">{row._jur_label}</span></td>
+                          <td className="pjn-cell-sm">{row.dependencia || '-'}</td>
+                          <td className="pjn-cell-sm">{row.situacion || '-'}</td>
+                          <td className="pjn-cell-sm">{row.ultimaActuacion || '-'}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '0.35rem' }}>
+                              <button
+                                type="button"
+                                className="pjn-link-btn"
+                                onClick={() => handleLoadDetail(row, rowKey)}
+                                title={expanded ? 'Ocultar detalle' : 'Ver actuaciones'}
+                                aria-label={`Ver detalle de ${row.expediente}`}
+                              >
+                                {expanded
+                                  ? <ChevronUp size={14} aria-hidden="true" />
+                                  : <Eye size={14} aria-hidden="true" />}
+                              </button>
+                            </div>
                           </td>
-                        </tr>
-                      ) : null
-                    ];
-                  })}
-                </tbody>
-              </table>
-            ) : (
+                        </tr>,
+
+                        expanded ? (
+                          <tr key={`${rowKey}-detail`}>
+                            <td colSpan={7} style={{ padding: '1rem 0.75rem', background: 'var(--pjn-row-alt, #f9fafb)' }}>
+                              {detailLoading && (
+                                <div className="pjn-loading-hint">
+                                  <Loader2 size={15} className="spin" aria-hidden="true" />
+                                  Cargando expediente completo...
+                                </div>
+                              )}
+                              {!detailLoading && detailError && (
+                                <div className="pjn-error-msg" role="alert">
+                                  <AlertCircle size={15} /> {detailError}
+                                </div>
+                              )}
+                              {!detailLoading && detail && (() => {
+                                const intervinientes = Array.isArray(detail.intervinientes) ? detail.intervinientes : [];
+                                const datosKeys = detail.datosGenerales ? Object.entries(detail.datosGenerales) : [];
+                                const sessionToken = detail.sessionToken || '';
+
+                                const docUrl = (link) => {
+                                  if (!link || !sessionToken) return null;
+                                  return `/api/pjn/doc?token=${sessionToken}&url=${encodeURIComponent(link)}`;
+                                };
+
+                                return (
+                                  <div className="exp-detail">
+                                    {/* Chips resumen + botón importar */}
+                                    <div className="exp-summary-chips">
+                                      <span className="exp-chip"><List size={11} /> {acts.length} actuaciones</span>
+                                      <span className="exp-chip"><Users size={11} /> {intervinientes.length} intervinientes</span>
+                                      {datosKeys.length > 0 && <span className="exp-chip"><Info size={11} /> Datos generales</span>}
+                                      {sessionToken && <span className="exp-chip" style={{ color: '#34d399', borderColor: 'rgba(52,211,153,0.3)' }}><ShieldCheck size={11} /> Documentos disponibles</span>}
+
+                                      {/* Botón Importar al Dashboard */}
+                                      {(() => {
+                                        const importState = importStateByKey[rowKey] || 'idle';
+                                        const caseId = importedCaseIdByKey[rowKey];
+                                        if (importState === 'done' && caseId) {
+                                          return (
+                                            <a
+                                              href={`/dashboard/cases/${caseId}`}
+                                              className="exp-import-btn exp-import-btn--done"
+                                              aria-label="Ver expediente importado en el dashboard"
+                                            >
+                                              <CheckCircle2 size={12} /> Ver en Expedientes
+                                            </a>
+                                          );
+                                        }
+                                        if (importState === 'no_credits') {
+                                          return (
+                                            <button
+                                              type="button"
+                                              className="exp-import-btn exp-import-btn--no-credits"
+                                              onClick={() => setShowCreditsModal(true)}
+                                            >
+                                              <AlertCircle size={12} /> Sin créditos — obtener más
+                                            </button>
+                                          );
+                                        }
+                                        if (importState === 'error') {
+                                          return (
+                                            <button
+                                              type="button"
+                                              className="exp-import-btn exp-import-btn--error"
+                                              onClick={() => handleImport(row, rowKey, detail)}
+                                            >
+                                              <AlertCircle size={12} /> Error — reintentar
+                                            </button>
+                                          );
+                                        }
+                                        return (
+                                          <button
+                                            type="button"
+                                            className={`exp-import-btn${antecedentesCredits === 0 ? ' exp-import-btn--no-credits' : ''}`}
+                                            onClick={() => handleImport(row, rowKey, detail)}
+                                            disabled={importState === 'loading'}
+                                            aria-label={`Importar ${row.expediente} al dashboard de expedientes`}
+                                            title={antecedentesCredits === 0 ? 'Sin créditos — hacé clic para obtener más' : 'Importar a mis Expedientes (consume 1 crédito)'}
+                                          >
+                                            {importState === 'loading'
+                                              ? <><Loader2 size={12} className="spin" /> Importando...</>
+                                              : antecedentesCredits === 0
+                                                ? <><AlertCircle size={12} /> Sin créditos — obtener</>
+                                                : <><FolderPlus size={12} /> Importar al Dashboard</>
+                                            }
+                                          </button>
+                                        );
+                                      })()}
+                                    </div>
+
+                                    {/* Datos generales */}
+                                    {datosKeys.length > 0 && (
+                                      <div className="exp-section">
+                                        <div className="exp-section-header">
+                                          <Info size={13} /> Datos del expediente
+                                        </div>
+                                        <div className="exp-datos-grid">
+                                          {datosKeys.map(([k, v]) => (
+                                            <div key={k} className="exp-dato-item">
+                                              <span className="exp-dato-key">{k}</span>
+                                              <span className="exp-dato-val">{v}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Intervinientes */}
+                                    {intervinientes.length > 0 && (
+                                      <div className="exp-section">
+                                        <div className="exp-section-header">
+                                          <Users size={13} /> Intervinientes
+                                        </div>
+                                        <div className="pjn-results-table-wrap">
+                                          <table className="exp-table">
+                                            <thead>
+                                              <tr>
+                                                <th>Rol</th>
+                                                <th>Nombre</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody>
+                                              {intervinientes.map((p, pIdx) => (
+                                                <tr key={`${rowKey}-int-${pIdx}`}>
+                                                  <td><span className="exp-parte-badge">{p.tipo || '-'}</span></td>
+                                                  <td>{p.nombre || '-'}</td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Actuaciones */}
+                                    {acts.length > 0 ? (
+                                      <div className="exp-section">
+                                        <div className="exp-section-header">
+                                          <BookOpen size={13} /> Actuaciones ({acts.length})
+                                        </div>
+                                        <div className="pjn-results-table-wrap">
+                                          <table className="exp-table">
+                                            <thead>
+                                              <tr>
+                                                <th>Fecha</th>
+                                                <th>Tipo</th>
+                                                <th>Descripción</th>
+                                                <th>Oficina</th>
+                                                <th style={{ textAlign: 'center' }}>Fojas</th>
+                                                <th>Docs</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody>
+                                              {detailSlice.map((act, aIdx) => (
+                                                <tr key={`${rowKey}-act-${aIdx}`} className="exp-act-row">
+                                                  <td className="exp-act-fecha">{act.fecha || '-'}</td>
+                                                  <td className="exp-act-tipo">{act.tipo || '-'}</td>
+                                                  <td className="exp-act-desc">{act.descripcion || '-'}</td>
+                                                  <td className="pjn-cell-sm">{act.oficina || '-'}</td>
+                                                  <td className="exp-act-fojas">{act.fojas || '-'}</td>
+                                                  <td>
+                                                    {importStateByKey[rowKey] === 'done' ? (
+                                                      <div className="exp-doc-btns">
+                                                        {act.linkVer && docUrl(act.linkVer) && (
+                                                          <a
+                                                            href={docUrl(act.linkVer)}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="exp-doc-btn exp-doc-btn-ver"
+                                                            title="Ver documento"
+                                                          >
+                                                            <Eye size={11} /> Ver
+                                                          </a>
+                                                        )}
+                                                        {act.linkDescargar && docUrl(act.linkDescargar) && (
+                                                          <a
+                                                            href={docUrl(act.linkDescargar)}
+                                                            download
+                                                            className="exp-doc-btn exp-doc-btn-dl"
+                                                            title="Descargar documento"
+                                                          >
+                                                            <Download size={11} /> PDF
+                                                          </a>
+                                                        )}
+                                                      </div>
+                                                    ) : (act.linkVer || act.linkDescargar) ? (
+                                                      <button
+                                                        type="button"
+                                                        className="exp-doc-locked"
+                                                        onClick={() => handleImport(row, rowKey, detail)}
+                                                        title="Importá el expediente para acceder a los documentos"
+                                                      >
+                                                        🔒
+                                                      </button>
+                                                    ) : null}
+                                                  </td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                        {detailTotal > 1 && (
+                                          <div className="pjn-inline-pagination">
+                                            <button type="button" className="pjn-page-btn"
+                                              onClick={() => setDetailPageByKey(prev => ({ ...prev, [rowKey]: Math.max(1, detailPage - 1) }))}
+                                              disabled={detailPage <= 1}>Anterior</button>
+                                            <span className="pjn-page-label">Pág. {detailPage} de {detailTotal}</span>
+                                            <button type="button" className="pjn-page-btn"
+                                              onClick={() => setDetailPageByKey(prev => ({ ...prev, [rowKey]: Math.min(detailTotal, detailPage + 1) }))}
+                                              disabled={detailPage >= detailTotal}>Siguiente</button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div className="pjn-no-results" style={{ marginTop: 0 }}>
+                                        <ChevronDown size={20} aria-hidden="true" />
+                                        <p>No hay actuaciones registradas.</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+                            </td>
+                          </tr>
+                        ) : null
+                      ];
+                    })}
+                  </tbody>
+                </table>
+              );
+            })() : (
               <table className="pjn-results-table">
                 <thead>
                   <tr>
