@@ -391,20 +391,31 @@ export default function CaseDetailPage({ params }) {
                                                     </span>
                                                 </div>
                                                 <div className="exp-doc-btns" style={{ marginLeft: 'auto', display: 'flex', gap: '0.4rem' }}>
-                                                    {act.linkVer && (
+                                                    {act.linkVer && caseData.pjn_data?.sessionToken ? (
                                                         <a
-                                                            href={act.linkVer}
+                                                            href={`/api/pjn/doc?token=${caseData.pjn_data.sessionToken}&url=${encodeURIComponent(act.linkVer)}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="exp-doc-btn exp-doc-btn-ver"
                                                             aria-label={`Ver documento de actuación ${act.fecha}`}
                                                         >
-                                                            <Eye size={12} aria-hidden="true" /> Ver en PJN
+                                                            <Eye size={12} aria-hidden="true" /> Ver
                                                         </a>
-                                                    )}
-                                                    {act.linkDescargar && (
+                                                    ) : act.linkVer ? (
                                                         <a
-                                                            href={act.linkDescargar}
+                                                            href={act.linkVer}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="exp-doc-btn exp-doc-btn-ver"
+                                                            title="Abrí el expediente en Antecedentes para activar el acceso"
+                                                            aria-label={`Ver documento de actuación ${act.fecha} en el portal PJN`}
+                                                        >
+                                                            <Eye size={12} aria-hidden="true" /> Ver
+                                                        </a>
+                                                    ) : null}
+                                                    {act.linkDescargar && caseData.pjn_data?.sessionToken ? (
+                                                        <a
+                                                            href={`/api/pjn/doc?token=${caseData.pjn_data.sessionToken}&url=${encodeURIComponent(act.linkDescargar)}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="exp-doc-btn exp-doc-btn-dl"
@@ -412,7 +423,18 @@ export default function CaseDetailPage({ params }) {
                                                         >
                                                             <Download size={12} aria-hidden="true" /> PDF
                                                         </a>
-                                                    )}
+                                                    ) : act.linkDescargar ? (
+                                                        <a
+                                                            href={act.linkDescargar}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="exp-doc-btn exp-doc-btn-dl"
+                                                            title="Abrí el expediente en Antecedentes para activar el acceso"
+                                                            aria-label={`Descargar PDF de actuación ${act.fecha}`}
+                                                        >
+                                                            <Download size={12} aria-hidden="true" /> PDF
+                                                        </a>
+                                                    ) : null}
                                                 </div>
                                             </div>
                                         ))

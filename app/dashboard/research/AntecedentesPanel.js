@@ -367,6 +367,7 @@ export default function AntecedentesPanel() {
           source: row._source === 'SCBA' ? 'scba' : 'pjn',
           detail: detail || null,
           link: row.link || null,
+          sessionToken: detail?.sessionToken || null,
         }),
       });
       const payload = await res.json();

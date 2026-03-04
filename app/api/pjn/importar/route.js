@@ -64,7 +64,7 @@ export async function POST(request) {
 
     try {
         const body = await request.json();
-        const { expediente, caratula, fuero, jurisdiccion, source = 'pjn', detail, link } = body;
+        const { expediente, caratula, fuero, jurisdiccion, source = 'pjn', detail, link, sessionToken } = body;
 
         if (!expediente || !caratula) {
             return NextResponse.json({ error: 'Faltan datos del expediente.' }, { status: 400 });
@@ -186,6 +186,7 @@ export async function POST(request) {
             intervinientes: Array.isArray(detail?.intervinientes) ? detail.intervinientes : [],
             actuaciones,
             total_actuaciones: Array.isArray(detail?.actuaciones) ? detail.actuaciones.length : 0,
+            sessionToken: sessionToken || null,
         };
 
         // 5. Crear el Case
