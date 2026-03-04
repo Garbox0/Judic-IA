@@ -15,6 +15,7 @@ function isFutureDate(value) {
 
 function hasActivePaidSubscription(profile) {
     if (!profile) return false;
+    if (profile.role === 'admin') return true;       // admin siempre habilitado
     if (profile.plan_tier === 'enterprise') return true;
     if (profile.plan_tier !== 'professional') return false;
 
@@ -91,7 +92,7 @@ export async function POST(request) {
 
     const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('subscription_status, plan_tier, subscription_expiry, grace_period_ends_at, alert_credits_extra, org_id')
+        .select('role, subscription_status, plan_tier, subscription_expiry, grace_period_ends_at, alert_credits_extra, org_id')
         .eq('id', auth.user.id)
         .maybeSingle();
 
