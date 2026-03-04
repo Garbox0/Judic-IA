@@ -23,45 +23,32 @@ Motor de inteligencia artificial conectado a jurisprudencia actualizada y normat
 
 ---
 
-### Pestaña 1: Jurisprudencia
-
-#### Paso a paso
-1.  **Contexto:** Ingresá tu consulta en lenguaje natural (ej: "Responsabilidad de plataforma de delivery por accidente de repartidor en CABA").
+### Pestaña 1: Estrategia
+Análisis predictivo con IA.
+1.  **Contexto:** Ingresá tu consulta en lenguaje natural (ej: "Responsabilidad de plataforma...").
 2.  **Ámbito:** Seleccioná la jurisdicción (Nacional/Federal o Provincial) para filtrar precedentes relevantes.
-3.  **Generación:** Ejecutá **"Generar Estrategia IA"** para obtener un análisis detallado.
-
-#### Qué obtendrás
-*   **Análisis Predictivo:** Viabilidad del caso basada en tendencias jurisprudenciales.
-*   **Precedentes:** Listado de fallos concordantes con acceso directo a la fuente.
-*   **Prueba Sugerida:** Listado técnico de elementos probatorios para el caso.
-*   **Estrategia:** Recomendación de encuadre legal y pasos a seguir.
-
-#### Tips para mejores resultados
-*   Usá frases exactas entre comillas: "daño moral" accidente tránsito
-*   Agregá "fallo" o "sentencia" al final para filtrar resultados judiciales
-*   Combiná jurisdicción: "mala praxis médica cordoba camara"
+3.  **Generación:** Ejecutá **"Generar Estrategia IA"** para obtener análisis predictivo, precedentes, prueba sugerida y recomendaciones estratégicas.
 
 ---
 
-### Pestaña 2: Antecedentes Judiciales de Empresa
+### Pestaña 2: Resoluciones PJN
+Buscador directo en el Poder Judicial de la Nación con firma digital. Explora causas y sentencias del ecosistema federal y CSJN.
 
-Herramienta de **due diligence corporativo**: buscá causas, demandas y sentencias públicas vinculadas a una empresa antes de aceptar un caso.
+---
 
-#### Cómo usar
-1.  **Razón Social:** Ingresá el nombre de la empresa (ej: "Carrefour", "YPF SA", "Techint").
-2.  **CUIT (opcional):** Añadís el CUIT para cruzar información adicional.
-3.  **Jurisdicción:** Filtrá por fuero Federal, CABA, PBA o buscá en todas.
-4.  **Buscar expedientes:** La IA rastrea bases de datos públicas y extrae causas reales con carátula, tribunal, tipo y estado.
+### Pestaña 3: Alertas
+Motor de vigilancia automática. Configurá el sistema para que te notifique automáticamente sobre nuevas sentencias y jurisprudencia publicadas en base a tus temas y keywords de interés.
 
-#### Qué obtendrás por cada causa encontrada
-*   **Carátula:** Formato estándar "DEMANDANTE c/ EMPRESA s/ MATERIA"
-*   **Expediente:** Número de causa si está disponible
-*   **Tribunal:** Cámara o juzgado interviniente
-*   **Tipo:** Laboral / Civil / Comercial / Penal / etc.
-*   **Estado:** Activo / Archivado / Con sentencia
+---
+
+### Pestaña 4: Antecedentes
+Herramienta de **due diligence corporativo**: rastrea demandas y sentencias vinculadas a una empresa en juzgados.
+1.  **Razón Social:** Ingresá el nombre de la empresa a auditar.
+2.  **Jurisdicción:** Filtrá por fuero o buscá un panorama general.
+3.  **Resultados:** Extraemos expedientes reales con carátula y tribunal.
 
 > [!TIP]
-> Los resultados provienen de fuentes públicas indexadas. No reemplaza una consulta directa al sistema oficial del PJN o SCBA.
+> Para validaciones de extrema precisión e integridad de base oficial, utiliza directamente la pestaña de Resoluciones PJN en paralelo.
 `,
 
     clients: `
