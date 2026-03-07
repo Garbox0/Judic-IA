@@ -1,6 +1,5 @@
 
 import { NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
 import minioClient, { ensureBucket, BUCKET_NAME } from '@/app/lib/minio';
 import crypto from 'crypto';
 import { verifyAuth } from '@/lib/api-auth';
@@ -51,60 +50,27 @@ export async function POST(request) {
             const arrayBuf = await pdfRes.arrayBuffer();
             pdfBuffer = Buffer.from(arrayBuf);
         } else {
-            // 🖥️ HTML page — use Puppeteer to render + capture as clean PDF
-            const browser = await puppeteer.launch({
-                headless: "new",
-                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+            // 🖥️ HTML page — delegate Puppeteer rendering to Raspberry Pi Scraper
+            console.log(`📡 Delegating capture to Raspberry Pi: ${url}`);
+            const scraperTargetUrl = process.env.SCRAPER_URL ? process.env.SCRAPER_URL.replace('/search', '/capture') : 'http://judicia-scraper.local:3100/capture';
+            const scraperToken = process.env.SCRAPER_SECRET || 'Cthulhu_Scraper_2025_Secret!';
+
+            const resScraper = await fetch(scraperTargetUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-scraper-token': scraperToken
+                },
+                body: JSON.stringify({ url })
             });
 
-            const page = await browser.newPage();
-            await page.setViewport({ width: 1200, height: 1600 });
+            if (!resScraper.ok) {
+                const errText = await resScraper.text().catch(() => '');
+                throw new Error(`La Pi devolvió error ${resScraper.status} al capturar el PDF: ${errText}`);
+            }
 
-            // Navigate
-            await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
-
-            // Cleanup logic (remove noise from judicial sites)
-            await page.evaluate(() => {
-                const elementsToRemove = [
-                    'table[background="im/fondo.jpg"]',
-                    'img',
-                    '.noprint',
-                    '#encabezado',
-                    '#pie',
-                    'header',
-                    'footer',
-                    'nav',
-                    '.ads',
-                    '.cookie-banner'
-                ];
-                elementsToRemove.forEach(selector => {
-                    document.querySelectorAll(selector).forEach(e => e.remove());
-                });
-
-                // Standardization
-                document.body.style.fontFamily = "'Roboto', 'Helvetica', 'Arial', sans-serif";
-                document.body.style.fontSize = "12pt";
-                document.body.style.lineHeight = "1.5";
-                document.body.style.color = "#000";
-                document.body.style.background = "#fff";
-                document.body.style.margin = "0";
-                document.body.style.padding = "20px";
-
-                // Width fix
-                document.querySelectorAll('table').forEach(t => {
-                    t.style.width = "100%";
-                    t.style.maxWidth = "none";
-                });
-            });
-
-            // Generate PDF Buffer
-            pdfBuffer = await page.pdf({
-                format: 'A4',
-                printBackground: true,
-                margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' }
-            });
-
-            await browser.close();
+            const arrayBuf = await resScraper.arrayBuffer();
+            pdfBuffer = Buffer.from(arrayBuf);
         }
 
         // Upload to MinIO

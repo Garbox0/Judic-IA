@@ -164,6 +164,9 @@ export default function PJNSearchPanel() {
   const [importStateByKey, setImportStateByKey] = useState({});
   const [importedCaseIdByKey, setImportedCaseIdByKey] = useState({});
 
+  // Sesión persistente para evitar captchas (Modo Turbo)
+  const [currentSessionId, setCurrentSessionId] = useState(null);
+
   useEffect(() => {
     async function loadCredits() {
       const { data: { session } } = await supabase.auth.getSession();
@@ -358,7 +361,8 @@ export default function PJNSearchPanel() {
           anio: anio.trim(),
           nombre: nombre.trim(),
           parteTipo: effectiveParteTipo,
-          maxPages: searchType === 'parte' ? 40 : 10
+          maxPages: searchType === 'parte' ? 40 : 10,
+          sessionId: currentSessionId
         })
       });
 
@@ -368,6 +372,9 @@ export default function PJNSearchPanel() {
         throw new Error(payload?.error || 'No se pudo completar la consulta.');
       }
 
+      if (payload.sessionId) {
+        setCurrentSessionId(payload.sessionId);
+      }
       setResults(payload);
     } catch (err) {
       setError(readErrorMessage(err, 'No se pudo completar la consulta.'));
@@ -417,13 +424,17 @@ export default function PJNSearchPanel() {
         body: JSON.stringify({
           jurisdiccion: jurisdiction,
           numero: parsed.numero,
-          anio: parsed.anio
+          anio: parsed.anio,
+          sessionId: currentSessionId
         })
       });
 
       const payload = await res.json();
       if (!res.ok) throw new Error(payload?.error || 'No se pudo cargar el detalle.');
 
+      if (payload.sessionId) {
+        setCurrentSessionId(payload.sessionId);
+      }
       setDetailByKey((prev) => ({ ...prev, [rowKey]: payload }));
       setDetailPageByKey((prev) => ({ ...prev, [rowKey]: 1 }));
     } catch (err) {

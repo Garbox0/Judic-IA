@@ -421,9 +421,7 @@ export default function ResearchPage({ isDemo: isDemoProp = false }) {
             }
 
             const data = await res.json();
-            // Open in internal PDF viewer
-            const viewerUrl = `/dashboard/legislation/viewer/case?url=${encodeURIComponent(data.url)}&title=${encodeURIComponent(title)}&from=research`;
-            window.open(viewerUrl, '_blank');
+            window.open(data.url, '_blank');
 
         } catch (error) {
             console.error("Capture failed:", error);

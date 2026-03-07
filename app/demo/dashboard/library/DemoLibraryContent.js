@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Brain, Library, ExternalLink, Copy, FileText, Check } from 'lucide-react';
+import { Scale, Library, ExternalLink, Copy, FileText, Check } from 'lucide-react';
 import { demoLibrary } from '@/app/lib/demoData';
 import '@/app/dashboard/library/library.css';
 import UsageGuideDemo from '@/app/components/UsageGuideDemo';
@@ -65,14 +65,14 @@ export default function DemoLibraryPage() {
                 <div className="breadcrumb">
                     <Link href="/demo/dashboard" className="breadcrumb-item">Gabinete</Link>
                     <span className="breadcrumb-separator">/</span>
-                    <span className="breadcrumb-current">Biblioteca del Estudio (Demo)</span>
+                    <span className="breadcrumb-current">Jurisprudencias (Demo)</span>
                 </div>
             </nav>
 
             <header className="library-header">
                 <div className="header-content">
-                    <h1><Brain size={48} className="header-icon-pink" /> Base de Conocimiento</h1>
-                    <p>Indice colaborativo de jurisprudencia y precedentes investigados.</p>
+                    <h1><Scale size={48} className="header-icon-pink" /> Jurisprudencias y Doctrinas</h1>
+                    <p>Índice colaborativo de fallos, precedentes y doctrina jurídica.</p>
                 </div>
                 <UsageGuideDemo content={demoManuals.library} />
 
@@ -120,12 +120,16 @@ export default function DemoLibraryPage() {
                             <div className="card-header">
                                 <span className="jurisdiction-tag">{item.jurisdiction || 'General'}</span>
                                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                    <Link
-                                        href={`/demo/dashboard/legislation/viewer/knowledge-base?url=${encodeURIComponent(item.pdf_url || item.url)}&title=${encodeURIComponent(item.autos || 'Fallo de Base de Conocimiento')}`}
-                                        className="card-link"
-                                    >
-                                        <ExternalLink size={18} />
-                                    </Link>
+                                    {(item.pdf_url || item.url) && (
+                                        <a
+                                            href={item.pdf_url || item.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="card-link"
+                                        >
+                                            <ExternalLink size={18} />
+                                        </a>
+                                    )}
                                 </div>
                             </div>
                             <h3 className="card-title">{item.autos}</h3>
@@ -140,12 +144,14 @@ export default function DemoLibraryPage() {
                                         <Copy size={12} /> Copiar Cita
                                     </button>
                                     {item.pdf_url && (
-                                        <Link
-                                            href={`/demo/dashboard/legislation/viewer/knowledge-base?url=${encodeURIComponent(item.pdf_url)}&title=${encodeURIComponent(item.autos || 'PDF')}`}
+                                        <a
+                                            href={item.pdf_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                             className="btn-pdf"
                                         >
                                             <FileText size={12} /> Ver PDF
-                                        </Link>
+                                        </a>
                                     )}
                                 </div>
                             </div>

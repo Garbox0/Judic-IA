@@ -1,6 +1,5 @@
 ﻿import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { searchByExpediente, searchByParte } from '@/lib/captchaSolver';
 import { resolvePjnParteType } from '@/lib/pjnParteRules';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -25,7 +24,7 @@ export async function POST(request) {
         }
 
         const body = await request.json();
-        const { searchType, jurisdiction, jurisdictionName, numero, anio, nombre, parteTipo, maxPages } = body;
+        const { searchType, jurisdiction, jurisdictionName, numero, anio, nombre, parteTipo, maxPages, sessionId } = body;
 
         if (searchType === 'expediente' && (!numero || !anio)) {
             return NextResponse.json({ error: 'Completa numero y anio del expediente.' }, { status: 400 });
@@ -40,7 +39,7 @@ export async function POST(request) {
 
         const startMs = Date.now();
         console.log(
-            `[PJN Search] Starting Puppeteer search - type: ${searchType}, user: ${user.id}, jur: ${jurisdiction || '-'}, parteTipo: ${effectiveParteTipo || 'todos'}, query: ${(searchType === 'expediente' ? `${numero || ''}/${anio || ''}` : String(nombre || '').slice(0, 60))}`
+            `[PJN Search] Starting Puppeteer search - type: ${searchType}, user: ${user.id}, jur: ${jurisdiction || '-'}, experimental session: ${sessionId ? 'YES' : 'NO'}`
         );
 
         const normalizedMaxPages = Math.max(
@@ -48,28 +47,38 @@ export async function POST(request) {
             Math.min(Number(maxPages) || (searchType === 'parte' ? 20 : 6), 80)
         );
 
-        let result;
-        if (searchType === 'expediente') {
-            result = await searchByExpediente({
+        const scraperTargetUrl = process.env.SCRAPER_URL || 'http://judicia-scraper.local:3100/pjn/search';
+        const scraperToken = process.env.SCRAPER_SECRET || 'Cthulhu_Scraper_2025_Secret!';
+
+        const resScraper = await fetch(scraperTargetUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-scraper-token': scraperToken
+            },
+            body: JSON.stringify({
+                tab: searchType === 'expediente' ? 'porExpediente' : 'porParte',
                 jurisdiccion: jurisdiction,
                 jurisdictionName,
-                numero,
-                anio,
-                maxPages: normalizedMaxPages
-            });
-        } else {
-            result = await searchByParte({
-                jurisdiccion: jurisdiction,
-                jurisdictionName,
-                nombre,
+                numero: searchType === 'expediente' ? numero : undefined,
+                anio: searchType === 'expediente' ? anio : undefined,
+                nombre: searchType === 'parte' ? nombre : undefined,
                 parteTipo: effectiveParteTipo,
-                maxPages: normalizedMaxPages
-            });
+                maxPages: normalizedMaxPages,
+                sessionId
+            })
+        });
+
+        if (!resScraper.ok) {
+            const errData = await resScraper.json().catch(() => ({}));
+            throw new Error(errData.error || `La Raspberry Pi (scraper) devolvió error ${resScraper.status}`);
         }
+
+        const result = await resScraper.json();
 
         const duration = Date.now() - startMs;
         console.log(
-            `[PJN Search] Done in ${duration}ms - ${(result.results?.length ?? 0)} results, pages: ${result?.pagination?.pages_fetched ?? '-'}`
+            `[PJN Search] Done in ${duration}ms - ${(result.results?.length ?? 0)} results, session_cached: ${result.sessionId ? 'YES' : 'NO'}`
         );
 
         if (result.error) {
@@ -88,6 +97,7 @@ export async function POST(request) {
             total: result.results?.length ?? 0,
             noResults: result.noResults ?? null,
             pagination: result.pagination ?? null,
+            sessionId: result.sessionId ?? null, // IMPORTANTE: Devolvemos el token al cliente
             searchType,
             query: searchType === 'expediente' ? `${numero}/${anio}` : nombre,
             effective_parte_tipo: effectiveParteTipo,

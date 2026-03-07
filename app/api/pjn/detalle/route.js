@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getExpedienteDetalle } from '../../../../lib/captchaSolver';
 
 // Opcional: Proteger ruta con Supabase Auth si se requiere login
 import { createServerClient } from '@supabase/ssr';
@@ -8,7 +7,7 @@ import { cookies } from 'next/headers';
 export async function POST(req) {
     try {
         const body = await req.json();
-        const { jurisdiccion, numero, anio } = body;
+        const { jurisdiccion, numero, anio, sessionId } = body;
 
         if (!numero || !anio) {
             return NextResponse.json({ error: 'Falta número o año de expediente' }, { status: 400 });
@@ -26,18 +25,28 @@ export async function POST(req) {
             }
         );
 
-        // Opcional: Descomentar si la app requiere estar logueado para extraer detalles
-        // const authHeader = req.headers.get('authorization');
-        // if (authHeader) {
-        //     const token = authHeader.replace('Bearer ', '');
-        //     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-        //     if (authError || !user) {
-        //         return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-        //     }
-        // }
+        const scraperTargetUrl = process.env.SCRAPER_URL ? process.env.SCRAPER_URL.replace('/search', '/detalle') : 'http://judicia-scraper.local:3100/pjn/detalle';
+        const scraperToken = process.env.SCRAPER_SECRET || 'Cthulhu_Scraper_2025_Secret!';
 
-        const detalles = await getExpedienteDetalle({ jurisdiccion, numero, anio });
-        return NextResponse.json(detalles);
+        const resScraper = await fetch(scraperTargetUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-scraper-token': scraperToken
+            },
+            body: JSON.stringify({ jurisdiccion, numero, anio, sessionId })
+        });
+
+        if (!resScraper.ok) {
+            const errData = await resScraper.json().catch(() => ({}));
+            throw new Error(errData.error || `La Raspberry Pi (scraper) devolvió error ${resScraper.status}`);
+        }
+
+        const result = await resScraper.json();
+        return NextResponse.json({
+            ...result,
+            sessionId: result.sessionId ?? null
+        });
 
     } catch (error) {
         console.error('[API PJN Detalle] Error:', error);

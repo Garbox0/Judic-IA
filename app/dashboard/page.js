@@ -12,7 +12,6 @@ import {
   BookOpen,
   Settings,
   Calculator,
-  Book,
   Globe,
   X,
   AlertTriangle
@@ -115,17 +114,9 @@ export default function DashboardHome({ isDemo = false, basePath = '/dashboard' 
       color: '#f59e0b'
     },
     {
-      id: 'legislation',
-      title: 'Legislación',
-      desc: 'Acceso rápido a normativas y códigos vigentes.',
-      icon: <Book size={24} />,
-      link: '/dashboard/legislation',
-      color: '#8b5cf6'
-    },
-    {
       id: 'library',
-      title: 'Biblioteca',
-      desc: 'Base de conocimiento y precedentes guardados.',
+      title: 'Jurisprudencias',
+      desc: 'Fallos, precedentes y doctrina jurídica guardados.',
       icon: <BookOpen size={24} />,
       link: '/dashboard/library',
       color: '#a855f7'

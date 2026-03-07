@@ -16,8 +16,8 @@ import {
     Menu,
     Crown,
     Sparkles,
-    Book,
     Calculator,
+    Newspaper,
     Sun,
     Moon,
     Globe,
@@ -143,13 +143,13 @@ export default function DemoDashboardLayout({ children }) {
                         <Calculator size={18} className="nav-icon" />
                         <span>Calculadoras</span>
                     </Link>
-                    <Link href={`${basePath}/legislation`} className={`nav-item ${pathname.includes('/legislation') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
-                        <Book size={18} className="nav-icon" />
-                        <span>Legislación</span>
+                    <Link href={`${basePath}/boletin`} className={`nav-item ${pathname.includes('/boletin') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+                        <Newspaper size={18} className="nav-icon" />
+                        <span>Boletín Oficial</span>
                     </Link>
                     <Link href={`${basePath}/library`} className={`nav-item ${pathname.includes('/library') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
                         <BookOpen size={18} className="nav-icon" />
-                        <span>Biblioteca</span>
+                        <span>Jurisprudencias</span>
                     </Link>
                     <Link href={`${basePath}/federal`} className={`nav-item ${pathname.includes('/federal') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
                         <Globe size={18} className="nav-icon" />

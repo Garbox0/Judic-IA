@@ -9,9 +9,8 @@ export default function DemoPlaceholderPage() {
         { name: 'Expedientes', path: '/demo/dashboard/cases' },
         { name: 'Agenda', path: '/demo/dashboard/agenda' },
         { name: 'Jurisprudencia', path: '/demo/dashboard/research' },
-        { name: 'Biblioteca', path: '/demo/dashboard/library' },
+        { name: 'Jurisprudencias', path: '/demo/dashboard/library' },
         { name: 'Calculadoras', path: '/demo/dashboard/calculators' },
-        { name: 'Legislación', path: '/demo/dashboard/legislation' },
     ];
 
     return (

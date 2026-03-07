@@ -57,6 +57,37 @@
     margin-bottom: 1.5rem;
 }
 
+.library-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.library-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.2rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.library-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.library-tab.active {
+    background: rgba(236, 72, 153, 0.2);
+    border-color: rgba(236, 72, 153, 0.5);
+    color: #f9a8d4;
+}
+
 .search-bar-container {
     display: flex;
     gap: 1rem;
