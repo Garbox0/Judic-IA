@@ -23,7 +23,8 @@ import {
   Sun,
   Moon,
   X,
-  Building2
+  Building2,
+  MessageSquare
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -298,6 +299,13 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
             <BookOpen size={18} className="nav-icon" />
             <span>Jurisprudencias</span>
           </Link>
+          {!isDemo && (
+            <Link href="/dashboard/whatsapp" className={`nav-item ${pathname.includes('/whatsapp') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
+              <MessageSquare size={18} className="nav-icon" style={{ color: pathname.includes('/whatsapp') ? undefined : '#25d366' }} />
+              <span>Agente WhatsApp</span>
+              <span className="nav-badge-new">BETA</span>
+            </Link>
+          )}
           <Link href={isDemo ? `${basePath}/settings` : '/dashboard/settings'} className={`nav-item ${pathname.includes('/settings') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <Settings size={18} className="nav-icon" />
             <span>Ajustes</span>
