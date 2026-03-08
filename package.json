@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@next/third-parties": "^16.1.6",
     "@sparticuz/chromium-min": "^143.0.4",
     "@supabase/ssr": "^0.8.0",

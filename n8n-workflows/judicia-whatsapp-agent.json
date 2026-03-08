@@ -1,0 +1,113 @@
+{
+  "name": "Judic-IA WhatsApp Agent Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "judicia-agent",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-in",
+      "name": "Webhook Botexa",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "judicia-agent"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://judic-ia.com/api/agent/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-agent-key",
+              "value": "judicia-agent-2026"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ phone: $json.body.phone || $json.phone, message: $json.body.message || $json.message }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "call-judicia-api",
+      "name": "Llamar Agente Judic-IA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://botexa-agent:3000/api/send",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ tenant_id: 2, phone: $('Webhook Botexa').item.json.body.phone || $('Webhook Botexa').item.json.phone, message: $json.reply }) }}",
+        "options": {}
+      },
+      "id": "send-reply",
+      "name": "Enviar Respuesta via Botexa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": true }",
+        "options": {}
+      },
+      "id": "webhook-response",
+      "name": "Responder Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [960, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Botexa": {
+      "main": [
+        [{ "node": "Llamar Agente Judic-IA", "type": "main", "index": 0 }]
+      ]
+    },
+    "Llamar Agente Judic-IA": {
+      "main": [
+        [{ "node": "Enviar Respuesta via Botexa", "type": "main", "index": 0 }]
+      ]
+    },
+    "Enviar Respuesta via Botexa": {
+      "main": [
+        [{ "node": "Responder Webhook", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["judicia", "whatsapp"],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-08T00:00:00.000Z",
+  "versionId": "1"
+}

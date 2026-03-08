@@ -1,0 +1,195 @@
+{
+  "name": "Judic-IA BO Briefing Diario",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 11 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Cron 08:00 ARG (lun-vie)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://judic-ia.com/api/boletin",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "seccion", "value": "primera" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fetch-bo-primera",
+      "name": "Fetch BO Primera Sección",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://judic-ia.com/api/boletin",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "seccion", "value": "segunda" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fetch-bo-segunda",
+      "name": "Fetch BO Segunda Sección",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fetch all users with keywords from Judic-IA\nconst supabaseUrl = 'https://YOUR_PROJECT.supabase.co';\nconst serviceKey = 'YOUR_SERVICE_ROLE_KEY';\n\n// Note: In production, store these as n8n credentials or env vars\n// For now this node is a placeholder — replace with actual Supabase HTTP call\n\nconst boData = {\n  primera: $('Fetch BO Primera Sección').item.json,\n  segunda: $('Fetch BO Segunda Sección').item.json,\n};\n\nreturn [{ json: { boData, timestamp: new Date().toISOString() } }];"
+      },
+      "id": "merge-bo",
+      "name": "Combinar Datos BO",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://YOUR_PROJECT.supabase.co/rest/v1/whatsapp_bo_keywords",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "YOUR_SERVICE_ROLE_KEY" },
+            { "name": "Authorization", "value": "Bearer YOUR_SERVICE_ROLE_KEY" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "select", "value": "keyword,user_id,profiles(whatsapp_phone)" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fetch-keywords",
+      "name": "Fetch Keywords de Usuarios",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Match BO items against user keywords\nconst boData = $('Combinar Datos BO').item.json.boData;\nconst keywords = $('Fetch Keywords de Usuarios').all();\n\nconst allItems = [\n  ...(boData.primera?.items || []),\n  ...(boData.segunda?.items || []),\n];\n\n// Group keywords by user phone\nconst userKeywords = {};\nfor (const kw of keywords) {\n  const phone = kw.json?.profiles?.whatsapp_phone;\n  if (!phone) continue;\n  if (!userKeywords[phone]) userKeywords[phone] = [];\n  userKeywords[phone].push(kw.json.keyword.toLowerCase());\n}\n\n// For each user, find matching BO items\nconst notifications = [];\nfor (const [phone, kws] of Object.entries(userKeywords)) {\n  const matches = allItems.filter(item => {\n    const text = (item.titulo + ' ' + (item.subtitulo || '')).toLowerCase();\n    return kws.some(kw => text.includes(kw));\n  });\n  \n  if (matches.length === 0) continue;\n  \n  let msg = '📰 *Boletín Oficial — ' + new Date().toLocaleDateString('es-AR') + '*\\n\\n';\n  msg += 'Publicaciones que coinciden con tus palabras clave:\\n\\n';\n  for (const m of matches.slice(0, 5)) {\n    msg += `• *${m.rubro || ''}* ${m.titulo}\\n`;\n    if (m.subtitulo) msg += `  ${m.subtitulo}\\n`;\n  }\n  if (matches.length > 5) msg += `\\n_...y ${matches.length - 5} más_`;\n  msg += '\\n\\n_Ver más en judic-ia.com/dashboard/boletin_';\n  \n  notifications.push({ json: { phone, message: msg } });\n}\n\nif (notifications.length === 0) {\n  return [{ json: { skip: true } }];\n}\n\nreturn notifications;"
+      },
+      "id": "match-keywords",
+      "name": "Match Keywords vs BO",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "notEquals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "has-matches",
+      "name": "Hay coincidencias?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1200, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://botexa-agent:3000/api/send",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ tenant_id: 2, phone: $json.phone, message: $json.message }) }}",
+        "options": {}
+      },
+      "id": "send-bo-alert",
+      "name": "Enviar Alerta BO por WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 340]
+    }
+  ],
+  "connections": {
+    "Cron 08:00 ARG (lun-vie)": {
+      "main": [
+        [
+          { "node": "Fetch BO Primera Sección", "type": "main", "index": 0 },
+          { "node": "Fetch BO Segunda Sección", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch BO Primera Sección": {
+      "main": [
+        [{ "node": "Combinar Datos BO", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch BO Segunda Sección": {
+      "main": [
+        [{ "node": "Combinar Datos BO", "type": "main", "index": 0 }]
+      ]
+    },
+    "Combinar Datos BO": {
+      "main": [
+        [{ "node": "Match Keywords vs BO", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch Keywords de Usuarios": {
+      "main": [
+        [{ "node": "Match Keywords vs BO", "type": "main", "index": 0 }]
+      ]
+    },
+    "Match Keywords vs BO": {
+      "main": [
+        [{ "node": "Hay coincidencias?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Hay coincidencias?": {
+      "main": [
+        [{ "node": "Enviar Alerta BO por WhatsApp", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["judicia", "boletin-oficial", "scheduled"],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-08T00:00:00.000Z",
+  "versionId": "1"
+}
