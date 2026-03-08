@@ -727,6 +727,101 @@ export async function POST(req) {
             return NextResponse.json({ ok: true });
         }
 
+        // ─── SUSCRIPCIÓN WHATSAPP AGENT (add-on individual) ──────────────────
+        const isWhatsappSub = externalRef.startsWith('whatsapp_sub:');
+        if (isWhatsappSub) {
+            const subUserId = externalRef.replace('whatsapp_sub:', '');
+            console.log(`[webhook] WhatsApp sub event — status: ${sub.status}, userId: ${subUserId}`);
+
+            const now = new Date();
+
+            if (sub.status === 'authorized') {
+                const expiryDate = new Date(now);
+                expiryDate.setDate(expiryDate.getDate() + 35);
+
+                await supabase.from('profiles').update({
+                    whatsapp_sub_status: 'active',
+                    whatsapp_sub_id: sub.id,
+                    whatsapp_sub_expiry: expiryDate.toISOString(),
+                    whatsapp_grace_period_ends_at: null,
+                }).eq('id', subUserId);
+
+                console.log(`[webhook] WhatsApp sub activated for user: ${subUserId}`);
+
+                try {
+                    const [{ data: userData }, { data: profileData }] = await Promise.all([
+                        supabase.auth.admin.getUserById(subUserId),
+                        supabase.from('profiles').select('full_name').eq('id', subUserId).maybeSingle(),
+                    ]);
+                    const userEmail = userData?.user?.email;
+                    const userName = profileData?.full_name || 'Abogado/a';
+                    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://judic-ia.com';
+
+                    if (userEmail) {
+                        await sendEmail({
+                            resendClient: resend,
+                            to: userEmail,
+                            from: 'billing@judic-ia.com',
+                            subject: 'Judic-IA WhatsApp Agent activado',
+                            html: `
+                                <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#020617;color:#f8fafc;padding:40px;border-radius:12px;border:1px solid #1e293b;">
+                                    <h1 style="color:#fbbf24;margin:0 0 4px;font-size:28px;">Judic-IA</h1>
+                                    <p style="color:#94a3b8;font-size:13px;text-transform:uppercase;letter-spacing:2px;margin:0 0 32px;">Asistente WhatsApp activado</p>
+                                    <div style="background:rgba(255,255,255,0.03);padding:28px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);text-align:center;">
+                                        <p style="font-size:48px;margin:0 0 16px;">💬</p>
+                                        <h2 style="color:#f8fafc;margin-top:0;">¡Tu Asistente WhatsApp está listo!</h2>
+                                        <p style="color:#cbd5e1;line-height:1.6;margin:0;">
+                                            Hola <strong>${userName}</strong>, el add-on <strong>WhatsApp Agent</strong> fue activado correctamente en tu cuenta.<br>
+                                            Ya podés consultar expedientes, normas y gestionar alertas directamente desde WhatsApp.
+                                        </p>
+                                        <a href="${appUrl}/dashboard/settings" style="display:inline-block;margin-top:24px;background:#fbbf24;color:#020617;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Ver mi cuenta</a>
+                                    </div>
+                                    <p style="margin-top:32px;font-size:12px;color:#475569;text-align:center;">© ${new Date().getFullYear()} Judic-IA. Todos los derechos reservados.</p>
+                                </div>
+                            `,
+                        });
+                        console.log(`[webhook] WhatsApp sub activation email sent to: ${userEmail}`);
+                    }
+
+                    await notifyBilling(resend, {
+                        subject: `✅ WhatsApp Agent activado — ${userName}`,
+                        rows: [
+                            { label: 'Operación', value: 'WhatsApp Agent (add-on)' },
+                            { label: 'Estado', value: '✅ Autorizado' },
+                            { label: 'Abogado', value: userName },
+                            { label: 'Email', value: userEmail },
+                            { label: 'User ID', value: subUserId },
+                            { label: 'MP Preapproval ID', value: sub.id },
+                            { label: 'Expiry', value: expiryDate.toISOString() },
+                            { label: 'Fecha/hora', value: now.toISOString() },
+                        ],
+                    });
+                } catch (emailErr) {
+                    console.error('[webhook whatsapp-sub] Email/audit error:', emailErr.message);
+                }
+            }
+
+            if (sub.status === 'paused' || sub.status === 'cancelled') {
+                await supabase.from('profiles').update({
+                    whatsapp_sub_status: 'cancelled',
+                    whatsapp_sub_id: null,
+                }).eq('id', subUserId);
+                console.log(`[webhook] WhatsApp sub cancelled for user: ${subUserId}`);
+            }
+
+            if (sub.status === 'payment_required' || sub.status === 'pending') {
+                const gracePeriod = new Date(now);
+                gracePeriod.setDate(gracePeriod.getDate() + 7);
+                await supabase.from('profiles').update({
+                    whatsapp_sub_status: 'past_due',
+                    whatsapp_grace_period_ends_at: gracePeriod.toISOString(),
+                }).eq('id', subUserId);
+                console.log(`[webhook] WhatsApp sub past_due (grace until ${gracePeriod.toISOString()}) for user: ${subUserId}`);
+            }
+
+            return NextResponse.json({ ok: true });
+        }
+
         // ─── SUSCRIPCIÓN INDIVIDUAL (abogado) — flujo existente ────────────────
         const userId = externalRef;
 

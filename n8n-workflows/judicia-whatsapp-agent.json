@@ -18,31 +18,21 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://judic-ia.com/api/agent/query",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "url": "http://172.17.0.1:3002/query",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "x-agent-key",
-              "value": "judicia-agent-2026"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
+            { "name": "x-agent-key", "value": "judicia-agent-2026" },
+            { "name": "Content-Type", "value": "application/json" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ phone: $json.body.phone || $json.phone, message: $json.body.message || $json.message }) }}",
-        "options": {
-          "timeout": 60000
-        }
+        "options": { "timeout": 60000 }
       },
       "id": "call-judicia-api",
-      "name": "Llamar Agente Judic-IA",
+      "name": "Llamar Agente Judic-IA (VPS)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [480, 300]
@@ -54,10 +44,7 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
+            { "name": "Content-Type", "value": "application/json" }
           ]
         },
         "sendBody": true,
@@ -86,25 +73,17 @@
   ],
   "connections": {
     "Webhook Botexa": {
-      "main": [
-        [{ "node": "Llamar Agente Judic-IA", "type": "main", "index": 0 }]
-      ]
+      "main": [[{ "node": "Llamar Agente Judic-IA (VPS)", "type": "main", "index": 0 }]]
     },
-    "Llamar Agente Judic-IA": {
-      "main": [
-        [{ "node": "Enviar Respuesta via Botexa", "type": "main", "index": 0 }]
-      ]
+    "Llamar Agente Judic-IA (VPS)": {
+      "main": [[{ "node": "Enviar Respuesta via Botexa", "type": "main", "index": 0 }]]
     },
     "Enviar Respuesta via Botexa": {
-      "main": [
-        [{ "node": "Responder Webhook", "type": "main", "index": 0 }]
-      ]
+      "main": [[{ "node": "Responder Webhook", "type": "main", "index": 0 }]]
     }
   },
   "pinData": {},
-  "settings": {
-    "executionOrder": "v1"
-  },
+  "settings": { "executionOrder": "v1" },
   "staticData": null,
   "tags": ["judicia", "whatsapp"],
   "triggerCount": 1,

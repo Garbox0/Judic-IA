@@ -131,7 +131,8 @@ export default function SettingsPage({ isDemo = false }) {
         subscription_expiry: null,
         is_correspondent: false,
         coverage_zones: [],
-        is_public: false
+        is_public: false,
+        whatsapp_sub_status: 'inactive',
     });
 
     const COLEGIO_ZONA_MAP = {
@@ -201,7 +202,8 @@ export default function SettingsPage({ isDemo = false }) {
                     subscription_expiry: null,
                     is_correspondent: false,
                     coverage_zones: ['Buenos Aires', 'CABA'],
-                    is_public: false
+                    is_public: false,
+                    whatsapp_sub_status: 'inactive',
                 });
                 setLoading(false);
                 return;
@@ -241,7 +243,8 @@ export default function SettingsPage({ isDemo = false }) {
                         subscription_expiry: data.subscription_expiry || null,
                         is_correspondent: data.is_correspondent || false,
                         coverage_zones: Array.isArray(data.coverage_zones) ? data.coverage_zones : [],
-                        is_public: data.is_public || false
+                        is_public: data.is_public || false,
+                        whatsapp_sub_status: data.whatsapp_sub_status || 'inactive',
                     });
                 }
             }
@@ -250,11 +253,16 @@ export default function SettingsPage({ isDemo = false }) {
 
         // Detect payment success from URL
         const status = searchParams.get('status');
+        const whatsappSubParam = searchParams.get('whatsapp_sub');
         if (status === 'success') {
             toast.success("🎉 ¡Pago acreditado con éxito! Tu cuenta se está actualizando.");
             // Remove the status from URL to prevent multiple alerts
             window.history.replaceState(null, '', '/dashboard/settings?tab=billing');
             fetchProfile(); // Refresh profile to show new plan
+        } else if (whatsappSubParam === 'success') {
+            toast.success("¡Asistente WhatsApp activado! Ya podés consultar expedientes desde WhatsApp.");
+            window.history.replaceState(null, '', '/dashboard/settings?tab=billing');
+            fetchProfile();
         } else {
             fetchProfile();
         }
@@ -734,6 +742,37 @@ export default function SettingsPage({ isDemo = false }) {
             toast.error("❌ Error al procesar: " + error.message);
             setSaving(false);
             setPaymentPending(false);
+        }
+    };
+
+    const handleActivateWhatsapp = async () => {
+        if (isDemo) {
+            toast.error("La suscripción real está desactivada en la Demo.");
+            return;
+        }
+        setSaving(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const response = await fetch('/api/mp/whatsapp-sub/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`,
+                },
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al iniciar suscripción WhatsApp');
+            }
+            if (data.checkout_url) {
+                window.location.href = data.checkout_url;
+            } else {
+                throw new Error("No se recibió link de pago.");
+            }
+        } catch (error) {
+            console.error("WhatsApp Subscription Error:", error);
+            toast.error("Error al procesar: " + error.message);
+            setSaving(false);
         }
     };
 
@@ -1334,6 +1373,63 @@ export default function SettingsPage({ isDemo = false }) {
                                                         </div>
                                                     </div>
                                                 )}
+                                            </div>
+                                        )}
+
+                                        {/* WhatsApp Agent Add-on Section */}
+                                        <div className="stg-divider-lg"></div>
+                                        <h3 className="stg-sec-title">Add-on: Asistente WhatsApp</h3>
+                                        {formData.whatsapp_sub_status === 'active' ? (
+                                            <div className="stg-current-status-card">
+                                                <div className="stg-status-info">
+                                                    <span className="stg-status-icon"><MessageCircle size={24} className="text-emerald-400" /></span>
+                                                    <div>
+                                                        <h4 className="m-0 fs-1-2rem">Asistente WhatsApp</h4>
+                                                        <p className="billing-plan-p">Consultá expedientes y normas desde WhatsApp, 24/7.</p>
+                                                    </div>
+                                                </div>
+                                                <div className="stg-badge-v2 active">
+                                                    <Check size={12} /> ACTIVO
+                                                </div>
+                                            </div>
+                                        ) : formData.whatsapp_sub_status === 'past_due' ? (
+                                            <div className="stg-current-status-card" style={{ borderColor: '#f59e0b' }}>
+                                                <div className="stg-status-info">
+                                                    <span className="stg-status-icon"><MessageCircle size={24} className="text-amber-400" /></span>
+                                                    <div>
+                                                        <h4 className="m-0 fs-1-2rem">Asistente WhatsApp</h4>
+                                                        <p className="billing-plan-p" style={{ color: '#fbbf24' }}>Pago pendiente. Actualizá tu método de pago en Mercado Pago para evitar la cancelación.</p>
+                                                    </div>
+                                                </div>
+                                                <div className="stg-badge-v2" style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24', borderColor: '#f59e0b' }}>
+                                                    <AlertTriangle size={12} /> PAGO REQUERIDO
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="stg-plan-card">
+                                                <small className="stg-tag">Add-on Mensual</small>
+                                                <h2 className="stg-plan-name">Asistente WhatsApp</h2>
+                                                <div className="stg-price-row">
+                                                    <span className="stg-val">$25.000</span>
+                                                    <span className="stg-period">/ mensual</span>
+                                                </div>
+                                                <ul className="stg-plan-list">
+                                                    <li><Check size={16} className="text-emerald-400" /> Consultá expedientes desde WhatsApp</li>
+                                                    <li><Check size={16} className="text-emerald-400" /> Boletín Oficial y normas al instante</li>
+                                                    <li><Check size={16} className="text-emerald-400" /> Calculadoras de intereses e indemnizaciones</li>
+                                                    <li><Check size={16} className="text-emerald-400" /> Gestión de alertas y vencimientos</li>
+                                                    <li><Check size={16} className="text-emerald-400" /> Respuestas en segundos, 24/7</li>
+
+                                                    <div className="billing-footer-v2">
+                                                        <button
+                                                            className="stg-gold-btn billing-btn-pro"
+                                                            onClick={handleActivateWhatsapp}
+                                                            disabled={saving}
+                                                        >
+                                                            {saving ? 'PROCESANDO...' : 'ACTIVAR'}
+                                                        </button>
+                                                    </div>
+                                                </ul>
                                             </div>
                                         )}
 
