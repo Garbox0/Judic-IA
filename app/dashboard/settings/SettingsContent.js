@@ -133,6 +133,8 @@ export default function SettingsPage({ isDemo = false }) {
         coverage_zones: [],
         is_public: false,
         whatsapp_sub_status: 'inactive',
+        whatsapp_sub_expiry: null,
+        whatsapp_sub_started_at: null,
     });
 
     const COLEGIO_ZONA_MAP = {
@@ -204,6 +206,8 @@ export default function SettingsPage({ isDemo = false }) {
                     coverage_zones: ['Buenos Aires', 'CABA'],
                     is_public: false,
                     whatsapp_sub_status: 'inactive',
+                    whatsapp_sub_expiry: null,
+                    whatsapp_sub_started_at: null,
                 });
                 setLoading(false);
                 return;
@@ -245,6 +249,8 @@ export default function SettingsPage({ isDemo = false }) {
                         coverage_zones: Array.isArray(data.coverage_zones) ? data.coverage_zones : [],
                         is_public: data.is_public || false,
                         whatsapp_sub_status: data.whatsapp_sub_status || 'inactive',
+                        whatsapp_sub_expiry: data.whatsapp_sub_expiry || null,
+                        whatsapp_sub_started_at: data.whatsapp_sub_started_at || null,
                     });
                 }
             }
@@ -742,6 +748,26 @@ export default function SettingsPage({ isDemo = false }) {
             toast.error("❌ Error al procesar: " + error.message);
             setSaving(false);
             setPaymentPending(false);
+        }
+    };
+
+    const handleCancelWhatsapp = async () => {
+        if (!window.confirm('¿Confirmás la cancelación del Asistente WhatsApp? Perderás acceso al finalizar el período actual.')) return;
+        setSaving(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const response = await fetch('/api/mp/whatsapp-sub/cancel', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${session?.access_token}` },
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Error al cancelar');
+            toast.success('Suscripción cancelada. Tu acceso permanece hasta fin del período.');
+            setFormData(prev => ({ ...prev, whatsapp_sub_status: 'cancelled', whatsapp_sub_expiry: null }));
+        } catch (error) {
+            toast.error(error.message);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -1380,29 +1406,71 @@ export default function SettingsPage({ isDemo = false }) {
                                         <div className="stg-divider-lg"></div>
                                         <h3 className="stg-sec-title">Add-on: Asistente WhatsApp</h3>
                                         {formData.whatsapp_sub_status === 'active' ? (
-                                            <div className="stg-current-status-card">
-                                                <div className="stg-status-info">
-                                                    <span className="stg-status-icon"><MessageCircle size={24} className="text-emerald-400" /></span>
-                                                    <div>
-                                                        <h4 className="m-0 fs-1-2rem">Asistente WhatsApp</h4>
-                                                        <p className="billing-plan-p">Consultá expedientes y normas desde WhatsApp, 24/7.</p>
+                                            <div className="stg-current-status-card" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '16px' }}>
+                                                <div className="stg-status-info" style={{ justifyContent: 'space-between' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                        <span className="stg-status-icon"><MessageCircle size={24} className="text-emerald-400" /></span>
+                                                        <div>
+                                                            <h4 className="m-0 fs-1-2rem">Asistente WhatsApp</h4>
+                                                            <p className="billing-plan-p" style={{ margin: 0 }}>$25.000 / mes · Renovación automática</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="stg-badge-v2 active">
+                                                        <Check size={12} /> ACTIVO
                                                     </div>
                                                 </div>
-                                                <div className="stg-badge-v2 active">
-                                                    <Check size={12} /> ACTIVO
+                                                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', fontSize: '13px', color: '#94a3b8', borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '14px' }}>
+                                                    {formData.whatsapp_sub_started_at && (
+                                                        <div>
+                                                            <span style={{ color: '#64748b', display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>Suscripto desde</span>
+                                                            <span style={{ color: '#e2e8f0' }}>{new Date(formData.whatsapp_sub_started_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                                                        </div>
+                                                    )}
+                                                    {formData.whatsapp_sub_expiry && (
+                                                        <div>
+                                                            <span style={{ color: '#64748b', display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>Próxima renovación</span>
+                                                            <span style={{ color: '#e2e8f0' }}>{new Date(formData.whatsapp_sub_expiry).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '12px' }}>
+                                                    <button
+                                                        onClick={handleCancelWhatsapp}
+                                                        disabled={saving}
+                                                        style={{ background: 'transparent', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', borderRadius: '6px', padding: '6px 14px', fontSize: '12px', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}
+                                                    >
+                                                        {saving ? 'Procesando...' : 'Cancelar suscripción'}
+                                                    </button>
                                                 </div>
                                             </div>
                                         ) : formData.whatsapp_sub_status === 'past_due' ? (
-                                            <div className="stg-current-status-card" style={{ borderColor: '#f59e0b' }}>
-                                                <div className="stg-status-info">
-                                                    <span className="stg-status-icon"><MessageCircle size={24} className="text-amber-400" /></span>
-                                                    <div>
-                                                        <h4 className="m-0 fs-1-2rem">Asistente WhatsApp</h4>
-                                                        <p className="billing-plan-p" style={{ color: '#fbbf24' }}>Pago pendiente. Actualizá tu método de pago en Mercado Pago para evitar la cancelación.</p>
+                                            <div className="stg-current-status-card" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '16px', borderColor: '#f59e0b' }}>
+                                                <div className="stg-status-info" style={{ justifyContent: 'space-between' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                        <span className="stg-status-icon"><MessageCircle size={24} className="text-amber-400" /></span>
+                                                        <div>
+                                                            <h4 className="m-0 fs-1-2rem">Asistente WhatsApp</h4>
+                                                            <p className="billing-plan-p" style={{ margin: 0, color: '#fbbf24' }}>Pago pendiente — actualizá tu método de pago en Mercado Pago.</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="stg-badge-v2" style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24', borderColor: '#f59e0b' }}>
+                                                        <AlertTriangle size={12} /> PAGO REQUERIDO
                                                     </div>
                                                 </div>
-                                                <div className="stg-badge-v2" style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24', borderColor: '#f59e0b' }}>
-                                                    <AlertTriangle size={12} /> PAGO REQUERIDO
+                                                {formData.whatsapp_sub_expiry && (
+                                                    <div style={{ fontSize: '13px', color: '#94a3b8', borderTop: '1px solid rgba(245,158,11,0.2)', paddingTop: '14px' }}>
+                                                        <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Período de gracia hasta: </span>
+                                                        <span style={{ color: '#fbbf24' }}>{new Date(formData.whatsapp_sub_expiry).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                                                    </div>
+                                                )}
+                                                <div style={{ borderTop: '1px solid rgba(245,158,11,0.2)', paddingTop: '12px' }}>
+                                                    <button
+                                                        onClick={handleCancelWhatsapp}
+                                                        disabled={saving}
+                                                        style={{ background: 'transparent', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', borderRadius: '6px', padding: '6px 14px', fontSize: '12px', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}
+                                                    >
+                                                        {saving ? 'Procesando...' : 'Cancelar suscripción'}
+                                                    </button>
                                                 </div>
                                             </div>
                                         ) : (

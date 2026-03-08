@@ -743,6 +743,7 @@ export async function POST(req) {
                     whatsapp_sub_status: 'active',
                     whatsapp_sub_id: sub.id,
                     whatsapp_sub_expiry: expiryDate.toISOString(),
+                    whatsapp_sub_started_at: now.toISOString(),
                     whatsapp_grace_period_ends_at: null,
                 }).eq('id', subUserId);
 
