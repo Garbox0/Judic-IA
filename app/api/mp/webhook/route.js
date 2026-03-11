@@ -134,10 +134,9 @@ function validateMPSignature(req, body) {
     const xRequestId = req.headers.get('x-request-id');
     const secret = process.env.MP_WEBHOOK_SECRET;
 
-    // If no secret configured, log warning but allow (for backwards compatibility)
     if (!secret) {
-        console.warn("⚠️ MP_WEBHOOK_SECRET not configured. Signature validation skipped.");
-        return { valid: true, reason: 'no_secret_configured' };
+        console.error("🚨 MP_WEBHOOK_SECRET not configured. Rejecting webhook.");
+        return { valid: false, reason: 'no_secret_configured' };
     }
 
     if (!xSignature) {
