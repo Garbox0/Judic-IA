@@ -167,9 +167,9 @@
     letter-spacing: 0.06em;
     padding: 0.1rem 0.35rem;
     border-radius: 4px;
-    background: rgba(37,211,102,0.15);
+    background: rgba(37, 211, 102, 0.15);
     color: #25d366;
-    border: 1px solid rgba(37,211,102,0.3);
+    border: 1px solid rgba(37, 211, 102, 0.3);
 }
 
 /* SIDEBAR USER PROFILE */
@@ -278,9 +278,23 @@
     font-size: 0.875rem;
     color: #cbd5e1;
 }
-.banner-2fa-icon { color: #fbbf24; flex-shrink: 0; }
-.banner-2fa-link { color: #fbbf24; font-weight: 600; text-decoration: none; white-space: nowrap; }
-.banner-2fa-link:hover { text-decoration: underline; }
+
+.banner-2fa-icon {
+    color: #fbbf24;
+    flex-shrink: 0;
+}
+
+.banner-2fa-link {
+    color: #fbbf24;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.banner-2fa-link:hover {
+    text-decoration: underline;
+}
+
 .banner-2fa-close {
     margin-left: auto;
     background: none;
@@ -294,12 +308,25 @@
     border-radius: 4px;
     transition: color 0.15s;
 }
-.banner-2fa-close:hover { color: #94a3b8; }
+
+.banner-2fa-close:hover {
+    color: #94a3b8;
+}
 
 /* Light theme */
-.light-theme .banner-2fa { background: rgba(217, 119, 6, 0.06); border-color: rgba(217, 119, 6, 0.2); color: #475569; }
-.light-theme .banner-2fa-close { color: #94a3b8; }
-.light-theme .banner-2fa-close:hover { color: #64748b; }
+.light-theme .banner-2fa {
+    background: rgba(217, 119, 6, 0.06);
+    border-color: rgba(217, 119, 6, 0.2);
+    color: #475569;
+}
+
+.light-theme .banner-2fa-close {
+    color: #94a3b8;
+}
+
+.light-theme .banner-2fa-close:hover {
+    color: #64748b;
+}
 
 .dashboard-container {
     max-width: 1200px;
@@ -682,6 +709,36 @@
         min-height: auto;
     }
 }
+
+/* Extra small screens: Z Flip / iPhone SE */
+@media (max-width: 480px) {
+    .main-viewport {
+        padding-top: 4.5rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        padding-bottom: 2rem;
+    }
+
+    .dashboard-page-title {
+        font-size: 1.6rem;
+    }
+
+    /* Botones flotantes más pequeños y más cerca del borde */
+    .floating-theme-toggle {
+        width: 32px;
+        height: 32px;
+        right: 76px;
+        top: 10px;
+    }
+
+    .usage-guide-trigger {
+        width: 32px;
+        height: 32px;
+        right: 36px;
+        top: 10px;
+    }
+}
+
 
 /* =========================================
    USAGE GUIDE COMPONENT GLOBAL STYLES

@@ -4000,3 +4000,131 @@ body.light-theme .enterprise-banner-login-hint {
     color: rgba(15, 23, 42, 0.45);
     border-top-color: rgba(0, 0, 0, 0.07);
 }
+
+/* ============================================================
+   RESPONSIVE MOBILE-SUPPORT (Desktop-first)
+   Breakpoints: 900px (tablet), 768px (phone), 480px (small), 380px (Z Flip)
+   ============================================================ */
+
+/* ----- 900px: tablet / Z Flip unfolded ----- */
+@media (max-width: 900px) {
+
+    /* Hero: de grilla 2-col a 1 col apilada */
+    .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+        text-align: center;
+    }
+
+    .hero-section {
+        padding: 120px 1.5rem 40px;
+    }
+
+    .badge-new {
+        margin: 0 auto 2rem;
+    }
+
+    .hero-title {
+        font-size: clamp(32px, 7vw, 60px);
+    }
+
+    .hero-subtitle {
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-actions {
+        justify-content: center;
+    }
+
+    /* Ocultar mockup del hero para no desperdiciar espacio */
+    .hero-mockup-wrapper {
+        display: none;
+    }
+}
+
+/* ----- 768px: teléfono ----- */
+@media (max-width: 768px) {
+
+    /* Navbar: ocultar links de nav, mantener solo logo + CTAs */
+    .landing-nav-links {
+        display: none;
+    }
+
+    .nav-container {
+        padding: 0 1.2rem;
+    }
+
+    /* Hero subtitle: fuente más chica */
+    .hero-subtitle {
+        font-size: 1rem;
+        margin-bottom: 2.5rem;
+    }
+
+    /* Badge pill más compacto */
+    .badge-new {
+        font-size: 0.7rem;
+        padding: 6px 14px;
+    }
+}
+
+/* ----- 480px: teléfono pequeño ----- */
+@media (max-width: 480px) {
+
+    /* Navbar: solo logo + toggle tema (ocultar botones de acción secundarios) */
+    .btn-login-premium {
+        display: none;
+    }
+
+    /* Botones hero: fullwidth apilados */
+    .hero-actions {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .btn-primary-v3,
+    .btn-secondary-v3 {
+        min-width: unset;
+        width: 100%;
+        justify-content: center;
+        height: 54px;
+    }
+
+    .hero-section {
+        padding: 100px 1rem 32px;
+    }
+
+    .hero-title {
+        font-size: clamp(28px, 9vw, 44px);
+    }
+}
+
+/* ----- 380px: Z Flip cerrado / iPhone SE ----- */
+@media (max-width: 380px) {
+
+    .nav-container {
+        padding: 0 0.8rem;
+    }
+
+    .nav-title {
+        font-size: 1.3rem;
+    }
+
+    .nav-logo {
+        height: 40px;
+    }
+
+    .hero-title {
+        font-size: clamp(26px, 8vw, 38px);
+    }
+
+    .hero-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .btn-nav-cta {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+}

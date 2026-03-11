@@ -1005,3 +1005,85 @@ body.light-theme .history-card {
 body.light-theme .card-info h4 {
     color: #0f172a;
 }
+
+/* ---- LIGHT THEME FIXES (textos hardcodeados que eran invisibles) ---- */
+
+/* Segmented buttons (filtros de tipo de plazo) */
+body.light-theme .segmented button {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #334155;
+}
+
+body.light-theme .segmented button:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+body.light-theme .segmented button.active {
+    background: rgba(183, 121, 31, 0.12);
+    border-color: rgba(183, 121, 31, 0.5);
+    color: #7c4f0a;
+}
+
+/* Card title hardcodeado a blanco */
+body.light-theme .card-title {
+    color: #0f172a;
+}
+
+/* Dot count (contador de eventos en el burbujeo del calendario) */
+body.light-theme .dot-count {
+    color: #475569;
+    border-color: rgba(15, 23, 42, 0.12);
+    background: rgba(15, 23, 42, 0.05);
+}
+
+/* Botones de acciones sobre la card al hacer hover */
+body.light-theme .event-actions button {
+    background: rgba(15, 23, 42, 0.06);
+    color: #334155;
+}
+
+body.light-theme .event-actions button:hover {
+    background: rgba(15, 23, 42, 0.12);
+    color: #0f172a;
+}
+
+body.light-theme .event-actions {
+    border-left-color: rgba(15, 23, 42, 0.1);
+}
+
+/* Check (checkbox "solo hábiles") */
+body.light-theme .check {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #475569;
+}
+
+body.light-theme .check:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+/* Empty states */
+body.light-theme .empty-title {
+    color: #1e293b;
+}
+
+body.light-theme .empty-sub {
+    color: #64748b;
+}
+
+body.light-theme .empty-msg {
+    color: #64748b;
+}
+
+/* Card info spans */
+body.light-theme .card-info span {
+    color: #64748b;
+}
+
+/* History title h3 */
+body.light-theme .history-title h3 {
+    color: #0f172a;
+}
