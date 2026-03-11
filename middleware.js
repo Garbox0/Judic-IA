@@ -29,7 +29,8 @@ export async function middleware(request) {
     // Webhooks que no deben bloquearse
     const isWebhook =
         pathname.startsWith('/api/mp/webhook') ||
-        pathname.startsWith('/api/webhook/whatsapp');
+        pathname.startsWith('/api/webhook/whatsapp') ||
+        pathname.startsWith('/api/whatsapp/');
 
     // IP real (Cloudflare primero) + parse del primer IP si viene lista
     const rawIp =
