@@ -297,7 +297,7 @@ export default function DashboardLayout({ children, isDemo = false, basePath = '
           </Link>
           <Link href={isDemo ? `${basePath}/library` : '/dashboard/library'} className={`nav-item ${pathname.includes('/library') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
             <BookOpen size={18} className="nav-icon" />
-            <span>Jurisprudencias</span>
+            <span>Biblioteca</span>
           </Link>
           {!isDemo && (
             <Link href="/dashboard/whatsapp" className={`nav-item ${pathname.includes('/whatsapp') ? 'active' : ''}`} onClick={() => setMobileSidebarOpen(false)}>
