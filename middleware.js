@@ -26,7 +26,12 @@ export async function middleware(request) {
     // 🛡️ -1. GEO BLOCKING (High Priority)
     const country = request.headers.get('x-vercel-ip-country') || request.headers.get('cf-ipcountry');
 
-    // Webhooks que no deben bloquearse
+    // 🚀 API routes skip geoblock — each route handles its own auth
+    if (pathname.startsWith('/api/')) {
+        return NextResponse.next();
+    }
+
+    // Webhooks que no deben bloquearse (legacy, kept for clarity)
     const isWebhook =
         pathname.startsWith('/api/mp/webhook') ||
         pathname.startsWith('/api/webhook/whatsapp') ||
@@ -181,12 +186,6 @@ export async function middleware(request) {
     // 🛡️ 1. Sanitización
     if (pathname.includes('..') || pathname.includes('//')) {
         return new NextResponse(null, { status: 400 })
-    }
-
-    // 🚀 EARLY RETURN: Skip middleware for API routes (webhooks, etc.)
-    // This prevents 307 redirects on webhook endpoints
-    if (pathname.startsWith('/api/')) {
-        return NextResponse.next({ request: { headers: requestHeaders } })
     }
 
     // 🔀 SUBDOMAIN REDIRECT LOGIC

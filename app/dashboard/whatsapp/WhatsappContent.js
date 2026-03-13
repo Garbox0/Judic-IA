@@ -6,23 +6,22 @@ import {
     MessageSquare, CheckCircle, XCircle, Phone, RefreshCw,
     AlertCircle, Zap, Search, Bell, FileText, Newspaper,
     ChevronRight, Copy, Check, X, Plus, Tag, Calculator,
-    Calendar, BookOpen, Sunrise
+    Calendar, BookOpen, Sunrise, QrCode
 } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 import './whatsapp.css';
 
 const BOT_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_BOT_NUMBER || null;
 
 const COMANDOS = [
     { icon: Sunrise,    label: 'Resumen del día',       ejemplo: 'Buenos días, dame un resumen de hoy' },
-    { icon: Search,     label: 'Buscar expediente PJN', ejemplo: 'Actuaciones del expediente 12345/2023' },
+    { icon: FileText,   label: 'Dictado a PDF',         ejemplo: 'Guardá este dictado como PDF en el expediente de Gomez' },
+    { icon: Search,     label: 'Consultar PDF (RAG)',   ejemplo: '¿De qué trata este PDF? Resumime los hechos' },
+    { icon: Calculator, label: 'Indemnización LCT',     ejemplo: 'Calculá indemnización: sueldo 800k, 5 años antigüedad' },
     { icon: Bell,       label: 'Crear alerta',           ejemplo: 'Monitorea el expediente 12345/2023 en PJN' },
     { icon: Newspaper,  label: 'Boletín Oficial',        ejemplo: '¿Qué decretos salieron hoy en el Boletín?' },
-    { icon: BookOpen,   label: 'Texto de norma',         ejemplo: 'Traeme el texto del artículo 245 de la LCT' },
     { icon: Calculator, label: 'Calcular intereses',     ejemplo: 'Calculame intereses sobre $500000 desde 01/01/2024' },
-    { icon: Calculator, label: 'Liquidación laboral',    ejemplo: 'Liquidación por despido, sueldo $800000, 3 años' },
-    { icon: Calendar,   label: 'Calcular plazo',         ejemplo: '15 días hábiles desde el 10 de marzo' },
-    { icon: FileText,   label: 'Mis expedientes',        ejemplo: 'Mostrame mis expedientes activos' },
-    { icon: Zap,        label: 'Mis vencimientos',       ejemplo: '¿Qué vence esta semana?' },
+    { icon: Calendar,   label: 'Agendar Audiencia',      ejemplo: 'Agendá audiencia para este jueves a las 10hs' },
 ];
 
 export default function WhatsappContent() {
@@ -143,22 +142,57 @@ export default function WhatsappContent() {
             </nav>
 
             <header className="wa-header">
-                <div className="wa-header-icon">
-                    <MessageSquare size={36} />
-                </div>
-                <div>
-                    <h1>Agente WhatsApp <span className="wa-beta-badge">BETA</span></h1>
-                    <p>Tu asistente legal inteligente disponible 24/7 en WhatsApp</p>
+                <div className="wa-header-top">
+                    <div className="wa-header-icon">
+                        <MessageSquare size={36} />
+                    </div>
+                    <div>
+                        <h1>Asistente IA WhatsApp <span className="wa-beta-badge">PREMIUM</span></h1>
+                        <p>Tu estudio jurídico en tu bolsillo, disponible 24/7 en WhatsApp</p>
+                    </div>
                 </div>
             </header>
+
+            <div className="wa-features">
+                <div className="wa-feature-card">
+                    <div className="wa-feature-icon"><Zap size={20} /></div>
+                    <h3>Movilidad Total</h3>
+                    <p>Consultá expedientes, calculá plazos e intereses desde la calle sin abrir la computadora.</p>
+                </div>
+                <div className="wa-feature-card">
+                    <div className="wa-feature-icon"><Sunrise size={20} /></div>
+                    <h3>Proactividad Diaria</h3>
+                    <p>Recibí un resumen a las 8:00 AM con tus vencimientos de hoy y novedades del Boletín Oficial.</p>
+                </div>
+                <div className="wa-feature-card">
+                    <div className="wa-feature-icon"><FileText size={20} /></div>
+                    <h3>Dictado a PDF</h3>
+                    <p>Enviá un audio y pedile que lo guarde como PDF formal dentro de un expediente de Judic-IA.</p>
+                </div>
+                <div className="wa-feature-card">
+                    <div className="wa-feature-icon"><BookOpen size={20} /></div>
+                    <h3>Lectura de Escritos</h3>
+                    <p>Subí un PDF y hacé preguntas sobre el contenido (RAG). El agente "lee" el expediente por vos.</p>
+                </div>
+                <div className="wa-feature-card">
+                    <div className="wa-feature-icon"><QrCode size={20} /></div>
+                    <h3>Visión Legal (OCR)</h3>
+                    <p>Sacale una foto a un escrito a mano o documento y pedile al agente que lo transcriba o analice.</p>
+                </div>
+                <div className="wa-feature-card">
+                    <div className="wa-feature-icon"><Calculator size={20} /></div>
+                    <h3>Cálculos Complejos</h3>
+                    <p>Liquidaciones laborales (LCT 245), intereses y plazos procesales en segundos por chat.</p>
+                </div>
+            </div>
 
             <div className="wa-grid">
 
                 {/* Vinculación */}
-                <section className="wa-card glass-panel">
+                <section className="wa-card glass-panel" style={{ marginBottom: '1.5rem' }}>
                     <div className="wa-card-header">
                         <Phone size={18} />
-                        <h2>Tu número de WhatsApp</h2>
+                        <h2>1. Vinculá tu número</h2>
                     </div>
                     <div className={`wa-status ${isLinked ? 'linked' : 'unlinked'}`}>
                         {isLinked ? (
@@ -202,7 +236,7 @@ export default function WhatsappContent() {
                 <section className="wa-card glass-panel">
                     <div className="wa-card-header">
                         <Newspaper size={18} />
-                        <h2>Boletín Oficial en vivo</h2>
+                        <h2>2. Boletín Oficial en vivo</h2>
                     </div>
                     <p className="wa-intro">
                         Cada mañana el agente te manda por WhatsApp las publicaciones del BO que coincidan con tus palabras clave.
@@ -211,7 +245,7 @@ export default function WhatsappContent() {
                         <div className="wa-input-row">
                             <input
                                 type="text"
-                                placeholder="ej: laboral, licitación, AFIP..."
+                                placeholder="ej: laboral, licitación, ARCA..."
                                 value={newKeyword}
                                 onChange={e => setNewKeyword(e.target.value)}
                                 disabled={kwLoading}
@@ -242,43 +276,44 @@ export default function WhatsappContent() {
                 </section>
 
                 {/* Comandos disponibles */}
-                <section className="wa-card wa-card-full glass-panel">
-                    <div className="wa-card-header">
-                        <Zap size={18} />
-                        <h2>Qué podés pedirle al agente</h2>
-                    </div>
-                    <p className="wa-intro">Escribile en lenguaje natural. Estos son algunos ejemplos — hacé clic para copiar:</p>
-                    <ul className="wa-commands">
-                        {COMANDOS.map(({ icon: Icon, label, ejemplo }) => (
-                            <li key={label} className="wa-command">
-                                <div className="wa-command-icon"><Icon size={14} /></div>
-                                <div className="wa-command-body">
-                                    <span className="wa-command-label">{label}</span>
-                                    <button className="wa-command-example" onClick={() => copyExample(ejemplo)} title="Copiar">
-                                        <span>"{ejemplo}"</span>
-                                        {copied === ejemplo ? <Check size={12} /> : <Copy size={12} />}
-                                    </button>
+                <div className="wa-col">
+                    <section className="wa-card glass-panel" style={{ height: '100%' }}>
+                        <div className="wa-card-header"><Zap size={18} /><h2>3. Comandos Rápidos</h2></div>
+                        <p className="wa-intro">Tocá un ejemplo para copiarlo y enviárselo al asistente:</p>
+                        <ul className="wa-commands">
+                            {COMANDOS.map(({ icon: Icon, label, ejemplo }) => (
+                                <li key={label} className="wa-command">
+                                    <div className="wa-command-icon"><Icon size={14} /></div>
+                                    <div className="wa-command-body">
+                                        <span className="wa-command-label">{label}</span>
+                                        <button className="wa-command-example" onClick={() => copyExample(ejemplo)}>
+                                            <span>"{ejemplo}"</span>
+                                            {copied === ejemplo ? <Check size={12} /> : <Copy size={12} />}
+                                        </button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                        {BOT_NUMBER && (
+                            <div className="wa-qr-section" style={{ marginTop: '2rem' }}>
+                                <div className="wa-qr-container">
+                                    <div className="wa-qr-box">
+                                        <QRCodeCanvas
+                                            value={`https://wa.me/${BOT_NUMBER.replace(/\D/g, '')}`}
+                                            size={180}
+                                            level="H"
+                                            includeMargin={false}
+                                        />
+                                    </div>
+                                    <p className="wa-qr-hint">Escaneá para chatear con el Agente</p>
                                 </div>
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-
-                {/* Conectar al bot */}
-                {BOT_NUMBER ? (
-                    <section className="wa-card wa-card-full glass-panel">
-                        <div className="wa-card-header"><MessageSquare size={18} /><h2>Abrir chat con el agente</h2></div>
-                        <a href={`https://wa.me/${BOT_NUMBER.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="btn-wa">
-                            <MessageSquare size={18} />Abrir chat
-                            <ChevronRight size={16} />
-                        </a>
+                                <a href={`https://wa.me/${BOT_NUMBER.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="btn-wa" style={{ width: '100%', marginTop: '1rem', justifyContent: 'center' }}>
+                                    <MessageSquare size={18} /> Abrir chat ahora
+                                </a>
+                            </div>
+                        )}
                     </section>
-                ) : (
-                    <section className="wa-card wa-card-full glass-panel wa-coming-soon">
-                        <div className="wa-card-header"><MessageSquare size={18} /><h2>Número del agente</h2></div>
-                        <p>El número estará disponible próximamente. Vinculá tu número ahora para estar listo cuando se active.</p>
-                    </section>
-                )}
+                </div>
             </div>
         </div>
     );

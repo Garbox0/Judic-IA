@@ -34,6 +34,22 @@
 
 export const CHANGELOG = [
     {
+        id: 14,
+        date: "13 Mar 2026",
+        badge: "Nuevo",
+        items: [
+            "Agente de WhatsApp: ahora podés hablar con Judic-IA directamente desde tu WhatsApp. El agente entiende lenguaje natural y ejecuta tareas reales sin necesidad de abrir la plataforma",
+            "El agente puede buscar expedientes en el PJN, importarlos a tu panel, listar tus causas activas y consultar vencimientos de la semana, todo por chat o nota de voz",
+            "Investigación jurídica desde WhatsApp: escribí tu consulta y el agente entrega un informe completo con normativa, fallos y estrategia (consume 1 crédito de investigación)",
+            "Envío de documentos PDF por WhatsApp: el agente puede enviarte los archivos adjuntos de tus expedientes directamente al chat",
+            "Creación y consulta de alertas de monitoreo desde WhatsApp",
+            "Calculadoras disponibles en WhatsApp: intereses, indemnizaciones y plazos procesales",
+            "El agente consulta el Boletín Oficial del día y trae el texto completo de normas (InfoLeg)",
+            "Resumen matutino automático: todos los días a las 8 AM recibís tus vencimientos del día, alertas disparadas y resumen de causas activas",
+            "Todo funciona también por nota de voz: el agente transcribe y actúa",
+        ],
+    },
+    {
         id: 13,
         date: "28 Feb 2026",
         badge: "Nuevo",

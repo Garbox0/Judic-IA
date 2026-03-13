@@ -147,54 +147,61 @@ export async function POST(request) {
             await supabase.from('demo_limits').upsert({ ip_address: ip, research_count: (limitData?.research_count || 0) + 1 }, { onConflict: 'ip_address' });
 
         } else {
-            // PRO/AUTH MODE: Validate Session Token (Fix IDOR)
-            const authHeader = request.headers.get('authorization');
+            // ─── INTERNAL AGENT BYPASS ─────────────────────────────────────────────
+            const internalKey = request.headers.get('x-internal-key');
+            if (internalKey && internalKey === process.env.INTERNAL_API_KEY) {
+                if (!userId) return NextResponse.json({ error: 'user_id requerido para acceso interno' }, { status: 400 });
+                effectiveUserId = userId;
+            } else {
+                // PRO/AUTH MODE: Validate Session Token (Fix IDOR)
+                const authHeader = request.headers.get('authorization');
 
-            if (!authHeader) {
-                return NextResponse.json({ error: "Missing Authorization Header" }, { status: 401 });
-            }
+                if (!authHeader) {
+                    return NextResponse.json({ error: "Missing Authorization Header" }, { status: 401 });
+                }
 
-            const token = authHeader.replace('Bearer ', '');
-            const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+                const token = authHeader.replace('Bearer ', '');
+                const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
-            if (authError || !user) {
-                console.warn("⚠️ Invalid Token in Research API:", authError);
-                return NextResponse.json({ error: "Invalid or Expired Session" }, { status: 401 });
-            }
+                if (authError || !user) {
+                    console.warn("⚠️ Invalid Token in Research API:", authError);
+                    return NextResponse.json({ error: "Invalid or Expired Session" }, { status: 401 });
+                }
 
-            effectiveUserId = user.id;
+                effectiveUserId = user.id;
 
-            // 🔒 TRIAL EXPIRATION CHECK (Backend Security - Cannot be bypassed via console)
-            const { data: profileData } = await supabase
-                .from('profiles')
-                .select('plan_tier, subscription_status, trial_ends_at, verification_status')
-                .eq('id', user.id)
-                .single();
+                // 🔒 TRIAL EXPIRATION CHECK (Backend Security - Cannot be bypassed via console)
+                const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('plan_tier, subscription_status, trial_ends_at, verification_status')
+                    .eq('id', user.id)
+                    .single();
 
-            if (profileData && profileData.verification_status !== 'verified') {
-                console.warn(`⛔ Unverified lawyer attempted research: ${user.id}`);
-                return NextResponse.json({
-                    error: "VERIFICATION_REQUIRED",
-                    message: "Tu cuenta está pendiente de verificación. Nuestro equipo está revisando tus credenciales.",
-                    laws: "⏳ VERIFICACIÓN PENDIENTE",
-                    cases: [],
-                    links: []
-                }, { status: 403 });
-            }
+                if (profileData && profileData.verification_status !== 'verified') {
+                    console.warn(`⛔ Unverified lawyer attempted research: ${user.id}`);
+                    return NextResponse.json({
+                        error: "VERIFICATION_REQUIRED",
+                        message: "Tu cuenta está pendiente de verificación. Nuestro equipo está revisando tus credenciales.",
+                        laws: "⏳ VERIFICACIÓN PENDIENTE",
+                        cases: [],
+                        links: []
+                    }, { status: 403 });
+                }
 
-            if (profileData && isTrialExpired(profileData)) {
-                console.warn(`⛔ Trial expired for user ${user.id}`);
-                return NextResponse.json({
-                    error: "TRIAL_EXPIRED",
-                    message: "Tu período de prueba ha vencido. Actualizá tu plan para continuar.",
-                    laws: "⏰ PERÍODO DE PRUEBA VENCIDO",
-                    cases: [],
-                    links: []
-                }, { status: 403 });
-            }
+                if (profileData && isTrialExpired(profileData)) {
+                    console.warn(`⛔ Trial expired for user ${user.id}`);
+                    return NextResponse.json({
+                        error: "TRIAL_EXPIRED",
+                        message: "Tu período de prueba ha vencido. Actualizá tu plan para continuar.",
+                        laws: "⏰ PERÍODO DE PRUEBA VENCIDO",
+                        cases: [],
+                        links: []
+                    }, { status: 403 });
+                }
+            } // end JWT auth block
 
             // SUPERUSER CHECK
-            const isSuperUser = user?.email === 'gbrlescalada@gmail.com' && user?.id === '365cd259-4f1e-4004-a677-1eda06a5147e';
+            const isSuperUser = effectiveUserId === '365cd259-4f1e-4004-a677-1eda06a5147e';
 
             // ─── ORG RESEARCH POOL CHECK ───────────────────────────────────────────
             // Si el usuario pertenece a un estudio verificado, consume del pool del org.

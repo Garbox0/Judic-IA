@@ -748,6 +748,40 @@ export async function POST(req) {
 
                 console.log(`[webhook] WhatsApp sub activated for user: ${subUserId}`);
 
+                // 🚀 WhatsApp Welcome Message (Integrated Onboarding)
+                try {
+                    const { data: profile } = await supabase.from('profiles').select('phone').eq('id', subUserId).single();
+                    let targetPhone = profile?.phone;
+                    
+                    if (targetPhone) {
+                        // Normalize phone: remove +, spaces, and ensure it's just digits
+                        targetPhone = targetPhone.replace(/\D/g, '');
+                        
+                        const AGENT_API_URL = process.env.AGENT_API_URL || 'https://judicia-agent.redfort.com.ar';
+                        const AGENT_KEY = process.env.AGENT_API_KEY || 'judicia-agent-2026';
+                        
+                        // Fire and forget, but with internal log
+                        fetch(`${AGENT_API_URL}/query`, {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'x-agent-key': AGENT_KEY 
+                            },
+                            body: JSON.stringify({
+                                phone: targetPhone,
+                                message: '¡HOLA! Ya activé mi suscripción.'
+                            })
+                        }).then(r => console.log(`[webhook] WA welcome response: ${r.status}`))
+                          .catch(e => console.error(`[webhook] WA fetch error: ${e.message}`));
+
+                        console.log(`[webhook] WhatsApp welcome triggered for: ${targetPhone}`);
+                    } else {
+                        console.warn(`[webhook] No phone found for user ${subUserId}, skipping WA welcome.`);
+                    }
+                } catch (waErr) {
+                    console.error('[webhook whatsapp-sub] WA trigger error:', waErr.message);
+                }
+
                 try {
                     const [{ data: userData }, { data: profileData }] = await Promise.all([
                         supabase.auth.admin.getUserById(subUserId),

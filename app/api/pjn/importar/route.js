@@ -51,10 +51,20 @@ const PJN_MATERIA_MAP = {
 };
 
 export async function POST(request) {
-    const auth = await verifyAuth(request);
-    if (auth.error) return auth.response;
+    // ─── INTERNAL AGENT BYPASS ─────────────────────────────────────────────
+    const internalKey = request.headers.get('x-internal-key');
+    const isInternalAgent = internalKey && internalKey === process.env.INTERNAL_API_KEY;
+    let userId, preBody;
 
-    const userId = auth.user.id;
+    if (isInternalAgent) {
+        preBody = await request.json();
+        userId = preBody.user_id;
+        if (!userId) return NextResponse.json({ error: 'user_id requerido para acceso interno' }, { status: 400 });
+    } else {
+        const auth = await verifyAuth(request);
+        if (auth.error) return auth.response;
+        userId = auth.user.id;
+    }
 
     const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -63,16 +73,14 @@ export async function POST(request) {
     );
 
     try {
-        const body = await request.json();
+        const body = preBody ?? await request.json();
         const { expediente, caratula, fuero, jurisdiccion, source = 'pjn', detail, link, sessionToken } = body;
 
         if (!expediente || !caratula) {
             return NextResponse.json({ error: 'Faltan datos del expediente.' }, { status: 400 });
         }
 
-        const isSuperUser =
-            auth.user?.email === 'gbrlescalada@gmail.com' &&
-            userId === '365cd259-4f1e-4004-a677-1eda06a5147e';
+        const isSuperUser = userId === '365cd259-4f1e-4004-a677-1eda06a5147e';
 
         // 1. Detectar si el usuario pertenece a un estudio verificado
         let useOrgPool = false;

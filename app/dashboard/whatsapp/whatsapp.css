@@ -1,34 +1,54 @@
 .wa-container {
-    padding: 1.5rem 2rem 3rem;
-    max-width: 900px;
+    padding: 0 3rem 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    color: var(--foreground);
 }
-
-.wa-nav { margin-bottom: 1.5rem; }
 
 .wa-header {
     display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    padding: 2.5rem;
+    background: var(--glass-medium);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+}
+
+.wa-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, #fbbf24, transparent);
+    opacity: 0.3;
+}
+
+.wa-header-top {
+    display: flex;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 2rem;
+    gap: 1.25rem;
 }
 
 .wa-header-icon {
-    width: 60px;
-    height: 60px;
+    width: 64px;
+    height: 64px;
+    background: rgba(251, 191, 36, 0.1);
     border-radius: 16px;
-    background: rgba(37,211,102,0.12);
-    border: 1px solid rgba(37,211,102,0.25);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #25d366;
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.2);
     flex-shrink: 0;
 }
 
 .wa-header h1 {
     font-size: 1.6rem;
     font-weight: 700;
-    color: white;
+    color: var(--foreground);
     margin: 0 0 0.2rem;
     display: flex;
     align-items: center;
@@ -42,22 +62,70 @@
 }
 
 .wa-beta-badge {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
+    background: #fbbf24;
+    color: #0f172a;
+    padding: 0.2rem 0.6rem;
+    border-radius: 99px;
+    margin-left: 0.5rem;
     font-weight: 800;
-    letter-spacing: 0.08em;
-    padding: 0.15rem 0.4rem;
-    border-radius: 4px;
-    background: rgba(37,211,102,0.15);
-    color: #25d366;
-    border: 1px solid rgba(37,211,102,0.3);
-    vertical-align: middle;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 10px rgba(251, 191, 36, 0.2);
+}
+
+/* Features */
+.wa-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.wa-feature-card {
+    padding: 2rem;
+    background: var(--glass-soft);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.wa-feature-card:hover {
+    background: var(--glass-medium);
+    border-color: #fbbf24;
+    transform: translateY(-5px);
+}
+
+.wa-feature-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.wa-feature-card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--foreground);
+    margin-bottom: 0.5rem;
+}
+
+.wa-feature-card p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 0;
 }
 
 /* Grid */
 .wa-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 1.5rem;
 }
 
 .wa-card {
@@ -72,15 +140,17 @@
 .wa-card-header {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    color: #25d366;
-    margin-bottom: 1.25rem;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    color: #fbbf24;
 }
 
 .wa-card-header h2 {
     font-size: 1rem;
     font-weight: 600;
-    color: white;
+    color: var(--foreground);
     margin: 0;
 }
 
@@ -96,19 +166,45 @@
 }
 
 .wa-status.linked {
-    background: rgba(37,211,102,0.08);
-    border: 1px solid rgba(37,211,102,0.25);
-    color: #86efac;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    color: #22c55e;
 }
 
 .wa-status.unlinked {
-    background: rgba(239,68,68,0.07);
-    border: 1px solid rgba(239,68,68,0.2);
-    color: #fca5a5;
+    background: var(--glass-soft);
+    border: 1px solid var(--border);
+    color: var(--muted);
 }
 
 .wa-status div { display: flex; flex-direction: column; gap: 0.15rem; }
-.wa-status strong { color: white; font-weight: 600; }
+.wa-status strong { color: var(--foreground); font-weight: 600; }
+
+.wa-qr-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    background: white;
+    border-radius: 16px;
+    margin-top: 2rem;
+}
+
+.wa-qr-box {
+    padding: 1rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.wa-qr-hint {
+    color: #4b5563;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+}
 
 /* Form */
 .wa-form { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -117,22 +213,71 @@
 .wa-input-row {
     display: flex;
     gap: 0.5rem;
+    align-items: stretch;
 }
 
 .wa-input-row input {
     flex: 1;
-    padding: 0.6rem 0.9rem;
-    border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.12);
-    background: rgba(255,255,255,0.05);
-    color: white;
-    font-size: 0.9rem;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--glass-soft);
+    color: var(--foreground);
+    font-size: 0.95rem;
+    line-height: 1.25rem;
     outline: none;
-    transition: border-color 0.2s;
+    transition: all 0.2s;
 }
 
-.wa-input-row input:focus { border-color: #25d366; }
+.wa-input-row input:focus { 
+    border-color: #fbbf24;
+    background: var(--glass-medium);
+}
 .wa-input-row input::placeholder { color: var(--muted); }
+
+/* Premium Buttons Overrides */
+.wa-container .btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    background: #fbbf24;
+    color: #0f172a;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+}
+
+.wa-container .btn-primary:hover:not(:disabled) {
+    background: #f59e0b;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(251, 191, 36, 0.3);
+}
+
+.wa-container .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    box-shadow: none;
+}
+
+.wa-input-row .btn-primary {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    height: auto; /* Ensure it flows with flex stretch */
+    min-width: 90px;
+}
+
+/* Specific fix for the plus icon button */
+.wa-input-row button.btn-primary svg {
+    margin: 0;
+}
 
 .wa-hint { font-size: 0.78rem; color: var(--muted); margin: 0; }
 
@@ -146,8 +291,8 @@
     font-size: 0.85rem;
     margin-top: 0.75rem;
 }
-.wa-alert.success { background: rgba(37,211,102,0.08); border: 1px solid rgba(37,211,102,0.25); color: #86efac; }
-.wa-alert.error { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+.wa-alert.success { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); color: #22c55e; }
+.wa-alert.error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; }
 
 /* Unlink */
 .btn-unlink {
@@ -185,14 +330,14 @@
     border: 1px solid rgba(255,255,255,0.06);
     transition: border-color 0.2s;
 }
-.wa-command:hover { border-color: rgba(37,211,102,0.25); }
+.wa-command:hover { border-color: rgba(251, 191, 36, 0.3); }
 
 .wa-command-icon {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
-    background: rgba(37,211,102,0.1);
-    color: #25d366;
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -200,7 +345,7 @@
 }
 
 .wa-command-body { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; min-width: 0; }
-.wa-command-label { font-size: 0.85rem; font-weight: 600; color: white; }
+.wa-command-label { font-size: 0.85rem; font-weight: 600; color: var(--foreground); }
 
 .wa-command-example {
     display: flex;
@@ -217,25 +362,30 @@
     padding: 0;
     transition: color 0.2s;
 }
-.wa-command-example:hover { color: #86efac; }
+.wa-command-example:hover { color: #fbbf24; }
 .wa-command-example span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Connect button */
 .btn-wa {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    border-radius: 10px;
-    background: #25d366;
-    color: #0a1a0f;
+    gap: 0.6rem;
+    padding: 0.8rem 1.8rem;
+    border-radius: 12px;
+    background: #fbbf24;
+    color: #0f172a;
     font-weight: 700;
     font-size: 0.95rem;
-    margin-top: 0.75rem;
-    transition: background 0.2s;
+    margin-top: 1rem;
+    transition: all 0.2s;
     text-decoration: none;
+    box-shadow: 0 10px 20px -5px rgba(251, 191, 36, 0.3);
 }
-.btn-wa:hover { background: #20b558; }
+.btn-wa:hover {
+    background: #f59e0b;
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px -8px rgba(251, 191, 36, 0.4);
+}
 
 /* Keywords */
 .wa-keywords {
@@ -249,11 +399,11 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.3rem 0.6rem 0.3rem 0.5rem;
-    border-radius: 20px;
-    background: rgba(37,211,102,0.1);
-    border: 1px solid rgba(37,211,102,0.25);
-    color: #86efac;
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    background: rgba(251, 191, 36, 0.08);
+    border: 1px solid rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
     font-size: 0.78rem;
     font-weight: 500;
 }
@@ -279,8 +429,11 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 1s linear infinite; }
 
+@media (max-width: 900px) {
+    .wa-grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 700px) {
     .wa-container { padding: 1rem; }
-    .wa-grid { grid-template-columns: 1fr; }
-    .wa-card-full { grid-column: 1; }
+    .wa-header { padding: 1.5rem; }
 }
