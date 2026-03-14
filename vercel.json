@@ -35,9 +35,5 @@
       "path": "/api/cron/index-pjn-sentencias",
       "schedule": "30 5 * * *"
     },
-    {
-      "path": "/api/cron/process-alerts",
-      "schedule": "30 6,13,19 * * *"
-    }
   ]
 }
