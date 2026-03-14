@@ -273,6 +273,24 @@ export default function PJNSearchPanel() {
 
   const rows = results?.results || [];
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+
+  const handleExportCSV = useCallback(() => {
+    if (!rows.length) return;
+    const esc = v => `"${String(v || '').replace(/"/g, '""')}"`;
+    const header = ['Expediente', 'Carátula', 'Dependencia', 'Última actuación', 'Estado'];
+    const csvRows = rows.map(r => [
+      esc(r.expediente), esc(r.caratula), esc(r.dependencia || r.dependencia_asignada),
+      esc(r.ultimaActuacion || r.assigned_date), esc(r.estado || ''),
+    ].join(','));
+    const csv = '\uFEFF' + [header.join(','), ...csvRows].join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `expedientes-${searchType === 'expediente' ? `${numero}-${anio}` : nombre.slice(0, 30)}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [rows, searchType, numero, anio, nombre]);
   const pagedRows = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
     return rows.slice(start, start + PAGE_SIZE);
@@ -616,9 +634,19 @@ export default function PJNSearchPanel() {
         <div className="pjn-results" aria-live="polite">
           <div className="pjn-results-header">
             <h4><FileText size={18} aria-hidden="true" /> {rows.length} resultado{rows.length !== 1 ? 's' : ''}</h4>
-            <span className="pjn-results-query">
-              {searchType === 'expediente' ? `Expediente ${numero}/${anio}` : nombre}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span className="pjn-results-query">
+                {searchType === 'expediente' ? `Expediente ${numero}/${anio}` : nombre}
+              </span>
+              <button
+                type="button"
+                onClick={handleExportCSV}
+                className="pjn-export-btn"
+                title="Exportar a CSV (Excel)"
+              >
+                <Download size={14} /> CSV
+              </button>
+            </div>
           </div>
 
           <div className="pjn-results-meta">

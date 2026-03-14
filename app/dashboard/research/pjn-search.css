@@ -432,6 +432,27 @@ body.light-theme .pjn-btn-secondary:hover {
     border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
 }
 
+.pjn-export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    background: transparent;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+.pjn-export-btn:hover {
+    color: #f1f5f9;
+    border-color: #64748b;
+    background: rgba(255,255,255,0.05);
+}
+
 .pjn-results-header h4 {
     display: flex;
     align-items: center;
