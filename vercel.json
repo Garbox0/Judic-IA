@@ -5,6 +5,9 @@
     },
     "app/api/pjn/detalle/route.js": {
       "maxDuration": 60
+    },
+    "app/api/cron/process-alerts/route.js": {
+      "maxDuration": 300
     }
   },
   "crons": [
@@ -31,6 +34,10 @@
     {
       "path": "/api/cron/index-pjn-sentencias",
       "schedule": "30 5 * * *"
+    },
+    {
+      "path": "/api/cron/process-alerts",
+      "schedule": "30 6,13,19 * * *"
     }
   ]
 }
