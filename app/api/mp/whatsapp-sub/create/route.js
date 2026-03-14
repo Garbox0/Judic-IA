@@ -57,7 +57,7 @@ export async function POST(req) {
         .eq('id', userId)
         .single();
 
-    if (profile?.whatsapp_sub_status === 'active') {
+    if (profile?.whatsapp_sub_status === 'active' || profile?.whatsapp_sub_status === 'past_due') {
         return NextResponse.json(
             { error: "Ya tenés el Asistente WhatsApp activo en tu cuenta." },
             { status: 400 }

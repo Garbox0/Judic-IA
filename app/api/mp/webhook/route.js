@@ -750,8 +750,8 @@ export async function POST(req) {
 
                 // 🚀 WhatsApp Welcome Message (Integrated Onboarding)
                 try {
-                    const { data: profile } = await supabase.from('profiles').select('phone').eq('id', subUserId).single();
-                    let targetPhone = profile?.phone;
+                    const { data: profile } = await supabase.from('profiles').select('whatsapp_phone').eq('id', subUserId).single();
+                    let targetPhone = profile?.whatsapp_phone;
                     
                     if (targetPhone) {
                         // Normalize phone: remove +, spaces, and ensure it's just digits
@@ -839,6 +839,8 @@ export async function POST(req) {
                 await supabase.from('profiles').update({
                     whatsapp_sub_status: 'cancelled',
                     whatsapp_sub_id: null,
+                    whatsapp_sub_expiry: null,
+                    whatsapp_grace_period_ends_at: null,
                 }).eq('id', subUserId);
                 console.log(`[webhook] WhatsApp sub cancelled for user: ${subUserId}`);
             }
@@ -848,6 +850,7 @@ export async function POST(req) {
                 gracePeriod.setDate(gracePeriod.getDate() + 7);
                 await supabase.from('profiles').update({
                     whatsapp_sub_status: 'past_due',
+                    whatsapp_sub_expiry: gracePeriod.toISOString(),
                     whatsapp_grace_period_ends_at: gracePeriod.toISOString(),
                 }).eq('id', subUserId);
                 console.log(`[webhook] WhatsApp sub past_due (grace until ${gracePeriod.toISOString()}) for user: ${subUserId}`);
