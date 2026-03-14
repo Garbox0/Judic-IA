@@ -32,17 +32,6 @@
       "path": "/api/cron/index-pjn-sentencias",
       "schedule": "30 5 * * *"
     },
-    {
-      "path": "/api/cron/process-alerts",
-      "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/process-alerts",
-      "schedule": "0 13 * * *"
-    },
-    {
-      "path": "/api/cron/process-alerts",
-      "schedule": "0 19 * * *"
-    }
+
   ]
 }

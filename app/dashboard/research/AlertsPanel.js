@@ -31,7 +31,7 @@ import {
 const PORTAL_OPTIONS = [
   { value: 'PJN', label: 'Nacion y Federal (PJN)' },
   { value: 'SCBA', label: 'Buenos Aires (SCBA)' },
-  { value: 'CABA', label: 'Ciudad de Buenos Aires (CABA) — Próximamente', disabled: true },
+  { value: 'CABA', label: 'Ciudad de Buenos Aires (CABA) — TSJ' },
   { value: 'CSJN_SORTEOS', label: 'Sorteos Federal (CSJN)' }
 ];
 

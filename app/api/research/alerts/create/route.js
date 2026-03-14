@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifyAuth } from '@/lib/api-auth';
 
-const ALLOWED_PORTALS = new Set(['PJN', 'SCBA', 'CSJN_SORTEOS']);
-const COMING_SOON_PORTALS = new Set(['CABA']);
+const ALLOWED_PORTALS = new Set(['PJN', 'SCBA', 'CSJN_SORTEOS', 'CABA']);
+const COMING_SOON_PORTALS = new Set();
 const ALLOWED_FREQUENCIES = new Set(['daily', 'weekly']);
 
 function isFutureDate(value) {
