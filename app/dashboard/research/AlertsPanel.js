@@ -188,6 +188,9 @@ export default function AlertsPanel() {
   const [expandedAlertId, setExpandedAlertId] = useState(null);
   const [historyByAlertId, setHistoryByAlertId] = useState({});
   const [loadingHistoryId, setLoadingHistoryId] = useState(null);
+  const [matchesHistory, setMatchesHistory] = useState({});
+  const [loadingMatchesId, setLoadingMatchesId] = useState(null);
+  const [expandedMatchesId, setExpandedMatchesId] = useState(null);
   const successTimeoutRef = useRef(null);
 
   const hasCsjnDraft = portal === 'CSJN_SORTEOS';
@@ -239,6 +242,30 @@ export default function AlertsPanel() {
       return next;
     });
   }, [fetchAlertHistory]);
+
+  const loadMatchesHistory = useCallback(async (alertId) => {
+    if (matchesHistory[alertId]) {
+      // already loaded — just toggle visibility
+      setExpandedMatchesId(prev => prev === alertId ? null : alertId);
+      return;
+    }
+    setLoadingMatchesId(alertId);
+    setExpandedMatchesId(alertId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) return;
+      const res = await fetch(`/api/research/alerts/${alertId}/matches`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const json = await res.json();
+      if (json.ok) {
+        setMatchesHistory(prev => ({ ...prev, [alertId]: { total: json.total || 0, matches: json.matches || [] } }));
+      }
+    } catch { /* ignore */ } finally {
+      setLoadingMatchesId(null);
+    }
+  }, [matchesHistory]);
 
   const setTransientSuccess = useCallback((message, timeoutMs = 7000) => {
     setSuccess(message);
@@ -1213,6 +1240,68 @@ export default function AlertsPanel() {
                           </tbody>
                         </table>
                       )}
+
+                      {/* Historial completo de expedientes detectados */}
+                      <div className="alerts-matches-history-section">
+                        <div className="alerts-matches-history-header">
+                          <span className="alerts-matches-history-label">Historial de expedientes detectados</span>
+                          <button
+                            type="button"
+                            className="alerts-matches-history-btn"
+                            onClick={() => loadMatchesHistory(alertItem.id)}
+                            disabled={loadingMatchesId === alertItem.id}
+                            aria-expanded={expandedMatchesId === alertItem.id}
+                          >
+                            {loadingMatchesId === alertItem.id
+                              ? <><Loader2 size={12} className="animate-spin" aria-hidden="true" /> Cargando...</>
+                              : expandedMatchesId === alertItem.id
+                                ? 'Ocultar historial'
+                                : 'Ver todos los expedientes detectados \u2192'
+                            }
+                          </button>
+                        </div>
+
+                        {expandedMatchesId === alertItem.id && matchesHistory[alertItem.id] && (
+                          <div className="alerts-matches-history" role="region" aria-label="Expedientes detectados">
+                            {matchesHistory[alertItem.id].matches.length === 0 ? (
+                              <p className="alerts-matches-empty">Todavía no hay expedientes detectados para esta alerta.</p>
+                            ) : (
+                              <>
+                                <p className="alerts-matches-total">
+                                  {matchesHistory[alertItem.id].total} expediente(s) detectado(s) en total
+                                </p>
+                                <div className="alerts-matches-table-wrap">
+                                  <table className="alerts-matches-table" aria-label="Expedientes detectados">
+                                    <thead>
+                                      <tr>
+                                        <th>Fecha</th>
+                                        <th>Expediente</th>
+                                        <th>Carátula</th>
+                                        <th>Ver</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {matchesHistory[alertItem.id].matches.map((match) => (
+                                        <tr key={match.id} className="alerts-matches-row">
+                                          <td className="alerts-matches-cell-date">{formatDate(match.found_at)}</td>
+                                          <td className="alerts-matches-cell-exp">{match.expediente || '-'}</td>
+                                          <td className="alerts-matches-cell-car">{match.caratula || '-'}</td>
+                                          <td className="alerts-matches-cell-link">
+                                            {match.link
+                                              ? <a href={match.link} target="_blank" rel="noopener noreferrer" className="alerts-history-sample-link">Ver →</a>
+                                              : <span className="alerts-matches-no-link">—</span>
+                                            }
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </article>
