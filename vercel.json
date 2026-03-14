@@ -31,7 +31,6 @@
     {
       "path": "/api/cron/index-pjn-sentencias",
       "schedule": "30 5 * * *"
-    },
-
+    }
   ]
 }
