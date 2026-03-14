@@ -1174,22 +1174,41 @@ export default function AlertsPanel() {
                           </thead>
                           <tbody>
                             {historyByAlertId[alertItem.id].map(log => (
-                              <tr key={log.id} className={log.has_error ? 'alerts-history-row-error' : ''}>
-                                <td>{formatDate(log.ran_at)}</td>
-                                <td>
-                                  {log.has_error
-                                    ? <span className="alerts-history-status-err" title={log.error_short || ''}>❌ Error</span>
-                                    : <span className="alerts-history-status-ok">✔️ OK</span>
-                                  }
-                                </td>
-                                <td>{log.results_found ?? '-'}</td>
-                                <td>
-                                  {log.new_count !== null
-                                    ? <strong className={log.new_count > 0 ? 'alerts-history-new-highlight' : ''}>{log.new_count}</strong>
-                                    : '-'
-                                  }
-                                </td>
-                              </tr>
+                              <>
+                                <tr key={log.id} className={log.has_error ? 'alerts-history-row-error' : ''}>
+                                  <td>{formatDate(log.ran_at)}</td>
+                                  <td>
+                                    {log.has_error
+                                      ? <span className="alerts-history-status-err" title={log.error_short || ''}>❌ Error</span>
+                                      : <span className="alerts-history-status-ok">✔️ OK</span>
+                                    }
+                                  </td>
+                                  <td>{log.results_found ?? '-'}</td>
+                                  <td>
+                                    {log.new_count !== null
+                                      ? <strong className={log.new_count > 0 ? 'alerts-history-new-highlight' : ''}>{log.new_count}</strong>
+                                      : '-'
+                                    }
+                                  </td>
+                                </tr>
+                                {log.samples?.length > 0 && (
+                                  <tr key={`${log.id}-samples`} className="alerts-history-samples-row">
+                                    <td colSpan={4}>
+                                      <ul className="alerts-history-samples">
+                                        {log.samples.map((s, i) => (
+                                          <li key={i} className="alerts-history-sample-item">
+                                            <span className="alerts-history-sample-exp">{s.expediente}</span>
+                                            <span className="alerts-history-sample-car">{s.caratula}</span>
+                                            {s.link && (
+                                              <a href={s.link} target="_blank" rel="noopener noreferrer" className="alerts-history-sample-link">Ver →</a>
+                                            )}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </td>
+                                  </tr>
+                                )}
+                              </>
                             ))}
                           </tbody>
                         </table>

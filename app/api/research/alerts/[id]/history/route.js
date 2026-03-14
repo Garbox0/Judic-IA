@@ -53,10 +53,12 @@ export async function GET(req, { params }) {
         logs: (logs || []).map(log => {
             // Extraer new_count del campo error_message si contiene ALERT_META
             let newCount = null;
+            let samples = [];
             if (log.error_message?.startsWith('ALERT_META:')) {
                 try {
                     const meta = JSON.parse(log.error_message.replace('ALERT_META:', ''));
                     newCount = meta?.new_count ?? null;
+                    samples = Array.isArray(meta?.samples) ? meta.samples : [];
                 } catch { /* ignore */ }
             }
             return {
@@ -69,6 +71,7 @@ export async function GET(req, { params }) {
                 error_short: log.status === 'error'
                     ? (log.error_message || 'Error desconocido').slice(0, 80)
                     : null,
+                samples,
             };
         })
     });
