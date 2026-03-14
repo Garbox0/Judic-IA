@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
+import PushNotifButton from './PushNotifButton';
 import {
   Activity,
   Plus,
@@ -1001,6 +1002,7 @@ export default function AlertsPanel() {
       <div className="alerts-list-container">
         <div className="alerts-list-header">
           <h4 className="alerts-list-title">Tus alertas</h4>
+          <PushNotifButton />
 
           {hasCsjnAlerts && (
             <fieldset className="alerts-manual-run">
