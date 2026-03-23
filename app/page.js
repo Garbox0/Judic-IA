@@ -698,7 +698,7 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* WhatsApp floating widget */}
+      {/* WhatsApp floating widget - Desactivado temporalmente
       <a
         href="https://wa.me/5491168805604?text=Hola%2C%20quiero%20probar%20el%20asistente%20Judic-IA"
         target="_blank"
@@ -711,6 +711,7 @@ export default function Home() {
         </svg>
         <span>Probá el agente</span>
       </a>
+      */}
     </main>
   );
 }
